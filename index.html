@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="description" content="FoodAsu, eine App von Ali. Kommt bald.">
+<title>FoodAsu</title>
+<style>
+:root{--main:#4A3FD1;--on-main:#FFFFFF;--tone:#EFEDFF;--tone-deep:#DEDAFF;--bg:#FFFFFF;--text:#1A1A24;
+--muted:#5E5D6E;--line:#C7C4D7;--blob:rgba(74,63,209,.13);--ring:rgba(74,63,209,.35);color-scheme:light dark}
+@media (prefers-color-scheme:dark){:root{--main:#B3ABFF;--on-main:#1D1670;--tone:#1F1D33;--tone-deep:#2A2745;
+--bg:#121219;--text:#E5E4EE;--muted:#A9A8B8;--line:#464554;--blob:rgba(179,171,255,.13);--ring:rgba(179,171,255,.35)}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);font:1.0625rem/1.6 system-ui,-apple-system,"Segoe UI",Roboto,
+"Noto Sans",Arial,sans-serif;overflow-x:hidden}
+.seite{position:relative;max-width:42rem;margin:0 auto;padding:2.5rem 1rem 3rem}
+.akzent{position:absolute;inset:0 0 auto 0;height:22rem;overflow:hidden;pointer-events:none;z-index:0}
+.akzent::before{content:"";position:absolute;width:22rem;height:22rem;border-radius:50%;background:var(--blob);
+top:-9rem;right:-8rem}
+.akzent::after{content:"";position:absolute;width:4.5rem;height:4.5rem;border-radius:50%;border:3px solid var(--ring);
+top:7.5rem;right:2.5rem}
+.kreis{position:absolute;width:7rem;height:7rem;border-radius:50%;background:var(--tone-deep);top:1.5rem;right:5.5rem}
+main,header,footer{position:relative;z-index:1}
+.marke{font-weight:800;font-size:1.25rem;letter-spacing:-.01em;color:var(--main);text-decoration:none}
+h1{font-size:clamp(1.75rem,8vw,3.25rem);line-height:1.1;margin:2.5rem 0 .75rem;letter-spacing:-.02em;
+overflow-wrap:break-word;hyphens:auto}
+h2,h3,h4{overflow-wrap:break-word;hyphens:auto}
+h1 .betont{color:var(--main)}
+h2{font-size:1.4rem;line-height:1.3;margin:2.25rem 0 .5rem}
+h3{font-size:1.15rem;line-height:1.35;margin:1.75rem 0 .4rem}
+h4{font-size:1.05rem;margin:1.5rem 0 .3rem}
+p,li{max-width:40rem}
+ul,ol{padding-left:1.4rem}
+li{margin:.3rem 0}
+a{color:var(--main);text-underline-offset:.18em;overflow-wrap:anywhere}
+a:focus-visible{outline:3px solid var(--main);outline-offset:3px;border-radius:4px}
+.unterzeile{font-size:1.2rem;color:var(--muted);margin:0 0 1.75rem}
+.karte{background:var(--tone);border-radius:24px;padding:1.25rem 1.25rem;margin:1.75rem 0}
+.karte p{margin:.35rem 0}
+.tabelle{overflow-x:auto;margin:1rem 0}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{border:1px solid var(--line);padding:.5rem .6rem;text-align:left;vertical-align:top}
+th{background:var(--tone)}
+hr{border:0;border-top:1px solid var(--line);margin:2rem 0}
+footer{margin-top:3rem;padding-top:1.25rem;border-top:1px solid var(--line);color:var(--muted);font-size:.95rem}
+footer a{color:inherit}
+.stand{color:var(--muted);font-size:.95rem}
+</style>
+</head>
+<body>
+<div class="seite">
+<div class="akzent" aria-hidden="true"><div class="kreis"></div></div>
+<header><a class="marke" href="./">FoodAsu</a></header>
+<main>
+<h1>Food<span class="betont">Asu</span></h1>
+<p class="unterzeile">Eine App von Ali. Kommt bald.</p>
+<p>FoodAsu hilft beim Einkaufen: Du scannst ein Produkt und siehst, ob laut den Angaben etwas drin ist, das jemand
+in deinem Haushalt meidet. Maßgeblich bleibt immer die Verpackung.</p>
+<div class="karte">
+<p>Was dein Haushalt meidet, bleibt nur auf deinem Handy.</p>
+<p>Kein Konto, keine Werbung.</p>
+</div>
+<p>FoodAsu wird gerade mit einer kleinen Gruppe getestet und ist noch nicht im Play Store zu finden.</p>
+<h2>Kontakt</h2>
+<p>Fragen oder Feedback: <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#97;&#108;&#105;&#97;&#112;&#112;&#64;&#103;&#109;&#120;&#46;&#97;&#116;">&#97;&#108;&#105;&#97;&#112;&#112;&#64;&#103;&#109;&#120;&#46;&#97;&#116;</a></p>
+</main>
+<footer><a href="datenschutz.html">Datenschutzerklärung</a></footer>
+</div>
+</body>
+</html>
