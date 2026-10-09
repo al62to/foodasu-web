@@ -161,11 +161,24 @@ function vorschau() {
   zeige(alle('.faq details'), { y: 24, stagger: 0.06 });
 }
 
+let abfrage;
+
 export function starte() {
   // Stellt jemand später auf "Bewegung reduzieren" um, nimmt GSAP alles zurück, was hier angelegt wurde.
   // Die Abschnitte werden nacheinander in eigenen Schritten eingerichtet, damit das Handy dabei bedienbar bleibt.
-  const abfrage = gsap.matchMedia();
+  if (abfrage) return;
+  const lauf = (abfrage = gsap.matchMedia());
   [kopf, wort, schritte, glas, zaehler, vorschau].forEach((abschnitt, nummer) => {
-    setTimeout(() => abfrage.add('(prefers-reduced-motion: no-preference)', () => abschnitt()), nummer * 40);
+    setTimeout(() => {
+      if (abfrage === lauf) lauf.add('(prefers-reduced-motion: no-preference)', () => abschnitt());
+    }, nummer * 40);
   });
+}
+
+// Knopf "Bewegung anhalten": nimmt alles zurück, was starte() angelegt hat. Die Seite steht dann so da wie mit
+// "Bewegung reduzieren" (alles sichtbar, Zähler mit Endzahl, Linie voll). starte() richtet die Bewegung neu ein.
+export function halte() {
+  if (!abfrage) return;
+  abfrage.revert();
+  abfrage = undefined;
 }

@@ -11,9 +11,9 @@ const punkt = (name, text) => zeile(`- **${name}:** ${text}`);
 
 zeile('# Website foodasu.com: Texte der Startseite (freigegeben am 09.10.2026)');
 zeile();
-zeile('Stand 09.10.2026, Karte B (AP-15 Etappe 1). Von Ali am 09.10.2026 freigegeben, mit den Entscheidungen am Ende; **offen sind nur die Punkte im letzten Abschnitt** (Schritt 3 und die Durchsicht auf Logik). Nichts davon ist veröffentlicht.');
+zeile('Stand 09.10.2026, Karte B (AP-15 Etappe 1). Von Ali am 09.10.2026 freigegeben, mit den Entscheidungen am Ende; es ist kein Punkt mehr offen. Nichts davon ist veröffentlicht.');
 zeile('Erzeugt aus `foodasu-web/src/daten/startseite.mjs` (Zweig `astro`) mit `npm run texte`; geändert wird dort, nicht hier.');
-zeile('Grundlage: AP-15 Teil B, Nachtrag SEO vom 09.10.2026 (Punkt 7), Konzept v4 Abschnitt 1. Die Wortprüfung läuft über diese Datei (`texte_pruefen.py`) und über die gebauten Seiten (`npm run pruefen`).');
+zeile('Grundlage: AP-15 Teil B, Nachtrag SEO vom 09.10.2026 (Punkt 7 und Punkt 8), Konzept v4 Abschnitt 1. Die Wortprüfung läuft über diese Datei (`texte_pruefen.py`) und über die gebauten Seiten (`npm run pruefen`).');
 zeile();
 zeile('Woher die Wortlaute kommen: Sätze mit dem Vermerk (Store) stehen so im freigegebenen Store-Eintrag, (Beitrag) im freigegebenen LinkedIn-Beitrag vom 06.10.2026, (App) in den Texten der App. Alles ohne Vermerk ist neu geschrieben.');
 zeile();
@@ -29,7 +29,7 @@ mega.spalten.forEach((spalte, nummer) => {
   for (const gruppe of spalte.gruppen) punkt(`Mega-Menü, Spalte ${nummer + 1}, Gruppe „${gruppe.titel}“`, gruppe.eintraege.map((e) => e.name).join(', '));
 });
 punkt('Mega-Menü, letzte Zeile', mega.alle.titel);
-punkt('Für Bildschirmleser', `„${t.geruest.sprung}“, „${t.geruest.marke}“, „${t.geruest.navigation}“, „${t.geruest.menue}“, „${t.geruest.untermenue}“, „${t.geruest.brotkrumen}“; vor den Einträgen des Mega-Menüs unsichtbar „Rezepte aus: …“, „Rezepte der Kategorie …“, „Rezepte ohne …“, „Rezepte, passt für: …“`);
+punkt('Für Bildschirmleser', `„${t.geruest.sprung}“, „${t.geruest.marke}“, „${t.geruest.navigation}“, „${t.geruest.menue}“, „${t.geruest.untermenue}“, „${t.geruest.brotkrumen}“; Knopf der Startseite „${t.geruest.bewegung.anhalten}“ und „${t.geruest.bewegung.fortsetzen}“ (sichtbar, unten rechts); vor den Einträgen des Mega-Menüs unsichtbar „Rezepte aus: …“, „Rezepte der Kategorie …“, „Rezepte ohne …“, „Rezepte, passt für: …“`);
 zeile();
 
 zeile('## Abschnitt 1: Kopf mit Scan-Geschichte');
@@ -41,7 +41,7 @@ punkt('Zeile darunter', `${t.kopf.stand} (Beta-Satz und Satz zum iPhone wörtlic
 punkt('Im Handy, Produkt', `${t.kopf.handy.produkt}, ${t.kopf.handy.zusatz} (erfunden, ohne Marke)`);
 punkt('Im Handy, Urteil', `${t.kopf.handy.urteil} (App)`);
 punkt('Im Handy, Personen', t.kopf.handy.personen.map((p) => `${p.name}: ${p.ergebnis}`).join('; '));
-punkt('Im Handy, Knopf', `${t.kopf.handy.knopf} (App)`);
+punkt('Im Handy, Knopf', `${t.kopf.handy.knopf} (App; allein in der Zeile, ohne Mengenwähler)`);
 punkt('Beschreibung des Handys für Bildschirmleser', t.kopf.handy.beschreibung);
 punkt('Schwebende Begriffe', t.kopf.begriffe.join(', '));
 zeile();
@@ -54,14 +54,14 @@ punkt('Unterschrift', t.wort.unterschrift);
 zeile();
 
 zeile('## Abschnitt 3: Drei Schritte');
-punkt('Überschrift', `${t.schritte.ueberschrift} (Vorschlag, wartet auf Freigabe)`);
-t.schritte.liste.forEach((s, i) => punkt(`Schritt ${i + 1}, „${s.titel}“`, s.text + (i === 2 ? ' (Vorschlag, wartet auf Freigabe)' : '')));
+punkt('Überschrift', t.schritte.ueberschrift);
+t.schritte.liste.forEach((s, i) => punkt(`Schritt ${i + 1}, „${s.titel}“`, s.text));
 zeile();
 
 zeile('## Abschnitt 4: Funktionen im Glas-Raster');
 punkt('Überschrift', `${t.funktionen.ueberschrift} (Store)`);
 for (const k of t.funktionen.karten) {
-  punkt(`Karte „${k.titel}“`, k.text + (k.kennung === 'liste' ? ' (erster Satz: Vorschlag, wartet auf Freigabe)' : '') + (k.bild ? ` Bildbeschreibung: „${k.bild}“.` : '') + (k.beispiel ? ` Beispielliste: ${k.beispiel.join(', ')}.` : ''));
+  punkt(`Karte „${k.titel}“`, k.text + (k.bild ? ` Bildbeschreibung: „${k.bild}“.` : '') + (k.beispiel ? ` Beispielliste: ${k.beispiel.join(', ')}.` : ''));
 }
 zeile();
 
@@ -117,26 +117,14 @@ zeile('## Entscheidungen (Ali, 09.10.2026)');
   'Facebook: Adresse am 09.10.2026 nachgereicht; Symbol im Fuß und Eintrag in den strukturierten Daten sind drin. Instagram: instagram.com/foodasu.app.',
   'Mega-Menü: Spalte „Ohne ...“ nur mit Nüsse, Gluten, Schweinefleisch, Alkohol, Palmöl, Sesam, Milch; darunter die eigene Gruppe „Passt für“ mit Vegetarisch und Vegan.',
   'Kategorie der App in den strukturierten Daten: „ShoppingApplication“.',
-].forEach((text, i) => zeile(`${i + 1}. ${text}`));
-zeile();
-
-zeile('## Offen: Schritt 3 und Durchsicht auf Logik (nach Alis Einwand vom 09.10.2026)');
-zeile('Einwand: Im Laden hat man das Produkt in der Hand und legt dort keine Liste an; sinnvoller sind Rezeptvorschläge aus der Einkaufsliste. Dazu: Aus Rezepten lassen sich auch Einkaufslisten erstellen. Bitte die Texte auf Logik prüfen.');
-zeile();
-zeile('**Schon eingebaut, als Vorschlag:**');
-[
-  'Schritt 3: bisher „Auf die Liste: Ein Tipp, und das Produkt steht auf deiner Einkaufsliste. Die Menge stellst du gleich daneben ein.“ Neu: „Kochen: FoodAsu schlägt dir zu deiner Einkaufsliste Rezepte vor und zeigt, was noch fehlt. Es geht auch umgekehrt: Aus einem Rezept setzt du die fehlenden Zutaten auf die Liste.“ (nach den Texten der App: „Was kann ich damit kochen?“ in jeder Liste, „Fehlende Zutaten auf die Liste“ unter den Zutaten eines Rezepts)',
-  'Überschrift von Abschnitt 3: bisher „Drei Schritte im Laden“, neu „FoodAsu in drei Schritten“ (Schritt 3 spielt nicht mehr im Laden).',
-  'Karte „Einkaufsliste, sortiert wie im Supermarkt“, erster Satz: bisher „Gescannte Produkte kommen mit einem Tipp auf die Liste.“ Neu: „Schreib auf, was du brauchst, oder setz die fehlenden Zutaten eines Rezepts auf die Liste.“ Der zweite Satz bleibt.',
-].forEach((text, i) => zeile(`${i + 1}. ${text}`));
-zeile();
-zeile('**Bei der Durchsicht aufgefallen, nicht geändert (bitte entscheiden):**');
-[
-  'Handy im Kopf: Unter „Nicht für Mia“ steht der Knopf „Auf die Liste“ (so sieht die Karte in der App aus). Bleibt er, oder soll dort „Warum?“ stehen (passt zu Schritt 2)?',
-  'Reihenfolge der drei Schritte: Mit „Kochen“ als Schritt 3 hängen Schritt 2 und 3 nur lose zusammen. Variante in der Reihenfolge des Alltags: „Festlegen“ (einmal, was jede Person meidet), „Scannen“ (mit „Warum?“), „Kochen“.',
-  'Beta-Satz im Kopf und in der Frage „Wo bekomme ich FoodAsu?“: „… und freuen uns über dein Feedback“ steht neben „Bald im Play Store“; wer die Seite vor dem öffentlichen Start liest, kann die App noch nicht laden. Der Wortlaut ist freigegeben; ganz stimmig wird er mit dem Start.',
-  '„Deshalb habe ich FoodAsu gebaut“ (ich) steht neben „Wir bauen laufend neue Funktionen ein“ (wir). Beides ist freigegeben.',
-  'Karte Rezepte: „Jedes mit einem gezeichneten Bild.“ So steht es auch in der App. Die Bilder sind mit Adobe Firefly erzeugt (Seite Lizenzen, Angabe in den Bilddateien); „gezeichnet“ kann als von Hand gezeichnet gelesen werden. Vorschlag: „Jedes mit einem Symbolbild.“',
+  'Schritt 3 heißt „Kochen“ statt „Auf die Liste“ (bisher: „Ein Tipp, und das Produkt steht auf deiner Einkaufsliste. Die Menge stellst du gleich daneben ein.“). Abweichung von AP-15 Teil B, festgehalten im Nachtrag SEO, Punkt 8.',
+  'Überschrift von Abschnitt 3: „FoodAsu in drei Schritten“ statt „Drei Schritte im Laden“.',
+  'Karte „Einkaufsliste, sortiert wie im Supermarkt“, erster Satz: „Schreib auf, was du brauchst, oder setz die fehlenden Zutaten eines Rezepts auf die Liste.“ statt „Gescannte Produkte kommen mit einem Tipp auf die Liste.“',
+  'Knopf im Handy unter „Nicht für Mia“: „Warum?“ statt „Auf die Liste“.',
+  'Reihenfolge der drei Schritte: „Scannen, Warum?, Kochen“ bleibt.',
+  'Beta-Satz neben „Bald im Play Store“ und „ich“ neben „wir“: bleibt.',
+  'Karte Rezepte: „Jedes mit einem Symbolbild.“ statt „Jedes mit einem gezeichneten Bild.“',
+  'Knopf zum Anhalten der Bewegung: ja, mit „Bewegung anhalten“ und „Bewegung fortsetzen“; der Zustand gilt nur für den Besuch, im Browser wird nichts gespeichert.',
 ].forEach((text, i) => zeile(`${i + 1}. ${text}`));
 zeile();
 

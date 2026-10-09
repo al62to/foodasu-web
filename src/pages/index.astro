@@ -6,7 +6,7 @@ import Basis from '../layouts/Basis.astro';
 import '../styles/start.css';
 import offenlegung from '../inhalte/offenlegung.html?raw';
 import { seite, auftritte, store } from '../daten/seite.mjs';
-import { kopfdaten, kopf, wort, schritte, funktionen, zahlen, vorschau, fragen } from '../daten/startseite.mjs';
+import { kopfdaten, kopf, wort, schritte, funktionen, zahlen, vorschau, fragen, geruest } from '../daten/startseite.mjs';
 
 const organisation = `${seite.adresse}/#organisation`;
 const gleich = [auftritte.facebook, auftritte.instagram, store.oeffentlich ? store.adresse : ''].filter(Boolean);
@@ -54,6 +54,10 @@ const zeichen = [
 const urteilZeichen = 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM9 9l6 6M15 9l-6 6';
 ---
 <Basis titel={kopfdaten.titel} beschreibung={kopfdaten.beschreibung} daten={daten}>
+  <button type="button" class="bewegung-knopf" data-bewegung data-anhalten={geruest.bewegung.anhalten} data-fortsetzen={geruest.bewegung.fortsetzen} hidden>
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path class="z-halt" d="M8 5v14M16 5v14" /><path class="z-lauf" d="M8 5l11 7-11 7z" /></svg>
+    <span data-bewegung-text>{geruest.bewegung.anhalten}</span>
+  </button>
   <section class="held" id="start">
     <div class="held-fleck f1" aria-hidden="true"></div>
     <div class="held-fleck f2" aria-hidden="true"></div>
@@ -95,7 +99,7 @@ const urteilZeichen = 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM9 9l6 6M15 9l-6 6';
                     <span class:list={['pille', nummer === 0 ? 'r' : 'n']}>{person.ergebnis}</span>
                   </div>
                 ))}
-                <div class="leiste"><div class="menge">– 1 +</div><div class="dazu">{kopf.handy.knopf}</div></div>
+                <div class="leiste"><div class="dazu">{kopf.handy.knopf}</div></div>
               </div>
             </div>
           </div>
@@ -274,8 +278,14 @@ const urteilZeichen = 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM9 9l6 6M15 9l-6 6';
 <script>
   // Ohne "Bewegung reduzieren": Laufbänder starten und GSAP nachladen, beides erst nach dem ersten Zeichnen.
   // Mit "Bewegung reduzieren" wird GSAP gar nicht geladen.
+  // Der Knopf "Bewegung anhalten" erscheint, sobald Bewegung läuft. Sein Zustand steht nur in einer Variablen
+  // dieser Seite: Er gilt für den Besuch, im Browser wird nichts gespeichert.
   const ruhig = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const knopf = document.querySelector('[data-bewegung]');
+  const wurzel = document.documentElement;
   let geladen = false;
+  let angehalten = false;
+  let bewegung;
 
   const baender = () => {
     for (const spur of document.querySelectorAll('[data-band]:not(.laeuft)')) {
@@ -297,8 +307,18 @@ const urteilZeichen = 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM9 9l6 6M15 9l-6 6';
     if (geladen || ruhig.matches) return;
     geladen = true;
     baender();
-    import('../skripte/bewegung.js').then((modul) => modul.starte());
+    knopf.hidden = false;
+    import('../skripte/bewegung.js').then((modul) => {
+      bewegung = modul;
+      if (!angehalten) modul.starte();
+    });
   };
+  knopf.addEventListener('click', () => {
+    angehalten = !angehalten;
+    wurzel.classList.toggle('angehalten', angehalten);
+    knopf.querySelector('[data-bewegung-text]').textContent = angehalten ? knopf.dataset.fortsetzen : knopf.dataset.anhalten;
+    if (bewegung) angehalten ? bewegung.halte() : bewegung.starte();
+  });
   // "Nach dem ersten Zeichnen" heißt: Der Browser hat das erste Bild der Seite gemeldet (first-contentful-paint)
   // und die Seite ist fertig geladen. Kennt ein Browser die Meldung nicht, zählt der Zeitgeber.
   const gezeichnet = new Promise((weiter) => {
@@ -321,5 +341,8 @@ const urteilZeichen = 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM9 9l6 6M15 9l-6 6';
     else window.addEventListener('load', weiter, { once: true });
   });
   Promise.all([gezeichnet, fertig]).then(() => setTimeout(starte, 150));
-  ruhig.addEventListener('change', starte);
+  ruhig.addEventListener('change', () => {
+    starte();
+    knopf.hidden = ruhig.matches || !geladen;
+  });
 </script>

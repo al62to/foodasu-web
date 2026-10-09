@@ -1,6 +1,7 @@
 // Nachweise an der gebauten Website, gegen eine laufende Vorschau (npm run preview):
 //   1. Netzwerk-Mitschnitt je Seite: keine Anfragen an Dritte, keine Cookies, kein Speicher im Browser
 //   2. GSAP wird erst nach dem ersten Zeichnen geladen, mit "Bewegung reduzieren" gar nicht
+//   2c. Knopf "Bewegung anhalten": Tastatur, Stillstand, Fortsetzen, nichts gespeichert
 //   3. kein waagrechtes Scrollen bei 360, 390, 768, 1024 und 1440 Pixel
 //   4. Mega-Menü mit Tastatur, ohne JavaScript und so, wie es ein Bildschirmleser gemeldet bekommt
 //   5. Bildschirmfotos (Handy und Laptop, hell und dunkel) auf einem Blatt
@@ -124,6 +125,7 @@ sage('## 2 "Bewegung reduzieren"');
   pruefe(stand.zahlen.every(Boolean), 'Zähler zeigen die Endzahl');
   pruefe(stand.kopien === 0, 'Laufbänder stehen als Liste, ohne Kopien');
   pruefe(stand.linie === 'none' || stand.linie === 'matrix(1, 0, 0, 1, 0, 0)', 'Linie der drei Schritte ist ganz gezeichnet');
+  pruefe(await seite.evaluate(() => document.querySelector('[data-bewegung]').hidden), 'Knopf "Bewegung anhalten" bleibt ausgeblendet');
   await umgebung.close();
 }
 
@@ -171,6 +173,118 @@ sage('## 2b Bewegung läuft (ohne "Bewegung reduzieren", Laptop)');
   await warte(1500);
   pruefe(await seite.evaluate(() => [...document.querySelectorAll('.rezeptkarte img')].every((bild) => bild.complete && bild.naturalWidth > 0 && /\.avif$/.test(bild.currentSrc))), 'Rezepte-Vorschau: vier Bilder geladen (AVIF)');
   await umgebung.close();
+}
+
+sage();
+sage('## 2c Knopf "Bewegung anhalten" (ohne "Bewegung reduzieren")');
+{
+  const { umgebung, seite } = await neueSeite({ ansicht: LAPTOP });
+  await seite.goto(BASIS + '/', { waitUntil: 'networkidle0' });
+  await warte(2500);
+  const knopf = () => seite.evaluate(() => {
+    const element = document.querySelector('[data-bewegung]');
+    const flaeche = element.getBoundingClientRect();
+    return {
+      sichtbar: !element.hidden && getComputedStyle(element).display !== 'none',
+      text: element.textContent.trim(),
+      marke: element.tagName,
+      imFenster: flaeche.right <= window.innerWidth && flaeche.bottom <= window.innerHeight && flaeche.left >= 0 && flaeche.top >= 0,
+      hoehe: flaeche.height,
+    };
+  });
+  const bild = () => seite.evaluate(() => ({
+    blatt: getComputedStyle(document.querySelector('[data-blatt]')).transform,
+    marke: getComputedStyle(document.querySelector('.schwebt')).translate,
+    flaeche: getComputedStyle(document.querySelector('.glas-flaechen .a')).transform,
+    band: getComputedStyle(document.querySelector('[data-band]')).transform,
+    wort: document.querySelector('[data-wort]').textContent,
+    haken: document.querySelectorAll('[data-haken] li.erledigt').length,
+    schleifen: document.getAnimations().filter((lauf) => lauf.playState === 'running' && lauf.effect.getComputedTiming().iterations === Infinity).length,
+  }));
+  let stand = await knopf();
+  pruefe(stand.sichtbar && stand.marke === 'BUTTON' && stand.text === 'Bewegung anhalten', `Knopf ist da, sobald Bewegung läuft: "${stand.text}"`);
+  pruefe(stand.imFenster, 'Knopf liegt ganz im Fenster (fest unten rechts)');
+  let weg = null;
+  for (let nummer = 1; nummer <= 12 && !weg; nummer++) {
+    await seite.keyboard.press('Tab');
+    if (await seite.evaluate(() => document.activeElement.matches('[data-bewegung]'))) weg = { length: nummer };
+  }
+  pruefe(!!weg, `Knopf mit Tab erreichbar (nach ${weg ? weg.length : '?'} Schritten)`);
+  const umriss = await seite.evaluate(() => getComputedStyle(document.activeElement).outline);
+  pruefe(/solid [1-9]/.test(umriss), `Fokus sichtbar (Umriss ${umriss})`);
+  await seite.keyboard.press('Enter');
+  await warte(900);
+  stand = await knopf();
+  pruefe(stand.text === 'Bewegung fortsetzen', `Enter hält an, der Knopf heißt dann "${stand.text}"`);
+  const a = await bild();
+  await warte(3200);
+  const b = await bild();
+  pruefe(a.schleifen === 0 && b.schleifen === 0, `angehalten: laufende Schleifen ${b.schleifen}`);
+  pruefe(a.blatt === b.blatt && a.marke === b.marke && a.flaeche === b.flaeche && a.band === b.band && a.wort === b.wort && a.haken === b.haken, 'angehalten: Scan, Begriffe, Wort, Farbflächen, Bänder und Einkaufsliste stehen still (zwei Messungen im Abstand von 3,2 s)');
+  await durchscrollen(seite);
+  const ruhe = await seite.evaluate(() => {
+    const sichtbar = (auswahl) => [...document.querySelectorAll(auswahl)].every((element) => {
+      const stil = getComputedStyle(element);
+      return stil.opacity === '1' && stil.visibility === 'visible' && stil.display !== 'none';
+    });
+    return {
+      sichtbar: sichtbar('.held h1, .held-vorspann, .handy-rahmen, [data-urteil], [data-person], .schwebt, .schritt, .glaskarte, .zaehler li, .rezeptkarte, .faq details, .wort-text'),
+      zahlen: [...document.querySelectorAll('[data-zahl]')].every((element) => element.textContent === element.dataset.zahl),
+      linie: getComputedStyle(document.querySelector('[data-linie]')).transform,
+      speicher: document.cookie.length + localStorage.length + sessionStorage.length,
+    };
+  });
+  pruefe(ruhe.sichtbar && ruhe.zahlen && (ruhe.linie === 'none' || ruhe.linie === 'matrix(1, 0, 0, 1, 0, 0)'), 'angehalten: nach dem Durchscrollen alle Inhalte sichtbar, Zähler mit Endzahl, Linie voll');
+  pruefe(ruhe.speicher === 0 && (await umgebung.cookies()).length === 0, 'angehalten: nichts im Browser gespeichert (Cookies, localStorage, sessionStorage: 0)');
+  await seite.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+  await seite.focus('[data-bewegung]');
+  await seite.keyboard.press('Space');
+  await warte(400);
+  stand = await knopf();
+  const c = await bild();
+  await warte(3600);
+  const d = await bild();
+  pruefe(stand.text === 'Bewegung anhalten', `Leertaste setzt fort, der Knopf heißt wieder "${stand.text}"`);
+  pruefe(c.blatt !== d.blatt && c.marke !== d.marke && d.schleifen > 0, `fortgesetzt: Scan und Begriffe bewegen sich wieder (laufende Schleifen ${d.schleifen})`);
+  await seite.reload({ waitUntil: 'networkidle0' });
+  await warte(2500);
+  stand = await knopf();
+  pruefe(stand.text === 'Bewegung anhalten' && !(await seite.evaluate(() => document.documentElement.classList.contains('angehalten'))), 'nach neuem Laden läuft die Bewegung wieder (Zustand gilt nur für den Besuch der Seite)');
+  await umgebung.close();
+
+  const handy = await neueSeite({ ansicht: HANDY });
+  await handy.seite.goto(BASIS + '/', { waitUntil: 'networkidle0' });
+  await warte(2500);
+  const klein = await handy.seite.evaluate(() => {
+    const flaeche = document.querySelector('[data-bewegung]').getBoundingClientRect();
+    return { hoehe: flaeche.height, imFenster: flaeche.right <= window.innerWidth && flaeche.left >= 0 && flaeche.bottom <= window.innerHeight };
+  });
+  pruefe(klein.hoehe >= 44 && klein.imFenster, `Handy: Knopf ${Math.round(klein.hoehe)} px hoch, ganz im Fenster`);
+  await handy.seite.tap('[data-bewegung]');
+  await warte(600);
+  pruefe((await handy.seite.evaluate(() => document.querySelector('[data-bewegung]').textContent.trim())) === 'Bewegung fortsetzen', 'Handy: Tippen hält an');
+  await handy.seite.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }));
+  await warte(300);
+  const verdeckt = await handy.seite.evaluate(() => {
+    const knopfFlaeche = document.querySelector('[data-bewegung]').getBoundingClientRect();
+    return [...document.querySelectorAll('footer a, footer p')].filter((element) => {
+      const f = element.getBoundingClientRect();
+      return f.width > 0 && f.bottom > knopfFlaeche.top && f.top < knopfFlaeche.bottom && f.right > knopfFlaeche.left && f.left < knopfFlaeche.right;
+    }).length;
+  });
+  pruefe(verdeckt === 0, `Handy: am Seitenende verdeckt der Knopf nichts im Fuß (überdeckte Elemente: ${verdeckt})`);
+  await handy.umgebung.close();
+
+  const ohne = await neueSeite({ ansicht: LAPTOP, skript: false });
+  await ohne.seite.goto(BASIS + '/', { waitUntil: 'load' });
+  await warte(1500);
+  const still = await ohne.seite.evaluate(() => ({
+    knopf: getComputedStyle(document.querySelector('[data-bewegung]')).display,
+    schleifen: document.getAnimations().filter((lauf) => lauf.playState === 'running' && lauf.effect.getComputedTiming().iterations === Infinity).length,
+  })).catch(() => null);
+  if (still) pruefe(still.knopf === 'none' && still.schleifen === 0, `Ohne JavaScript: kein Knopf und keine Schleife (laufende Schleifen ${still.schleifen})`);
+  else sage('Ohne JavaScript: nicht messbar (Auswertung im Browser braucht JavaScript)');
+  await ohne.umgebung.close();
 }
 
 sage();

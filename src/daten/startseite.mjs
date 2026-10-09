@@ -23,7 +23,7 @@ export const kopf = {
       { name: 'Jonas', ergebnis: 'Kein Konflikt laut Daten' },
       { name: 'Elif', ergebnis: 'Kein Konflikt laut Daten' },
     ],
-    knopf: 'Auf die Liste',
+    knopf: 'Warum?',
   },
   begriffe: ['Nüsse', 'Gluten', 'Schweinefleisch', 'Palmöl'],
 };
@@ -39,8 +39,8 @@ export const wort = {
 };
 
 export const schritte = {
-  // Überschrift und Schritt 3 sind ein Vorschlag nach Alis Einwand vom 09.10.2026 (vorher: "Drei Schritte im
-  // Laden" und "Auf die Liste"); Freigabe steht aus.
+  // Überschrift und Schritt 3 weichen von AP-15 Teil B ab ("Scannen, Warum?, Auf die Liste"); von Ali und der
+  // Projektleitung am 09.10.2026 freigegeben (Nachtrag SEO, Punkt 8).
   ueberschrift: 'FoodAsu in drei Schritten',
   liste: [
     {
@@ -74,15 +74,13 @@ export const funktionen = {
     {
       kennung: 'rezepte',
       titel: 'Über 300 Rezepte aus 25 Ländern',
-      text: 'Jedes mit einem gezeichneten Bild. Bei den Zutaten steht, wen sie betreffen.',
+      text: 'Jedes mit einem Symbolbild. Bei den Zutaten steht, wen sie betreffen.',
       bild: 'Symbolbild: Pizza Margherita',
       datei: 'pizza-margherita',
     },
     {
       kennung: 'liste',
       titel: 'Einkaufsliste, sortiert wie im Supermarkt',
-      // Vorschlag nach Alis Einwand vom 09.10.2026 (vorher: "Gescannte Produkte kommen mit einem Tipp auf die
-      // Liste. ..."); Freigabe steht aus.
       text: 'Schreib auf, was du brauchst, oder setz die fehlenden Zutaten eines Rezepts auf die Liste. Betrifft ein Eintrag jemanden im Haushalt, steht ein Hinweis dabei.',
       beispiel: ['Tomaten', 'Mozzarella', 'Basilikum'],
     },
@@ -194,6 +192,8 @@ export const geruest = {
   menue: 'Menü',
   untermenue: 'Untermenü Rezepte',
   brotkrumen: 'Brotkrumen',
+  // Knopf der Startseite, der die Bewegung anhält (WCAG 2.2.2). Der Zustand gilt nur für den Besuch.
+  bewegung: { anhalten: 'Bewegung anhalten', fortsetzen: 'Bewegung fortsetzen' },
   platzhalter: {
     soGehts: {
       titel: "So geht's",
