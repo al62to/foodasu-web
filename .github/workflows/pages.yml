@@ -27,7 +27,10 @@ jobs:
         with:
           node-version: 24
           cache: npm
-      - run: npm ci
+      # "npm install" statt "npm ci": Die Sperrdatei entsteht unter Windows, und npm trägt dort zwei Pakete nicht ein, die
+      # nur die Linux-Fassung eines Bausteins braucht (@emnapi/core, @emnapi/runtime); "npm ci" bricht deshalb hier ab.
+      # Alle übrigen Versionen kommen weiter aus der Sperrdatei.
+      - run: npm install --no-audit --no-fund
       - run: npm run build
       - run: npm run pruefen
       - if: github.ref == 'refs/heads/main'
