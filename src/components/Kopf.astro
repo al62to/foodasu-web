@@ -1,0 +1,100 @@
+---
+// Kopf mit Logo und Hauptnavigation. Das Mega-Menü unter "Rezepte" folgt dem Muster "Disclosure Navigation": echte
+// Links, ein eigener Knopf mit aria-expanded, Esc schließt. Ohne JavaScript bleiben alle Links les- und klickbar
+// (am Laptop öffnet sich das Menü bei Fokus oder Mauszeiger, am Handy steht es ausgeklappt da).
+import Logo from './Logo.astro';
+import { hauptpunkte, mega } from '../daten/navigation.mjs';
+import { geruest } from '../daten/startseite.mjs';
+
+const pfad = Astro.url.pathname;
+const aktuell = (ziel) => (ziel === '/' ? pfad === '/' : pfad.startsWith(ziel));
+---
+<header class="kopf">
+  <div class="innen kopf-innen" data-nav>
+    <a class="marke" href="/" aria-label={geruest.marke}><Logo /></a>
+    <nav class="haupt" aria-label={geruest.navigation}>
+      <button class="knopf-schlicht menue-knopf" type="button" aria-expanded="false" aria-controls="hauptliste" data-menue>
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 6h18M3 12h18M3 18h18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+        {geruest.menue}
+      </button>
+      <ul class="haupt-liste" id="hauptliste">
+        {hauptpunkte.map((punkt) =>
+          punkt.mega ? (
+            <li class="mit-menue" data-mega-eintrag>
+              <div class="haupt-zeile">
+                <a href={punkt.pfad} aria-current={aktuell(punkt.pfad) ? 'page' : undefined}>{punkt.titel}</a>
+                <button class="knopf-schlicht mega-knopf" type="button" aria-expanded="false" aria-controls="mega-rezepte" aria-label={geruest.untermenue} data-mega-knopf>
+                  <svg class="pfeil" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                </button>
+              </div>
+              <div class="mega" id="mega-rezepte">
+                <div class="innen mega-innen">
+                  {mega.spalten.map((spalte) => (
+                    <div class:list={['mega-spalte', { breit: spalte.breit }]}>
+                      <p class="mega-titel" id={`mega-${spalte.kennung}`}>{spalte.titel}</p>
+                      <ul aria-labelledby={`mega-${spalte.kennung}`}>
+                        {spalte.eintraege.map((eintrag) => (
+                          <li><a href={eintrag.ziel}><span class="vh">{eintrag.vorsatz}</span>{eintrag.name}</a></li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                  <p class="alle"><a href={mega.alle.ziel}>{mega.alle.titel}</a></p>
+                </div>
+              </div>
+            </li>
+          ) : (
+            <li><a href={punkt.pfad} aria-current={aktuell(punkt.pfad) ? 'page' : undefined}>{punkt.titel}</a></li>
+          )
+        )}
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<script>
+  const nav = document.querySelector('[data-nav]');
+  const menue = nav?.querySelector('[data-menue]');
+  const knopf = nav?.querySelector('[data-mega-knopf]');
+  const eintrag = nav?.querySelector('[data-mega-eintrag]');
+  if (nav && menue && knopf && eintrag) {
+    const breit = window.matchMedia('(min-width: 56rem)');
+    const offen = (el) => el.getAttribute('aria-expanded') === 'true';
+    const setze = (el, wert) => el.setAttribute('aria-expanded', String(wert));
+    const schliesse = () => {
+      setze(knopf, false);
+      setze(menue, false);
+    };
+
+    knopf.addEventListener('click', () => setze(knopf, !offen(knopf)));
+    menue.addEventListener('click', () => {
+      setze(menue, !offen(menue));
+      if (!offen(menue)) setze(knopf, false);
+    });
+    nav.addEventListener('keydown', (ereignis) => {
+      if (ereignis.key !== 'Escape') return;
+      if (offen(knopf)) {
+        setze(knopf, false);
+        knopf.focus();
+      } else if (offen(menue)) {
+        setze(menue, false);
+        menue.focus();
+      }
+    });
+    // Verlässt der Fokus die Navigation oder wird daneben geklickt, schließt sich das Menü.
+    nav.addEventListener('focusout', (ereignis) => {
+      if (ereignis.relatedTarget && !nav.contains(ereignis.relatedTarget)) schliesse();
+    });
+    document.addEventListener('click', (ereignis) => {
+      if (!nav.contains(ereignis.target)) schliesse();
+    });
+    // Am Laptop öffnet auch der Mauszeiger das Menü.
+    eintrag.addEventListener('pointerenter', (ereignis) => {
+      if (ereignis.pointerType === 'mouse' && breit.matches) setze(knopf, true);
+    });
+    eintrag.addEventListener('pointerleave', (ereignis) => {
+      if (ereignis.pointerType === 'mouse' && breit.matches) setze(knopf, false);
+    });
+    breit.addEventListener('change', schliesse);
+  }
+</script>

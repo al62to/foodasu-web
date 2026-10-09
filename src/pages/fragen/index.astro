@@ -1,0 +1,9 @@
+---
+import Platzhalter from '../../components/Platzhalter.astro';
+import { geruest } from '../../daten/startseite.mjs';
+
+const texte = geruest.platzhalter.fragen;
+---
+<Platzhalter texte={texte}>
+  <div class="knoepfe"><a class="knopf rand" href="/#fragen">{texte.link}</a></div>
+</Platzhalter>

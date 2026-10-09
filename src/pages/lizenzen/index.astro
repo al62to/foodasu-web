@@ -1,0 +1,21 @@
+---
+import Basis from '../../layouts/Basis.astro';
+import { seite } from '../../daten/seite.mjs';
+import { geruest } from '../../daten/startseite.mjs';
+
+const texte = geruest.lizenzen;
+---
+<Basis titel={`${texte.titel} | ${seite.name}`} beschreibung={texte.beschreibung} krumen={[{ titel: texte.titel, ziel: '/lizenzen/' }]}>
+  <section class="abschnitt text">
+    <div class="innen">
+      <h1>{texte.titel}</h1>
+      <p>{texte.einleitung}</p>
+      <ul>
+        {texte.eintraege.map((eintrag) => (
+          <li><b>{eintrag.name}</b> ({eintrag.art}): <a href={eintrag.ziel} rel="noopener">{eintrag.lizenz}</a></li>
+        ))}
+        <li>{texte.bilder}</li>
+      </ul>
+    </div>
+  </section>
+</Basis>

@@ -1,0 +1,31 @@
+---
+// Brotkrumen-Pfad: sichtbar und als BreadcrumbList. "pfad" ist eine Liste aus { titel, ziel }; der letzte Eintrag
+// ist die Seite selbst.
+import { seite } from '../daten/seite.mjs';
+import { geruest } from '../daten/startseite.mjs';
+
+const { pfad } = Astro.props;
+const krumen = [{ titel: 'Start', ziel: '/' }, ...pfad];
+const daten = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: krumen.map((krume, nummer) => ({
+    '@type': 'ListItem',
+    position: nummer + 1,
+    name: krume.titel,
+    item: seite.adresse + krume.ziel,
+  })),
+};
+---
+<nav class="krumen innen" aria-label={geruest.brotkrumen}>
+  <ol>
+    {krumen.map((krume, nummer) =>
+      nummer === krumen.length - 1 ? (
+        <li aria-current="page">{krume.titel}</li>
+      ) : (
+        <li><a href={krume.ziel}>{krume.titel}</a></li>
+      )
+    )}
+  </ol>
+</nav>
+<script type="application/ld+json" set:html={JSON.stringify(daten)} />

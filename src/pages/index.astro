@@ -1,0 +1,162 @@
+---
+// Startseite, Abschnitte 1 bis 8 nach AP-15 Teil B. Dieser Stand zeigt die Textvorschläge im Gerüst, noch ohne
+// Animationen und Bilder; die Texte stehen in src/daten/startseite.mjs.
+import Basis from '../layouts/Basis.astro';
+import offenlegung from '../inhalte/offenlegung.html?raw';
+import { seite, auftritte, store } from '../daten/seite.mjs';
+import { kopfdaten, kopf, wort, schritte, funktionen, zahlen, vorschau, fragen } from '../daten/startseite.mjs';
+
+const organisation = `${seite.adresse}/#organisation`;
+const gleich = [auftritte.facebook, auftritte.instagram, store.oeffentlich ? store.adresse : ''].filter(Boolean);
+const daten = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    '@id': `${seite.adresse}/#website`,
+    name: seite.name,
+    url: `${seite.adresse}/`,
+    inLanguage: seite.sprache,
+    publisher: { '@id': organisation },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    '@id': organisation,
+    name: seite.name,
+    url: `${seite.adresse}/`,
+    logo: seite.adresse + seite.logo,
+    sameAs: gleich,
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'MobileApplication',
+    name: seite.name,
+    operatingSystem: 'Android',
+    applicationCategory: store.kategorie,
+    url: `${seite.adresse}/`,
+    ...(store.oeffentlich ? { installUrl: store.adresse } : {}),
+    ...(store.oeffentlich && store.betaOhneBetrag
+      ? { offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' } }
+      : {}),
+  },
+];
+---
+<Basis titel={kopfdaten.titel} beschreibung={kopfdaten.beschreibung} daten={daten}>
+  <section class="abschnitt" id="start">
+    <div class="innen">
+      <h1>{kopf.ueberschrift[0]}<span class="betont">{kopf.ueberschrift[1]}</span>{kopf.ueberschrift[2]}</h1>
+      <p class="vorspann">{kopf.text}</p>
+      <div class="knoepfe">
+        <span class="knopf voll">{kopf.aufruf}</span>
+        <a class="knopf rand" href="#schritte">{kopf.zweiterKnopf}</a>
+      </div>
+      <p class="klein schmal">{kopf.stand}</p>
+      <div class="beispiel" role="img" aria-label={kopf.handy.beschreibung}>
+        <b>{kopf.handy.produkt}</b> <span class="klein">{kopf.handy.zusatz}</span>
+        <p class="urteil">{kopf.handy.urteil}</p>
+        <dl>
+          {kopf.handy.personen.map((person) => (
+            <>
+              <dt>{person.name}</dt>
+              <dd>{person.ergebnis}</dd>
+            </>
+          ))}
+        </dl>
+        <span class="klein">{kopf.handy.knopf}</span>
+      </div>
+      <ul class="marken" aria-hidden="true">
+        {kopf.begriffe.map((begriff) => <li>{begriff}</li>)}
+      </ul>
+    </div>
+  </section>
+
+  <section class="abschnitt getoent" id="ohne">
+    <div class="innen">
+      <h2>{wort.vorsatz} <span class="betont">{wort.woerter[0]}</span></h2>
+      <ul class="marken">
+        {wort.woerter.map((eintrag) => <li>{eintrag}</li>)}
+      </ul>
+      <blockquote class="zitat">
+        {wort.absaetze.map((absatz) => <p>{absatz}</p>)}
+        <footer>{wort.unterschrift}</footer>
+      </blockquote>
+    </div>
+  </section>
+
+  <section class="abschnitt" id="schritte">
+    <div class="innen">
+      <h2>{schritte.ueberschrift}</h2>
+      <ol class="raster">
+        {schritte.liste.map((schritt, nummer) => (
+          <li class="karte">
+            <div class="nummer" aria-hidden="true">{String(nummer + 1).padStart(2, '0')}</div>
+            <h3>{schritt.titel}</h3>
+            <p>{schritt.text}</p>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <section class="abschnitt getoent" id="funktionen">
+    <div class="innen">
+      <h2>{funktionen.ueberschrift}</h2>
+      <ul class="raster">
+        {funktionen.karten.map((karte) => (
+          <li class="karte">
+            <h3>{karte.titel}</h3>
+            <p>{karte.text}</p>
+            {karte.beispiel && <ul>{karte.beispiel.map((ware) => <li>{ware}</li>)}</ul>}
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="abschnitt" id="zahlen">
+    <div class="innen">
+      <h2>{zahlen.ueberschrift}</h2>
+      <ul class="zaehler">
+        {zahlen.zaehler.map((eintrag) => <li><b>{eintrag.zahl}</b>{eintrag.wort}</li>)}
+      </ul>
+      <ul class="marken">
+        {zahlen.zutatenband.map((eintrag) => <li>{eintrag}</li>)}
+      </ul>
+      <ul class="marken">
+        {zahlen.rezeptband.map((eintrag) => <li>{eintrag}</li>)}
+      </ul>
+    </div>
+  </section>
+
+  <section class="abschnitt getoent" id="rezepte">
+    <div class="innen">
+      <h2>{vorschau.ueberschrift}</h2>
+      <p class="vorspann">{vorschau.text}</p>
+      <ul class="raster">
+        {vorschau.karten.map((titel) => <li class="karte"><h3>{titel}</h3><p class="klein">{vorschau.kennzeichnung}</p></li>)}
+      </ul>
+      <div class="knoepfe"><a class="knopf rand" href="/rezepte/">{vorschau.link}</a></div>
+    </div>
+  </section>
+
+  <section class="abschnitt fragen" id="fragen">
+    <div class="innen schmal">
+      <h2>{fragen.ueberschrift}</h2>
+      {fragen.liste.map((eintrag) => (
+        <details>
+          <summary>{eintrag.frage}</summary>
+          <div>
+            {eintrag.antwort.map((absatz) => <p>{absatz}</p>)}
+            {eintrag.verweis && (
+              <p>{eintrag.verweis.vor}<a href={eintrag.verweis.ziel}>{eintrag.verweis.text}</a>{eintrag.verweis.nach}</p>
+            )}
+          </div>
+        </details>
+      ))}
+    </div>
+  </section>
+
+  <section class="abschnitt text">
+    <div class="innen schmal" set:html={offenlegung} />
+  </section>
+</Basis>

@@ -1,0 +1,19 @@
+---
+import Basis from '../layouts/Basis.astro';
+import { seite } from '../daten/seite.mjs';
+import { geruest } from '../daten/startseite.mjs';
+
+const texte = geruest.nichtGefunden;
+---
+<Basis titel={`${texte.titel} | ${seite.name}`} beschreibung={texte.text} adresse="/404.html" index={false}>
+  <section class="abschnitt platzhalter">
+    <div class="innen schmal">
+      <h1>{texte.titel}</h1>
+      <p class="vorspann">{texte.text}</p>
+      <div class="knoepfe">
+        <a class="knopf voll" href="/">{texte.start}</a>
+        <a class="knopf rand" href="/rezepte/">{texte.rezepte}</a>
+      </div>
+    </div>
+  </section>
+</Basis>

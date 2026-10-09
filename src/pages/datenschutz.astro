@@ -1,0 +1,14 @@
+---
+// Datenschutzerklärung unter der bestehenden Adresse /datenschutz.html (die App verlinkt sie). Der Text ist die
+// veröffentlichte Fassung, unverändert übernommen (tools/bestand_uebernehmen.mjs).
+import Basis from '../layouts/Basis.astro';
+import erklaerung from '../inhalte/datenschutz.html?raw';
+
+const titel = 'Datenschutzerklärung für FoodAsu | FoodAsu';
+const beschreibung = 'Datenschutzerklärung der App FoodAsu und dieser Website.';
+---
+<Basis titel={titel} beschreibung={beschreibung} adresse="/datenschutz.html" krumen={[{ titel: 'Datenschutz', ziel: '/datenschutz.html' }]}>
+  <section class="abschnitt text">
+    <div class="innen" set:html={erklaerung} />
+  </section>
+</Basis>

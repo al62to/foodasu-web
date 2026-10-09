@@ -1,0 +1,51 @@
+---
+// Grundlayout aller Seiten: Kopfdaten (Titel, Beschreibung, kanonische Adresse, Open Graph, Twitter-Karte), Kopf,
+// Brotkrumen auf Unterseiten, Fuß. Keine Cookies, kein Speicher im Browser, keine Anfragen an Dritte.
+import '@fontsource-variable/plus-jakarta-sans/wght.css';
+import '../styles/basis.css';
+import schrift from '@fontsource-variable/plus-jakarta-sans/files/plus-jakarta-sans-latin-wght-normal.woff2?url';
+import Kopf from '../components/Kopf.astro';
+import Fuss from '../components/Fuss.astro';
+import Brotkrumen from '../components/Brotkrumen.astro';
+import { seite } from '../daten/seite.mjs';
+import { geruest } from '../daten/startseite.mjs';
+
+const { titel, beschreibung, adresse = Astro.url.pathname, krumen, index = true, daten = [] } = Astro.props;
+const kanonisch = seite.adresse + adresse;
+---
+<!doctype html>
+<html lang={seite.sprache}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script is:inline>document.documentElement.classList.add('js');</script>
+    <title>{titel}</title>
+    <meta name="description" content={beschreibung} />
+    <link rel="canonical" href={kanonisch} />
+    {!index && <meta name="robots" content="noindex, follow" />}
+    <meta name="referrer" content="no-referrer" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={seite.name} />
+    <meta property="og:locale" content="de_AT" />
+    <meta property="og:title" content={titel} />
+    <meta property="og:description" content={beschreibung} />
+    <meta property="og:url" content={kanonisch} />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={titel} />
+    <meta name="twitter:description" content={beschreibung} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="preload" href={schrift} as="font" type="font/woff2" crossorigin />
+    {daten.map((eintrag) => <script type="application/ld+json" set:html={JSON.stringify(eintrag)} />)}
+  </head>
+  <body>
+    <a class="sprung" href="#inhalt">{geruest.sprung}</a>
+    <Kopf />
+    {krumen && <Brotkrumen pfad={krumen} />}
+    <main id="inhalt">
+      <slot />
+    </main>
+    <Fuss />
+  </body>
+</html>
