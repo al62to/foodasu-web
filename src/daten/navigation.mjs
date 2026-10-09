@@ -29,15 +29,12 @@ const ohne = ['Nüsse', 'Gluten', 'Schweinefleisch', 'Alkohol', 'Palmöl', 'Sesa
 export const mega = {
   alle: { titel: 'Alle Rezepte', ziel: UEBERSICHT },
   spalten: [
-    { kennung: 'land', titel: 'Nach Land', breit: true, eintraege: eintraege(laender, 'Rezepte aus: ') },
-    { kennung: 'kategorie', titel: 'Nach Kategorie', eintraege: eintraege(kategorien, 'Rezepte der Kategorie ') },
+    { breit: true, gruppen: [{ kennung: 'land', titel: 'Nach Land', eintraege: eintraege(laender, 'Rezepte aus: ') }] },
+    { gruppen: [{ kennung: 'kategorie', titel: 'Nach Kategorie', eintraege: eintraege(kategorien, 'Rezepte der Kategorie ') }] },
     {
-      kennung: 'ohne',
-      titel: 'Ohne ...',
-      eintraege: [
-        ...eintraege(ohne, 'Rezepte ohne '),
-        { name: 'Vegetarisch', vorsatz: 'Rezepte: ', ziel: UEBERSICHT },
-        { name: 'Vegan', vorsatz: 'Rezepte: ', ziel: UEBERSICHT },
+      gruppen: [
+        { kennung: 'ohne', titel: 'Ohne ...', eintraege: eintraege(ohne, 'Rezepte ohne ') },
+        { kennung: 'passt', titel: 'Passt für', eintraege: eintraege(['Vegetarisch', 'Vegan'], 'Rezepte, passt für: ') },
       ],
     },
   ],

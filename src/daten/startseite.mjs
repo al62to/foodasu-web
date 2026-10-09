@@ -1,4 +1,4 @@
-// Alle Texte der Startseite an einer Stelle (AP-15 Teil B, Abschnitte 1 bis 8). Vorschlag, bis Ali ihn freigibt.
+// Alle Texte der Startseite an einer Stelle (AP-15 Teil B, Abschnitte 1 bis 8). Von Ali am 09.10.2026 freigegeben.
 // Die Datei Website_Texte_Startseite.md entsteht daraus mit tools/texte_ausgeben.mjs.
 export const kopfdaten = {
   titel: 'FoodAsu: Lebensmittel-Scanner für den ganzen Haushalt',
@@ -35,11 +35,13 @@ export const wort = {
     'In vielen Haushalten isst nicht jeder alles: kein Schweinefleisch für den einen, keine Nüsse für die andere, keine Milch fürs Kind. Im Laden heißt das: Packung umdrehen, Kleingedrucktes lesen, bei jedem Produkt von vorn.',
     'Deshalb habe ich FoodAsu gebaut. Du legst einmal fest, was jede Person bei dir zu Hause meidet. Danach reicht ein Scan.',
   ],
-  unterschrift: 'Ali, Entwickler von FoodAsu',
+  unterschrift: 'Ali Tonc, Entwickler von FoodAsu',
 };
 
 export const schritte = {
-  ueberschrift: 'Drei Schritte im Laden',
+  // Überschrift und Schritt 3 sind ein Vorschlag nach Alis Einwand vom 09.10.2026 (vorher: "Drei Schritte im
+  // Laden" und "Auf die Liste"); Freigabe steht aus.
+  ueberschrift: 'FoodAsu in drei Schritten',
   liste: [
     {
       titel: 'Scannen',
@@ -50,8 +52,8 @@ export const schritte = {
       text: 'Ein Tipp auf „Warum?“ zeigt, welche Zutat oder welche Spurenangabe hinter dem Hinweis steht.',
     },
     {
-      titel: 'Auf die Liste',
-      text: 'Ein Tipp, und das Produkt steht auf deiner Einkaufsliste. Die Menge stellst du gleich daneben ein.',
+      titel: 'Kochen',
+      text: 'FoodAsu schlägt dir zu deiner Einkaufsliste Rezepte vor und zeigt, was noch fehlt. Es geht auch umgekehrt: Aus einem Rezept setzt du die fehlenden Zutaten auf die Liste.',
     },
   ],
 };
@@ -74,11 +76,14 @@ export const funktionen = {
       titel: 'Über 300 Rezepte aus 25 Ländern',
       text: 'Jedes mit einem gezeichneten Bild. Bei den Zutaten steht, wen sie betreffen.',
       bild: 'Symbolbild: Pizza Margherita',
+      datei: 'pizza-margherita',
     },
     {
       kennung: 'liste',
       titel: 'Einkaufsliste, sortiert wie im Supermarkt',
-      text: 'Gescannte Produkte kommen mit einem Tipp auf die Liste. Betrifft ein Eintrag jemanden im Haushalt, steht ein Hinweis dabei.',
+      // Vorschlag nach Alis Einwand vom 09.10.2026 (vorher: "Gescannte Produkte kommen mit einem Tipp auf die
+      // Liste. ..."); Freigabe steht aus.
+      text: 'Schreib auf, was du brauchst, oder setz die fehlenden Zutaten eines Rezepts auf die Liste. Betrifft ein Eintrag jemanden im Haushalt, steht ein Hinweis dabei.',
       beispiel: ['Tomaten', 'Mozzarella', 'Basilikum'],
     },
     {
@@ -108,7 +113,7 @@ export const zahlen = {
   zaehler: [
     { zahl: 306, wort: 'Rezepte' },
     { zahl: 25, wort: 'Länder' },
-    { zahl: 14, wort: 'Hauptzutaten im Blick' },
+    { zahl: 20, wort: 'Einträge zum Meiden' },
     { zahl: 0, wort: 'Werbung' },
   ],
 };
@@ -116,7 +121,13 @@ export const zahlen = {
 export const vorschau = {
   ueberschrift: 'Kochen für alle am Tisch',
   text: 'Bei den Zutaten steht, wen sie betreffen. Enthält ein Rezept etwas, das jemand auf keinen Fall will, blendet FoodAsu es aus und nennt die Zahl der ausgeblendeten Rezepte.',
-  karten: ['Wiener Schnitzel', 'Pizza Margherita', 'Ratatouille', 'Baklava'],
+  // "datei" ist der Name des Bildes unter public/bilder/rezepte (gebaut mit tools/bilder_bauen.py).
+  karten: [
+    { titel: 'Wiener Schnitzel', datei: 'wiener-schnitzel' },
+    { titel: 'Pizza Margherita', datei: 'pizza-margherita' },
+    { titel: 'Ratatouille', datei: 'ratatouille' },
+    { titel: 'Baklava', datei: 'baklava' },
+  ],
   kennzeichnung: 'Symbolbild',
   link: 'Alle Rezepte ansehen',
 };

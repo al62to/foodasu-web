@@ -8,10 +8,11 @@ import Kopf from '../components/Kopf.astro';
 import Fuss from '../components/Fuss.astro';
 import Brotkrumen from '../components/Brotkrumen.astro';
 import { seite } from '../daten/seite.mjs';
-import { geruest } from '../daten/startseite.mjs';
+import { geruest, kopf } from '../daten/startseite.mjs';
 
 const { titel, beschreibung, adresse = Astro.url.pathname, krumen, index = true, daten = [] } = Astro.props;
 const kanonisch = seite.adresse + adresse;
+const teilenText = `${seite.name}: ${kopf.ueberschrift.join('')}`;
 ---
 <!doctype html>
 <html lang={seite.sprache}>
@@ -30,7 +31,13 @@ const kanonisch = seite.adresse + adresse;
     <meta property="og:title" content={titel} />
     <meta property="og:description" content={beschreibung} />
     <meta property="og:url" content={kanonisch} />
-    <meta name="twitter:card" content="summary" />
+    <meta property="og:image" content={seite.adresse + seite.teilen.pfad} />
+    <meta property="og:image:width" content={String(seite.teilen.breite)} />
+    <meta property="og:image:height" content={String(seite.teilen.hoehe)} />
+    <meta property="og:image:alt" content={teilenText} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content={seite.adresse + seite.teilen.pfad} />
+    <meta name="twitter:image:alt" content={teilenText} />
     <meta name="twitter:title" content={titel} />
     <meta name="twitter:description" content={beschreibung} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />

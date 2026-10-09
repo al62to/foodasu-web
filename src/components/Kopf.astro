@@ -31,12 +31,16 @@ const aktuell = (ziel) => (ziel === '/' ? pfad === '/' : pfad.startsWith(ziel));
                 <div class="innen mega-innen">
                   {mega.spalten.map((spalte) => (
                     <div class:list={['mega-spalte', { breit: spalte.breit }]}>
-                      <p class="mega-titel" id={`mega-${spalte.kennung}`}>{spalte.titel}</p>
-                      <ul aria-labelledby={`mega-${spalte.kennung}`}>
-                        {spalte.eintraege.map((eintrag) => (
-                          <li><a href={eintrag.ziel}><span class="vh">{eintrag.vorsatz}</span>{eintrag.name}</a></li>
-                        ))}
-                      </ul>
+                      {spalte.gruppen.map((gruppe) => (
+                        <div class="mega-gruppe">
+                          <p class="mega-titel" id={`mega-${gruppe.kennung}`}>{gruppe.titel}</p>
+                          <ul aria-labelledby={`mega-${gruppe.kennung}`}>
+                            {gruppe.eintraege.map((eintrag) => (
+                              <li><a href={eintrag.ziel}><span class="vh">{eintrag.vorsatz}</span>{eintrag.name}</a></li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
                     </div>
                   ))}
                   <p class="alle"><a href={mega.alle.ziel}>{mega.alle.titel}</a></p>

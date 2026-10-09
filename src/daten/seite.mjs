@@ -5,11 +5,13 @@ export const seite = {
   adresse: 'https://foodasu.com',
   sprache: 'de',
   logo: '/apple-touch-icon.png',
+  // Bild für Open Graph und die Twitter-Karte (gebaut mit tools/teilen_bild.mjs).
+  teilen: { pfad: '/bilder/foodasu-teilen.jpg', breite: 1200, hoehe: 630 },
 };
 
 // Auftritte. Eine leere Adresse blendet Symbol und Eintrag in sameAs aus.
 export const auftritte = {
-  facebook: '',
+  facebook: 'https://www.facebook.com/p/FoodAsu-61594866553316/',
   instagram: 'https://www.instagram.com/foodasu.app/',
 };
 
@@ -20,7 +22,7 @@ export const store = {
   oeffentlich: false,
   adresse: 'https://play.google.com/store/apps/details?id=at.tonc.einkauf',
   betaOhneBetrag: true,
-  kategorie: 'LifestyleApplication',
+  kategorie: 'ShoppingApplication',
 };
 
 // Seitenverzeichnis: Grundlage für sitemap.xml (nur "index: true") und das Prüfskript. "stand" ist der Tag der

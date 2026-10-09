@@ -1,7 +1,9 @@
 ---
-// Startseite, Abschnitte 1 bis 8 nach AP-15 Teil B. Dieser Stand zeigt die Textvorschläge im Gerüst, noch ohne
-// Animationen und Bilder; die Texte stehen in src/daten/startseite.mjs.
+// Startseite, Abschnitte 1 bis 8 nach AP-15 Teil B und dem Entwurf Website_Entwuerfe_FoodAsu.html. Alle Texte stehen
+// in src/daten/startseite.mjs. Die Bewegung kommt aus src/styles/start.css (läuft ohne Skript) und aus
+// src/skripte/bewegung.js (GSAP, wird erst nach dem ersten Zeichnen geladen).
 import Basis from '../layouts/Basis.astro';
+import '../styles/start.css';
 import offenlegung from '../inhalte/offenlegung.html?raw';
 import { seite, auftritte, store } from '../daten/seite.mjs';
 import { kopfdaten, kopf, wort, schritte, funktionen, zahlen, vorschau, fragen } from '../daten/startseite.mjs';
@@ -40,56 +42,96 @@ const daten = [
       : {}),
   },
 ];
+
+const karte = Object.fromEntries(funktionen.karten.map((eintrag) => [eintrag.kennung, eintrag]));
+const quellen = (datei, endung) => [360, 720].map((breite) => `/bilder/rezepte/${datei}-${breite}.${endung} ${breite}w`).join(', ');
+const linien = { fill: 'none', stroke: 'currentColor', 'stroke-width': '1.8', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' };
+const zeichen = [
+  'M4 8V5h3M17 5h3v3M4 16v3h3M17 19h3v-3M8 9v6M11 9v6M13.5 9v6M16 9v6',
+  'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM9.6 9.4a2.5 2.5 0 1 1 3.6 2.3c-.8.4-1.2 1-1.2 1.8M12 16.6v.1',
+  'M5 11h14v5a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4zM3 11h18M9 4c0 1.2 1 1.4 1 2.6S9 8 9 8M14 4c0 1.2 1 1.4 1 2.6S14 8 14 8',
+];
+const urteilZeichen = 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM9 9l6 6M15 9l-6 6';
 ---
 <Basis titel={kopfdaten.titel} beschreibung={kopfdaten.beschreibung} daten={daten}>
-  <section class="abschnitt" id="start">
-    <div class="innen">
-      <h1>{kopf.ueberschrift[0]}<span class="betont">{kopf.ueberschrift[1]}</span>{kopf.ueberschrift[2]}</h1>
-      <p class="vorspann">{kopf.text}</p>
-      <div class="knoepfe">
-        <span class="knopf voll">{kopf.aufruf}</span>
-        <a class="knopf rand" href="#schritte">{kopf.zweiterKnopf}</a>
+  <section class="held" id="start">
+    <div class="held-fleck f1" aria-hidden="true"></div>
+    <div class="held-fleck f2" aria-hidden="true"></div>
+    <div class="innen held-raster">
+      <div class="held-text">
+        <h1>{kopf.ueberschrift[0]}<em>{kopf.ueberschrift[1]}</em>{kopf.ueberschrift[2]}</h1>
+        <p class="held-vorspann">{kopf.text}</p>
+        <div class="held-knoepfe">
+          <span class="bald"><i aria-hidden="true"></i>{kopf.aufruf}</span>
+          <a class="knopf voll" href="#schritte">
+            {kopf.zweiterKnopf}
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...linien} stroke-width="2.4"><path d="M12 5v14M6 13l6 6 6-6" /></svg>
+          </a>
+        </div>
+        <p class="held-stand">{kopf.stand}</p>
       </div>
-      <p class="klein schmal">{kopf.stand}</p>
-      <div class="beispiel" role="img" aria-label={kopf.handy.beschreibung}>
-        <b>{kopf.handy.produkt}</b> <span class="klein">{kopf.handy.zusatz}</span>
-        <p class="urteil">{kopf.handy.urteil}</p>
-        <dl>
-          {kopf.handy.personen.map((person) => (
-            <>
-              <dt>{person.name}</dt>
-              <dd>{person.ergebnis}</dd>
-            </>
-          ))}
-        </dl>
-        <span class="klein">{kopf.handy.knopf}</span>
+      <div class="buehne">
+        {kopf.begriffe.map((begriff, nummer) => (
+          <span class={`schwebt s${nummer + 1}`} aria-hidden="true"><i></i>{begriff}</span>
+        ))}
+        <div class="handy-rahmen">
+          <div class="handy" role="img" aria-label={kopf.handy.beschreibung} data-handy>
+            <div class="schirm" aria-hidden="true">
+              <div class="kamera">
+                <div class="strichcode"><i></i></div>
+                <div class="strahl" data-strahl></div>
+              </div>
+              <div class="blatt" data-blatt>
+                <div class="griff"></div>
+                <div class="produkt">{kopf.handy.produkt}</div>
+                <div class="zusatz">{kopf.handy.zusatz}</div>
+                <div class="urteil-rot" data-urteil>
+                  <svg viewBox="0 0 24 24" {...linien} stroke-width="2"><path d={urteilZeichen} /></svg>
+                  {kopf.handy.urteil}
+                </div>
+                {kopf.handy.personen.map((person, nummer) => (
+                  <div class="person" data-person>
+                    <span><span class="kuerzel">{person.name[0]}</span>{person.name}</span>
+                    <span class:list={['pille', nummer === 0 ? 'r' : 'n']}>{person.ergebnis}</span>
+                  </div>
+                ))}
+                <div class="leiste"><div class="menge">– 1 +</div><div class="dazu">{kopf.handy.knopf}</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      <ul class="marken" aria-hidden="true">
-        {kopf.begriffe.map((begriff) => <li>{begriff}</li>)}
-      </ul>
     </div>
   </section>
 
-  <section class="abschnitt getoent" id="ohne">
+  <section class="wort" id="ohne">
     <div class="innen">
-      <h2>{wort.vorsatz} <span class="betont">{wort.woerter[0]}</span></h2>
-      <ul class="marken">
-        {wort.woerter.map((eintrag) => <li>{eintrag}</li>)}
-      </ul>
-      <blockquote class="zitat">
-        {wort.absaetze.map((absatz) => <p>{absatz}</p>)}
-        <footer>{wort.unterschrift}</footer>
-      </blockquote>
+      <h2 class="gross">
+        <span class="gross-vor">{wort.vorsatz}</span>
+        <span class="rot" aria-hidden="true"><span data-wort data-woerter={JSON.stringify(wort.woerter)}>{wort.woerter[0]}</span></span>
+        <span class="vh">{wort.woerter.join(', ')}</span>
+      </h2>
+      <div class="wort-unten">
+        <ul class="wort-marken" aria-hidden="true">
+          {wort.woerter.map((eintrag, nummer) => <li class:list={{ an: nummer === 0 }} data-wortmarke>{eintrag}</li>)}
+        </ul>
+        <div class="wort-text">
+          {wort.absaetze.map((absatz) => <p>{absatz}</p>)}
+          <p class="unterschrift">{wort.unterschrift}</p>
+        </div>
+      </div>
     </div>
   </section>
 
-  <section class="abschnitt" id="schritte">
+  <section class="schritte" id="schritte">
     <div class="innen">
-      <h2>{schritte.ueberschrift}</h2>
-      <ol class="raster">
+      <h2 class="titel">{schritte.ueberschrift}</h2>
+      <div class="linie" aria-hidden="true"><i data-linie></i></div>
+      <ol class="schritt-liste">
         {schritte.liste.map((schritt, nummer) => (
-          <li class="karte">
-            <div class="nummer" aria-hidden="true">{String(nummer + 1).padStart(2, '0')}</div>
+          <li class="schritt">
+            <div class="schritt-nr" aria-hidden="true">{String(nummer + 1).padStart(2, '0')}</div>
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...linien}><path d={zeichen[nummer]} /></svg>
             <h3>{schritt.titel}</h3>
             <p>{schritt.text}</p>
           </li>
@@ -98,50 +140,118 @@ const daten = [
     </div>
   </section>
 
-  <section class="abschnitt getoent" id="funktionen">
+  <section class="glas" id="funktionen">
+    <div class="glas-flaechen" aria-hidden="true"><i class="a"></i><i class="b"></i><i class="c"></i><i class="d"></i></div>
     <div class="innen">
-      <h2>{funktionen.ueberschrift}</h2>
-      <ul class="raster">
-        {funktionen.karten.map((karte) => (
-          <li class="karte">
-            <h3>{karte.titel}</h3>
-            <p>{karte.text}</p>
-            {karte.beispiel && <ul>{karte.beispiel.map((ware) => <li>{ware}</li>)}</ul>}
+      <h2 class="titel">{funktionen.ueberschrift}</h2>
+      <ul class="glas-raster">
+        <li class="glaskarte k-scanner" data-neigung>
+          <h3>{karte.scanner.titel}</h3>
+          <p>{karte.scanner.text}</p>
+          <div class="mini" aria-hidden="true">
+            <div class="produkt">{kopf.handy.produkt}</div>
+            <div class="zusatz">{kopf.handy.zusatz}</div>
+            <div class="urteil-rot">
+              <svg viewBox="0 0 24 24" {...linien} stroke-width="2"><path d={urteilZeichen} /></svg>
+              {kopf.handy.urteil}
+            </div>
+          </div>
+        </li>
+        <li class="glaskarte k-haushalt" data-neigung>
+          <h3>{karte.haushalt.titel}</h3>
+          <p>{karte.haushalt.text}</p>
+          <div class="reihe" aria-hidden="true">{kopf.handy.personen.map((person) => <span>{person.name[0]}</span>)}</div>
+        </li>
+        <li class="glaskarte k-rezepte" data-neigung>
+          <picture>
+            <source type="image/avif" srcset={quellen(karte.rezepte.datei, 'avif')} sizes="(min-width: 64rem) 35rem, (min-width: 44rem) 46vw, 92vw" />
+            <source type="image/webp" srcset={quellen(karte.rezepte.datei, 'webp')} sizes="(min-width: 64rem) 35rem, (min-width: 44rem) 46vw, 92vw" />
+            <img src={`/bilder/rezepte/${karte.rezepte.datei}-720.webp`} alt={karte.rezepte.bild} width="720" height="540" loading="lazy" decoding="async" />
+          </picture>
+          <span class="symbolbild" aria-hidden="true">{vorschau.kennzeichnung}</span>
+          <div class="ueber">
+            <h3>{karte.rezepte.titel}</h3>
+            <p>{karte.rezepte.text}</p>
+          </div>
+        </li>
+        <li class="glaskarte k-liste" data-neigung>
+          <h3>{karte.liste.titel}</h3>
+          <p>{karte.liste.text}</p>
+          <ul class="haken" data-haken>
+            {karte.liste.beispiel.map((ware) => <li><b aria-hidden="true"></b>{ware}</li>)}
+          </ul>
+        </li>
+        <li class="glaskarte k-kochen" data-neigung>
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...linien}><path d={zeichen[2]} /></svg>
+          <h3>{karte.kochen.titel}</h3>
+          <p>{karte.kochen.text}</p>
+        </li>
+        <li class="glaskarte k-daten" data-neigung>
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...linien}><path d="M8 3h8a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM10 12.5h4v3.5h-4zM10.8 12.5v-1.3a1.2 1.2 0 0 1 2.4 0v1.3" /></svg>
+          <h3>{karte.daten.titel}</h3>
+          <p>{karte.daten.text}</p>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="zahlen" id="zahlen">
+    <h2 class="vh">{zahlen.ueberschrift}</h2>
+    <div class="baender">
+      <div class="band">
+        <div class="band-spur" data-band>
+          <ul class="band-liste">
+            {zahlen.zutatenband.map((eintrag, nummer) => <li class:list={{ d: nummer % 5 === 0, m: nummer % 7 === 3 }}>{eintrag}</li>)}
+          </ul>
+        </div>
+      </div>
+      <div class="band">
+        <div class="band-spur rueck" data-band>
+          <ul class="band-liste">
+            {zahlen.rezeptband.map((eintrag, nummer) => <li class:list={{ m: nummer % 4 === 1 }}>{eintrag}</li>)}
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="innen">
+      <ul class="zaehler">
+        {zahlen.zaehler.map((eintrag) => (
+          <li>
+            <span class="vh">{eintrag.zahl}</span>
+            <b aria-hidden="true" data-zahl={eintrag.zahl}>{eintrag.zahl}</b>
+            <span class="wortlaut">{eintrag.wort}</span>
           </li>
         ))}
       </ul>
     </div>
   </section>
 
-  <section class="abschnitt" id="zahlen">
+  <section class="vorschau" id="rezepte">
     <div class="innen">
-      <h2>{zahlen.ueberschrift}</h2>
-      <ul class="zaehler">
-        {zahlen.zaehler.map((eintrag) => <li><b>{eintrag.zahl}</b>{eintrag.wort}</li>)}
-      </ul>
-      <ul class="marken">
-        {zahlen.zutatenband.map((eintrag) => <li>{eintrag}</li>)}
-      </ul>
-      <ul class="marken">
-        {zahlen.rezeptband.map((eintrag) => <li>{eintrag}</li>)}
-      </ul>
-    </div>
-  </section>
-
-  <section class="abschnitt getoent" id="rezepte">
-    <div class="innen">
-      <h2>{vorschau.ueberschrift}</h2>
-      <p class="vorspann">{vorschau.text}</p>
-      <ul class="raster">
-        {vorschau.karten.map((titel) => <li class="karte"><h3>{titel}</h3><p class="klein">{vorschau.kennzeichnung}</p></li>)}
+      <h2 class="titel">{vorschau.ueberschrift}</h2>
+      <p class="vorschau-text">{vorschau.text}</p>
+      <ul class="rezeptkarten">
+        {vorschau.karten.map((rezept) => (
+          <li class="rezeptkarte">
+            <div class="rezeptbild">
+              <picture>
+                <source type="image/avif" srcset={quellen(rezept.datei, 'avif')} sizes="(min-width: 56rem) 16rem, 44vw" />
+                <source type="image/webp" srcset={quellen(rezept.datei, 'webp')} sizes="(min-width: 56rem) 16rem, 44vw" />
+                <img src={`/bilder/rezepte/${rezept.datei}-720.webp`} alt={`${vorschau.kennzeichnung}: ${rezept.titel}`} width="720" height="540" loading="lazy" decoding="async" />
+              </picture>
+              <span class="symbolbild" aria-hidden="true">{vorschau.kennzeichnung}</span>
+            </div>
+            <h3>{rezept.titel}</h3>
+          </li>
+        ))}
       </ul>
       <div class="knoepfe"><a class="knopf rand" href="/rezepte/">{vorschau.link}</a></div>
     </div>
   </section>
 
-  <section class="abschnitt fragen" id="fragen">
+  <section class="faq" id="fragen">
     <div class="innen schmal">
-      <h2>{fragen.ueberschrift}</h2>
+      <h2 class="titel">{fragen.ueberschrift}</h2>
       {fragen.liste.map((eintrag) => (
         <details>
           <summary>{eintrag.frage}</summary>
@@ -160,3 +270,56 @@ const daten = [
     <div class="innen schmal" set:html={offenlegung} />
   </section>
 </Basis>
+
+<script>
+  // Ohne "Bewegung reduzieren": Laufbänder starten und GSAP nachladen, beides erst nach dem ersten Zeichnen.
+  // Mit "Bewegung reduzieren" wird GSAP gar nicht geladen.
+  const ruhig = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let geladen = false;
+
+  const baender = () => {
+    for (const spur of document.querySelectorAll('[data-band]:not(.laeuft)')) {
+      const liste = spur.firstElementChild;
+      const breite = liste.getBoundingClientRect().width;
+      if (!breite) continue;
+      const kopien = Math.max(2, Math.ceil((window.innerWidth * 2) / breite) + 1);
+      for (let nummer = 1; nummer < kopien; nummer++) {
+        const kopie = liste.cloneNode(true);
+        kopie.setAttribute('aria-hidden', 'true');
+        spur.append(kopie);
+      }
+      spur.style.setProperty('--kopien', String(kopien));
+      spur.style.setProperty('--dauer', `${Math.round(breite / 55)}s`);
+      spur.classList.add('laeuft');
+    }
+  };
+  const starte = () => {
+    if (geladen || ruhig.matches) return;
+    geladen = true;
+    baender();
+    import('../skripte/bewegung.js').then((modul) => modul.starte());
+  };
+  // "Nach dem ersten Zeichnen" heißt: Der Browser hat das erste Bild der Seite gemeldet (first-contentful-paint)
+  // und die Seite ist fertig geladen. Kennt ein Browser die Meldung nicht, zählt der Zeitgeber.
+  const gezeichnet = new Promise((weiter) => {
+    const gemeldet = () => performance.getEntriesByName('first-contentful-paint').length > 0;
+    if (gemeldet()) return weiter();
+    try {
+      const beobachter = new PerformanceObserver(() => {
+        if (!gemeldet()) return;
+        beobachter.disconnect();
+        weiter();
+      });
+      beobachter.observe({ type: 'paint', buffered: true });
+    } catch {
+      // ohne diese Schnittstelle bleibt der Zeitgeber
+    }
+    setTimeout(weiter, 4000);
+  });
+  const fertig = new Promise((weiter) => {
+    if (document.readyState === 'complete') weiter();
+    else window.addEventListener('load', weiter, { once: true });
+  });
+  Promise.all([gezeichnet, fertig]).then(() => setTimeout(starte, 150));
+  ruhig.addEventListener('change', starte);
+</script>
