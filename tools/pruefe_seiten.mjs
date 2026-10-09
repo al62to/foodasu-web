@@ -101,6 +101,24 @@ for (const [adresse, html] of seiten) {
     if (pfad !== adresse && eingang.has(pfad)) eingang.set(pfad, eingang.get(pfad) + 1);
   }
 
+  // Bilder: Beschreibung und Maße an jedem Bild; jede Bilddatei muss es geben, auch das Bild für Open Graph.
+  for (const [marke] of alle(html, /<(?:img|source)\b[^>]*>/g)) {
+    if (marke.startsWith('<img')) {
+      if (!/\balt="[^"]+"/.test(marke)) melde(adresse, `Bild ohne Beschreibung: ${marke.slice(0, 90)}`);
+      if (!/\bwidth="\d+"/.test(marke) || !/\bheight="\d+"/.test(marke)) melde(adresse, `Bild ohne Maße: ${marke.slice(0, 90)}`);
+    }
+    for (const [, liste] of alle(marke, /\b(?:src|srcset)="([^"]*)"/g)) {
+      for (const teil of liste.split(',')) {
+        const pfad = teil.trim().split(/\s+/)[0];
+        if (pfad && !vorhanden.has(pfad)) melde(adresse, `Bilddatei fehlt: ${pfad}`);
+      }
+    }
+  }
+  for (const angabe of ['og:image', 'twitter:image']) {
+    const bild = html.match(new RegExp(`="${angabe}" content="([^"]*)"`));
+    if (!bild || !bild[1].startsWith(HOST) || !vorhanden.has(bild[1].slice(HOST.length))) melde(adresse, `${angabe} fehlt oder zeigt auf keine Datei`);
+  }
+
   // Strukturierte Daten
   const arten = [];
   for (const [, roh] of alle(html, /<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)) {
@@ -139,6 +157,40 @@ for (const [adresse, html] of seiten) {
   for (const [, skript] of alle(html, /<script(?![^>]*ld\+json)[^>]*>([\s\S]*?)<\/script>/g)) {
     if (SPEICHER.test(skript)) melde(adresse, `Speicher oder Anfrage im Skript: ${skript.match(SPEICHER)[0]}`);
   }
+}
+
+// Symbolbilder sind mit Adobe Firefly erzeugt: Jede Datei trägt die IPTC-Angabe DigitalSourceType =
+// TrainedAlgorithmicMedia (tools/bilder_bauen.py).
+const symbolbilder = dateien.filter((d) => d.includes(join(DIST, 'bilder', 'rezepte')));
+if (symbolbilder.length === 0) melde('/bilder/rezepte/', 'keine Symbolbilder gefunden');
+for (const datei of symbolbilder) {
+  if (!readFileSync(datei).includes('digitalsourcetype/trainedAlgorithmicMedia')) melde(adresseVon(datei), 'IPTC-Angabe DigitalSourceType fehlt');
+}
+
+// Bewegung: GSAP steht in keiner Seite als Skript oder Vorab-Laden, sondern wird vom Skript der Startseite
+// nachgeladen, und nur ohne "Bewegung reduzieren". Jede CSS-Animation liegt in einer Abfrage "no-preference".
+const start = seiten.get('/') ?? '';
+const gsapDateien = dateien.filter((d) => d.endsWith('.js') && /ScrollTrigger/.test(readFileSync(d, 'utf8')));
+if (gsapDateien.length !== 1) melde('/', `genau eine Datei mit GSAP erwartet, gefunden: ${gsapDateien.length}`);
+for (const [adresse, html] of seiten) {
+  for (const datei of gsapDateien) if (html.includes(adresseVon(datei))) melde(adresse, 'GSAP ist fest eingebunden (soll erst nach dem ersten Zeichnen geladen werden)');
+}
+const startSkripte = alle(start, /<script[^>]*\bsrc="([^"]+)"/g).map(([, pfad]) => readFileSync(join(DIST, pfad), 'utf8'));
+startSkripte.push(...alle(start, /<script(?![^>]*ld\+json)[^>]*>([\s\S]*?)<\/script>/g).map(([, inhalt]) => inhalt));
+if (!startSkripte.some((inhalt) => /prefers-reduced-motion: reduce/.test(inhalt) && /import\(/.test(inhalt))) {
+  melde('/', 'Skript der Startseite: Nachladen mit Abfrage "prefers-reduced-motion" nicht gefunden');
+}
+for (const datei of dateien.filter((d) => d.endsWith('.css'))) {
+  // Abfragen "no-preference" samt Inhalt entfernen; was an "animation" übrig bleibt, liefe auch mit "Bewegung reduzieren".
+  let rest = readFileSync(datei, 'utf8');
+  for (let ort = rest.indexOf('@media (prefers-reduced-motion:no-preference)'); ort >= 0; ort = rest.indexOf('@media (prefers-reduced-motion:no-preference)')) {
+    let tiefe = 0;
+    let ende = rest.indexOf('{', ort);
+    do { if (rest[ende] === '{') tiefe++; else if (rest[ende] === '}') tiefe--; ende++; } while (tiefe > 0 && ende < rest.length);
+    rest = rest.slice(0, ort) + rest.slice(ende);
+  }
+  const frei = rest.replace(/@keyframes[^{]*\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}/g, '').match(/[^{}]*\{[^{}]*\b(?:animation|transition)\s*:[^{}]*\}/);
+  if (frei) melde(adresseVon(datei), `Animation außerhalb der Abfrage "no-preference": ${frei[0].trim().slice(0, 100)}`);
 }
 
 // Sitemap und robots.txt
