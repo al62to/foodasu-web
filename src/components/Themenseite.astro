@@ -1,0 +1,53 @@
+---
+// Themenseite: alle Rezepte der Website zu einem Eintrag, Land oder einer Kategorie, mit ItemList.
+import Basis from '../layouts/Basis.astro';
+import Seitenkopf from './Seitenkopf.astro';
+import Rezeptkarte from './Rezeptkarte.astro';
+import { seite } from '../daten/seite.mjs';
+import { alleThemen, texte, verwandte, ziel, rezeptAdresse } from '../daten/rezeptseiten.mjs';
+
+const { adresse } = Astro.props;
+const thema = alleThemen.find((eintrag) => eintrag.adresse === adresse);
+const zeigtZutaten = ['ohne', 'passt'].includes(thema.art);
+const text = thema.text(thema.rezepte.length);
+const beschreibung = text;
+const nah = verwandte(thema).filter((anderes) => ziel(anderes.adresse));
+const jeNach = thema.jeNachRezepte.filter((rezept) => ziel(rezeptAdresse(rezept)));
+const daten = [{
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: thema.titel,
+  numberOfItems: thema.rezepte.length,
+  itemListElement: thema.rezepte.map((rezept, nummer) => ({
+    '@type': 'ListItem', position: nummer + 1, url: seite.adresse + rezeptAdresse(rezept),
+  })),
+}];
+---
+<Basis titel={`${thema.titel} | ${seite.name}`} beschreibung={beschreibung} daten={daten}>
+  <Seitenkopf krumen={[{ titel: texte.uebersicht, ziel: '/rezepte/' }, { titel: thema.titel, ziel: adresse }]} titel={thema.titel} vorspann={`${text} ${texte.thema.inDerApp(thema.inDerApp)}`}>
+    {zeigtZutaten && <p class="klein">{texte.thema.grundlage}</p>}
+  </Seitenkopf>
+
+  <div class="s-inhalt innen">
+    <ul class="r-karten s-teil">{thema.rezepte.map((rezept, nummer) => <Rezeptkarte rezept={rezept} vorn={nummer < 4} />)}</ul>
+
+    {jeNach.length > 0 && (
+      <section class="s-teil s-karte" aria-labelledby="je-nach">
+        <h2 id="je-nach">{texte.thema.jeNachTitel}</h2>
+        <p>{thema.jeNachText}</p>
+        <ul class="chips">
+          {jeNach.map((rezept) => <li><a class="chip" href={rezeptAdresse(rezept)}>{rezept.titel}</a></li>)}
+        </ul>
+      </section>
+    )}
+
+    {nah.length > 0 && (
+      <section class="s-teil" aria-labelledby="verwandt">
+        <h2 id="verwandt">{texte.thema.verwandt}</h2>
+        <ul class="chips">
+          {nah.map((anderes) => <li><a class="chip" href={anderes.adresse}>{anderes.titel}</a></li>)}
+        </ul>
+      </section>
+    )}
+  </div>
+</Basis>

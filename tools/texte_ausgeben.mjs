@@ -3,16 +3,17 @@
 import { writeFileSync } from 'node:fs';
 import { mega, hauptpunkte } from '../src/daten/navigation.mjs';
 import * as t from '../src/daten/startseite.mjs';
+import { texte as r, rezepte, themen } from '../src/daten/rezeptseiten.mjs';
 
 const ziel = process.argv[2] ?? 'C:/Users/ali/foodasu-play/Website_Texte_Startseite.md';
 const z = [];
 const zeile = (text = '') => z.push(text);
 const punkt = (name, text) => zeile(`- **${name}:** ${text}`);
 
-zeile('# Website foodasu.com: Texte der Startseite (freigegeben am 09.10.2026)');
+zeile('# Website foodasu.com: Texte der Startseite und des Gerüsts (Stand AP-16)');
 zeile();
-zeile('Stand 09.10.2026, Karte B (AP-15 Etappe 1). Von Ali am 09.10.2026 freigegeben, mit den Entscheidungen am Ende; es ist kein Punkt mehr offen. Nichts davon ist veröffentlicht.');
-zeile('Erzeugt aus `foodasu-web/src/daten/startseite.mjs` (Zweig `astro`) mit `npm run texte`; geändert wird dort, nicht hier.');
+zeile('Texte der Startseite: von Ali am 09.10.2026 freigegeben (Karte B), mit den Entscheidungen am Ende. Mit AP-16 dazugekommen: die Texte, die eindeutig die App meinen (Entscheidungen 18 bis 20), die 404-Seite nach dem Entwurf der Projektleitung, die Seiten Fragen, Lizenzen, Quellen und Lizenzen und die festen Texte des Rezeptbereichs; diese prüft die Projektleitung nach der Veröffentlichung.');
+zeile('Erzeugt aus `foodasu-web/src/daten/startseite.mjs` und `rezeptseiten.mjs` mit `npm run texte`; geändert wird dort, nicht hier.');
 zeile('Grundlage: AP-15 Teil B, Nachtrag SEO vom 09.10.2026 (Punkt 7 und Punkt 8), Konzept v4 Abschnitt 1. Die Wortprüfung läuft über diese Datei (`texte_pruefen.py`) und über die gebauten Seiten (`npm run pruefen`).');
 zeile();
 zeile('Woher die Wortlaute kommen: Sätze mit dem Vermerk (Store) stehen so im freigegebenen Store-Eintrag, (Beitrag) im freigegebenen LinkedIn-Beitrag vom 06.10.2026, (App) in den Texten der App. Alles ohne Vermerk ist neu geschrieben.');
@@ -76,6 +77,7 @@ zeile('## Abschnitt 6: Rezepte-Vorschau');
 punkt('Überschrift', t.vorschau.ueberschrift);
 punkt('Text', t.vorschau.text);
 punkt('Karten', `${t.vorschau.karten.map((k) => k.titel).join(', ')}; jede mit Bild, Kennzeichnung „${t.vorschau.kennzeichnung}“ und Bildbeschreibung „Symbolbild: Titel“ (App)`);
+punkt('Satz vor dem Link', t.vorschau.hinweis);
 punkt('Link', t.vorschau.link);
 zeile();
 
@@ -100,10 +102,28 @@ for (const p of Object.values(t.geruest.platzhalter)) {
   punkt(`Platzhalter „${p.titel}“`, `${p.text}${p.link ? ` Link: „${p.link}“.` : ''} Beschreibung: ${p.beschreibung}`);
 }
 const n = t.geruest.nichtGefunden;
-punkt('Seite 404', `${n.titel}. ${n.text} Links: „${n.start}“, „${n.rezepte}“.`);
+punkt('Seite 404 (Entwurf der Projektleitung, von Ali freigegeben)', `Etikett „${n.etikett}“, Zahl „${n.zahl}“, Überschrift „${n.titel.join('')}“. ${n.text} Knöpfe: „${n.start}“, „${n.rezepte}“. Zwischenüberschrift „${n.themenTitel}“ mit ${n.themen.map((e) => `„${e.titel}“`).join(', ')}. Karte „${n.karte.titel}“: ${n.karte.text} Knopf „${n.karte.knopf}“. Bildbeschreibungen: „${n.bilder.karte}“, „${n.bilder.start}“. Titel der Seite: ${n.seitentitel}.`);
+const f = t.geruest.fragenSeite;
+punkt('Seite Fragen und Antworten', `Titel „${f.titel}“, Vorspann und Beschreibung: ${f.beschreibung} Fragen und Antworten wie in Abschnitt 7.`);
 const l = t.geruest.lizenzen;
-punkt('Seite Lizenzen', `${l.einleitung} ${l.eintraege.map((e) => `${e.name} (${e.art}): ${e.lizenz}`).join('; ')}; ${l.bilder} Beschreibung: ${l.beschreibung}`);
-punkt('Seite Datenschutz', 'Text der Fassung 1.4 unverändert unter /datenschutz.html (wortgleich geprüft)');
+punkt('Seite Lizenzen', `${l.einleitung} ${l.eintraege.map((e) => `${e.name} (${e.art}): ${e.lizenz}${e.zusatz ? e.zusatz.vor + e.zusatz.text : ''}`).join('; ')}; ${l.saetze.map((e) => `${e.name}: ${e.text}${e.link ? e.link.text + e.nach : ''}`).join(' ')} Beschreibung: ${l.beschreibung}`);
+punkt('Seite Datenschutz', `Text der Fassung 2.0 unverändert unter /datenschutz.html, Titel im Kopfbereich, Inhaltsverzeichnis an der Seite mit der Überschrift „${t.geruest.recht.inhalt}“; Brotkrumen „${t.geruest.recht.datenschutz}“`);
+zeile();
+
+zeile('## Rezeptbereich: feste Texte (aus src/daten/rezeptseiten.mjs)');
+const a = r.alle;
+punkt('Übersicht, Titel und Seitentitel', `${a.titel}; ${a.seitentitel}`);
+punkt('Übersicht, Vorspann', `${a.text(rezepte.length)} ${a.grundlage}`);
+punkt('Übersicht, Suche und Filter', `„${a.suche}“; Gruppen „${Object.values(a.gruppen).join('“, „')}“; „${a.alleWaehlen}“; „${a.ohne('...')}“; „${a.stand(1)}“, „${a.stand(40)}“; „${a.leer}“; „${a.zuruecksetzen}“; „${a.themen}“`);
+punkt('Rezeptseite, Titel der Seite', '<Name>: Rezept mit Hinweisen zu den Zutaten | FoodAsu');
+punkt('Rezeptseite, „Passt für“', `${r.passt.titel} ${r.passt.zusatz}; ${r.passt.erklaerung} ${r.passt.moeglichText('vegetarisch', '...')}`);
+punkt('Rezeptseite, Hinweise', `${r.hinweise.titel}: ${r.hinweise.einleitung} ${r.hinweise.stufen.map(([wort, text]) => `${wort}: ${text}`).join(' ')} ${r.hinweise.app} Aufklappen: „${r.hinweise.tabelle}“`);
+punkt('Rezeptseite, Nährwerte', `${r.naehrwerte.proPortion}; ${r.naehrwerte.energieText} ${r.naehrwerte.energieHinweis} ${r.naehrwerte.grundlage} Aufklappen: „${r.naehrwerte.tabelle}“`);
+punkt('Rezeptseite, Hinweis auf die App', `${r.app.titel}: ${r.app.text} ${r.app.mehr} Link: „${r.app.soGehts}“`);
+punkt('Rezeptseite, Link am Ende', `„${r.quelle.link}“ (führt zum Abschnitt des Rezepts auf der Seite „${r.quelle.seite.titel}“)`);
+const q = r.quelle;
+punkt('Seite Quellen und Lizenzen', `${q.seite.einleitung} Überschrift der Liste: „${q.seite.uebersicht}“. Je Rezept: Quelle, ${q.urheber}, ${q.lizenz}, ${q.aenderungen} („${q.veraendert}“ und der Vermerk des Rezeptpakets), ${q.bild[0]} („${q.bild[1]}“), ${q.naehrwerte[0]} („${q.naehrwerte[1]}${q.bls.doi}${q.naehrwerte[2]}${q.bls.lizenz}${q.naehrwerte[3]}“), der Satz „${q.gleicheLizenz('CC BY-SA 4.0')}“ und der Link „${q.seite.zumRezept}“. Beschreibung: ${q.seite.beschreibung}`);
+punkt('Themenseite', `${r.thema.inDerApp(216)} ${r.thema.grundlage} Zwischenüberschriften: „${r.thema.jeNachTitel}“, „${r.thema.verwandt}“. Themen mit eigener Seite: ${themen.map((e) => e.titel).join('; ')}`);
 zeile();
 
 zeile('## Entscheidungen (Ali, 09.10.2026)');
@@ -125,6 +145,10 @@ zeile('## Entscheidungen (Ali, 09.10.2026)');
   'Beta-Satz neben „Bald im Play Store“ und „ich“ neben „wir“: bleibt.',
   'Karte Rezepte: „Jedes mit einem Symbolbild.“ statt „Jedes mit einem gezeichneten Bild.“',
   'Knopf zum Anhalten der Bewegung: ja, mit „Bewegung anhalten“ und „Bewegung fortsetzen“; der Zustand gilt nur für den Besuch, im Browser wird nichts gespeichert.',
+  'AP-16, Texte, die eindeutig die App meinen: Beschreibung der Seite „... In der App: Einkaufslisten und über 300 Rezepte.“ (bisher „Mit Einkaufslisten und über 300 Rezepten.“); Karte Rezepte „In der App: über 300 Rezepte aus 25 Ländern“; Überschrift der Zahlen „Die App in Zahlen“; Zähler „306 Rezepte in der App“.',
+  'AP-16, Rezepte-Vorschau: Satz „Über 300 Rezepte gibt es in der App, 40 davon stehen hier.“ und Link „40 Rezepte auf der Website ansehen“ (bisher „Alle Rezepte ansehen“).',
+  'AP-16, Mega-Menü, Spalte „Ohne ...“: Nüsse, Erdnüsse, Gluten, Milch, Eier, Soja, Sesam, Fisch, Schweinefleisch, Alkohol, Gelatine (Themenseiten nach Suchnachfrage); ersetzt Entscheidung 8.',
+  'AP-16, Zusatz von Ali vom 09.10.2026: Unter jedem Rezept steht nur der Link „Quelle und Lizenz“; die Angaben stehen je Rezept auf der Seite „Quellen und Lizenzen“ (im Fuß verlinkt, nicht im Index).',
 ].forEach((text, i) => zeile(`${i + 1}. ${text}`));
 zeile();
 

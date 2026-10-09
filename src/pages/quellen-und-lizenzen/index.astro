@@ -1,0 +1,51 @@
+---
+// Quellen und Lizenzen: zu jedem Rezept der Website Quelle, Urheber, Lizenz, Änderungen, Bild und Nährwerte, mit
+// einer Sprungmarke je Rezept. Jede Rezeptseite verlinkt ihren Abschnitt. Nicht im Index der Suchmaschinen und nicht
+// in der Sitemap (Ali, 09.10.2026); im Fuß jeder Seite verlinkt.
+import Basis from '../../layouts/Basis.astro';
+import Seitenkopf from '../../components/Seitenkopf.astro';
+import { seite } from '../../daten/seite.mjs';
+import { rezepte, texte, QUELLE, LIZENZ, rezeptAdresse } from '../../daten/rezeptseiten.mjs';
+
+const t = texte.quelle;
+const nachName = [...rezepte].sort((a, b) => a.titel.localeCompare(b.titel, 'de'));
+---
+<Basis titel={`${t.seite.titel} | ${seite.name}`} beschreibung={t.seite.beschreibung} index={false}>
+  <Seitenkopf krumen={[{ titel: t.seite.titel, ziel: t.seite.adresse }]} titel={t.seite.titel} vorspann={t.seite.einleitung} still />
+  <div class="s-inhalt innen">
+    <nav class="q-uebersicht" aria-labelledby="q-rezepte">
+      <h2 id="q-rezepte">{t.seite.uebersicht}</h2>
+      <ul class="chips">{nachName.map((rezept) => <li><a class="chip" href={`#${rezept.slug}`}>{rezept.kurztitel}</a></li>)}</ul>
+    </nav>
+
+    <div class="q-liste">
+      {nachName.map((rezept) => {
+        const [quelleName, urheberName] = QUELLE[rezept.quelle];
+        const [lizenzName, lizenzKurz] = LIZENZ[rezept.lizenz];
+        const eineAdresse = rezept.quelleUrl === rezept.urheberUrl;
+        // Derselbe sichtbare Linktext führt je Rezept zu einem anderen Ziel; für Bildschirmleser nennt er das Rezept.
+        const zusatz = <span class="vh">: {rezept.kurztitel}</span>;
+        return (
+          <section class="s-karte hell r-quelle" id={rezept.slug} aria-labelledby={`q-${rezept.slug}`}>
+            <h2 id={`q-${rezept.slug}`}>{rezept.titel}</h2>
+            <dl>
+              <div><dt>Quelle</dt><dd>{quelleName}: <a href={rezept.quelleUrl} rel="noopener">{eineAdresse ? t.datensatz : t.rezept}{zusatz}</a></dd></div>
+              <div><dt>{t.urheber}</dt><dd>{eineAdresse ? urheberName : <a href={rezept.urheberUrl} rel="noopener">{urheberName}{zusatz}</a>}</dd></div>
+              <div><dt>{t.lizenz}</dt><dd><a href={rezept.lizenzUrl} rel="license noopener">{lizenzName}</a></dd></div>
+              <div><dt>{t.aenderungen}</dt><dd>{t.veraendert} {rezept.aenderung}.</dd></div>
+              <div><dt>{t.bild[0]}</dt><dd>{t.bild[1]}</dd></div>
+              {rezept.nwVollstaendig && (
+                <div>
+                  <dt>{t.naehrwerte[0]}</dt>
+                  <dd>{t.naehrwerte[1]}<a href={t.bls.doiZiel} rel="noopener">{t.bls.doi}</a>{t.naehrwerte[2]}<a href={t.bls.lizenzZiel} rel="noopener">{t.bls.lizenz}</a>{t.naehrwerte[3]}</dd>
+                </div>
+              )}
+            </dl>
+            <p class="klein">{t.gleicheLizenz(lizenzKurz)}</p>
+            <p class="klein"><a href={rezeptAdresse(rezept)}>{t.seite.zumRezept}{zusatz}</a></p>
+          </section>
+        );
+      })}
+    </div>
+  </div>
+</Basis>

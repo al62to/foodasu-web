@@ -1,0 +1,16 @@
+---
+// Rezept- und Themenseiten, aus den Daten erzeugt (src/daten/rezeptseiten.mjs). Welche Seiten entstehen, steht in
+// src/daten/auswahl.mjs.
+import Rezeptseite from '../../../components/Rezeptseite.astro';
+import Themenseite from '../../../components/Themenseite.astro';
+import { rezeptSeiten, themen } from '../../../daten/rezeptseiten.mjs';
+
+export function getStaticPaths() {
+  return [
+    ...rezeptSeiten.map((rezept) => ({ params: { pfad: rezept.slug }, props: { art: 'rezept', slug: rezept.slug } })),
+    ...themen.map((thema) => ({ params: { pfad: thema.adresse.slice('/rezepte/'.length, -1) }, props: { art: 'thema', adresse: thema.adresse } })),
+  ];
+}
+const { art, slug, adresse } = Astro.props;
+---
+{art === 'rezept' ? <Rezeptseite slug={slug} /> : <Themenseite adresse={adresse} />}

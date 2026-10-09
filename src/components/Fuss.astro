@@ -13,6 +13,7 @@ const kontaktLink = `<a href="${kontakt.trim()}">${fuss.links.kontakt}</a>`;
       <li><a href="/datenschutz.html">{fuss.links.datenschutz}</a></li>
       <li><a href="/#offenlegung">{fuss.links.offenlegung}</a></li>
       <li><a href="/lizenzen/">{fuss.links.lizenzen}</a></li>
+      <li><a href="/quellen-und-lizenzen/">{fuss.links.quellen}</a></li>
       <li set:html={kontaktLink} />
     </ul>
     <ul>
@@ -39,7 +40,7 @@ const kontaktLink = `<a href="${kontakt.trim()}">${fuss.links.kontakt}</a>`;
             {fuss.auftritte.storeLink}
           </a>
         ) : (
-          <span class="bald">{fuss.auftritte.storeBald}</span>
+          <span class="bald"><span>{fuss.auftritte.storeBald}</span></span>
         )}
       </li>
     </ul>

@@ -1,0 +1,50 @@
+/* 404-Seite nach dem Entwurf der Projektleitung (AP-16 Nachtrag Website, Punkt 2): links der Text, rechts zwei Handys
+   mit Rahmen per CSS, Akzente nach Theme F3. Ohne Bewegung. Hell und dunkel über die Farben aus basis.css; die Karte
+   "Was ist FoodAsu?" und die Handys haben feste Farben. */
+:root { --nf-fleck: rgba(74, 63, 209, 0.13); --nf-ring: rgba(74, 63, 209, 0.18); --nf-punkt: rgba(74, 63, 209, 0.35); --nf-karte: #ffffff; }
+@media (prefers-color-scheme: dark) {
+  :root { --nf-fleck: rgba(179, 171, 255, 0.12); --nf-ring: rgba(179, 171, 255, 0.2); --nf-punkt: rgba(179, 171, 255, 0.4); --nf-karte: #1c1b28; }
+}
+.nf { position: relative; overflow: hidden; }
+.nf-fleck { position: absolute; top: -11.25rem; right: -10rem; width: 38.75rem; height: 35rem; border-radius: 48% 52% 44% 56% / 55% 45% 55% 45%; background: var(--nf-fleck); pointer-events: none; }
+.nf-kreis { position: absolute; bottom: 5rem; left: -5.6rem; width: 16.25rem; height: 16.25rem; border: 3px solid var(--nf-ring); border-radius: 50%; pointer-events: none; }
+.nf-raster { position: relative; z-index: 1; display: flex; flex-wrap: wrap; align-items: center; gap: 3.5rem 3rem; padding-top: clamp(2.5rem, 6vw, 4.5rem); padding-bottom: clamp(3.5rem, 8vw, 6rem); }
+.nf-text { flex: 1 1 33.75rem; min-width: 0; display: flex; flex-direction: column; gap: 2.5rem; }
+.nf-kopf { display: flex; flex-direction: column; gap: 1.25rem; max-width: 40rem; }
+.nf-etikett { align-self: flex-start; margin: 0; padding: 0.5rem 0.9rem; border-radius: 999px; background: var(--tone); color: var(--deep); font-size: 0.875rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.nf-zahl { font-size: clamp(7rem, 16vw, 12.5rem); font-weight: 800; line-height: 0.9; letter-spacing: -0.06em; color: var(--main); }
+.nf h1 { margin: 0; font-size: clamp(2.1rem, 4.6vw, 3.4rem); line-height: 1.08; letter-spacing: -0.03em; hyphens: manual; }
+.nf h1 em { font-style: normal; color: var(--main); }
+.nf-kopf p:last-child { max-width: 35rem; margin: 0; font-size: 1.19rem; color: var(--muted); }
+.nf-knoepfe { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+.nf-knopf { display: inline-flex; align-items: center; gap: 0.6rem; min-height: 3.25rem; padding: 0.85rem 1.6rem; border-radius: 999px; font-size: 1.06rem; font-weight: 700; text-decoration: none; }
+.nf-knopf svg { flex: none; width: 1.25rem; height: 1.25rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.nf-knopf.voll { background: var(--main); color: var(--on-main); }
+.nf-knopf.hell { background: var(--tone); color: var(--deep); }
+.nf-themen { display: flex; flex-direction: column; gap: 0.9rem; }
+.nf-themen h2 { margin: 0; font-size: 1.125rem; letter-spacing: 0; }
+.nf-themen ul { list-style: none; display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 0; padding: 0; }
+.nf-themen a { display: inline-flex; align-items: center; min-height: 2.75rem; padding: 0.6rem 1.1rem; border: 1.5px solid var(--tone-deep); border-radius: 999px; background: var(--nf-karte); color: var(--deep); font-size: 0.94rem; font-weight: 600; text-decoration: none; }
+.nf-themen a:hover, .nf-knopf:hover { text-decoration: underline; }
+.nf-karte { position: relative; overflow: hidden; display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.5rem; padding: 1.5rem 1.75rem; border-radius: 1.5rem; background: #2a2277; color: #fff; }
+.nf-karte::before, .nf-karte::after { content: ""; position: absolute; border-radius: 50%; pointer-events: none; }
+.nf-karte::before { top: -2.5rem; right: -2.5rem; width: 9.4rem; height: 9.4rem; border: 0.65rem solid rgba(255, 255, 255, 0.14); }
+.nf-karte::after { right: 7rem; bottom: -3.4rem; width: 5.5rem; height: 5.5rem; border: 0.5rem solid rgba(255, 255, 255, 0.1); }
+.nf-karte > * { position: relative; z-index: 1; }
+.nf-karte div { flex: 1 1 18.75rem; min-width: 0; }
+.nf-karte h2 { margin: 0 0 0.35rem; font-size: 1.25rem; letter-spacing: 0; }
+.nf-karte p { margin: 0; color: #e5e4ee; }
+.nf-karte .nf-knopf { min-height: 3rem; padding: 0.75rem 1.4rem; background: #b8f0d2; color: #00382a; font-size: 1rem; }
+.nf-karte :focus-visible { outline-color: #fff; }
+
+/* Zwei Handys: vorne die Produktkarte, dahinter der Startbildschirm; dahinter Kreis, Ring und Punkt. */
+.nf-handys { flex: 1 1 23.75rem; min-width: 0; display: flex; justify-content: center; }
+.nf-buehne { position: relative; width: 100%; max-width: 28.75rem; aspect-ratio: 460 / 610; }
+.nf-buehne > i { position: absolute; border-radius: 50%; }
+.nf-buehne .kreis { left: 10%; top: 16%; width: 80%; aspect-ratio: 1; background: var(--tone); }
+.nf-buehne .ring { left: 0; bottom: 3%; width: 14%; aspect-ratio: 1; border: 3px solid var(--nf-punkt); }
+.nf-buehne .punkt { right: 2%; top: 0; width: 4%; aspect-ratio: 1; background: var(--nf-punkt); }
+.nf-handy { position: absolute; width: 54%; aspect-ratio: 250 / 540; padding: 1.95%; border-radius: 15% / 7%; background: #1a1a24; }
+.nf-handy img { display: block; width: 100%; height: 100%; border-radius: 12.5% / 5.6%; object-fit: cover; object-position: top; background: #fff; }
+.nf-handy.hinten { left: 1%; top: 8%; transform: rotate(-7deg); box-shadow: 0 30px 60px rgba(42, 34, 119, 0.22); }
+.nf-handy.vorne { right: 1%; top: 2%; z-index: 2; transform: rotate(5deg); box-shadow: 0 30px 60px rgba(42, 34, 119, 0.3); }

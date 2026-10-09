@@ -3,12 +3,17 @@
 // texte_pruefen.py, dazu die Wendungen aus dem Nachtrag SEO, Punkt 7). Aufruf nach dem Bau: node tools/pruefe_seiten.mjs
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
+import { begriffe } from '../src/daten/sprachen.mjs';
+import { AUSDRUCK, durchlaufe } from './sprache_setzen.mjs';
+import { muster as nurMuster } from '../src/daten/auswahl.mjs';
 
 const DIST = 'dist';
 const HOST = 'https://foodasu.com';
 const OHNE_EINGANG = new Set(['/', '/404.html']);
 // Rechtstexte laufen wie in texte_pruefen.py nur durch die Bezahl- und Fristlisten.
 const RECHTSTEXTE = new Set(['/datenschutz.html']);
+// Quelle, Urheber, Lizenz und Änderungen je Rezept (nicht im Index, im Fuß verlinkt).
+const QUELLEN = '/quellen-und-lizenzen/';
 
 const VOR = '(?<![\\p{L}\\p{N}_])(?:';
 const NACH = ')(?![\\p{L}\\p{N}_])';
@@ -134,6 +139,75 @@ for (const [adresse, html] of seiten) {
   const erwartet = adresse === '/' ? ['WebSite', 'Organization', 'MobileApplication'] : OHNE_EINGANG.has(adresse) ? [] : ['BreadcrumbList'];
   for (const art of erwartet) if (!arten.includes(art)) melde(adresse, `strukturierte Daten fehlen: ${art}`);
 
+  // Rezept- und Themenseiten: Pflichtfelder der strukturierten Daten, Bilder in drei Seitenverhältnissen,
+  // FoodAsu-eigener Teil, Lizenzzeile.
+  if (adresse.startsWith('/rezepte/') && adresse !== '/rezepte/') {
+    const bloecke = alle(html, /<script type="application\/ld\+json">([\s\S]*?)<\/script>/g).map(([, roh]) => { try { return JSON.parse(roh); } catch { return {}; } });
+    const rezept = bloecke.find((block) => block['@type'] === 'Recipe');
+    const liste = bloecke.find((block) => block['@type'] === 'ItemList');
+    if (!rezept && !liste) melde(adresse, 'weder Recipe noch ItemList in den strukturierten Daten');
+    if (rezept) {
+      for (const feld of ['name', 'image', 'description', 'author', 'datePublished', 'recipeCategory', 'recipeCuisine', 'keywords', 'recipeIngredient', 'recipeInstructions']) {
+        if (rezept[feld] == null || rezept[feld].length === 0) melde(adresse, `Recipe ohne ${feld}`);
+      }
+      if (!rezept.totalTime && !(rezept.prepTime && rezept.cookTime)) hinweise.push(`${adresse}: Recipe ohne Zeitangabe (im Rezeptpaket nicht vorhanden)`);
+      if (Boolean(rezept.prepTime) !== Boolean(rezept.cookTime)) melde(adresse, 'prepTime und cookTime nur gemeinsam');
+      if (rezept.nutrition && !rezept.recipeYield) melde(adresse, 'nutrition.calories ohne recipeYield');
+      const verhaeltnisse = new Set();
+      for (const bild of rezept.image ?? []) {
+        const pfad = bild.replace(HOST, '');
+        const masse = pfad.match(/-(16x9|4x3|1x1)-1200\.webp$/);
+        if (!vorhanden.has(pfad) || !masse) melde(adresse, `Bild der strukturierten Daten fehlt oder hat kein bekanntes Format: ${bild}`);
+        else verhaeltnisse.add(masse[1]);
+      }
+      if (verhaeltnisse.size !== 3) melde(adresse, 'Bilder in 16:9, 4:3 und 1:1 erwartet');
+      for (const [nummer, schritt] of (rezept.recipeInstructions ?? []).entries()) {
+        if (schritt['@type'] !== 'HowToStep' || !schritt.text || !schritt.name) melde(adresse, `Schritt ${nummer + 1} unvollständig`);
+        if (/^Schritt\s+\d/.test(schritt.text ?? '')) melde(adresse, `Schritt ${nummer + 1} beginnt mit "Schritt"`);
+        if (!html.includes(`id="${(schritt.url ?? '').split('#')[1]}"`)) melde(adresse, `Sprungmarke zu Schritt ${nummer + 1} fehlt`);
+      }
+      for (const teil of ['id="passt"', 'id="hinweise"', 'id="naehrwerte"', 'Maßgeblich ist die Verpackung.', 'Symbolbild']) {
+        if (!html.includes(teil)) melde(adresse, `Pflichtteil der Rezeptseite fehlt: ${teil}`);
+      }
+      // Quelle und Lizenz stehen auf der Seite "Quellen und Lizenzen": Die Rezeptseite verlinkt ihren Abschnitt, und
+      // der Abschnitt nennt Lizenz und Änderungsvermerk.
+      const kennung = adresse.split('/').at(-2);
+      if (!html.includes(`href="${QUELLEN}#${kennung}"`)) melde(adresse, `Link auf ${QUELLEN}#${kennung} fehlt`);
+      const abschnitt = (seiten.get(QUELLEN) ?? '').split(/<section /).find((teil) => teil.includes(`id="${kennung}"`));
+      if (!abschnitt) melde(QUELLEN, `Abschnitt zu ${kennung} fehlt`);
+      else for (const teil of ['rel="license', 'Für FoodAsu verändert.', rezept.license, rezept.isBasedOn]) {
+        if (!abschnitt.includes(teil.replaceAll('&', '&amp;'))) melde(QUELLEN, `Abschnitt ${kennung}: ${teil} fehlt`);
+      }
+    }
+    if (liste) {
+      const ziele = (liste.itemListElement ?? []).map((punkt) => punkt.url);
+      if (ziele.length === 0 || liste.itemListElement.some((punkt, nummer) => punkt.position !== nummer + 1 || !punkt.url?.startsWith(HOST))) melde(adresse, 'ItemList: position oder url fehlt');
+      if (new Set(ziele).size !== ziele.length) melde(adresse, 'ItemList: Adresse doppelt');
+      const ohneSeite = ziele.filter((ziel) => !seiten.has(ziel.replace(HOST, '')));
+      if (ohneSeite.length && !nurMuster) melde(adresse, `ItemList nennt ${ohneSeite.length} Adressen ohne Seite`);
+      else if (ohneSeite.length) hinweise.push(`${adresse}: ItemList nennt ${ohneSeite.length} Adressen, deren Seiten erst nach der Freigabe der Muster entstehen`);
+      if (!html.includes('laut Zutatenliste') && /ohne-|vegetarisch|vegan/.test(adresse)) melde(adresse, '"laut Zutatenliste" fehlt');
+    }
+  }
+
+  // Linktexte: derselbe Text darf nicht zu verschiedenen Zielen führen (Navigation und Fuß ausgenommen).
+  const inhalt = html.match(/<main[\s\S]*<\/main>/)?.[0] ?? '';
+  const texteZuZiel = new Map();
+  for (const [, ziel, innen] of alle(inhalt, /<a[^>]*?href="([^"]*)"[^>]*>([\s\S]*?)<\/a>/g)) {
+    const text = innen.replace(/<[^>]+>/g, '').trim();
+    if (!text) continue;
+    if (texteZuZiel.has(text) && texteZuZiel.get(text) !== ziel) melde(adresse, `Linktext "${text}" führt zu verschiedenen Zielen`);
+    texteZuZiel.set(text, ziel);
+  }
+
+  // Sprache: Kein Begriff aus src/daten/sprachen.mjs darf ohne lang-Attribut im sichtbaren Text stehen.
+  durchlaufe(html, (text) => {
+    for (const fund of text.match(AUSDRUCK) ?? []) melde(adresse, `fremdsprachiger Begriff ohne lang-Attribut: ${fund}`);
+  });
+  for (const [, sprache] of alle(html, /<span lang="([^"]+)">/g)) {
+    if (!begriffe.some((begriff) => begriff.lang === sprache)) melde(adresse, `unbekanntes lang-Attribut: ${sprache}`);
+  }
+
   // Wortlisten
   const text = sichtbar(html);
   const listen = RECHTSTEXTE.has(adresse) ? BEZAHL_UND_FRIST : [...GESPERRT, ...BEZAHL_UND_FRIST, ...BETA, ...WENDUNGEN];
@@ -205,6 +279,8 @@ if (existsSync(join(DIST, 'sitemap.xml'))) {
     else if (seiten.get(adresse).includes('noindex')) melde('sitemap.xml', `Seite mit noindex: ${ort}`);
   }
   for (const [adresse, html] of seiten) {
+    // Die 404-Seite gehört nicht in die Sitemap: GitHub Pages liefert sie mit Status 404 aus.
+    if (adresse === '/404.html') { if (karte.includes('/404.html')) melde('sitemap.xml', 'die 404-Seite ist eingetragen'); continue; }
     if (!html.includes('noindex') && !karte.includes(`<loc>${HOST + adresse}</loc>`)) melde('sitemap.xml', `Seite nicht eingetragen: ${adresse}`);
   }
 }

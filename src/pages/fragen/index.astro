@@ -1,9 +1,35 @@
 ---
-import Platzhalter from '../../components/Platzhalter.astro';
-import { geruest } from '../../daten/startseite.mjs';
+// Fragen und Antworten: dieselben Fragen wie auf der Startseite (src/daten/startseite.mjs), hier offen lesbar und
+// als FAQPage in den strukturierten Daten. In den Daten steht nur, was sichtbar auf der Seite steht.
+import Basis from '../../layouts/Basis.astro';
+import Seitenkopf from '../../components/Seitenkopf.astro';
+import { seite } from '../../daten/seite.mjs';
+import { fragen, geruest } from '../../daten/startseite.mjs';
 
-const texte = geruest.platzhalter.fragen;
+const texte = geruest.fragenSeite;
+const antwortText = (eintrag) =>
+  [...eintrag.antwort, eintrag.verweis ? `${eintrag.verweis.vor}${eintrag.verweis.text}${eintrag.verweis.nach}` : null].filter(Boolean).join(' ');
+const daten = [{
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: fragen.liste.map((eintrag) => ({
+    '@type': 'Question',
+    name: eintrag.frage,
+    acceptedAnswer: { '@type': 'Answer', text: antwortText(eintrag) },
+  })),
+}];
 ---
-<Platzhalter texte={texte}>
-  <div class="knoepfe"><a class="knopf rand" href="/#fragen">{texte.link}</a></div>
-</Platzhalter>
+<Basis titel={`${texte.titel} | ${seite.name}`} beschreibung={texte.beschreibung} daten={daten}>
+  <Seitenkopf krumen={[{ titel: texte.titel, ziel: '/fragen/' }]} titel={texte.titel} vorspann={texte.beschreibung} />
+  <div class="s-inhalt innen">
+    <ul class="s-liste breit">
+      {fragen.liste.map((eintrag) => (
+        <li class="s-karte" data-ein>
+          <h2>{eintrag.frage}</h2>
+          {eintrag.antwort.map((absatz) => <p>{absatz}</p>)}
+          {eintrag.verweis && <p>{eintrag.verweis.vor}<a href={eintrag.verweis.ziel}>{eintrag.verweis.text}</a>{eintrag.verweis.nach}</p>}
+        </li>
+      ))}
+    </ul>
+  </div>
+</Basis>

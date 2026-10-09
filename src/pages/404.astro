@@ -1,19 +1,77 @@
 ---
+// Eigene 404-Seite (AP-16 Nachtrag Website, Punkt 2): Der Bau erzeugt 404.html, GitHub Pages liefert sie bei
+// unbekannten Adressen mit Status 404 aus. Nicht in der Sitemap; ein noindex braucht sie wegen des Status nicht.
+// Wortlaut in src/daten/startseite.mjs. Die Bilder in den Handys sind echte Aufnahmen aus der App 0.14.1 (Emulator,
+// hell, Deutsch, Testhaushalt).
 import Basis from '../layouts/Basis.astro';
+import '../styles/nichtgefunden.css';
 import { seite } from '../daten/seite.mjs';
 import { geruest } from '../daten/startseite.mjs';
+import { ziel } from '../daten/rezeptseiten.mjs';
 
 const texte = geruest.nichtGefunden;
+// Keine toten Links: Ein Chip erscheint nur, wenn es seine Themenseite gibt.
+const themen = texte.themen.filter((thema) => ziel(thema.ziel));
+const bild = (name, breite) => `/bilder/app/${name}-${breite}.webp`;
+const quellen = (name) => [240, 480].map((breite) => `${bild(name, breite)} ${breite}w`).join(', ');
+const groessen = '(min-width: 30rem) 15rem, 50vw';
 ---
-<Basis titel={`${texte.titel} | ${seite.name}`} beschreibung={texte.text} adresse="/404.html" index={false}>
-  <section class="abschnitt platzhalter">
-    <div class="innen schmal">
-      <h1>{texte.titel}</h1>
-      <p class="vorspann">{texte.text}</p>
-      <div class="knoepfe">
-        <a class="knopf voll" href="/">{texte.start}</a>
-        <a class="knopf rand" href="/rezepte/">{texte.rezepte}</a>
+<Basis titel={`${texte.seitentitel} | ${seite.name}`} beschreibung={texte.text} adresse="/404.html">
+  <div class="nf">
+    <div class="nf-fleck" aria-hidden="true"></div>
+    <div class="nf-kreis" aria-hidden="true"></div>
+    <div class="innen nf-raster">
+      <div class="nf-text">
+        <div class="nf-kopf">
+          <p class="nf-etikett">{texte.etikett}</p>
+          <div class="nf-zahl" aria-hidden="true">{texte.zahl}</div>
+          <h1>{texte.titel[0]}<em>{texte.titel[1]}</em></h1>
+          <p>{texte.text}</p>
+        </div>
+
+        <div class="nf-knoepfe">
+          <a class="nf-knopf voll" href="/">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 11l9-7 9 7" /><path d="M5 10v10h14V10" /></svg>
+            {texte.start}
+          </a>
+          <a class="nf-knopf hell" href="/rezepte/">
+            {texte.rezepte}
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12h14" /><path d="M13 6l6 6-6 6" /></svg>
+          </a>
+        </div>
+
+        {themen.length > 0 && (
+          <div class="nf-themen">
+            <h2>{texte.themenTitel}</h2>
+            <ul>{themen.map((thema) => <li><a href={thema.ziel}>{thema.titel}</a></li>)}</ul>
+          </div>
+        )}
+
+        <div class="nf-karte">
+          <div>
+            <h2>{texte.karte.titel}</h2>
+            <p>{texte.karte.text}</p>
+          </div>
+          <a class="nf-knopf" href={texte.karte.ziel}>
+            {texte.karte.knopf}
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12h14" /><path d="M13 6l6 6-6 6" /></svg>
+          </a>
+        </div>
+      </div>
+
+      <div class="nf-handys">
+        <div class="nf-buehne">
+          <i class="kreis" aria-hidden="true"></i>
+          <i class="ring" aria-hidden="true"></i>
+          <i class="punkt" aria-hidden="true"></i>
+          <div class="nf-handy hinten">
+            <img src={bild('startbildschirm', 480)} srcset={quellen('startbildschirm')} sizes={groessen} alt={texte.bilder.start} width="480" height="1080" decoding="async" />
+          </div>
+          <div class="nf-handy vorne">
+            <img src={bild('produktkarte', 480)} srcset={quellen('produktkarte')} sizes={groessen} alt={texte.bilder.karte} width="480" height="1080" decoding="async" />
+          </div>
+        </div>
       </div>
     </div>
-  </section>
+  </div>
 </Basis>

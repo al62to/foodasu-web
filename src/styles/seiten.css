@@ -1,0 +1,246 @@
+/* Unterseiten im Stil der Startseite (AP-16 Teil 2 B): Kopfbereich in dunklem Indigo mit ruhigen Farbflächen,
+   Glas-Karten, Karten statt Tabellen. Hinweise bleiben neutral gestaltet (nie Rot oder Grün als Urteil).
+   Jede Bewegung liegt am Ende der Datei in der Abfrage "prefers-reduced-motion: no-preference"; die Schleife der
+   Farbflächen läuft nur mit JavaScript, weil nur dann der Knopf "Bewegung anhalten" da ist. */
+:root {
+  --karte: #ffffff;
+  --schatten: 42 34 119;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --karte: #1c1b28;
+    --schatten: 0 0 0;
+  }
+}
+
+/* Kopfbereich: dunkles Indigo in beiden Farbschemata */
+.s-kopf { position: relative; overflow: clip; padding: 0 0 clamp(2rem, 5vw, 3.5rem); background: #16123f; color: #fff; }
+.s-flaechen { position: absolute; inset: -30% -10%; z-index: 0; pointer-events: none; }
+.s-flaechen i { position: absolute; border-radius: 50%; }
+.s-flaechen .a { left: -4%; top: 0; width: 52%; height: 70%; background: radial-gradient(closest-side, rgba(74, 63, 209, 0.85), rgba(74, 63, 209, 0)); }
+.s-flaechen .b { right: 0; top: 6%; width: 40%; height: 56%; background: radial-gradient(closest-side, rgba(123, 108, 255, 0.4), rgba(123, 108, 255, 0)); }
+.s-flaechen .c { right: 24%; bottom: 0; width: 26%; height: 40%; background: radial-gradient(closest-side, rgba(63, 191, 143, 0.26), rgba(63, 191, 143, 0)); }
+.s-kopf > .innen { position: relative; z-index: 1; }
+.s-kopf .krumen { padding: 1rem 0 0; color: rgba(255, 255, 255, 0.82); }
+.s-kopf .krumen ol { align-items: center; }
+.s-kopf a { color: #fff; }
+.s-kopf :focus-visible { outline-color: #fff; }
+.s-kopf-raster { display: grid; gap: 1.75rem; align-items: center; padding-top: clamp(1rem, 3vw, 2.25rem); }
+.s-kopf h1 { margin: 0 0 1rem; font-size: clamp(2.1rem, 5.6vw, 3.9rem); line-height: 1.04; letter-spacing: -0.035em; text-wrap: balance; }
+.s-kopf h1 em { font-style: normal; color: var(--mint); }
+.s-vorspann { max-width: 42rem; margin: 0; font-size: clamp(1.05rem, 1.5vw, 1.2rem); color: rgba(255, 255, 255, 0.88); }
+.s-kopf .klein { max-width: 42rem; margin: 0.9rem 0 0; color: rgba(255, 255, 255, 0.82); }
+.s-etikett { display: inline-flex; align-items: center; margin: 0 0 0.9rem; padding: 0.35rem 0.85rem; border: 1px solid rgba(255, 255, 255, 0.22); border-radius: 999px; background: rgba(255, 255, 255, 0.1); font-size: 0.85rem; font-weight: 700; }
+.s-glas { border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 1.75rem; background: rgba(255, 255, 255, 0.09); }
+.s-kacheln { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.75rem, 1fr)); gap: 0.6rem; margin: 1.5rem 0 0; }
+.s-kacheln div { padding: 0.65rem 0.85rem; border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 1rem; background: rgba(255, 255, 255, 0.09); }
+.s-kacheln dt { font-size: 0.8rem; font-weight: 700; color: rgba(255, 255, 255, 0.82); }
+.s-kacheln dd { margin: 0; font-weight: 800; hyphens: manual; }
+.s-bild { position: relative; margin: 0; padding: 0.6rem; }
+.s-bild img { display: block; width: 100%; height: auto; border-radius: 1.25rem; background: #2a2277; }
+.r-symbol { position: absolute; left: 1.2rem; top: 1.2rem; padding: 0.2rem 0.65rem; border-radius: 999px; background: rgba(17, 17, 24, 0.78); color: #fff; font-size: 0.75rem; font-weight: 700; }
+@media (min-width: 56rem) {
+  .s-kopf-raster.zwei { grid-template-columns: 1.05fr 0.95fr; gap: 2.75rem; }
+  @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .s-glas, .s-kacheln div { -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+  }
+}
+
+/* Inhalt */
+.s-inhalt { padding: clamp(2rem, 5vw, 3.5rem) 0 clamp(3rem, 7vw, 5rem); }
+.s-teil { margin-top: clamp(2.25rem, 5vw, 3.5rem); }
+.s-teil:first-child { margin-top: 0; }
+.s-teil > h2, .s-karte > h2 { font-size: clamp(1.45rem, 3.2vw, 2rem); letter-spacing: -0.03em; }
+.s-teil h3 { margin-top: 1.25rem; }
+.s-karte { padding: clamp(1.1rem, 3vw, 1.6rem); border-radius: 1.75rem; background: var(--tone); }
+.s-karte > :last-child { margin-bottom: 0; }
+.s-karte.hell { border: 1px solid var(--line); background: var(--karte); box-shadow: 0 30px 60px -44px rgb(var(--schatten) / 0.45); }
+.r-zusatz { font-size: 0.6em; font-weight: 700; color: var(--muted); white-space: nowrap; }
+.s-klapp { margin-top: 1rem; padding: 0 1rem; border: 1px solid var(--line); border-radius: 1.1rem; }
+.s-klapp summary { display: flex; align-items: center; min-height: 2.9rem; font-weight: 800; cursor: pointer; }
+.s-klapp[open] { padding-bottom: 0.9rem; }
+
+/* Marken und Chips */
+.r-marken { list-style: none; display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0 0 1rem; padding: 0; }
+.r-marken li { display: inline-flex; align-items: center; min-height: 2.75rem; padding: 0 1rem; border: 1.5px solid var(--tone-deep); border-radius: 999px; background: var(--karte); font-size: 0.95rem; font-weight: 700; }
+.r-marken li.voll { border-color: var(--text); border-width: 2px; }
+.r-marken li.umriss { border-style: dashed; border-color: var(--muted); }
+.r-marken a { display: inline-flex; align-items: center; min-height: 2.75rem; color: var(--text); }
+.chips { list-style: none; display: flex; flex-wrap: wrap; gap: 0.55rem; margin: 0; padding: 0; }
+.chip { display: inline-flex; align-items: center; min-height: 2.75rem; padding: 0 1.1rem; border: 1.5px solid var(--tone-deep); border-radius: 999px; background: var(--karte); color: var(--deep); font: inherit; font-size: 0.95rem; font-weight: 700; text-decoration: none; cursor: pointer; }
+.chip:hover { border-color: var(--main); }
+.chip[aria-pressed="true"] { border-color: var(--main); background: var(--main); color: var(--on-main); }
+
+/* Rezeptseite: Zutaten laufen am Laptop neben der Zubereitung mit */
+.r-spalten { display: grid; gap: clamp(2.25rem, 5vw, 3.5rem); }
+.r-zutaten { list-style: none; margin: 0; padding: 0; }
+.r-zutaten li { display: grid; gap: 0.1rem; padding: 0.6rem 0; border-bottom: 1px solid var(--tone-deep); }
+.r-zutaten li:last-child { border-bottom: 0; }
+.r-hinweis { font-size: 0.9rem; color: var(--muted); }
+.r-hinweis::before { content: "i"; display: inline-flex; align-items: center; justify-content: center; width: 1.1rem; height: 1.1rem; margin-right: 0.4rem; border: 1.5px solid currentColor; border-radius: 50%; font-size: 0.72rem; font-weight: 800; }
+.r-schritte { display: grid; gap: 0.75rem; margin: 0; padding: 0; list-style: none; counter-reset: schritt; }
+.r-schritte li { position: relative; min-height: 4rem; padding: 1rem 1.1rem 1rem 4.1rem; border-radius: 1.25rem; background: var(--tone); counter-increment: schritt; scroll-margin-top: 5.5rem; }
+.r-schritte li::before { content: counter(schritt); position: absolute; left: 0.95rem; top: 0.85rem; display: inline-flex; align-items: center; justify-content: center; width: 2.3rem; height: 2.3rem; border-radius: 0.85rem; background: var(--main); color: var(--on-main); font-weight: 800; }
+@media (min-width: 56rem) {
+  .r-spalten { grid-template-columns: 5fr 7fr; align-items: start; }
+  .r-zutaten-karte { position: sticky; top: 5rem; max-height: calc(100vh - 6rem); overflow-y: auto; }
+}
+
+/* Hinweise zu den Zutaten als Karten; dieselben Angaben stehen aufklappbar als Tabelle da */
+.r-hinweiskarten { list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: 0.9rem; margin: 1.1rem 0 0; padding: 0; }
+.r-hinweiskarten > li { padding: 1rem 1.15rem; border-radius: 1.4rem; background: var(--tone); }
+.r-hinweiskarten h3 { margin: 0 0 0.35rem; font-size: 1.15rem; }
+.r-hinweiskarten p { margin: 0.55rem 0 0; font-size: 0.95rem; }
+.r-hinweiskarten p b { display: block; }
+.r-hinweiskarten p span { color: var(--muted); }
+.r-stufen { display: grid; gap: 0.6rem; margin: 1.1rem 0; }
+.r-stufen div { padding: 0.8rem 1rem; border: 1px solid var(--line); border-radius: 1.1rem; font-size: 0.95rem; }
+.r-stufen dt { font-weight: 800; }
+.r-stufen dd { margin: 0; color: var(--muted); }
+@media (min-width: 48rem) { .r-stufen { grid-template-columns: repeat(3, 1fr); } }
+.r-tabelle { overflow-x: auto; }
+.r-tabelle table { border-collapse: collapse; width: 100%; font-size: 0.97rem; }
+.r-tabelle th, .r-tabelle td { border-bottom: 1px solid var(--line); padding: 0.55rem 0.75rem 0.55rem 0; text-align: left; vertical-align: top; }
+.r-tabelle thead th { font-size: 0.85rem; color: var(--muted); }
+.r-zahlen { max-width: 34rem; }
+.r-zahlen td { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* Nährwerte als Kacheln, Energiedichte als Skala */
+.r-nw { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.7rem; margin: 1.1rem 0 0; }
+.r-nw div { display: flex; flex-direction: column; padding: 0.95rem 1.05rem; border-radius: 1.4rem; background: var(--tone); }
+.r-nw dt { font-size: 0.9rem; font-weight: 700; color: var(--muted); }
+.r-nw dd { margin: 0.15rem 0 0; font-size: 1.5rem; font-weight: 800; line-height: 1.15; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.r-nw dd small { display: block; margin-top: 0.2rem; font-size: 0.8rem; font-weight: 600; letter-spacing: 0; color: var(--muted); }
+.r-nw .gross { background: var(--main); color: var(--on-main); }
+.r-nw .gross dt, .r-nw .gross dd small { color: inherit; }
+@media (min-width: 44rem) { .r-nw { grid-template-columns: repeat(4, 1fr); } }
+.r-energie { margin-top: 1.5rem; }
+.r-skala { list-style: none; display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.4rem; margin: 0.9rem 0; padding: 0; }
+.r-skala li { padding: 0.65rem 0.6rem; border-radius: 1rem; background: var(--tone); font-size: 0.85rem; text-align: center; color: var(--muted); }
+.r-skala li b { display: block; font-size: 0.95rem; color: var(--text); }
+.r-skala li.aktuell { background: var(--main); color: var(--on-main); outline: 3px solid var(--main); outline-offset: 2px; }
+.r-skala li.aktuell b { color: inherit; }
+@media (min-width: 40rem) { .r-skala { grid-template-columns: repeat(4, 1fr); } }
+
+/* Hinweis auf die App: tiefes Indigo mit zwei Ringen */
+.s-app { position: relative; overflow: hidden; padding: clamp(1.4rem, 3vw, 2rem); border-radius: 1.75rem; background: #2a2277; color: #fff; }
+.s-app::before, .s-app::after { content: ""; position: absolute; border-radius: 50%; pointer-events: none; }
+.s-app::before { right: -2.5rem; top: -2.5rem; width: 9.5rem; height: 9.5rem; border: 0.65rem solid rgba(255, 255, 255, 0.14); }
+.s-app::after { right: 5rem; bottom: -3.5rem; width: 6rem; height: 6rem; border: 0.5rem solid rgba(255, 255, 255, 0.1); }
+.s-app > * { position: relative; z-index: 1; }
+.s-app h2 { font-size: clamp(1.35rem, 3vw, 1.75rem); }
+.s-app p { max-width: 44rem; color: #e5e4ee; }
+.s-app-zeile { display: flex; flex-wrap: wrap; align-items: center; gap: 0.9rem 1.1rem; margin: 1.1rem 0 0; }
+.knopf.mint { background: var(--mint); color: var(--on-mint); }
+.r-bald { display: inline-flex; align-items: center; min-height: 3rem; padding: 0 1.2rem; border: 1.5px solid rgba(255, 255, 255, 0.4); border-radius: 999px; font-weight: 800; }
+
+/* Rezeptkarten */
+.r-karten { list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(13.5rem, 1fr)); gap: 1.1rem; margin: 1.5rem 0 0; padding: 0; }
+.r-karte { position: relative; padding: 0.6rem 0.6rem 0.95rem; border: 1px solid var(--line); border-radius: 1.6rem; background: var(--karte); box-shadow: 0 30px 60px -44px rgb(var(--schatten) / 0.45); transform: perspective(60rem) rotateX(var(--nx, 0deg)) rotateY(var(--ny, 0deg)); }
+.r-karte[hidden] { display: none; }
+.r-karte-bild { position: relative; overflow: hidden; border-radius: 1.1rem; background: var(--tone-deep); }
+.r-karte img { display: block; width: 100%; height: auto; }
+.r-karte .r-symbol { left: 0.6rem; top: 0.6rem; }
+.r-karte-titel { margin: 0.7rem 0.4rem 0; font-weight: 800; line-height: 1.3; }
+.r-karte-titel a { display: inline-block; padding: 0.15rem 0; color: var(--text); text-decoration: none; }
+/* Die ganze Karte ist das Ziel des Links. */
+.r-karte-titel a::after { content: ""; position: absolute; inset: 0; border-radius: 1.6rem; }
+.r-karte-titel a:hover { text-decoration: underline; }
+.r-karte-zeile { margin: 0.1rem 0.4rem 0; font-size: 0.9rem; color: var(--muted); }
+/* Am Handy zwei Karten nebeneinander, damit die Listen nicht endlos werden. */
+@media (max-width: 30rem) {
+  .r-karten { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.7rem; }
+  .r-karte { padding: 0.4rem 0.4rem 0.75rem; border-radius: 1.25rem; }
+  .r-karte-bild { border-radius: 0.9rem; }
+  .r-karte-titel { font-size: 0.95rem; }
+  .r-karte .r-symbol { left: 0.4rem; top: 0.4rem; font-size: 0.7rem; }
+}
+
+/* Quelle und Lizenz: unter dem Rezept nur ein kleiner Link in gedämpfter Schrift (mindestens 14 px, Kontrast über
+   4,5:1 in beiden Farbschemata); die Angaben stehen auf der Seite "Quellen und Lizenzen" */
+.r-quelle-link { margin: clamp(2rem, 5vw, 3rem) 0 0; font-size: 0.95rem; }
+.r-quelle-link a { display: inline-flex; align-items: center; min-height: 2.75rem; color: var(--muted); }
+.q-uebersicht { margin-bottom: clamp(2rem, 5vw, 3rem); }
+.q-liste { display: grid; gap: 1.25rem; }
+.q-liste > section { scroll-margin-top: 5.5rem; }
+.q-liste h2 { font-size: 1.3rem; letter-spacing: -0.02em; }
+.q-liste h2 a { color: var(--text); }
+.r-quelle dl { display: grid; gap: 0.7rem; margin: 0 0 1rem; }
+.r-quelle dl div { display: grid; gap: 0.1rem; }
+.r-quelle dt { font-size: 0.85rem; font-weight: 800; color: var(--muted); }
+.r-quelle dd { margin: 0; overflow-wrap: anywhere; }
+@media (min-width: 56rem) { .r-quelle dl div { grid-template-columns: 9rem 1fr; gap: 1rem; } }
+
+/* Übersicht "Alle Rezepte": Suche und Filter ohne Server */
+.f-leiste { display: grid; gap: 0.9rem; }
+.f-suche { display: grid; gap: 0.35rem; max-width: 34rem; font-weight: 800; }
+.f-suche input { min-height: 3rem; padding: 0 1.2rem; border: 1.5px solid var(--line); border-radius: 999px; background: var(--karte); color: var(--text); font: inherit; }
+.f-gruppe { display: grid; gap: 0.4rem; margin: 0; padding: 0; border: 0; }
+.f-gruppe legend { padding: 0; font-size: 0.9rem; font-weight: 800; color: var(--muted); }
+/* Die Höhe der Filterleiste hängt nicht vom Umbruch der Schrift ab (keine Verschiebung beim Laden der Schrift):
+   am Handy je Gruppe eine Zeile zum Wischen, ab Tablet ein festes Raster aus gleich hohen Chips. */
+.f-gruppe .chips { flex-wrap: nowrap; overflow-x: auto; padding: 0.2rem 0.2rem 0.45rem; scrollbar-width: thin; }
+.f-gruppe .chip { flex: none; white-space: nowrap; }
+@media (min-width: 48rem) {
+  .f-gruppe .chips { display: grid; grid-template-columns: repeat(auto-fill, minmax(10.5rem, 1fr)); overflow: visible; padding: 0; }
+  .f-gruppe .chip { width: 100%; height: 3rem; justify-content: center; padding: 0 0.7rem; white-space: normal; text-align: center; line-height: 1.15; }
+}
+.f-stand { margin: 0; font-weight: 800; }
+.f-leer { margin: 1.5rem 0 0; }
+html:not(.js) .f-leiste { display: none; }
+
+/* Rechtstexte: ruhig, mit Inhaltsverzeichnis an der Seite am Laptop */
+.s-recht { display: grid; gap: 2rem; }
+/* Breite Tabellen scrollen in ihrem Rahmen und dehnen die Spalte nicht. */
+.s-recht > * { min-width: 0; }
+.s-toc { padding: 1.1rem; border: 1px solid var(--line); border-radius: 1.4rem; background: var(--karte); }
+.s-toc-titel { margin: 0 0 0.5rem; padding: 0 0.6rem; font-weight: 800; }
+.s-toc li.teil a { font-weight: 800; }
+.s-toc ol { list-style: none; margin: 0; padding: 0; }
+.s-toc a { display: flex; align-items: center; min-height: 2.75rem; padding: 0.3rem 0.6rem; border-radius: 0.7rem; color: var(--text); font-size: 0.95rem; text-decoration: none; }
+.s-toc a:hover { background: var(--tone); }
+.s-recht .text h2 { scroll-margin-top: 5.5rem; }
+.s-recht .text > :first-child { margin-top: 0; }
+@media (min-width: 64rem) {
+  .s-recht { grid-template-columns: 18rem minmax(0, 1fr); align-items: start; gap: 3rem; }
+  .s-toc { position: sticky; top: 5rem; max-height: calc(100vh - 6rem); overflow-y: auto; }
+}
+
+/* Listen aus Karten (Lizenzen, Fragen und Antworten) */
+.s-liste { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr)); gap: 1rem; margin: 0; padding: 0; }
+.s-liste.breit { grid-template-columns: 1fr; max-width: 54rem; }
+.s-liste h2 { font-size: 1.25rem; letter-spacing: -0.02em; }
+.s-liste a { overflow-wrap: anywhere; }
+
+/* Fragen und Antworten */
+.s-fragen details { border-bottom: 1px solid var(--line); }
+.s-fragen summary { position: relative; padding: 1.1rem 2.75rem 1.1rem 0; font-size: 1.12rem; font-weight: 800; list-style: none; cursor: pointer; }
+.s-fragen summary::-webkit-details-marker { display: none; }
+.s-fragen summary::after { content: ""; position: absolute; right: 0.5rem; top: 50%; width: 0.9rem; height: 0.9rem; margin-top: -0.45rem; background: linear-gradient(currentColor, currentColor) center / 100% 2px no-repeat, linear-gradient(currentColor, currentColor) center / 2px 100% no-repeat; }
+.s-fragen details[open] summary::after { rotate: 45deg; }
+.s-fragen details > div { padding: 0 0 0.5rem; max-width: 46rem; }
+
+/* Knopf zum Anhalten der Bewegung (WCAG 2.2.2): fest unten rechts, erscheint nur, wenn eine Schleife läuft. */
+.bewegung-knopf { position: fixed; right: 0.75rem; bottom: 0.75rem; z-index: 40; display: inline-flex; align-items: center; gap: 0.5rem; min-height: 2.75rem; padding: 0 1rem 0 0.85rem; border: 1.5px solid var(--line); border-radius: 999px; background: var(--karte); color: var(--text); font: inherit; font-size: 0.9rem; font-weight: 700; cursor: pointer; box-shadow: 0 10px 30px -14px rgb(var(--schatten) / 0.55); }
+.bewegung-knopf[hidden] { display: none; }
+.bewegung-knopf svg { flex: none; width: 1.05rem; height: 1.05rem; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+.bewegung-knopf .z-lauf { display: none; fill: currentColor; stroke-width: 1.5; }
+.angehalten .bewegung-knopf .z-halt { display: none; }
+.angehalten .bewegung-knopf .z-lauf { display: inline; }
+.js body:has(.bewegung-knopf:not([hidden])) { padding-bottom: 4rem; }
+
+/* Bewegung */
+@media (prefers-reduced-motion: no-preference) {
+  .js .s-kopf:not(.still) .s-flaechen i { animation: s-treiben 28s ease-in-out infinite alternate; will-change: transform; }
+  .js .s-kopf:not(.still) .s-flaechen .b { animation-duration: 33s; animation-direction: alternate-reverse; }
+  .js .s-kopf:not(.still) .s-flaechen .c { animation-duration: 38s; }
+  .js.angehalten .s-kopf:not(.still) .s-flaechen i { animation-play-state: paused; }
+  /* Einblenden beim Scrollen: Die Klasse "ein" setzt erst das Skript, ohne Skript steht alles sofort da. */
+  .ein [data-ein] { opacity: 0; translate: 0 1.25rem; transition: opacity 0.6s ease, translate 0.6s cubic-bezier(0.22, 1, 0.36, 1); }
+  .ein [data-ein].da { opacity: 1; translate: none; }
+  .r-karte { transition: transform 0.25s ease, box-shadow 0.25s ease; }
+  .s-fragen summary::after { transition: rotate 0.2s; }
+  .mega { transition: opacity 0.18s, translate 0.18s; }
+  @starting-style { .mega { opacity: 0; translate: 0 -0.4rem; } }
+}
+@keyframes s-treiben { to { transform: translate(3.5rem, -2.5rem) scale(1.1); } }

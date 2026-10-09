@@ -17,7 +17,8 @@ const werte = process.argv.slice(2).filter((wert) => !wert.startsWith('--'));
 const BASIS = (werte[0] ?? 'http://localhost:4321').replace(/\/$/, '');
 const ZIEL = resolve(werte[1] ?? 'nachweise');
 const MIT_BILDERN = !process.argv.includes('--ohne-bilder');
-const SEITEN = verzeichnis.map((eintrag) => eintrag.pfad);
+// Dazu je eine erzeugte Seite jeder Art (Rezeptseite, Themenseite) und die 404-Seite.
+const SEITEN = [...verzeichnis.map((eintrag) => eintrag.pfad), '/rezepte/bibimbap/', '/rezepte/ohne-nuesse/', '/404.html'];
 const BREITEN = [360, 390, 768, 1024, 1440];
 const HANDY = { width: 390, height: 844, deviceScaleFactor: 1, isMobile: true, hasTouch: true };
 const LAPTOP = { width: 1440, height: 900, deviceScaleFactor: 1 };
@@ -287,6 +288,61 @@ sage('## 2c Knopf "Bewegung anhalten" (ohne "Bewegung reduzieren")');
   await ohne.umgebung.close();
 }
 
+// 2d Unterseiten: Farbflächen im Kopfbereich mit dem Knopf "Bewegung anhalten", Einblenden beim Scrollen
+sage();
+sage('## 2d Unterseiten: Knopf "Bewegung anhalten", Einblenden, "Bewegung reduzieren"');
+{
+  const pfad = '/rezepte/bibimbap/';
+  const lese = (seite) => seite.evaluate(() => {
+    const knopf = document.querySelector('[data-bewegung-seite]');
+    const stil = getComputedStyle(document.querySelector('.s-flaechen i'));
+    const teile = [...document.querySelectorAll('[data-ein]')];
+    return {
+      knopf: knopf ? (knopf.hidden ? 'verborgen' : knopf.textContent.trim()) : 'fehlt',
+      hoehe: knopf ? Math.round(knopf.getBoundingClientRect().height) : 0,
+      name: stil.animationName,
+      laeuft: stil.animationName !== 'none' && stil.animationPlayState === 'running',
+      verborgen: teile.filter((teil) => getComputedStyle(teil).opacity !== '1').length,
+      teile: teile.length,
+      speicher: localStorage.length + sessionStorage.length + document.cookie.length,
+    };
+  });
+  const { umgebung, seite } = await neueSeite({ ansicht: LAPTOP });
+  await seite.goto(BASIS + pfad, { waitUntil: 'networkidle0' });
+  let stand = await lese(seite);
+  pruefe(stand.knopf === 'Bewegung anhalten' && stand.laeuft, `${pfad}: Farbflächen laufen, Knopf "${stand.knopf}" ist da`);
+  pruefe(stand.teile > 0 && stand.verborgen > 0, `${pfad}: ${stand.verborgen} von ${stand.teile} Teilen warten unter dem Fenster auf das Einblenden`);
+  await seite.focus('[data-bewegung-seite]');
+  await seite.keyboard.press('Enter');
+  await warte(900);
+  stand = await lese(seite);
+  pruefe(stand.knopf === 'Bewegung fortsetzen' && !stand.laeuft && stand.verborgen === 0, `${pfad}: Enter hält an (Knopf "${stand.knopf}", Farbflächen stehen, alle Teile sichtbar)`);
+  pruefe(stand.speicher === 0, `${pfad}: nichts gespeichert (Cookies, localStorage, sessionStorage)`);
+  await seite.keyboard.press('Space');
+  await warte(300);
+  stand = await lese(seite);
+  pruefe(stand.knopf === 'Bewegung anhalten' && stand.laeuft, `${pfad}: Leertaste setzt fort`);
+  await umgebung.close();
+
+  const ruhe = await neueSeite({ ansicht: LAPTOP, ruhig: true });
+  await ruhe.seite.goto(BASIS + pfad, { waitUntil: 'networkidle0' });
+  stand = await lese(ruhe.seite);
+  pruefe(stand.knopf === 'verborgen' && stand.name === 'none' && stand.verborgen === 0, `${pfad}, "Bewegung reduzieren": kein Knopf, keine Schleife, alles sichtbar`);
+  await ruhe.umgebung.close();
+
+  const handy = await neueSeite({ ansicht: HANDY });
+  await handy.seite.goto(BASIS + pfad, { waitUntil: 'networkidle0' });
+  stand = await lese(handy.seite);
+  pruefe(stand.hoehe >= 44, `${pfad}, Handy: Knopf ${stand.hoehe} px hoch`);
+  await handy.umgebung.close();
+
+  const recht = await neueSeite({ ansicht: LAPTOP });
+  await recht.seite.goto(BASIS + '/datenschutz.html', { waitUntil: 'networkidle0' });
+  const ruhig = await recht.seite.evaluate(() => ({ knopf: !!document.querySelector('[data-bewegung-seite]'), name: getComputedStyle(document.querySelector('.s-flaechen i')).animationName }));
+  pruefe(!ruhig.knopf && ruhig.name === 'none', '/datenschutz.html: ruhiger Kopfbereich ohne Schleife und ohne Knopf');
+  await recht.umgebung.close();
+}
+
 sage();
 sage('## 3 Breiten (kein waagrechtes Scrollen)');
 for (const pfad of SEITEN) {
@@ -348,7 +404,10 @@ async function tabBis(seite, auswahl, hoechstens = 20) {
   const danach = await seite.evaluate(() => document.activeElement.matches('[data-mega-knopf]'));
   pruefe(stand.mega === 'false' && !stand.megaSichtbar && danach, 'Laptop: Esc schließt das Menü, der Fokus steht wieder auf dem Knopf');
   await seite.keyboard.press('Space');
-  await seite.mouse.click(700, 800);
+  // Ein Klick neben dem Menü: knapp unter seinem unteren Rand (das Menü ist je nach Zahl der Themen verschieden hoch).
+  const unten = await seite.evaluate(() => Math.round(document.querySelector('#mega-rezepte').getBoundingClientRect().bottom));
+  pruefe(unten + 40 < LAPTOP.height, `Laptop: Das offene Menü passt in das Fenster (unterer Rand bei ${unten} von ${LAPTOP.height} Pixel)`);
+  await seite.mouse.click(700, Math.min(unten + 30, LAPTOP.height - 5));
   pruefe((await zustand(seite)).mega === 'false', 'Laptop: Leertaste öffnet, ein Klick daneben schließt');
 
   // Was ein Bildschirmleser gemeldet bekommt: Baum der Bedienungshilfen für die Navigation.

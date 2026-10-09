@@ -1,0 +1,101 @@
+---
+// Kopfbereich der Unterseiten im Stil der Startseite: dunkles Indigo mit ruhigen Farbflächen, Brotkrumen, Titel.
+// "still" lässt die Farbflächen stehen (Rechtstexte). Läuft die Schleife, gibt es den Knopf "Bewegung anhalten"
+// (WCAG 2.2.2); sein Zustand steht nur in einer Variablen der Seite, im Browser wird nichts gespeichert.
+// Platz "seite": rechte Spalte am Laptop (zum Beispiel das Bild eines Rezepts).
+import '../styles/seiten.css';
+import Brotkrumen from './Brotkrumen.astro';
+import { geruest } from '../daten/startseite.mjs';
+
+const { krumen, titel, vorspann, etikett, still = false } = Astro.props;
+const zwei = Astro.slots.has('seite');
+---
+{!still && (
+  <button type="button" class="bewegung-knopf" data-bewegung-seite data-anhalten={geruest.bewegung.anhalten} data-fortsetzen={geruest.bewegung.fortsetzen} hidden>
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path class="z-halt" d="M8 5v14M16 5v14" /><path class="z-lauf" d="M8 5l11 7-11 7z" /></svg>
+    <span data-bewegung-text>{geruest.bewegung.anhalten}</span>
+  </button>
+)}
+<div class:list={['s-kopf', { still }]}>
+  <div class="s-flaechen" aria-hidden="true" data-schleife={still ? undefined : ''}><i class="a"></i><i class="b"></i><i class="c"></i></div>
+  <div class="innen">
+    {krumen && <Brotkrumen pfad={krumen} />}
+    <div class:list={['s-kopf-raster', { zwei }]}>
+      <div>
+        {etikett && <p class="s-etikett">{etikett}</p>}
+        <h1><slot name="titel">{titel}</slot></h1>
+        {vorspann && <p class="s-vorspann">{vorspann}</p>}
+        <slot />
+      </div>
+      {zwei && <slot name="seite" />}
+    </div>
+  </div>
+</div>
+
+<script>
+  // Einblenden beim Scrollen, Neigung der Karten am Laptop und der Knopf "Bewegung anhalten". Ohne GSAP: Auf den
+  // Unterseiten reichen CSS und ein Beobachter. Mit "Bewegung reduzieren" bewegt sich nichts.
+  const ruhig = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const fein = window.matchMedia('(hover: hover) and (min-width: 56rem)');
+  const wurzel = document.documentElement;
+  const knopf = document.querySelector('[data-bewegung-seite]');
+  const teile = [...document.querySelectorAll('[data-ein]')];
+  let angehalten = false;
+
+  const zeigeAlle = () => teile.forEach((teil) => teil.classList.add('da'));
+  if (!ruhig.matches && 'IntersectionObserver' in window) {
+    const beobachter = new IntersectionObserver(
+      (eintraege) => {
+        for (const eintrag of eintraege) {
+          if (!eintrag.isIntersecting) continue;
+          eintrag.target.classList.add('da');
+          beobachter.unobserve(eintrag.target);
+        }
+      },
+      { rootMargin: '0px 0px -6% 0px' }
+    );
+    // Was beim Laden schon im Fenster steht, bleibt ohne Bewegung sichtbar.
+    for (const teil of teile) {
+      if (teil.getBoundingClientRect().top < window.innerHeight) teil.classList.add('da');
+      else beobachter.observe(teil);
+    }
+    wurzel.classList.add('ein');
+  } else {
+    zeigeAlle();
+  }
+
+  const ruhe = (karte) => {
+    karte.style.removeProperty('--nx');
+    karte.style.removeProperty('--ny');
+  };
+  for (const karte of document.querySelectorAll('[data-neigung]')) {
+    karte.addEventListener('pointermove', (ereignis) => {
+      if (ereignis.pointerType !== 'mouse' || !fein.matches || ruhig.matches || angehalten) return;
+      const rahmen = karte.getBoundingClientRect();
+      const x = (ereignis.clientX - rahmen.left) / rahmen.width - 0.5;
+      const y = (ereignis.clientY - rahmen.top) / rahmen.height - 0.5;
+      karte.style.setProperty('--ny', `${(x * 7).toFixed(2)}deg`);
+      karte.style.setProperty('--nx', `${(-y * 7).toFixed(2)}deg`);
+    });
+    karte.addEventListener('pointerleave', () => ruhe(karte));
+  }
+
+  if (knopf) {
+    const schleife = document.querySelector('[data-schleife]');
+    const zeige = () => { knopf.hidden = ruhig.matches || !schleife; };
+    zeige();
+    knopf.addEventListener('click', () => {
+      angehalten = !angehalten;
+      wurzel.classList.toggle('angehalten', angehalten);
+      knopf.querySelector('[data-bewegung-text]').textContent = angehalten ? knopf.dataset.fortsetzen : knopf.dataset.anhalten;
+      if (angehalten) {
+        zeigeAlle();
+        document.querySelectorAll('[data-neigung]').forEach(ruhe);
+      }
+    });
+    ruhig.addEventListener('change', () => {
+      zeige();
+      if (ruhig.matches) zeigeAlle();
+    });
+  }
+</script>

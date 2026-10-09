@@ -164,6 +164,8 @@
 .vorschau { overflow: clip; padding: clamp(3.5rem, 8vw, 6.5rem) 0; background: var(--tone); }
 .vorschau .titel { margin-bottom: 0.9rem; }
 .vorschau-text { max-width: 40rem; margin: 0; font-size: 1.15rem; color: var(--muted); }
+.vorschau-hinweis { margin: 1.75rem 0 0; font-weight: 700; }
+.vorschau-hinweis + .knoepfe { margin-top: 0.75rem; }
 .rezeptkarten { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.9rem; margin: 2rem 0 0; padding: 0; list-style: none; }
 .rezeptkarte { padding: 0.6rem 0.6rem 0.9rem; border-radius: 1.6rem; background: var(--karte); box-shadow: 0 30px 60px -40px rgb(var(--schatten) / 0.45); }
 .rezeptbild { position: relative; overflow: hidden; aspect-ratio: 4 / 3; border-radius: 1.1rem; background: var(--tone-deep); }

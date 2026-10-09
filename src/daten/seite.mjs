@@ -28,10 +28,11 @@ export const store = {
 // Seitenverzeichnis: Grundlage für sitemap.xml (nur "index: true") und das Prüfskript. "stand" ist der Tag der
 // letzten inhaltlichen Änderung der Seite und wird von Hand gepflegt.
 export const seiten = [
-  { pfad: '/', stand: '2026-10-09', index: true },
-  { pfad: '/datenschutz.html', stand: '2026-10-06', index: true },
-  { pfad: '/lizenzen/', stand: '2026-10-09', index: true },
-  { pfad: '/so-gehts/', stand: '2026-10-09', index: false },
-  { pfad: '/rezepte/', stand: '2026-10-09', index: false },
-  { pfad: '/fragen/', stand: '2026-10-09', index: false },
+  { pfad: '/', stand: '2026-10-10', index: true },
+  { pfad: '/datenschutz.html', stand: '2026-10-10', index: true },
+  { pfad: '/lizenzen/', stand: '2026-10-10', index: true },
+  { pfad: '/quellen-und-lizenzen/', stand: '2026-10-10', index: false },
+  { pfad: '/so-gehts/', stand: '2026-10-10', index: false },
+  { pfad: '/rezepte/', stand: '2026-10-10', index: true },
+  { pfad: '/fragen/', stand: '2026-10-10', index: true },
 ];

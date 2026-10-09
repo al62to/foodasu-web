@@ -1,8 +1,10 @@
 // sitemap.xml aus dem Seitenverzeichnis: nur Seiten für den Index, je mit dem Tag der letzten inhaltlichen Änderung.
 import { seite, seiten } from '../daten/seite.mjs';
+import { rezeptSeiten, themen, rezeptAdresse, STAND } from '../daten/rezeptseiten.mjs';
 
 export function GET() {
-  const eintraege = seiten
+  const erzeugt = [...themen.map((thema) => thema.adresse), ...rezeptSeiten.map(rezeptAdresse)].map((pfad) => ({ pfad, stand: STAND, index: true }));
+  const eintraege = [...seiten, ...erzeugt]
     .filter((eintrag) => eintrag.index)
     .map((eintrag) => `  <url><loc>${seite.adresse}${eintrag.pfad}</loc><lastmod>${eintrag.stand}</lastmod></url>`)
     .join('\n');

@@ -1,21 +1,24 @@
 ---
+// Lizenzen: Schriften, Daten, Bilder und Programme dieser Website. Ruhiger Kopfbereich, Einträge als Karten.
 import Basis from '../../layouts/Basis.astro';
+import Seitenkopf from '../../components/Seitenkopf.astro';
 import { seite } from '../../daten/seite.mjs';
 import { geruest } from '../../daten/startseite.mjs';
 
 const texte = geruest.lizenzen;
 ---
-<Basis titel={`${texte.titel} | ${seite.name}`} beschreibung={texte.beschreibung} krumen={[{ titel: texte.titel, ziel: '/lizenzen/' }]}>
-  <section class="abschnitt text">
-    <div class="innen">
-      <h1>{texte.titel}</h1>
-      <p>{texte.einleitung}</p>
-      <ul>
-        {texte.eintraege.map((eintrag) => (
-          <li><b>{eintrag.name}</b> ({eintrag.art}): <a href={eintrag.ziel} rel="noopener">{eintrag.lizenz}</a></li>
-        ))}
-        <li>{texte.bilder}</li>
-      </ul>
-    </div>
-  </section>
+<Basis titel={`${texte.titel} | ${seite.name}`} beschreibung={texte.beschreibung}>
+  <Seitenkopf krumen={[{ titel: texte.titel, ziel: '/lizenzen/' }]} titel={texte.titel} vorspann={texte.einleitung} still />
+  <div class="s-inhalt innen">
+    <ul class="s-liste">
+      {texte.eintraege.map((eintrag) => (
+        <li class="s-karte">
+          <h2>{eintrag.name}</h2>
+          <p>{eintrag.art}</p>
+          <p><a href={eintrag.ziel} rel="noopener">{eintrag.lizenz}</a>{eintrag.zusatz && <>{eintrag.zusatz.vor}<a href={eintrag.zusatz.ziel} rel="noopener">{eintrag.zusatz.text}</a></>}</p>
+        </li>
+      ))}
+      {texte.saetze.map((satz) => <li class="s-karte"><h2>{satz.name}</h2><p>{satz.text}{satz.link && <><a href={satz.link.ziel}>{satz.link.text}</a>{satz.nach}</>}</p></li>)}
+    </ul>
+  </div>
 </Basis>

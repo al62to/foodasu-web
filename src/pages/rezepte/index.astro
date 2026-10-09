@@ -1,5 +1,131 @@
 ---
-import Platzhalter from '../../components/Platzhalter.astro';
-import { geruest } from '../../daten/startseite.mjs';
+// Übersicht "Alle Rezepte": die Rezepte der Website mit Suche und Filter ohne Server. Gefiltert wird im Browser über
+// Angaben an den Karten; ohne JavaScript stehen alle Karten da, und die Themenseiten darunter übernehmen die Auswahl.
+import Basis from '../../layouts/Basis.astro';
+import Seitenkopf from '../../components/Seitenkopf.astro';
+import Rezeptkarte from '../../components/Rezeptkarte.astro';
+import { seite } from '../../daten/seite.mjs';
+import { mega } from '../../daten/navigation.mjs';
+import { rezepte, texte, themen, KATEGORIE, LAND, EINTRAEGE, FILTER_PASST, rezeptAdresse } from '../../daten/rezeptseiten.mjs';
+
+const t = texte.alle;
+const nachName = [...rezepte].sort((a, b) => a.titel.localeCompare(b.titel, 'de'));
+const kategorien = Object.keys(KATEGORIE).filter((schluessel) => rezepte.some((rezept) => rezept.kategorie === schluessel));
+const laender = Object.keys(LAND)
+  .filter((kuerzel) => rezepte.some((rezept) => rezept.laender.includes(kuerzel)))
+  .sort((a, b) => LAND[a].localeCompare(LAND[b], 'de'));
+const eintragVon = new Map(EINTRAEGE.map((eintrag) => [eintrag.schluessel, eintrag]));
+const passt = FILTER_PASST.map((schluessel) => {
+  const eintrag = eintragVon.get(schluessel);
+  return { schluessel, wort: eintrag.adresse ? t.ohne(eintrag.ohne) : eintrag.name };
+});
+const gruppen = [
+  { kennung: 'kategorie', titel: t.gruppen.kategorie, wahl: kategorien.map((schluessel) => ({ wert: schluessel, wort: KATEGORIE[schluessel][0] })) },
+  { kennung: 'land', titel: t.gruppen.land, wahl: laender.map((kuerzel) => ({ wert: kuerzel, wort: LAND[kuerzel] })) },
+  { kennung: 'passt', titel: t.gruppen.passt, wahl: passt.map(({ schluessel, wort }) => ({ wert: schluessel, wort })) },
+];
+const themenGruppen = mega.spalten
+  .flatMap((spalte) => spalte.gruppen)
+  .map((gruppe) => ({ titel: gruppe.titel, themen: themen.filter((thema) => thema.art === gruppe.kennung).sort((a, b) => a.titel.localeCompare(b.titel, 'de')) }))
+  .filter((gruppe) => gruppe.themen.length > 0);
+const text = t.text(rezepte.length);
+const daten = [{
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: t.seitentitel,
+  numberOfItems: nachName.length,
+  itemListElement: nachName.map((rezept, nummer) => ({ '@type': 'ListItem', position: nummer + 1, url: seite.adresse + rezeptAdresse(rezept) })),
+}];
 ---
-<Platzhalter texte={geruest.platzhalter.rezepte} />
+<Basis titel={`${t.seitentitel} | ${seite.name}`} beschreibung={text} daten={daten}>
+  <Seitenkopf krumen={[{ titel: texte.uebersicht, ziel: '/rezepte/' }]} titel={t.titel} vorspann={text}>
+    <p class="klein">{t.grundlage}</p>
+  </Seitenkopf>
+
+  <div class="s-inhalt innen">
+    <form class="f-leiste s-karte" role="search" aria-label={t.suche} data-filter>
+      <label class="f-suche">
+        {t.suche}
+        <input type="search" name="suche" autocomplete="off" enterkeyhint="search" data-suche />
+      </label>
+      {gruppen.map((gruppe) => (
+        <fieldset class="f-gruppe" data-gruppe={gruppe.kennung}>
+          <legend>{gruppe.titel}</legend>
+          <ul class="chips">
+            <li><button type="button" class="chip" aria-pressed="true" data-wert="">{t.alleWaehlen}<span class="vh">: {gruppe.titel}</span></button></li>
+            {gruppe.wahl.map((eintrag) => (
+              <li><button type="button" class="chip" aria-pressed="false" data-wert={eintrag.wert}>{eintrag.wort}</button></li>
+            ))}
+          </ul>
+        </fieldset>
+      ))}
+      <p class="f-stand" role="status" data-stand data-eins={t.stand(1)} data-viele={t.stand(2).replace('2', '{zahl}')}>{t.stand(nachName.length)}</p>
+    </form>
+
+    <ul class="r-karten" data-karten>{nachName.map((rezept, nummer) => <Rezeptkarte rezept={rezept} vorn={nummer < 4} filter ein={false} />)}</ul>
+    <div class="f-leer" data-leer hidden>
+      <p>{t.leer}</p>
+      <button type="button" class="chip" data-zurueck>{t.zuruecksetzen}</button>
+    </div>
+
+    <section class="s-teil" aria-labelledby="themen">
+      <h2 id="themen">{t.themen}</h2>
+      {themenGruppen.map((gruppe) => (
+        <>
+          <h3>{gruppe.titel}</h3>
+          <ul class="chips">{gruppe.themen.map((thema) => <li><a class="chip" href={thema.adresse}>{thema.titel}</a></li>)}</ul>
+        </>
+      ))}
+    </section>
+  </div>
+</Basis>
+
+<script>
+  // Suche und Filter ohne Server: Jede Karte trägt ihre Angaben als Attribute. Nichts wird gespeichert, nichts geladen.
+  const form = document.querySelector('[data-filter]');
+  if (form) {
+    const karten = [...document.querySelectorAll('[data-karte]')];
+    const suche = form.querySelector('[data-suche]');
+    const stand = form.querySelector('[data-stand]');
+    const leer = document.querySelector('[data-leer]');
+    const wahl = { kategorie: '', land: '', passt: '' };
+
+    const zeige = () => {
+      const worte = suche.value.toLocaleLowerCase('de').split(/\s+/).filter(Boolean);
+      let zahl = 0;
+      for (const karte of karten) {
+        const passt =
+          (!wahl.kategorie || karte.dataset.kategorie === wahl.kategorie) &&
+          (!wahl.land || karte.dataset.land.split(' ').includes(wahl.land)) &&
+          (!wahl.passt || karte.dataset.passt.split(' ').includes(wahl.passt)) &&
+          worte.every((wort) => karte.dataset.text.includes(wort));
+        karte.hidden = !passt;
+        if (passt) zahl++;
+      }
+      stand.textContent = zahl === 1 ? stand.dataset.eins : stand.dataset.viele.replace('{zahl}', String(zahl));
+      leer.hidden = zahl > 0;
+    };
+    const setze = (gruppe, wert) => {
+      wahl[gruppe.dataset.gruppe] = wert;
+      for (const knopf of gruppe.querySelectorAll('button')) knopf.setAttribute('aria-pressed', String(knopf.dataset.wert === wert));
+    };
+
+    for (const gruppe of form.querySelectorAll('[data-gruppe]')) {
+      gruppe.addEventListener('click', (ereignis) => {
+        const knopf = ereignis.target.closest('button');
+        if (!knopf) return;
+        // Ein zweiter Tipp auf dieselbe Wahl hebt sie auf.
+        setze(gruppe, knopf.getAttribute('aria-pressed') === 'true' ? '' : knopf.dataset.wert);
+        zeige();
+      });
+    }
+    suche.addEventListener('input', zeige);
+    form.addEventListener('submit', (ereignis) => ereignis.preventDefault());
+    document.querySelector('[data-zurueck]').addEventListener('click', () => {
+      suche.value = '';
+      for (const gruppe of form.querySelectorAll('[data-gruppe]')) setze(gruppe, '');
+      zeige();
+      suche.focus();
+    });
+  }
+</script>

@@ -3,7 +3,7 @@
 export const kopfdaten = {
   titel: 'FoodAsu: Lebensmittel-Scanner für den ganzen Haushalt',
   beschreibung:
-    'Strichcode scannen und sehen, ob laut den Angaben etwas drin ist, das jemand bei dir zu Hause meidet. Mit Einkaufslisten und über 300 Rezepten.',
+    'Strichcode scannen und sehen, ob laut den Angaben etwas drin ist, das jemand bei dir zu Hause meidet. In der App: Einkaufslisten und über 300 Rezepte.',
 };
 
 export const kopf = {
@@ -73,7 +73,7 @@ export const funktionen = {
     },
     {
       kennung: 'rezepte',
-      titel: 'Über 300 Rezepte aus 25 Ländern',
+      titel: 'In der App: über 300 Rezepte aus 25 Ländern',
       text: 'Jedes mit einem Symbolbild. Bei den Zutaten steht, wen sie betreffen.',
       bild: 'Symbolbild: Pizza Margherita',
       datei: 'pizza-margherita',
@@ -98,7 +98,7 @@ export const funktionen = {
 };
 
 export const zahlen = {
-  ueberschrift: 'FoodAsu in Zahlen',
+  ueberschrift: 'Die App in Zahlen',
   zutatenband: [
     'Nüsse (Schalenfrüchte)', 'Erdnüsse', 'Gluten', 'Milch', 'Eier', 'Soja', 'Sesam', 'Sellerie', 'Senf', 'Fisch',
     'Krebstiere', 'Weichtiere', 'Lupinen', 'Sulfite', 'Schweinefleisch', 'Gelatine', 'Alkohol', 'Palmöl',
@@ -109,7 +109,7 @@ export const zahlen = {
     'Mercimek çorbası',
   ],
   zaehler: [
-    { zahl: 306, wort: 'Rezepte' },
+    { zahl: 306, wort: 'Rezepte in der App' },
     { zahl: 25, wort: 'Länder' },
     { zahl: 20, wort: 'Einträge zum Meiden' },
     { zahl: 0, wort: 'Werbung' },
@@ -127,7 +127,9 @@ export const vorschau = {
     { titel: 'Baklava', datei: 'baklava' },
   ],
   kennzeichnung: 'Symbolbild',
-  link: 'Alle Rezepte ansehen',
+  // Auf der Website stehen 40 Rezepte, alle über 300 gibt es nur in der App (Ali, 09.10.2026).
+  hinweis: 'Über 300 Rezepte gibt es in der App, 40 davon stehen hier.',
+  link: '40 Rezepte auf der Website ansehen',
 };
 
 export const fragen = {
@@ -174,7 +176,7 @@ export const fragen = {
 };
 
 export const fuss = {
-  links: { datenschutz: 'Datenschutz', offenlegung: 'Offenlegung', lizenzen: 'Lizenzen', kontakt: 'Kontakt per E-Mail' },
+  links: { datenschutz: 'Datenschutz', offenlegung: 'Offenlegung', lizenzen: 'Lizenzen', quellen: 'Quellen und Lizenzen', kontakt: 'Kontakt per E-Mail' },
   hinweis: 'Maßgeblich ist die Verpackung.',
   auftritte: {
     facebook: 'FoodAsu bei Facebook',
@@ -192,6 +194,11 @@ export const geruest = {
   menue: 'Menü',
   untermenue: 'Untermenü Rezepte',
   brotkrumen: 'Brotkrumen',
+  recht: { datenschutz: 'Datenschutz', inhalt: 'Inhalt' },
+  fragenSeite: {
+    titel: 'Fragen und Antworten',
+    beschreibung: 'Woher die Daten von FoodAsu kommen, was mit deinen Angaben passiert und warum die Verpackung maßgeblich bleibt.',
+  },
   // Knopf der Startseite, der die Bewegung anhält (WCAG 2.2.2). Der Zustand gilt nur für den Besuch.
   bewegung: { anhalten: 'Bewegung anhalten', fortsetzen: 'Bewegung fortsetzen' },
   platzhalter: {
@@ -205,29 +212,55 @@ export const geruest = {
       beschreibung: 'Die Rezepte aus FoodAsu, mit Hinweisen zu den Zutaten. Kommt bald.',
       text: 'Kommt bald. Hier findest du die Rezepte aus FoodAsu, mit Hinweisen zu den Zutaten.',
     },
-    fragen: {
-      titel: 'Fragen und Antworten',
-      beschreibung: 'Fragen und Antworten zu FoodAsu. Kommt bald.',
-      text: 'Kommt bald. Die wichtigsten Antworten stehen schon auf der Startseite.',
-      link: 'Fragen auf der Startseite lesen',
-    },
   },
+  // 404-Seite: Wortlaut und Aufbau nach dem Entwurf der Projektleitung (AP-16 Nachtrag Website, Punkt 2), von Ali
+  // freigegeben. "themen" nennt die Adressen der sechs Themen; gibt es eine Seite beim Bauen nicht, fällt ihr Chip weg.
   nichtGefunden: {
-    titel: 'Seite nicht gefunden',
-    text: 'Diese Adresse gibt es bei FoodAsu nicht.',
+    seitentitel: 'Seite nicht gefunden',
+    etikett: 'Fehler 404',
+    zahl: '404',
+    titel: ['Diese Seite gibt es ', 'hier nicht.'],
+    text: 'Vielleicht ist der Link veraltet oder hat einen Tippfehler. Von hier aus geht es weiter.',
     start: 'Zur Startseite',
     rezepte: 'Zu den Rezepten',
+    themenTitel: 'Oder direkt zu einem Thema',
+    themen: [
+      { titel: 'Rezepte ohne Nüsse', ziel: '/rezepte/ohne-nuesse/' },
+      { titel: 'Rezepte ohne Gluten', ziel: '/rezepte/ohne-gluten/' },
+      { titel: 'Rezepte ohne Milch', ziel: '/rezepte/ohne-milch/' },
+      { titel: 'Rezepte ohne Eier', ziel: '/rezepte/ohne-eier/' },
+      { titel: 'Vegetarische Rezepte', ziel: '/rezepte/vegetarisch/' },
+      { titel: 'Vegane Rezepte', ziel: '/rezepte/vegan/' },
+    ],
+    karte: {
+      titel: 'Was ist FoodAsu?',
+      text: 'Eine App für Android: Du scannst Lebensmittel beim Einkauf und siehst sofort, ob etwas drin ist, das du meidest.',
+      // Der Knopf führt zu den drei Schritten der Startseite; sobald "So geht's" fertig ist, auf diese Seite umstellen.
+      knopf: "So geht's",
+      ziel: '/#schritte',
+    },
+    bilder: { karte: 'FoodAsu-App: Produktkarte nach dem Scan mit Urteil', start: 'FoodAsu-App: Startbildschirm' },
   },
   lizenzen: {
     titel: 'Lizenzen',
-    beschreibung: 'Schriften, Bilder und Software, die diese Website verwendet, mit ihren Lizenzen.',
-    einleitung: 'Diese Website verwendet die folgenden Schriften, Bilder und Programme.',
+    beschreibung: 'Schriften, Daten, Bilder und Software, die diese Website verwendet, mit ihren Lizenzen.',
+    einleitung: 'Diese Website verwendet die folgenden Schriften, Daten, Bilder und Programme.',
     eintraege: [
       { name: 'Plus Jakarta Sans', art: 'Schrift', lizenz: 'SIL Open Font License 1.1', ziel: 'https://openfontlicense.org/open-font-license-official-text/' },
       { name: 'Pacifico', art: 'Schrift im Logo', lizenz: 'SIL Open Font License 1.1', ziel: 'https://openfontlicense.org/open-font-license-official-text/' },
       { name: 'Astro', art: 'Programm, mit dem die Seiten gebaut werden', lizenz: 'MIT License', ziel: 'https://github.com/withastro/astro/blob/main/LICENSE' },
       { name: 'GSAP', art: 'Programm für die Animationen', lizenz: 'Standard „no charge“ GSAP License', ziel: 'https://gsap.com/standard-license' },
+      {
+        name: 'Bundeslebensmittelschlüssel (BLS) 4.0',
+        art: 'Daten für die Nährwerte der Rezepte, herausgegeben vom Max Rubner-Institut (2025). Die Nährwerte sind eine eigene Berechnung aus den rohen Zutaten; das Max Rubner-Institut hat sie nicht geprüft.',
+        lizenz: 'CC BY 4.0',
+        ziel: 'https://creativecommons.org/licenses/by/4.0/deed.de',
+        zusatz: { vor: ', DOI ', text: '10.25826/Data20251217-134202-0', ziel: 'https://doi.org/10.25826/Data20251217-134202-0' },
+      },
     ],
-    bilder: 'Symbolbilder, mit Adobe Firefly erzeugt.',
+    saetze: [
+      { name: 'Rezepte', text: 'Die Rezepte stammen aus offenen Rezeptsammlungen. Quelle, Urheber, Lizenz und Änderungen stehen für jedes Rezept auf der Seite ', link: { text: 'Quellen und Lizenzen', ziel: '/quellen-und-lizenzen/' }, nach: '.' },
+      { name: 'Bilder', text: 'Symbolbilder, mit Adobe Firefly erzeugt.' },
+    ],
   },
 };

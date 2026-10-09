@@ -1,0 +1,281 @@
+---
+// Seite eines Rezepts. Alle Angaben kommen aus dem Rezeptpaket, die festen Wörter aus src/daten/rezeptseiten.mjs.
+// Aufbau wie die Startseite: Kopfbereich mit Glas-Karten, darunter Karten statt Tabellen; die Tabellen bleiben
+// aufklappbar stehen. Quelle und Lizenz stehen auf der Seite "Quellen und Lizenzen"; hier führt ein Link dorthin.
+import Basis from '../layouts/Basis.astro';
+import Seitenkopf from './Seitenkopf.astro';
+import Rezeptkarte from './Rezeptkarte.astro';
+import { seite, store } from '../daten/seite.mjs';
+import { fuss } from '../daten/startseite.mjs';
+import {
+  rezepte, texte, LAND, KATEGORIE, AUFWAND, ENERGIE, QUELLE, NAEHRWERT, STAND, ausLand, zahl, dauer, iso, portionen,
+  zutatText, hinweiseVon, hinweisText, ohneHinweis, ernaehrung, einleitung, themaZu, ziel, aehnliche, schrittName, rezeptAdresse,
+  quelleAdresse, EINTRAEGE,
+} from '../daten/rezeptseiten.mjs';
+
+const { slug } = Astro.props;
+const rezept = rezepte.find((eintrag) => eintrag.slug === slug);
+const adresse = rezeptAdresse(rezept);
+const voll = seite.adresse + adresse;
+const eintragVon = new Map(EINTRAEGE.map((eintrag) => [eintrag.schluessel, eintrag]));
+const text = einleitung(rezept);
+const titel = `${rezept.kurztitel}: Rezept mit Hinweisen zu den Zutaten | ${seite.name}`;
+const beschreibung = text.length > 158 ? text.slice(0, 157).replace(/\s+\S*$/, '') + '…' : text;
+
+const bild = (name, endung) => `/bilder/rezepte/${rezept.slug}-${name}.${endung}`;
+const quellen = (endung) => [720, 1200].map((breite) => `${bild(`4x3-${breite}`, endung)} ${breite}w`).join(', ');
+const hinweise = hinweiseVon(rezept);
+const ohne = ohneHinweis(rezept);
+const formen = [['en:vegan', 'vegan'], ['en:vegetarian', 'vegetarisch']].map(([schluessel, form]) => ({ schluessel, form, stand: ernaehrung(rezept, schluessel) }));
+const vegan = formen[0].stand === 'voll';
+const moeglich = formen.filter(({ stand }) => stand === 'moeglich').map(({ schluessel, form }) => ({
+  form,
+  zutaten: rezept.zutaten.filter((zutat) => zutat.hinweise.some((h) => h.eintrag === schluessel)).map((zutat) => zutat.grundbegriff),
+}));
+const gruppen = [];
+for (const zutat of rezept.zutaten) {
+  if (!gruppen.length || gruppen.at(-1).name !== zutat.gruppe) gruppen.push({ name: zutat.gruppe, zutaten: [] });
+  gruppen.at(-1).zutaten.push(zutat);
+}
+const menge = portionen(rezept);
+const proPortion = rezept.nwVollstaendig && rezept.portion;
+const stueck = rezept.portionenEinheit === 'STUECK';
+const spalte = stueck ? texte.naehrwerte.spalteStueck : texte.naehrwerte.spaltePortion;
+const stufe = rezept.energiedichte ? ENERGIE.stufen.indexOf(rezept.energiedichte) + 1 : 0;
+const urheberName = QUELLE[rezept.quelle][1];
+const themenLinks = [
+  ...rezept.laender.map((kuerzel) => themaZu('land', kuerzel)),
+  themaZu('kategorie', rezept.kategorie),
+].filter((thema) => thema && ziel(thema.adresse));
+const landThema = (kuerzel) => { const thema = themaZu('land', kuerzel); return thema && ziel(thema.adresse); };
+const kategorieThema = themaZu('kategorie', rezept.kategorie);
+const nah = aehnliche(rezept);
+
+const kochen = rezept.zeitGesamt != null && rezept.zeitVorbereitung != null ? rezept.zeitGesamt - rezept.zeitVorbereitung : null;
+const schluesselwoerter = [
+  ...formen.filter(({ stand }) => stand === 'voll').map(({ form }) => form),
+  `Aufwand ${AUFWAND[rezept.aufwand]}`,
+  ...[...new Set(rezept.zutaten.map((zutat) => zutat.grundbegriff))].slice(0, 5),
+];
+const daten = [{
+  '@context': 'https://schema.org',
+  '@type': 'Recipe',
+  '@id': `${voll}#rezept`,
+  name: rezept.titel,
+  url: voll,
+  mainEntityOfPage: voll,
+  inLanguage: 'de',
+  image: ['16x9-1200', '4x3-1200', '1x1-1200'].map((name) => seite.adresse + bild(name, 'webp')),
+  description: text,
+  author: [
+    { '@type': 'Organization', name: seite.name, url: `${seite.adresse}/` },
+    { '@type': 'Organization', name: urheberName, url: rezept.urheberUrl },
+  ],
+  publisher: { '@type': 'Organization', name: seite.name, url: `${seite.adresse}/` },
+  isBasedOn: rezept.quelleUrl,
+  license: rezept.lizenzUrl,
+  datePublished: STAND,
+  ...(rezept.zeitGesamt != null ? { totalTime: iso(rezept.zeitGesamt) } : {}),
+  ...(kochen != null && kochen >= 0 ? { prepTime: iso(rezept.zeitVorbereitung), cookTime: iso(kochen) } : {}),
+  ...(menge ? { recipeYield: [String(rezept.portionen), menge] } : {}),
+  recipeCategory: KATEGORIE[rezept.kategorie][0],
+  recipeCuisine: rezept.kueche,
+  keywords: schluesselwoerter.join(', '),
+  recipeIngredient: rezept.zutaten.map(zutatText),
+  recipeInstructions: rezept.schritte.map((schritt, nummer) => ({
+    '@type': 'HowToStep', name: schrittName(schritt), text: schritt, url: `${voll}#schritt-${nummer + 1}`,
+  })),
+  ...(formen[1].stand === 'voll' ? { suitableForDiet: vegan ? ['https://schema.org/VeganDiet', 'https://schema.org/VegetarianDiet'] : ['https://schema.org/VegetarianDiet'] } : {}),
+  ...(proPortion && menge ? { nutrition: { '@type': 'NutritionInformation', calories: `${Math.round(rezept.portion.kcal)} kcal`, servingSize: stueck ? '1 Stück' : '1 Portion' } } : {}),
+}];
+---
+<Basis titel={titel} beschreibung={beschreibung} daten={daten}>
+  <article class="rezept">
+    <Seitenkopf krumen={[{ titel: texte.uebersicht, ziel: '/rezepte/' }, { titel: rezept.kurztitel, ziel: adresse }]} titel={rezept.titel} vorspann={text}>
+      <dl class="s-kacheln">
+        <div><dt>Land</dt><dd>{rezept.laender.map((kuerzel, nummer) => <>{nummer > 0 && ', '}{landThema(kuerzel) ? <a href={landThema(kuerzel)} aria-label={`Rezepte ${ausLand(kuerzel)}`}>{LAND[kuerzel]}</a> : LAND[kuerzel]}</>)}</dd></div>
+        <div><dt>Kategorie</dt><dd>{kategorieThema && ziel(kategorieThema.adresse) ? <a href={kategorieThema.adresse} aria-label={kategorieThema.titel}>{KATEGORIE[rezept.kategorie][0]}</a> : KATEGORIE[rezept.kategorie][0]}</dd></div>
+        {rezept.zeitGesamt != null && <div><dt>Gesamt</dt><dd>{dauer(rezept.zeitGesamt)}</dd></div>}
+        {rezept.zeitVorbereitung != null && <div><dt>Vorbereitung</dt><dd>{dauer(rezept.zeitVorbereitung)}</dd></div>}
+        <div><dt>Aufwand</dt><dd>{AUFWAND[rezept.aufwand]}</dd></div>
+        {menge && <div><dt>Menge</dt><dd>{menge}</dd></div>}
+        {stufe > 0 && <div><dt>{texte.naehrwerte.energie}</dt><dd>{ENERGIE.wort[rezept.energiedichte]}</dd></div>}
+      </dl>
+      <figure class="s-bild s-glas" slot="seite">
+        <picture>
+          <source type="image/avif" srcset={quellen('avif')} sizes="(min-width: 56rem) 33rem, 100vw" />
+          <img src={bild('4x3-1200', 'webp')} srcset={quellen('webp')} sizes="(min-width: 56rem) 33rem, 100vw" alt={`${texte.symbolbild}: ${rezept.titel}`} width="1200" height="900" fetchpriority="high" decoding="async" />
+        </picture>
+        <figcaption class="r-symbol">{texte.symbolbild}</figcaption>
+      </figure>
+    </Seitenkopf>
+
+    <div class="s-inhalt innen">
+      <section class="s-teil s-karte" aria-labelledby="passt">
+        <h2 id="passt">{texte.passt.titel} <span class="r-zusatz">{texte.passt.zusatz}</span></h2>
+        {formen.some(({ stand }) => stand) || ohne.length ? (
+          <ul class="r-marken">
+            {formen.filter(({ stand }) => stand === 'voll').map(({ schluessel, form }) => {
+              const thema = themaZu('passt', schluessel);
+              const wort = texte.passt[form];
+              return <li class="voll">{thema && ziel(thema.adresse) ? <a href={thema.adresse} aria-label={thema.titel}>{wort}</a> : wort}</li>;
+            })}
+            {moeglich.map(({ form }) => <li class="umriss">{texte.passt.moeglich[form]}</li>)}
+            {ohne.map((eintrag) => {
+              const thema = themaZu('ohne', eintrag.schluessel);
+              const wort = texte.passt.ohne(eintrag.ohne === eintrag.name ? eintrag.name : `${eintrag.ohne} (${eintrag.name})`);
+              return <li>{thema && ziel(thema.adresse) ? <a href={thema.adresse} aria-label={thema.titel}>{wort}</a> : wort}</li>;
+            })}
+          </ul>
+        ) : <p>{texte.passt.keine}</p>}
+        {moeglich.map(({ form, zutaten }) => <p class="klein">{texte.passt.moeglichText(form, zutaten.join(', '))}</p>)}
+        <p class="klein">{texte.passt.erklaerung}</p>
+      </section>
+
+      <div class="s-teil r-spalten">
+        <section class="s-karte r-zutaten-karte" aria-labelledby="zutaten" tabindex="0">
+          <h2 id="zutaten">{texte.zutaten.titel}</h2>
+          {menge && <p class="klein">{texte.zutaten.fuer} {menge}</p>}
+          {gruppen.map((gruppe) => (
+            <>
+              {gruppe.name && <h3>{gruppe.name}</h3>}
+              <ul class="r-zutaten">
+                {gruppe.zutaten.map((zutat) => (
+                  <li>
+                    <span>{zutat.menge && <b>{[zutat.menge, zutat.einheit].filter(Boolean).join(' ')}</b>} {zutat.name}</span>
+                    {zutat.hinweise.length > 0 && (
+                      <span class="r-hinweis">{zutat.hinweise.map((h) => hinweisText(h.stufe, eintragVon.get(h.eintrag))).join(' · ')}</span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </>
+          ))}
+        </section>
+
+        <section aria-labelledby="zubereitung">
+          <h2 id="zubereitung">{texte.schritte.titel}</h2>
+          <ol class="r-schritte">
+            {rezept.schritte.map((schritt, nummer) => <li id={`schritt-${nummer + 1}`} data-ein>{schritt}</li>)}
+          </ol>
+        </section>
+      </div>
+
+      <section class="s-teil" aria-labelledby="hinweise">
+        <h2 id="hinweise">{texte.hinweise.titel}</h2>
+        {hinweise.length ? (
+          <>
+            <p>{texte.hinweise.einleitung}</p>
+            <ul class="r-hinweiskarten">
+              {hinweise.map(({ eintrag, stufen }) => (
+                <li data-ein>
+                  <h3>{eintrag.name}</h3>
+                  {stufen.map((zeile) => <p><b>{zeile.text}</b><span>{zeile.zutaten.join(', ')}</span></p>)}
+                </li>
+              ))}
+            </ul>
+            <details class="s-klapp">
+              <summary>{texte.hinweise.tabelle}</summary>
+              <div class="r-tabelle">
+                <table>
+                  <thead><tr>{texte.hinweise.spalten.map((kopf) => <th scope="col">{kopf}</th>)}</tr></thead>
+                  <tbody>
+                    {hinweise.map(({ eintrag, stufen }) => stufen.map((zeile, nummer) => (
+                      <tr>
+                        {nummer === 0 && <th scope="row" rowspan={stufen.length}>{eintrag.name}</th>}
+                        <td>{zeile.text}</td>
+                        <td>{zeile.zutaten.join(', ')}</td>
+                      </tr>
+                    )))}
+                  </tbody>
+                </table>
+              </div>
+            </details>
+            <dl class="r-stufen">
+              {texte.hinweise.stufen.map(([wort, erklaerung]) => <div><dt>{wort}</dt><dd>{erklaerung}</dd></div>)}
+            </dl>
+          </>
+        ) : <p>{texte.hinweise.keine}</p>}
+        <p class="klein">{texte.hinweise.app} {fuss.hinweis}</p>
+      </section>
+
+      <section class="s-teil" aria-labelledby="naehrwerte">
+        {rezept.nwVollstaendig ? (
+          <>
+            <h2 id="naehrwerte">{proPortion ? (stueck ? texte.naehrwerte.proStueck : texte.naehrwerte.proPortion) : texte.naehrwerte.je100}</h2>
+            <dl class="r-nw">
+              {NAEHRWERT.map(([feld, name, einheit, stellen], nummer) => (
+                <div class:list={{ gross: nummer === 0 }} data-ein>
+                  <dt>{name}</dt>
+                  <dd>
+                    {zahl((proPortion ? rezept.portion : rezept.je100)[feld], stellen)} {einheit}
+                    {proPortion && <small>{zahl(rezept.je100[feld], stellen)} {einheit} {texte.naehrwerte.spalteJe100}</small>}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+            {stufe > 0 && (
+              <div class="r-energie">
+                <h3>{texte.naehrwerte.energie}: {texte.naehrwerte.energieStufe(ENERGIE.wort[rezept.energiedichte], stufe)}</h3>
+                <p class="klein">{texte.naehrwerte.energieText}</p>
+                <ol class="r-skala">
+                  {ENERGIE.stufen.map((name) => (
+                    <li class:list={{ aktuell: name === rezept.energiedichte }} aria-current={name === rezept.energiedichte ? 'true' : undefined}>
+                      <b>{ENERGIE.wort[name]}</b>{ENERGIE.bereich[name]}
+                    </li>
+                  ))}
+                </ol>
+                <p class="klein">{texte.naehrwerte.energieHinweis}</p>
+              </div>
+            )}
+            <details class="s-klapp">
+              <summary>{texte.naehrwerte.tabelle}</summary>
+              <div class="r-tabelle">
+                <table class="r-zahlen">
+                  {proPortion && <thead><tr><td></td><th scope="col">{spalte}</th><th scope="col">{texte.naehrwerte.spalteJe100}</th></tr></thead>}
+                  <tbody>
+                    {NAEHRWERT.map(([feld, name, einheit, stellen]) => (
+                      <tr>
+                        <th scope="row">{name}</th>
+                        {proPortion && <td>{zahl(rezept.portion[feld], stellen)} {einheit}</td>}
+                        <td>{zahl(rezept.je100[feld], stellen)} {einheit}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </details>
+            <p class="klein">{rezept.ohneSalzNachGeschmack && `${texte.naehrwerte.ohneSalz} `}{texte.naehrwerte.grundlage}</p>
+          </>
+        ) : (
+          <>
+            <h2 id="naehrwerte">{texte.naehrwerte.unvollstaendig[0]}</h2>
+            <p>{texte.naehrwerte.unvollstaendig[1]}</p>
+          </>
+        )}
+      </section>
+
+      <section class="s-teil s-app" aria-labelledby="app" data-ein>
+        <h2 id="app">{texte.app.titel}</h2>
+        <p>{texte.app.text} {texte.app.mehr}</p>
+        <p class="s-app-zeile">
+          <a class="knopf mint" href="/so-gehts/">{texte.app.soGehts}</a>
+          {store.oeffentlich ? <a class="knopf rand" href={store.adresse} rel="noopener">{fuss.auftritte.storeLink}</a> : <span class="r-bald">{fuss.auftritte.storeBald}</span>}
+        </p>
+      </section>
+
+      <section class="s-teil" aria-labelledby="aehnlich">
+        <h2 id="aehnlich">{texte.aehnlich}</h2>
+        <ul class="r-karten">{nah.map((anderes) => <Rezeptkarte rezept={anderes} />)}</ul>
+        {themenLinks.length > 0 && (
+          <>
+            <h3>{texte.themenTitel}</h3>
+            <ul class="chips">{themenLinks.map((thema) => <li><a class="chip" href={thema.adresse}>{thema.titel}</a></li>)}</ul>
+          </>
+        )}
+      </section>
+
+      <p class="r-quelle-link"><a href={quelleAdresse(rezept)} aria-label={texte.quelle.fuer(rezept.kurztitel)}>{texte.quelle.link}</a></p>
+    </div>
+  </article>
+</Basis>
