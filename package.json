@@ -8,7 +8,10 @@
     "build": "astro build",
     "preview": "astro preview",
     "pruefen": "node tools/pruefe_seiten.mjs",
-    "texte": "node tools/texte_ausgeben.mjs"
+    "texte": "node tools/texte_ausgeben.mjs",
+    "nachweise": "node tools/nachweise.mjs",
+    "bilder": "python tools/bilder_bauen.py",
+    "teilen": "node tools/teilen_bild.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",
@@ -16,5 +19,8 @@
     "@fontsource/pacifico": "^5.3.0",
     "astro": "^7.3.5",
     "gsap": "^3.15.0"
+  },
+  "devDependencies": {
+    "puppeteer-core": "^25.13.0"
   }
 }
