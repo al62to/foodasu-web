@@ -257,7 +257,9 @@ async function pruefen() {
   for (const funktion of funktionen) {
     const titel = `${funktion.kennung} ${funktion.name}`;
     if (funktion.bilder.length === 0) {
-      if (!(funktion.felder["So geht's"] ?? '').startsWith('entfällt')) ohneBild.push(titel);
+      // „entfällt“ bei „So geht's“ oder bei „Bilder“ heißt: Für diese Funktion ist kein Bild vorgesehen.
+      const vorgesehen = !(funktion.felder["So geht's"] ?? '').startsWith('entfällt') && !(funktion.felder.Bilder ?? '').startsWith('entfällt');
+      if (vorgesehen) ohneBild.push(titel);
       continue;
     }
     for (const bild of funktion.bilder) {
