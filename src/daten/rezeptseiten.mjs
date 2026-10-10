@@ -177,6 +177,14 @@ export const texte = {
     mehr: 'Dort findest du über 300 Rezepte.',
     soGehts: "So geht's: Anleitung zu FoodAsu",
   },
+  // Knopf "Rezept teilen" im Kopf der Rezeptseite (AP-18 Nacharbeiten Teil J): Am Handy öffnet er das Teilen-Menü des
+  // Geräts mit dem Titel, diesem Satz und der Adresse der Seite; wo das Gerät das nicht kann, kopiert er die Adresse.
+  teilen: {
+    knopf: 'Rezept teilen',
+    satz: (titel) => `${titel}: Rezept mit Zutaten und Zubereitung auf FoodAsu.`,
+    kopiert: 'Link kopiert',
+    fehler: 'Link nicht kopiert',
+  },
   aehnlich: 'Ähnliche Rezepte',
   themenTitel: 'Mehr Rezepte',
   // Übersicht "Rezepte" nach Entwurf 1 der Projektleitung (AP-17 Teil E3): Suche, drei Auswahlknöpfe mit Listen zum

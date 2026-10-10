@@ -6,6 +6,8 @@
 //   2e. Schalter für helle und dunkle Darstellung: hell als Standard, Tastatur, kein Aufblitzen, und im Speicher
 //       des Browsers genau ein Eintrag "darstellung" mit "hell" oder "dunkel", sonst nichts
 //   2f. Kontrast der Texte, hell und dunkel, auf allen Seitenarten
+//   2g. Knopf "Rezept teilen": echter Knopf, Tastatur, Größe, Kontrast; ein Klick löst keine Anfrage und keinen
+//       Eintrag im Speicher des Browsers aus; ohne JavaScript nicht zu sehen; dazu ein Blatt mit Bildschirmfotos
 //   3. kein waagrechtes Scrollen bei 360, 390, 768, 1024 und 1440 Pixel
 //   4. Mega-Menü mit Tastatur, ohne JavaScript und so, wie es ein Bildschirmleser gemeldet bekommt
 //   5. Bildschirmfotos (Handy und Laptop, hell und dunkel) auf einem Blatt
@@ -16,6 +18,7 @@ import { pathToFileURL } from 'node:url';
 import puppeteer from 'puppeteer-core';
 import { chromePfad } from './chrome.mjs';
 import { alleMeta } from '../src/daten/meta.mjs';
+import { rezepte, rezeptAdresse } from '../src/daten/rezeptseiten.mjs';
 
 const werte = process.argv.slice(2).filter((wert) => !wert.startsWith('--'));
 const BASIS = (werte[0] ?? 'http://localhost:4321').replace(/\/$/, '');
@@ -552,6 +555,285 @@ sage('## 2f Kontrast der Texte (mindestens 4,5:1), hell und dunkel');
       for (const fund of ergebnis.funde.slice(0, 12)) sage(`    ${fund}`);
       await umgebung.close();
     }
+  }
+}
+
+// 2g Knopf "Rezept teilen" (AP-18 Nacharbeiten Teil J): ein echter Knopf oben bei den Angaben zum Rezept, mit der
+// Tastatur bedienbar, mindestens 44 px groß, Kontrast mindestens 4,5:1 in hell und dunkel. Ein Klick öffnet das
+// Teilen-Menü des Geräts mit Titel, einem Satz und der kanonischen Adresse, oder er kopiert die Adresse und zeigt
+// kurz "Link kopiert". Er löst keine Anfrage aus und legt nichts im Speicher des Browsers ab. Ohne JavaScript ist
+// der Knopf nicht zu sehen. Das Teilen-Menü und die Zwischenablage sind hier durch eine Aufzeichnung ersetzt, damit
+// der Lauf auf jedem Rechner gleich ist und die Zwischenablage des Rechners unberührt bleibt.
+sage();
+sage('## 2g Knopf „Rezept teilen“');
+{
+  const REZEPT = '/rezepte/bibimbap/';
+  const HOST = 'https://foodasu.com';
+  const NAME = 'Rezept teilen';
+  // teilen: "ja" zeichnet auf, "abbruch" verhält sich wie ein geschlossenes Teilen-Menü, "nein" nimmt dem Browser
+  // die Web Share API. kopieren: "ja" zeichnet auf, "fehler" lehnt ab.
+  const vorbereiten = (seite, teilen, kopieren = 'ja') => seite.evaluateOnNewDocument((mitTeilen, mitKopieren) => {
+    window.__geteilt = [];
+    window.__kopiert = [];
+    const setze = (ziel, name, wert) => Object.defineProperty(ziel, name, { configurable: true, writable: true, value: wert });
+    setze(Navigator.prototype, 'share', mitTeilen === 'nein' ? undefined : (daten) => {
+      window.__geteilt.push(daten);
+      return mitTeilen === 'abbruch' ? Promise.reject(new DOMException('abgebrochen', 'AbortError')) : Promise.resolve();
+    });
+    setze(Navigator.prototype, 'canShare', mitTeilen === 'nein' ? undefined : () => true);
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: {
+        writeText: (text) => {
+          if (mitKopieren === 'fehler') return Promise.reject(new DOMException('gesperrt', 'NotAllowedError'));
+          window.__kopiert.push(text);
+          return Promise.resolve();
+        },
+      },
+    });
+  }, teilen, kopieren);
+  const lese = (seite) => seite.evaluate(async () => {
+    const zahlen = (wert) => wert.match(/[\d.]+/g).slice(0, 3).map(Number);
+    const hell = ([r, g, b]) => {
+      const kanal = (wert) => { const anteil = wert / 255; return anteil <= 0.03928 ? anteil / 12.92 : ((anteil + 0.055) / 1.055) ** 2.4; };
+      return 0.2126 * kanal(r) + 0.7152 * kanal(g) + 0.0722 * kanal(b);
+    };
+    const kontrast = (eins, zwei) => {
+      const [heller, dunkler] = [hell(zahlen(eins)), hell(zahlen(zwei))].sort((a, b) => b - a);
+      return Math.round(((heller + 0.05) / (dunkler + 0.05)) * 100) / 100;
+    };
+    const knopf = document.querySelector('[data-teilen]');
+    const status = document.querySelector('[data-teilen-status]');
+    const kopf = document.querySelector('.s-kopf');
+    const kasten = knopf.getBoundingClientRect();
+    const stil = getComputedStyle(knopf);
+    return {
+      art: knopf.tagName + ':' + knopf.type,
+      name: knopf.textContent.replace(/\s+/g, ' ').trim(),
+      sichtbar: knopf.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true }),
+      breite: Math.round(kasten.width),
+      hoehe: Math.round(kasten.height),
+      imFenster: kasten.top >= 0 && kasten.bottom <= window.innerHeight,
+      imKopf: !!knopf.closest('.s-kopf'),
+      nachAngaben: knopf.parentElement.previousElementSibling?.matches('dl.s-kacheln') ?? false,
+      kontrastText: kontrast(stil.color, stil.backgroundColor),
+      kontrastFlaeche: kontrast(stil.backgroundColor, getComputedStyle(kopf).backgroundColor),
+      kontrastMeldung: kontrast(getComputedStyle(status).color, getComputedStyle(kopf).backgroundColor),
+      farben: `${stil.color} auf ${stil.backgroundColor}`,
+      meldung: status.textContent,
+      meldungRolle: status.getAttribute('role'),
+      kanonisch: document.querySelector('link[rel="canonical"]').href,
+      titel: document.querySelector('h1').textContent.replace(/\s+/g, ' ').trim(),
+      modus: document.documentElement.getAttribute('data-modus'),
+      geteilt: window.__geteilt,
+      kopiert: window.__kopiert,
+      eintraege: Object.keys(localStorage).map((schluessel) => `${schluessel}=${localStorage.getItem(schluessel)}`),
+      sonst: document.cookie.length + sessionStorage.length + (await indexedDB.databases()).length + (await caches.keys()).length,
+    };
+  });
+  const leer = async (umgebung, stand, erlaubt = []) =>
+    stand.eintraege.join() === erlaubt.join() && stand.sonst === 0 && (await umgebung.cookies()).length === 0;
+
+  // Laptop ohne Web Share API: echter Knopf, Tastatur, Kopieren, Meldung, keine Anfrage, kein Speicher.
+  {
+    const { umgebung, seite } = await neueSeite({ ansicht: LAPTOP, ruhig: true });
+    await vorbereiten(seite, 'nein');
+    await seite.goto(BASIS + REZEPT, { waitUntil: 'networkidle0' });
+    const anfragen = [];
+    seite.on('request', (anfrage) => anfragen.push(anfrage.url()));
+    let stand = await lese(seite);
+    pruefe(stand.art === 'BUTTON:button' && stand.name === NAME, `Laptop: echter Knopf mit dem Namen „${stand.name}“`);
+    pruefe(stand.sichtbar && stand.imFenster && stand.imKopf && stand.nachAngaben, 'Laptop: Der Knopf steht oben im Kopfbereich direkt nach den Angaben zum Rezept und ist ohne Scrollen zu sehen');
+    pruefe(stand.breite >= 44 && stand.hoehe >= 44, `Laptop: Größe ${stand.breite} x ${stand.hoehe} px (mindestens 44)`);
+    const baum = await seite.accessibility.snapshot({ interestingOnly: true });
+    const knoten = [];
+    (function sammle(teil) { if (teil.role === 'button' && teil.name === NAME) knoten.push(teil); for (const kind of teil.children ?? []) sammle(kind); })(baum);
+    pruefe(knoten.length === 1, `Bildschirmleser: ein Knopf „${NAME}“ (${knoten.length})`);
+    pruefe(stand.meldungRolle === 'status' && stand.meldung === '', 'Die Zeile für die Meldung ist ein Statusbereich und anfangs leer');
+
+    let schritte = 0;
+    for (; schritte < 80; schritte++) {
+      await seite.keyboard.press('Tab');
+      if (await seite.evaluate(() => document.activeElement.matches('[data-teilen]'))) break;
+    }
+    pruefe(schritte < 80, `Tastatur: Der Knopf ist mit der Tabulatortaste erreichbar (${schritte + 1} Schritte)`);
+    const rahmen = await seite.evaluate(() => {
+      const stil = getComputedStyle(document.activeElement);
+      return { art: stil.outlineStyle, breite: parseFloat(stil.outlineWidth), farbe: stil.outlineColor };
+    });
+    pruefe(rahmen.art !== 'none' && rahmen.breite >= 2, `Tastatur: sichtbarer Rahmen am Knopf (${rahmen.breite} px, ${rahmen.farbe})`);
+    await seite.keyboard.press('Enter');
+    await warte(150);
+    stand = await lese(seite);
+    pruefe(stand.kopiert.length === 1 && stand.kopiert[0] === HOST + REZEPT && stand.kopiert[0] === stand.kanonisch, `Enter kopiert die kanonische Adresse: ${stand.kopiert.join(', ') || 'nichts'}`);
+    pruefe(!/[?#&=]/.test(stand.kopiert[0] ?? '?'), 'Die Adresse hat keine Zusätze oder Parameter');
+    pruefe(stand.meldung === 'Link kopiert', `Meldung: „${stand.meldung}“`);
+    pruefe(stand.kontrastMeldung >= 4.5, `Kontrast der Meldung: ${stand.kontrastMeldung}:1`);
+    if (MIT_BILDERN) await seite.screenshot({ path: join(ZIEL, 'teilen_laptop_link_kopiert.png') });
+    await warte(4300);
+    stand = await lese(seite);
+    pruefe(stand.meldung === '', 'Die Meldung verschwindet nach rund vier Sekunden');
+    await seite.keyboard.press('Space');
+    await warte(150);
+    stand = await lese(seite);
+    pruefe(stand.kopiert.length === 2 && stand.meldung === 'Link kopiert', 'Die Leertaste löst den Knopf ebenfalls aus');
+    pruefe(stand.geteilt.length === 0, 'Ohne Web Share API wird kein Teilen-Menü aufgerufen');
+    pruefe(anfragen.length === 0, `Die Klicks lösen keine Anfrage aus (${anfragen.length})`);
+    pruefe(await leer(umgebung, stand), `Nichts im Browser gespeichert (localStorage ${stand.eintraege.length}, Cookies, sessionStorage, IndexedDB, Cache: 0)`);
+    await umgebung.close();
+  }
+
+  // Kopieren abgelehnt: Die Meldung sagt es.
+  {
+    const { umgebung, seite } = await neueSeite({ ansicht: LAPTOP, ruhig: true });
+    await vorbereiten(seite, 'nein', 'fehler');
+    await seite.goto(BASIS + REZEPT, { waitUntil: 'networkidle0' });
+    await seite.click('[data-teilen]');
+    await warte(150);
+    const stand = await lese(seite);
+    pruefe(stand.meldung === 'Link nicht kopiert' && stand.kopiert.length === 0, `Lehnt der Browser das Kopieren ab, steht dort „${stand.meldung}“`);
+    await umgebung.close();
+  }
+
+  // Handy mit Web Share API: Tippen öffnet das Teilen-Menü mit Titel, Satz und kanonischer Adresse.
+  {
+    const { umgebung, seite } = await neueSeite({ ansicht: HANDY, ruhig: true });
+    await vorbereiten(seite, 'ja');
+    await seite.goto(BASIS + REZEPT, { waitUntil: 'networkidle0' });
+    const anfragen = [];
+    seite.on('request', (anfrage) => anfragen.push(anfrage.url()));
+    let stand = await lese(seite);
+    pruefe(stand.sichtbar && stand.imKopf && stand.nachAngaben && stand.breite >= 44 && stand.hoehe >= 44, `Handy: Knopf im Kopfbereich nach den Angaben, ${stand.breite} x ${stand.hoehe} px`);
+    await seite.tap('[data-teilen]');
+    await warte(150);
+    stand = await lese(seite);
+    const daten = stand.geteilt[0] ?? {};
+    pruefe(stand.geteilt.length === 1 && Object.keys(daten).sort().join() === 'text,title,url', `Handy: Tippen ruft das Teilen-Menü des Geräts einmal auf (${Object.keys(daten).sort().join(', ')})`);
+    pruefe(daten.url === HOST + REZEPT && daten.url === stand.kanonisch, `Geteilt wird die kanonische Adresse: ${daten.url}`);
+    pruefe(daten.title === stand.titel, `Titel: „${daten.title}“`);
+    pruefe(/^[^.!?]+: [^.!?]+\.$/.test(daten.text ?? '') && !/https?:/.test(daten.text ?? ''), `Satz: „${daten.text}“`);
+    pruefe(stand.kopiert.length === 0 && stand.meldung === '', 'Mit Teilen-Menü wird nichts kopiert und nichts gemeldet');
+    pruefe(anfragen.length === 0, `Das Tippen löst keine Anfrage aus (${anfragen.length})`);
+    pruefe(await leer(umgebung, stand), 'Nichts im Browser gespeichert');
+    await umgebung.close();
+  }
+
+  // Teilen-Menü geschlossen, ohne zu teilen: keine Meldung, nichts kopiert.
+  {
+    const { umgebung, seite } = await neueSeite({ ansicht: HANDY, ruhig: true });
+    await vorbereiten(seite, 'abbruch');
+    await seite.goto(BASIS + REZEPT, { waitUntil: 'networkidle0' });
+    await seite.tap('[data-teilen]');
+    await warte(150);
+    const stand = await lese(seite);
+    pruefe(stand.geteilt.length === 1 && stand.kopiert.length === 0 && stand.meldung === '', 'Wer das Teilen-Menü schließt, ohne zu teilen, bekommt keine Meldung, und es wird nichts kopiert');
+    await umgebung.close();
+  }
+
+  // Hell und dunkel, Handy und Laptop: Größe und Kontrast; dazu die Bildschirmfotos für den Bericht.
+  const aufnahmen = [];
+  for (const [geraet, ansicht] of [['Handy', HANDY], ['Laptop', LAPTOP]]) {
+    for (const [wort, dunkel] of [['hell', false], ['dunkel', true]]) {
+      const { umgebung, seite } = await neueSeite({ ansicht, ruhig: true, dunkel });
+      await vorbereiten(seite, geraet === 'Handy' ? 'ja' : 'nein');
+      await seite.goto(BASIS + REZEPT, { waitUntil: 'networkidle0' });
+      const stand = await lese(seite);
+      pruefe((stand.modus === 'dunkel') === dunkel && stand.sichtbar && stand.breite >= 44 && stand.hoehe >= 44, `${geraet}, ${wort}: Knopf zu sehen, ${stand.breite} x ${stand.hoehe} px`);
+      pruefe(stand.kontrastText >= 4.5 && stand.kontrastFlaeche >= 3, `${geraet}, ${wort}: Kontrast der Schrift ${stand.kontrastText}:1 (${stand.farben}), Knopf zum Hintergrund ${stand.kontrastFlaeche}:1`);
+      pruefe(await leer(umgebung, stand, dunkel ? ['darstellung=dunkel'] : []), `${geraet}, ${wort}: der Knopf legt nichts im Speicher ab`);
+      if (MIT_BILDERN) {
+        // Am Handy steht der Knopf unter den Angaben; die Aufnahme zeigt den Ausschnitt, in dem er liegt.
+        await seite.evaluate(() => {
+          const kasten = document.querySelector('[data-teilen]').getBoundingClientRect();
+          if (kasten.bottom > window.innerHeight - 24) window.scrollTo({ top: window.scrollY + kasten.bottom - window.innerHeight + 140, behavior: 'instant' });
+        });
+        await warte(200);
+        const datei = join(ZIEL, `teilen_${geraet.toLowerCase()}_${wort}.png`);
+        await seite.screenshot({ path: datei });
+        aufnahmen.push({ titel: `${geraet}, ${wort} (${ansicht.width} px)`, datei, breite: geraet === 'Handy' ? 390 : 960 });
+      }
+      await umgebung.close();
+    }
+  }
+
+  // Ohne JavaScript ist der Knopf nicht zu sehen.
+  {
+    const { umgebung, seite } = await neueSeite({ ansicht: LAPTOP, skript: false });
+    await seite.goto(BASIS + REZEPT, { waitUntil: 'networkidle0' });
+    seite.setJavaScriptEnabled(true);
+    const ohne = await seite.evaluate(() => ({
+      zeile: getComputedStyle(document.querySelector('.r-teilen')).display,
+      sichtbar: document.querySelector('[data-teilen]').checkVisibility(),
+    }));
+    pruefe(ohne.zeile === 'none' && !ohne.sichtbar, 'Ohne JavaScript: Der Knopf ist nicht zu sehen');
+    await umgebung.close();
+  }
+
+  // Kann der Browser weder teilen noch kopieren, bleibt der Knopf weg.
+  {
+    const { umgebung, seite } = await neueSeite({ ansicht: LAPTOP, ruhig: true });
+    await vorbereiten(seite, 'nein');
+    await seite.evaluateOnNewDocument(() => Object.defineProperty(navigator, 'clipboard', { configurable: true, value: undefined }));
+    await seite.goto(BASIS + REZEPT, { waitUntil: 'networkidle0' });
+    pruefe(!(await seite.evaluate(() => document.querySelector('[data-teilen]').checkVisibility())), 'Kann der Browser weder teilen noch kopieren, ist der Knopf nicht zu sehen');
+    await umgebung.close();
+  }
+
+  // Alle Rezeptseiten: je ein Klick, geteilt wird die kanonische Adresse der Seite; keine Anfrage, kein Speicher.
+  {
+    const { umgebung, seite } = await neueSeite({ ansicht: LAPTOP, ruhig: true });
+    await vorbereiten(seite, 'ja');
+    let anfragen = 0;
+    let lauscht = false;
+    seite.on('request', () => { if (lauscht) anfragen++; });
+    const befunde = [];
+    for (const rezept of rezepte) {
+      const pfad = rezeptAdresse(rezept);
+      await seite.goto(BASIS + pfad, { waitUntil: 'networkidle0' });
+      lauscht = true;
+      await seite.click('[data-teilen]');
+      await warte(60);
+      lauscht = false;
+      const stand = await lese(seite);
+      const daten = stand.geteilt[0] ?? {};
+      if (stand.geteilt.length !== 1 || daten.url !== HOST + pfad || daten.url !== stand.kanonisch || daten.title !== rezept.titel || !daten.text?.startsWith(`${rezept.kurztitel}: `)) befunde.push(`${pfad}: geteilt ${JSON.stringify(daten)}`);
+      if (!(await leer(umgebung, stand))) befunde.push(`${pfad}: Speicher nicht leer`);
+    }
+    pruefe(befunde.length === 0, `Alle ${rezepte.length} Rezeptseiten: Der Knopf teilt Titel, Satz und die kanonische Adresse der Seite${befunde.length ? ` (${befunde.length} Befunde)` : ''}`);
+    for (const befund of befunde.slice(0, 12)) sage(`    ${befund}`);
+    pruefe(anfragen === 0, `Alle ${rezepte.length} Rezeptseiten: Die Klicks lösen keine Anfrage aus (${anfragen})`);
+    // Auf den anderen Seiten gibt es den Knopf nicht.
+    const fremd = [];
+    for (const pfad of SEITEN.filter((einer) => einer !== REZEPT)) {
+      await seite.goto(BASIS + pfad, { waitUntil: 'domcontentloaded' });
+      if (await seite.evaluate(() => !!document.querySelector('[data-teilen]'))) fremd.push(pfad);
+    }
+    pruefe(fremd.length === 0, `Auf den ${SEITEN.length - 1} anderen geprüften Seiten gibt es den Knopf nicht${fremd.length ? ` (${fremd.join(', ')})` : ''}`);
+    await umgebung.close();
+  }
+
+  // Blatt mit den vier Aufnahmen und der Meldung "Link kopiert".
+  if (MIT_BILDERN) {
+    aufnahmen.push({ titel: 'Laptop, hell, nach dem Klick: „Link kopiert“', datei: join(ZIEL, 'teilen_laptop_link_kopiert.png'), breite: 960 });
+    const bilder = aufnahmen.map((aufnahme) =>
+      `<figure><figcaption>${aufnahme.titel}</figcaption><img src="${pathToFileURL(aufnahme.datei).href}" width="${aufnahme.breite}"></figure>`);
+    const blattHtml = `<!doctype html><meta charset="utf-8"><style>
+body { margin: 0; padding: 28px; width: max-content; background: #e9e8f1; font-family: "Segoe UI", sans-serif; color: #1a1a24; }
+h1 { margin: 0 0 20px; font-size: 26px; }
+.zeile { display: flex; align-items: flex-start; gap: 28px; margin-bottom: 28px; }
+figure { margin: 0; }
+figcaption { margin-bottom: 8px; font-size: 18px; font-weight: 700; }
+img { display: block; height: auto; outline: 1px solid #c7c4d7; }
+</style><h1>foodasu.com, Rezeptseite mit dem Knopf „Rezept teilen“ (${REZEPT}), ${new Date().toLocaleDateString('de-AT')}</h1>
+<div class="zeile">${bilder.slice(0, 2).join('')}</div><div class="zeile">${bilder.slice(2, 4).join('')}</div><div class="zeile">${bilder.slice(4).join('')}</div>`;
+    const vorlage = join(ZIEL, 'teilen_blatt.html');
+    writeFileSync(vorlage, blattHtml, 'utf8');
+    const blatt = await browser.newPage();
+    await blatt.setViewport({ width: 1200, height: 800, deviceScaleFactor: 1 });
+    await blatt.goto(pathToFileURL(vorlage).href, { waitUntil: 'load' });
+    await blatt.screenshot({ path: join(ZIEL, 'Teilen_Blatt.jpg'), type: 'jpeg', quality: 88, fullPage: true });
+    await blatt.close();
+    sage(`Blatt: ${join(ZIEL, 'Teilen_Blatt.jpg')}`);
   }
 }
 

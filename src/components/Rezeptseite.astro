@@ -99,6 +99,13 @@ const daten = [{
         {menge && <div><dt>Menge</dt><dd>{menge}</dd></div>}
         {stufe > 0 && <div><dt>{texte.naehrwerte.energie}</dt><dd>{ENERGIE.wort[rezept.energiedichte]}</dd></div>}
       </dl>
+      <p class="r-teilen">
+        <button type="button" class="knopf r-teilen-knopf" data-teilen data-titel={rezept.titel} data-text={texte.teilen.satz(rezept.kurztitel)} data-adresse={voll} data-kopiert={texte.teilen.kopiert} data-fehler={texte.teilen.fehler}>
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><path d="M8.6 10.5l6.8-4M8.6 13.5l6.8 4" /></svg>
+          {texte.teilen.knopf}
+        </button>
+        <span class="r-teilen-status" role="status" data-teilen-status></span>
+      </p>
       <figure class="s-bild s-glas" slot="seite">
         <picture>
           <source type="image/avif" srcset={quellen('avif')} sizes="(min-width: 56rem) 33rem, 100vw" />
@@ -277,3 +284,47 @@ const daten = [{
     </div>
   </article>
 </Basis>
+
+<script>
+  // Knopf "Rezept teilen" (AP-18 Nacharbeiten Teil J). Am Handy öffnet er das Teilen-Menü des Geräts (Web Share API)
+  // mit Titel, einem Satz und der kanonischen Adresse der Seite. Wo das Gerät das nicht kann, kopiert er die Adresse
+  // und zeigt kurz "Link kopiert". Die Website überträgt dabei nichts und legt nichts im Speicher des Browsers ab.
+  // Ohne JavaScript ist der Knopf nicht zu sehen (seiten.css); kann der Browser weder teilen noch kopieren, auch nicht.
+  const knopf = document.querySelector('[data-teilen]');
+  if (knopf) {
+    const status = document.querySelector('[data-teilen-status]');
+    const { titel, text, adresse, kopiert, fehler } = knopf.dataset;
+    const daten = { title: titel, text, url: adresse };
+    const kannTeilen = typeof navigator.share === 'function' && (typeof navigator.canShare !== 'function' || navigator.canShare(daten));
+    const kannKopieren = typeof navigator.clipboard?.writeText === 'function';
+    if (!kannTeilen && !kannKopieren) knopf.parentElement.hidden = true;
+
+    let uhr;
+    const melde = (wort) => {
+      status.textContent = wort;
+      clearTimeout(uhr);
+      uhr = setTimeout(() => { status.textContent = ''; }, 4000);
+    };
+    const kopiere = async () => {
+      try {
+        await navigator.clipboard.writeText(adresse);
+        melde(kopiert);
+      } catch {
+        melde(fehler);
+      }
+    };
+    knopf.addEventListener('click', async () => {
+      if (kannTeilen) {
+        try {
+          await navigator.share(daten);
+          return;
+        } catch (grund) {
+          // Wer das Teilen-Menü schließt, ohne zu teilen, bekommt keine Meldung.
+          if (grund?.name === 'AbortError') return;
+        }
+      }
+      if (kannKopieren) await kopiere();
+      else melde(fehler);
+    });
+  }
+</script>

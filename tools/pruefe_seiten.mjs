@@ -57,6 +57,14 @@ const speicherBefund = (skript) => {
   return SPEICHER.test(rest) ? `Speicher oder Anfrage im Skript: ${rest.match(SPEICHER)[0]}` : null;
 };
 
+// Knopf "Rezept teilen" (AP-18 Nacharbeiten Teil J): auf jeder Rezeptseite genau einer, sonst nirgends. Geteilt wird
+// über das Gerät; Knöpfe, Links oder Skripte von Diensten zum Teilen stehen auf keiner Seite.
+const TEILEN_KNOPF = /<button\b([^>]*\bdata-teilen\b[^>]*)>([\s\S]*?)<\/button>/g;
+const TEILEN_NAME = 'Rezept teilen';
+const TEILEN_DIENSTE = /facebook\.com\/(?:sharer|share|dialog|plugins)|connect\.facebook\.net|wa\.me\/|api\.whatsapp\.com|whatsapp:\/\/|(?:twitter|x)\.com\/(?:intent|share)|t\.me\/share|telegram\.me\/share|pinterest\.[a-z.]+\/pin\/create|linkedin\.com\/(?:shareArticle|sharing)|addthis|sharethis|addtoany/gi;
+const IST_REZEPT = /<script type="application\/ld\+json">[^<]*"@type":"Recipe"/;
+let teilenKnoepfe = 0;
+
 const fehler = [];
 const hinweise = [];
 const melde = (ort, text) => fehler.push(`${ort}: ${text}`);
@@ -87,7 +95,7 @@ const entschluesselt = (text) =>
 const sichtbar = (html) => {
   let text = html.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/g, ' ');
   // Auch Texte in Attributen zählen: Beschreibungen für Bildschirmleser und die Kopfdaten.
-  const attribute = alle(text, /(?:aria-label|alt|title|content)="([^"]*)"/g).map((m) => m[1]).join(' \n ');
+  const attribute = alle(text, /(?:aria-label|alt|title|content|data-titel|data-text|data-kopiert|data-fehler)="([^"]*)"/g).map((m) => m[1]).join(' \n ');
   text = entschluesselt(text.replace(/<[^>]+>/g, ' ') + ' ' + attribute);
   for (const wendung of AUSNAHMEN) text = text.replaceAll(wendung, ' '.repeat(wendung.length));
   return text;
@@ -157,7 +165,7 @@ for (const [adresse, html] of seiten) {
   if (!/<html lang="de"/.test(html)) melde(adresse, 'lang="de" fehlt');
 
   // Open Graph und Twitter-Karte
-  const istRezept = /<script type="application\/ld\+json">[^<]*"@type":"Recipe"/.test(html);
+  const istRezept = IST_REZEPT.test(html);
   const bildPfad = istRezept ? `/bilder/rezepte/${adresse.split('/').at(-2)}-teilen.jpg` : TEILEN.gemeinsam;
   const teilen = {
     'og:type': istRezept ? 'article' : 'website', 'og:site_name': 'FoodAsu', 'og:locale': 'de_AT', 'og:title': titel,
@@ -268,6 +276,28 @@ for (const [adresse, html] of seiten) {
       for (const teil of ['id="passt"', 'id="hinweise"', 'id="naehrwerte"', 'Maßgeblich ist die Verpackung.', 'Symbolbild']) {
         if (!html.includes(teil)) melde(adresse, `Pflichtteil der Rezeptseite fehlt: ${teil}`);
       }
+      // Knopf "Rezept teilen": ein echter Knopf mit diesem Namen, oben im Kopfbereich bei den Angaben zum Rezept. Er
+      // trägt die kanonische Adresse der Seite ohne Zusätze, den Titel des Rezepts und einen Satz; daneben steht die
+      // Zeile für "Link kopiert". Ob ein Klick etwas überträgt oder speichert, misst tools/nachweise.mjs.
+      const knoepfe = alle(html, TEILEN_KNOPF);
+      if (knoepfe.length !== 1) melde(adresse, `genau ein Knopf „${TEILEN_NAME}“ erwartet, gefunden: ${knoepfe.length}`);
+      else {
+        teilenKnoepfe++;
+        const [ganz, angaben, innen] = knoepfe[0];
+        const wert = (name) => entschluesselt(angaben.match(new RegExp(`\\b${name}="([^"]*)"`))?.[1] ?? '');
+        const name = entschluesselt(innen.replace(/<svg[\s\S]*?<\/svg>/g, ' ').replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ').trim();
+        if (name !== TEILEN_NAME) melde(adresse, `der Knopf heißt „${name}“ statt „${TEILEN_NAME}“`);
+        if (!/\btype="button"/.test(angaben)) melde(adresse, `Knopf „${TEILEN_NAME}“ ohne type="button"`);
+        if (/\b(?:disabled|tabindex="-1"|aria-hidden="true")/.test(angaben)) melde(adresse, `Knopf „${TEILEN_NAME}“ ist nicht bedienbar`);
+        if (wert('data-adresse') !== HOST + adresse || wert('data-adresse') !== kanonisch[0]?.[1]) melde(adresse, `Knopf „${TEILEN_NAME}“: Adresse „${wert('data-adresse')}“ ist nicht die kanonische Adresse`);
+        if (/[?#&=]/.test(wert('data-adresse'))) melde(adresse, `Knopf „${TEILEN_NAME}“: Adresse mit Zusatz oder Parameter`);
+        if (wert('data-titel') !== rezept.name) melde(adresse, `Knopf „${TEILEN_NAME}“: Titel „${wert('data-titel')}“ ist nicht der Titel des Rezepts`);
+        if (!/^[^.!?]{3,}: [^.!?]{10,}\.$/.test(wert('data-text')) || /https?:|"/.test(wert('data-text'))) melde(adresse, `Knopf „${TEILEN_NAME}“: Satz fehlt oder ist kein einzelner Satz: „${wert('data-text')}“`);
+        if (wert('data-kopiert') !== 'Link kopiert') melde(adresse, `Knopf „${TEILEN_NAME}“: Meldung „Link kopiert“ fehlt`);
+        if (!/<span\b[^>]*\brole="status"[^>]*\bdata-teilen-status\b[^>]*><\/span>/.test(html)) melde(adresse, `Zeile für die Meldung neben dem Knopf „${TEILEN_NAME}“ fehlt oder ist nicht leer`);
+        const stelle = html.indexOf(ganz);
+        if (stelle < html.indexOf('class="s-kacheln"') || stelle > html.indexOf('class="s-inhalt')) melde(adresse, `Knopf „${TEILEN_NAME}“ steht nicht im Kopfbereich nach den Angaben zum Rezept`);
+      }
       // Quelle und Lizenz stehen auf der Seite "Quellen und Lizenzen": Die Rezeptseite verlinkt ihren Abschnitt, und
       // der Abschnitt nennt Lizenz und Änderungsvermerk.
       const kennung = adresse.split('/').at(-2);
@@ -288,6 +318,9 @@ for (const [adresse, html] of seiten) {
       if (!html.includes('laut Zutatenliste') && /ohne-|vegetarisch|vegan/.test(adresse)) melde(adresse, '"laut Zutatenliste" fehlt');
     }
   }
+
+  if (!istRezept && /\bdata-teilen\b/.test(html)) melde(adresse, `Knopf „${TEILEN_NAME}“ gehört nur auf Rezeptseiten`);
+  for (const fund of alle(html, TEILEN_DIENSTE)) melde(adresse, `Dienst zum Teilen im Quelltext: ${fund[0]}`);
 
   // Linktexte: derselbe Text darf nicht zu verschiedenen Zielen führen (Navigation und Fuß ausgenommen).
   const inhalt = html.match(/<main[\s\S]*<\/main>/)?.[0] ?? '';
@@ -325,7 +358,11 @@ for (const datei of dateien.filter((d) => /\.(js|css)$/.test(d))) {
     if (!/^https?:\/\/(www\.w3\.org|schema\.org)\//.test(fund[1])) melde(name, `fremde Adresse: ${fund[1]}`);
   }
   if (datei.endsWith('.js') && speicherBefund(inhalt)) melde(name, speicherBefund(inhalt));
+  for (const fund of alle(inhalt, TEILEN_DIENSTE)) melde(name, `Dienst zum Teilen: ${fund[0]}`);
 }
+// Knopf "Rezept teilen": Jede Seite mit einem Rezept in den strukturierten Daten hat ihn.
+const rezeptSeiten = [...seiten.values()].filter((html) => IST_REZEPT.test(html)).length;
+if (teilenKnoepfe !== rezeptSeiten || rezeptSeiten === 0) melde('/rezepte/', `Knopf „${TEILEN_NAME}“ auf ${teilenKnoepfe} von ${rezeptSeiten} Rezeptseiten`);
 // Schalter für helle und dunkle Darstellung (AP-18 Teil C): Jede Seite liest die gemerkte Wahl schon im Kopf, vor dem
 // ersten Zeichnen, und hat genau einen Schalter (ein echter Knopf mit der Rolle Schalter und einem Namen). Der
 // Eintrag wird auf jeder Seite höchstens an einer Stelle geschrieben. Die Farben hängen nur noch an data-modus, nie
@@ -529,6 +566,7 @@ if (metaZiel) {
 }
 
 console.log(`Geprüft: ${seiten.size} Seiten (${[...seiten.keys()].join(', ')}), ${dateien.length} Dateien`);
+console.log(`Knopf „${TEILEN_NAME}“: auf ${teilenKnoepfe} von ${rezeptSeiten} Rezeptseiten, auf keiner anderen Seite`);
 for (const hinweis of hinweise) console.log(`HINWEIS ${hinweis}`);
 for (const eintrag of fehler) console.log(`FEHLER ${eintrag}`);
 console.log(`Ergebnis: ${fehler.length === 0 ? 'bestanden' : fehler.length + ' Befunde'}`);

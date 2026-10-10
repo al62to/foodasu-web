@@ -34,6 +34,15 @@
 .s-kacheln div { padding: 0.65rem 0.85rem; border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 1rem; background: rgba(255, 255, 255, 0.09); }
 .s-kacheln dt { font-size: 0.8rem; font-weight: 700; color: rgba(255, 255, 255, 0.82); }
 .s-kacheln dd { margin: 0; font-weight: 800; hyphens: manual; }
+/* Knopf "Rezept teilen" unter den Angaben zum Rezept (AP-18 Nacharbeiten Teil J). Zu sehen ist er nur mit JavaScript;
+   die Klasse "js" steht schon vor dem ersten Zeichnen am html-Element, deshalb verschiebt sich beim Laden nichts.
+   Der Kopfbereich ist in beiden Farbschemata dunkles Indigo, der Knopf also hell und dunkel gleich. */
+.r-teilen { display: none; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; margin: 1.25rem 0 0; }
+.js .r-teilen { display: flex; }
+.js .r-teilen[hidden] { display: none; }
+.r-teilen-knopf { gap: 0.6rem; border: 0; background: var(--mint); color: var(--on-mint); font: inherit; font-weight: 800; cursor: pointer; }
+.r-teilen-knopf svg { flex: none; width: 1.25rem; height: 1.25rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.r-teilen-status { font-weight: 700; color: #fff; }
 .s-bild { position: relative; margin: 0; padding: 0.6rem; }
 .s-bild img { display: block; width: 100%; height: auto; border-radius: 1.25rem; background: #2a2277; }
 .r-symbol { position: absolute; left: 1.2rem; top: 1.2rem; padding: 0.2rem 0.65rem; border-radius: 999px; background: rgba(17, 17, 24, 0.78); color: #fff; font-size: 0.75rem; font-weight: 700; }
