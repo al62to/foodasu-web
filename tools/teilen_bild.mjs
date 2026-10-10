@@ -1,44 +1,50 @@
-// Baut das Bild für Open Graph und die Twitter-Karte (1200 x 630) nach public/bilder/foodasu-teilen.jpg:
-// Schriftzug, Überschrift der Startseite und die schwebenden Begriffe, alles aus den Daten der Seite. Kein Rezeptbild,
-// keine Anfrage ins Netz. Aufruf: node tools/teilen_bild.mjs
+// Baut das gemeinsame Bild für Open Graph und die Twitter-Karte (1200 x 630) nach public/bilder/foodasu-teilen.jpg
+// (AP-18 Nachtrag Meta): Logo auf Indigo mit den Hintergrund-Akzenten aus Theme F3, im Stil der Kopfgrafik des
+// Store-Eintrags. Oben rechts der Fleck der Startbildschirme mit Kreis und kleinem Ring, unten links der große Ring
+// mit einem Kreis in Mint; darunter der Satz aus dem Fuß der Website. Alle Seiten außer den Rezeptseiten zeigen
+// dieses Bild. Kein Rezeptbild, keine Anfrage ins Netz. Aufruf: node tools/teilen_bild.mjs
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
 import puppeteer from 'puppeteer-core';
 import { chromePfad } from './chrome.mjs';
 import { seite } from '../src/daten/seite.mjs';
-import { kopf } from '../src/daten/startseite.mjs';
+import { fuss } from '../src/daten/startseite.mjs';
 
 const wurzel = join(dirname(fileURLToPath(import.meta.url)), '..');
 const schrift = pathToFileURL(
   join(wurzel, 'node_modules/@fontsource-variable/plus-jakarta-sans/files/plus-jakarta-sans-latin-wght-normal.woff2'),
 ).href;
 const logo = readFileSync(join(wurzel, 'src/inhalte/logo.svg'), 'utf8');
-const orte = ['left:700px;top:120px', 'left:930px;top:210px', 'left:740px;top:330px', 'left:960px;top:440px'];
-const farben = ['#e8b04b', '#4a3fd1', '#9a8cff', '#2a2277'];
+const { breite, hoehe } = seite.teilen;
+// Farben der App (Theme F3): Indigo, tiefes Indigo, Lavendel, dunkles Lavendel, Mint.
+const INDIGO = '#4a3fd1';
+const INDIGO_TIEF = '#2a2277';
+const LAVENDEL = '#efedff';
+const LAVENDEL_DUNKEL = '#dedaff';
+const MINT = '#b8f0d2';
+// Fleck der Startbildschirme (Ansichtsfeld 200 x 200), wie in der App und in der Kopfgrafik.
+const FLECK = 'M40 40C70 5 150 0 180 40s20 110-20 140-120 20-140-20S10 75 40 40Z';
 
 const html = `<!doctype html><html lang="de"><meta charset="utf-8"><style>
 @font-face { font-family: "PJS"; src: url("${schrift}") format("woff2"); font-weight: 200 800; }
 * { box-sizing: border-box; }
-body { margin: 0; width: ${seite.teilen.breite}px; height: ${seite.teilen.hoehe}px; overflow: hidden; position: relative; background: #16123f; color: #fff; font-family: "PJS", sans-serif; }
-.f { position: absolute; border-radius: 50%; }
-.a { left: -160px; top: -220px; width: 900px; height: 800px; background: radial-gradient(closest-side, rgba(74,63,209,.9), rgba(74,63,209,0)); }
-.b { right: -120px; top: -60px; width: 640px; height: 560px; background: radial-gradient(closest-side, rgba(123,108,255,.45), rgba(123,108,255,0)); }
-.c { right: 120px; bottom: -220px; width: 520px; height: 480px; background: radial-gradient(closest-side, rgba(63,191,143,.3), rgba(63,191,143,0)); }
-.logo { position: absolute; left: 72px; top: 64px; }
-.logo svg { display: block; height: 58px; width: auto; }
+body { margin: 0; width: ${breite}px; height: ${hoehe}px; overflow: hidden; position: relative; background: ${INDIGO}; font-family: "PJS", sans-serif; }
+.akzente { position: absolute; inset: 0; }
+.mitte { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 34px; }
+.logo svg { display: block; width: 620px; height: auto; }
 .logo .wort { fill: #fff; }
-.logo .schrift { fill: #b8f0d2; }
-h1 { position: absolute; left: 72px; bottom: 76px; margin: 0; width: 640px; font-size: 132px; font-weight: 800; line-height: .97; letter-spacing: -.045em; }
-h1 em { position: relative; z-index: 0; font-style: normal; color: #b8f0d2; white-space: nowrap; }
-h1 em::after { content: ""; position: absolute; z-index: -1; left: 0; right: 0; bottom: .06em; height: .16em; border-radius: 8px; background: #1f6f54; }
-.m { position: absolute; display: flex; gap: 12px; align-items: center; padding: 16px 26px; border-radius: 999px; background: #fff; color: #1a1a24; font-size: 30px; font-weight: 700; box-shadow: 0 24px 50px -24px rgba(0,0,0,.6); }
-.m i { width: 16px; height: 16px; border-radius: 50%; }
+.logo .schrift { fill: ${MINT}; }
+p { margin: 0; color: ${LAVENDEL}; font-size: 38px; font-weight: 500; letter-spacing: -.01em; }
 </style><body>
-<div class="f a"></div><div class="f b"></div><div class="f c"></div>
-<div class="logo">${logo}</div>
-<h1>${kopf.ueberschrift[0]}<em>${kopf.ueberschrift[1]}</em>${kopf.ueberschrift[2]}</h1>
-${kopf.begriffe.map((begriff, nummer) => `<div class="m" style="${orte[nummer]}"><i style="background:${farben[nummer]}"></i>${begriff}</div>`).join('\n')}
+<svg class="akzente" viewBox="0 0 ${breite} ${hoehe}" aria-hidden="true">
+  <path d="${FLECK}" transform="translate(968 -178) scale(2.52)" fill="${INDIGO_TIEF}" fill-opacity=".55"/>
+  <circle cx="1132" cy="100" r="98" fill="${LAVENDEL_DUNKEL}" fill-opacity=".24"/>
+  <circle cx="1068" cy="62" r="20" fill="none" stroke="${MINT}" stroke-width="9"/>
+  <circle cx="22" cy="610" r="150" fill="none" stroke="${LAVENDEL}" stroke-opacity=".16" stroke-width="40"/>
+  <circle cx="172" cy="566" r="28" fill="${MINT}"/>
+</svg>
+<div class="mitte"><div class="logo">${logo}</div><p>${fuss.satz}</p></div>
 </body></html>`;
 
 const ordner = join(wurzel, 'public', dirname(seite.teilen.pfad));
@@ -49,10 +55,10 @@ writeFileSync(vorlage, html, 'utf8');
 
 const browser = await puppeteer.launch({ executablePath: chromePfad(), headless: true });
 const blatt = await browser.newPage();
-await blatt.setViewport({ width: seite.teilen.breite, height: seite.teilen.hoehe, deviceScaleFactor: 1 });
+await blatt.setViewport({ width: breite, height: hoehe, deviceScaleFactor: 1 });
 await blatt.goto(pathToFileURL(vorlage).href, { waitUntil: 'load' });
 await blatt.evaluate(() => document.fonts.ready);
 const ziel = join(wurzel, 'public', seite.teilen.pfad);
-await blatt.screenshot({ path: ziel, type: 'jpeg', quality: 88 });
+await blatt.screenshot({ path: ziel, type: 'jpeg', quality: 90 });
 await browser.close();
 console.log(`Geschrieben: ${ziel}`);

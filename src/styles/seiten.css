@@ -6,11 +6,9 @@
   --karte: #ffffff;
   --schatten: 42 34 119;
 }
-@media (prefers-color-scheme: dark) {
-  :root {
-    --karte: #1c1b28;
-    --schatten: 0 0 0;
-  }
+:root[data-modus="dunkel"] {
+  --karte: #1c1b28;
+  --schatten: 0 0 0;
 }
 
 /* Kopfbereich: dunkles Indigo in beiden Farbschemata */

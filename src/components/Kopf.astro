@@ -69,6 +69,14 @@ const aktuell = (ziel) => (ziel === '/' ? pfad === '/' : pfad.startsWith(ziel));
             )
           )}
         </ul>
+        <button class="modus" type="button" role="switch" aria-checked="false" data-modus-schalter>
+          <span class="modus-text">{geruest.modus}</span>
+          <span class="modus-bahn" aria-hidden="true">
+            <svg class="sonne" viewBox="0 0 24 24" focusable="false"><circle cx="12" cy="12" r="4" fill="currentColor" /><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+            <svg class="mond" viewBox="0 0 24 24" focusable="false"><path d="M20 14.2A8.2 8.2 0 0 1 9.8 4a8.2 8.2 0 1 0 10.2 10.2z" fill="currentColor" /></svg>
+            <span class="modus-griff"></span>
+          </span>
+        </button>
         <MegaProbe mobil />
         <ul class="haupt-recht">
           <li><a href="/datenschutz.html">{fuss.links.datenschutz}</a></li>
@@ -183,5 +191,46 @@ const aktuell = (ziel) => (ziel === '/' ? pfad === '/' : pfad.startsWith(ziel));
       uhr = window.setTimeout(schliesseMega, SCHLIESSEN_MS);
     });
     breit.addEventListener('change', schliesse);
+  }
+
+  // Schalter für helle und dunkle Darstellung (AP-18 Teil C). Hell ist der Standard, unabhängig von der Einstellung
+  // des Geräts. Die Wahl steht als data-modus="dunkel" am html-Element (das Skript im Kopf der Seite setzt es schon
+  // vor dem ersten Zeichnen) und als einziger Eintrag "darstellung" im Speicher des Browsers, mit dem Wert "hell"
+  // oder "dunkel". Übertragen wird nichts. Solange niemand den Schalter benutzt, wird nichts gespeichert.
+  const schalter = document.querySelector('[data-modus-schalter]');
+  if (schalter) {
+    const html = document.documentElement;
+    const istDunkel = () => html.dataset.modus === 'dunkel';
+    const zeige = (dunkel) => {
+      if (dunkel) html.dataset.modus = 'dunkel';
+      else delete html.dataset.modus;
+      schalter.setAttribute('aria-checked', String(dunkel));
+    };
+    // Lässt sich der Speicher nicht lesen (etwa gesperrt), bleibt die Seite, wie sie ist.
+    const gemerkt = () => {
+      try {
+        return localStorage.getItem('darstellung') === 'dunkel';
+      } catch {
+        return istDunkel();
+      }
+    };
+    zeige(istDunkel());
+    schalter.addEventListener('click', () => {
+      const dunkel = !istDunkel();
+      zeige(dunkel);
+      try {
+        localStorage.setItem('darstellung', dunkel ? 'dunkel' : 'hell');
+      } catch {
+        // Ohne Speicher gilt die Wahl nur für diese Seite.
+      }
+    });
+    // Zurück auf eine Seite, die der Browser aufbewahrt hat, oder Wechsel in einem zweiten Fenster: der gemerkten
+    // Wahl folgen.
+    window.addEventListener('pageshow', (ereignis) => {
+      if (ereignis.persisted) zeige(gemerkt());
+    });
+    window.addEventListener('storage', (ereignis) => {
+      if (ereignis.key === 'darstellung' || ereignis.key === null) zeige(gemerkt());
+    });
   }
 </script>

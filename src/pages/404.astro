@@ -1,11 +1,10 @@
 ---
 // Eigene 404-Seite (AP-16 Nachtrag Website, Punkt 2): Der Bau erzeugt 404.html, GitHub Pages liefert sie bei
-// unbekannten Adressen mit Status 404 aus. Nicht in der Sitemap; ein noindex braucht sie wegen des Status nicht.
+// unbekannten Adressen mit Status 404 aus. Nicht in der Sitemap und mit noindex (src/daten/meta.mjs).
 // Wortlaut in src/daten/startseite.mjs. Die Bilder in den Handys sind echte Aufnahmen aus der App 0.14.1 (Emulator,
 // hell, Deutsch, Testhaushalt).
 import Basis from '../layouts/Basis.astro';
 import '../styles/nichtgefunden.css';
-import { seite } from '../daten/seite.mjs';
 import { geruest } from '../daten/startseite.mjs';
 import { ziel } from '../daten/rezeptseiten.mjs';
 
@@ -16,7 +15,7 @@ const bild = (name, breite) => `/bilder/app/${name}-${breite}.webp`;
 const quellen = (name) => [240, 480].map((breite) => `${bild(name, breite)} ${breite}w`).join(', ');
 const groessen = '(min-width: 30rem) 15rem, 50vw';
 ---
-<Basis titel={`${texte.seitentitel} | ${seite.name}`} beschreibung={texte.text} adresse="/404.html">
+<Basis adresse="/404.html">
   <div class="nf">
     <div class="nf-fleck" aria-hidden="true"></div>
     <div class="nf-kreis" aria-hidden="true"></div>

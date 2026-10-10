@@ -6,14 +6,13 @@
 import Basis from '../../layouts/Basis.astro';
 import Seitenkopf from '../../components/Seitenkopf.astro';
 import offenlegung from '../../inhalte/offenlegung.html?raw';
-import { seite } from '../../daten/seite.mjs';
 import { geruest } from '../../daten/startseite.mjs';
 
 const texte = geruest.offenlegung;
 const ueberschrift = offenlegung.match(/<h2[^>]*>([^<]*)<\/h2>/)?.[1] ?? texte.titel;
 const rumpf = offenlegung.replace(/<h2[^>]*>[^<]*<\/h2>\s*/, '');
 ---
-<Basis titel={`${ueberschrift} | ${seite.name}`} beschreibung={texte.beschreibung} index={false}>
+<Basis>
   <Seitenkopf krumen={[{ titel: texte.titel, ziel: '/offenlegung/' }]} titel={ueberschrift} still />
   <div class="s-inhalt innen">
     <div class="text schmal" set:html={rumpf} />

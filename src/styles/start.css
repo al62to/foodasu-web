@@ -6,12 +6,10 @@
   --strich: #b8f0d2;
   --schatten: 42 34 119;
 }
-@media (prefers-color-scheme: dark) {
-  :root {
-    --karte: #1c1b28;
-    --strich: #1f6f54;
-    --schatten: 0 0 0;
-  }
+:root[data-modus="dunkel"] {
+  --karte: #1c1b28;
+  --strich: #1f6f54;
+  --schatten: 0 0 0;
 }
 .titel { font-size: clamp(1.9rem, 4.4vw, 3.5rem); letter-spacing: -0.035em; line-height: 1.04; margin: 0 0 2.25rem; text-wrap: balance; }
 .knopf svg { width: 1.1rem; height: 1.1rem; margin-left: 0.5rem; }

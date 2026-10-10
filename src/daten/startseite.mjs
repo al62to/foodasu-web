@@ -1,9 +1,8 @@
 // Alle Texte der Startseite an einer Stelle (AP-15 Teil B, Abschnitte 1 bis 8). Von Ali am 09.10.2026 freigegeben.
 // Die Datei Website_Texte_Startseite.md entsteht daraus mit tools/texte_ausgeben.mjs.
+// Titel der Startseite. Die Beschreibung steht mit denen aller Seiten in src/daten/meta.mjs.
 export const kopfdaten = {
   titel: 'FoodAsu: Lebensmittel-Scanner für den ganzen Haushalt',
-  beschreibung:
-    'Strichcode scannen und sehen, ob laut den Angaben etwas drin ist, das jemand bei dir zu Hause meidet. In der App: Einkaufslisten und über 300 Rezepte.',
 };
 
 export const kopf = {
@@ -175,12 +174,23 @@ export const fragen = {
   ],
 };
 
+// Fußzeile A (Entscheidung Ali vom 10.10.2026, AP-18 Teil D): links Logo und Satz, daneben drei Spalten, unten eine
+// schmale Zeile. Der Hinweis zur Verpackung steht weiter auf jeder Seite, jetzt unter dem Satz.
 export const fuss = {
-  links: { datenschutz: 'Datenschutz', offenlegung: 'Offenlegung', lizenzen: 'Lizenzen', quellen: 'Quellen und Lizenzen', kontakt: 'Kontakt per E-Mail' },
+  satz: 'Der Lebensmittel-Scanner für den ganzen Haushalt.',
   hinweis: 'Maßgeblich ist die Verpackung.',
+  spalten: { recht: 'Rechtliches', foodasu: 'FoodAsu', folgen: 'Folge uns' },
+  links: { datenschutz: 'Datenschutz', offenlegung: 'Offenlegung', lizenzen: 'Lizenzen', quellen: 'Quellen und Lizenzen', kontakt: 'Kontakt per E-Mail' },
+  // Zweite Spalte: dieselben Ziele wie in der Hauptnavigation, dazu der Kontakt.
+  seiten: [
+    { titel: "So geht's", ziel: '/so-gehts/' },
+    { titel: 'Rezepte', ziel: '/rezepte/' },
+    { titel: 'Fragen', ziel: '/fragen/' },
+  ],
+  rechte: '© 2026 FoodAsu · Eine App von Ali',
   auftritte: {
-    facebook: 'FoodAsu bei Facebook',
-    instagram: 'FoodAsu bei Instagram',
+    facebook: 'Facebook',
+    instagram: 'Instagram',
     storeBald: 'Bald im Play Store',
     storeLink: 'FoodAsu bei Google Play',
   },
@@ -193,32 +203,21 @@ export const geruest = {
   navigation: 'Hauptnavigation',
   menue: 'Menü',
   menueZu: 'Menü schließen',
+  // Schalter in der Kopfzeile, am Handy im Menü (AP-18 Teil C): aus = hell, an = dunkel, wie in der App.
+  modus: 'Dunkler Modus',
   brotkrumen: 'Brotkrumen',
   recht: { datenschutz: 'Datenschutz', inhalt: 'Inhalt' },
   // Eigene Seite der Offenlegung (AP-17 Teil E1). Der Wortlaut kommt aus dem Baustein src/inhalte/offenlegung.html.
-  offenlegung: { titel: 'Offenlegung', beschreibung: 'Offenlegung nach § 25 Mediengesetz für die Website foodasu.com.' },
+  offenlegung: { titel: 'Offenlegung' },
   fragenSeite: {
     titel: 'Fragen und Antworten',
     beschreibung: 'Woher die Daten von FoodAsu kommen, was mit deinen Angaben passiert und warum die Verpackung maßgeblich bleibt.',
   },
   // Knopf der Startseite, der die Bewegung anhält (WCAG 2.2.2). Der Zustand gilt nur für den Besuch.
   bewegung: { anhalten: 'Bewegung anhalten', fortsetzen: 'Bewegung fortsetzen' },
-  platzhalter: {
-    soGehts: {
-      titel: "So geht's",
-      beschreibung: 'Die Anleitung zu FoodAsu: vom ersten Scan bis zur Einkaufsliste. Kommt bald.',
-      text: 'Kommt bald. Hier entsteht die Anleitung zu FoodAsu, vom ersten Scan bis zur Einkaufsliste.',
-    },
-    rezepte: {
-      titel: 'Rezepte',
-      beschreibung: 'Die Rezepte aus FoodAsu, mit Hinweisen zu den Zutaten. Kommt bald.',
-      text: 'Kommt bald. Hier findest du die Rezepte aus FoodAsu, mit Hinweisen zu den Zutaten.',
-    },
-  },
   // 404-Seite: Wortlaut und Aufbau nach dem Entwurf der Projektleitung (AP-16 Nachtrag Website, Punkt 2), von Ali
   // freigegeben. "themen" nennt die Adressen der sechs Themen; gibt es eine Seite beim Bauen nicht, fällt ihr Chip weg.
   nichtGefunden: {
-    seitentitel: 'Seite nicht gefunden',
     etikett: 'Fehler 404',
     zahl: '404',
     titel: ['Diese Seite gibt es ', 'hier nicht.'],
@@ -237,15 +236,14 @@ export const geruest = {
     karte: {
       titel: 'Was ist FoodAsu?',
       text: 'Eine App für Android: Du scannst Lebensmittel beim Einkauf und siehst sofort, ob etwas drin ist, das du meidest.',
-      // Der Knopf führt zu den drei Schritten der Startseite; sobald "So geht's" fertig ist, auf diese Seite umstellen.
+      // Der Knopf führt zur Anleitung (bis AP-18 zu den drei Schritten der Startseite).
       knopf: "So geht's",
-      ziel: '/#schritte',
+      ziel: '/so-gehts/',
     },
     bilder: { karte: 'FoodAsu-App: Produktkarte nach dem Scan mit Urteil', start: 'FoodAsu-App: Startbildschirm' },
   },
   lizenzen: {
     titel: 'Lizenzen',
-    beschreibung: 'Schriften, Daten, Bilder und Software, die diese Website verwendet, mit ihren Lizenzen.',
     einleitung: 'Diese Website verwendet die folgenden Schriften, Daten, Bilder und Programme.',
     eintraege: [
       { name: 'Plus Jakarta Sans', art: 'Schrift', lizenz: 'SIL Open Font License 1.1', ziel: 'https://openfontlicense.org/open-font-license-official-text/' },

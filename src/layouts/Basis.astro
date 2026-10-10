@@ -1,6 +1,13 @@
 ---
-// Grundlayout aller Seiten: Kopfdaten (Titel, Beschreibung, kanonische Adresse, Open Graph, Twitter-Karte), Kopf,
-// Brotkrumen auf Unterseiten, Fuß. Keine Cookies, kein Speicher im Browser, keine Anfragen an Dritte.
+// Grundlayout aller Seiten: Kopfdaten (Titel, Beschreibung, kanonische Adresse, Robots, Open Graph, Twitter-Karte),
+// Kopf, Brotkrumen auf Unterseiten, Fuß. Keine Cookies, keine Anfragen an Dritte.
+// Titel, Beschreibung, Robots und das Bild zum Teilen kommen für jede Adresse aus src/daten/meta.mjs (AP-18 Nachtrag
+// Meta); eine Seite gibt sie nicht selbst an. Rezeptseiten sind "article" und zeigen ihr Rezeptbild, alle anderen
+// Seiten sind "website" mit dem gemeinsamen Bild.
+// Das Skript im Kopf läuft vor dem ersten Zeichnen: Es setzt "js" für die Gestaltung mit JavaScript und liest die
+// gemerkte Darstellung (AP-18 Teil C), damit eine dunkel gewählte Seite nicht erst hell aufblitzt. Hell ist der
+// Standard; im Speicher des Browsers steht höchstens der eine Eintrag "darstellung" mit "hell" oder "dunkel". Den
+// Schalter und das Schreiben des Eintrags enthält Kopf.astro.
 import '@fontsource-variable/plus-jakarta-sans/wght.css';
 import '../styles/basis.css';
 import schrift from '@fontsource-variable/plus-jakarta-sans/files/plus-jakarta-sans-latin-wght-normal.woff2?url';
@@ -8,36 +15,37 @@ import Kopf from '../components/Kopf.astro';
 import Fuss from '../components/Fuss.astro';
 import Brotkrumen from '../components/Brotkrumen.astro';
 import { seite } from '../daten/seite.mjs';
-import { geruest, kopf } from '../daten/startseite.mjs';
+import { geruest } from '../daten/startseite.mjs';
+import { metaVon } from '../daten/meta.mjs';
 
-const { titel, beschreibung, adresse = Astro.url.pathname, krumen, index = true, daten = [] } = Astro.props;
+const { adresse = Astro.url.pathname, krumen, daten = [] } = Astro.props;
+const { titel, beschreibung, index, art, bild } = metaVon(adresse);
 const kanonisch = seite.adresse + adresse;
-const teilenText = `${seite.name}: ${kopf.ueberschrift.join('')}`;
 ---
 <!doctype html>
 <html lang={seite.sprache}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <script is:inline>document.documentElement.classList.add('js');</script>
+    <script is:inline>(function(){var w=document.documentElement;w.classList.add('js');try{if(localStorage.getItem('darstellung')==='dunkel')w.setAttribute('data-modus','dunkel')}catch(f){}})();</script>
     <title>{titel}</title>
     <meta name="description" content={beschreibung} />
     <link rel="canonical" href={kanonisch} />
     {!index && <meta name="robots" content="noindex, follow" />}
     <meta name="referrer" content="no-referrer" />
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={art} />
     <meta property="og:site_name" content={seite.name} />
     <meta property="og:locale" content="de_AT" />
     <meta property="og:title" content={titel} />
     <meta property="og:description" content={beschreibung} />
     <meta property="og:url" content={kanonisch} />
-    <meta property="og:image" content={seite.adresse + seite.teilen.pfad} />
+    <meta property="og:image" content={seite.adresse + bild.pfad} />
     <meta property="og:image:width" content={String(seite.teilen.breite)} />
     <meta property="og:image:height" content={String(seite.teilen.hoehe)} />
-    <meta property="og:image:alt" content={teilenText} />
+    <meta property="og:image:alt" content={bild.alt} />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:image" content={seite.adresse + seite.teilen.pfad} />
-    <meta name="twitter:image:alt" content={teilenText} />
+    <meta name="twitter:image" content={seite.adresse + bild.pfad} />
+    <meta name="twitter:image:alt" content={bild.alt} />
     <meta name="twitter:title" content={titel} />
     <meta name="twitter:description" content={beschreibung} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />

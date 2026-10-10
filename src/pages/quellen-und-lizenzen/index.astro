@@ -4,13 +4,12 @@
 // in der Sitemap (Ali, 09.10.2026); im Fuß jeder Seite verlinkt.
 import Basis from '../../layouts/Basis.astro';
 import Seitenkopf from '../../components/Seitenkopf.astro';
-import { seite } from '../../daten/seite.mjs';
 import { rezepte, texte, QUELLE, LIZENZ, rezeptAdresse } from '../../daten/rezeptseiten.mjs';
 
 const t = texte.quelle;
 const nachName = [...rezepte].sort((a, b) => a.titel.localeCompare(b.titel, 'de'));
 ---
-<Basis titel={`${t.seite.titel} | ${seite.name}`} beschreibung={t.seite.beschreibung} index={false}>
+<Basis>
   <Seitenkopf krumen={[{ titel: t.seite.titel, ziel: t.seite.adresse }]} titel={t.seite.titel} vorspann={t.seite.einleitung} still />
   <div class="s-inhalt innen">
     <nav class="q-uebersicht" aria-labelledby="q-rezepte">

@@ -1,7 +1,11 @@
 // Nachweise an der gebauten Website, gegen eine laufende Vorschau (npm run preview):
 //   1. Netzwerk-Mitschnitt je Seite: keine Anfragen an Dritte, keine Cookies, kein Speicher im Browser
+//      (solange niemand den Schalter für die Darstellung benutzt)
 //   2. GSAP wird erst nach dem ersten Zeichnen geladen, mit "Bewegung reduzieren" gar nicht
 //   2c. Knopf "Bewegung anhalten": Tastatur, Stillstand, Fortsetzen, nichts gespeichert
+//   2e. Schalter für helle und dunkle Darstellung: hell als Standard, Tastatur, kein Aufblitzen, und im Speicher
+//       des Browsers genau ein Eintrag "darstellung" mit "hell" oder "dunkel", sonst nichts
+//   2f. Kontrast der Texte, hell und dunkel, auf allen Seitenarten
 //   3. kein waagrechtes Scrollen bei 360, 390, 768, 1024 und 1440 Pixel
 //   4. Mega-Menü mit Tastatur, ohne JavaScript und so, wie es ein Bildschirmleser gemeldet bekommt
 //   5. Bildschirmfotos (Handy und Laptop, hell und dunkel) auf einem Blatt
@@ -11,14 +15,16 @@ import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import puppeteer from 'puppeteer-core';
 import { chromePfad } from './chrome.mjs';
-import { seiten as verzeichnis } from '../src/daten/seite.mjs';
+import { alleMeta } from '../src/daten/meta.mjs';
 
 const werte = process.argv.slice(2).filter((wert) => !wert.startsWith('--'));
 const BASIS = (werte[0] ?? 'http://localhost:4321').replace(/\/$/, '');
 const ZIEL = resolve(werte[1] ?? 'nachweise');
 const MIT_BILDERN = !process.argv.includes('--ohne-bilder');
-// Dazu je eine erzeugte Seite jeder Art (Rezeptseite, Themenseite) und die 404-Seite.
-const SEITEN = [...verzeichnis.map((eintrag) => eintrag.pfad), '/rezepte/bibimbap/', '/rezepte/ohne-nuesse/', '/404.html'];
+// Alle festen Seiten (auch die mit noindex und die 404-Seite), dazu je eine erzeugte Seite jeder Art (Rezeptseite,
+// Themenseite).
+const FEST = alleMeta.map((eintrag) => eintrag.pfad).filter((pfad) => pfad === '/rezepte/' || !pfad.startsWith('/rezepte/'));
+const SEITEN = [...FEST, '/rezepte/bibimbap/', '/rezepte/ohne-nuesse/'];
 const BREITEN = [360, 390, 768, 1024, 1440];
 const HANDY = { width: 390, height: 844, deviceScaleFactor: 1, isMobile: true, hasTouch: true };
 const LAPTOP = { width: 1440, height: 900, deviceScaleFactor: 1 };
@@ -32,9 +38,12 @@ const warte = (ms) => new Promise((fertig) => setTimeout(fertig, ms));
 
 const browser = await puppeteer.launch({ executablePath: chromePfad(), headless: true });
 
-async function neueSeite({ ansicht = LAPTOP, schema = 'light', ruhig = false, skript = true } = {}) {
+// "schema" ist die Einstellung des Geräts; die Website folgt ihr nicht mehr. "dunkel" stellt eine Seite her, auf der
+// der Schalter bei einem früheren Besuch eingeschaltet wurde (der eine Eintrag steht schon im Speicher).
+async function neueSeite({ ansicht = LAPTOP, schema = 'light', ruhig = false, skript = true, dunkel = false } = {}) {
   const umgebung = await browser.createBrowserContext();
   const seite = await umgebung.newPage();
+  if (dunkel) await seite.evaluateOnNewDocument(() => { try { localStorage.setItem('darstellung', 'dunkel'); } catch { /* ohne Speicher bleibt die Seite hell */ } });
   await seite.setViewport(ansicht);
   await seite.emulateMediaFeatures([
     { name: 'prefers-color-scheme', value: schema },
@@ -341,6 +350,209 @@ sage('## 2d Unterseiten: Knopf "Bewegung anhalten", Einblenden, "Bewegung reduzi
   const ruhig = await recht.seite.evaluate(() => ({ knopf: !!document.querySelector('[data-bewegung-seite]'), name: getComputedStyle(document.querySelector('.s-flaechen i')).animationName }));
   pruefe(!ruhig.knopf && ruhig.name === 'none', '/datenschutz.html: ruhiger Kopfbereich ohne Schleife und ohne Knopf');
   await recht.umgebung.close();
+}
+
+// 2e Schalter für helle und dunkle Darstellung (AP-18 Teil C)
+sage();
+sage('## 2e Schalter für helle und dunkle Darstellung');
+{
+  const HELL = 'rgb(255, 255, 255)';
+  const DUNKEL = 'rgb(18, 18, 25)';
+  // Was eine Seite gerade zeigt und was der Browser für sie gespeichert hat.
+  const lese = (seite) => seite.evaluate(async () => {
+    const schalter = document.querySelector('[data-modus-schalter]');
+    const kasten = schalter.getBoundingClientRect();
+    return {
+      modus: document.documentElement.getAttribute('data-modus'),
+      grund: getComputedStyle(document.body).backgroundColor,
+      schema: getComputedStyle(document.documentElement).colorScheme,
+      rolle: schalter.getAttribute('role'),
+      art: schalter.tagName + ':' + schalter.type,
+      an: schalter.getAttribute('aria-checked'),
+      name: schalter.textContent.replace(/\s+/g, ' ').trim(),
+      sichtbar: schalter.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true }),
+      hoehe: Math.round(kasten.height),
+      breite: Math.round(kasten.width),
+      eintraege: Object.keys(localStorage).map((schluessel) => `${schluessel}=${localStorage.getItem(schluessel)}`),
+      sonst: document.cookie.length + sessionStorage.length + (await indexedDB.databases()).length + (await caches.keys()).length,
+    };
+  });
+
+  // Hell ist der Standard, auch wenn das Gerät dunkel eingestellt ist. Ohne den Schalter wird nichts gespeichert.
+  for (const pfad of SEITEN) {
+    const { umgebung, seite } = await neueSeite({ ansicht: LAPTOP, schema: 'dark', ruhig: true });
+    await seite.goto(BASIS + pfad, { waitUntil: 'networkidle0' });
+    const stand = await lese(seite);
+    pruefe(stand.modus === null && stand.grund === HELL && stand.schema === 'light', `${pfad}: hell, obwohl das Gerät dunkel eingestellt ist (Hintergrund ${stand.grund})`);
+    pruefe(stand.eintraege.length === 0 && stand.sonst === 0 && (await umgebung.cookies()).length === 0, `${pfad}: ohne den Schalter nichts gespeichert`);
+    await umgebung.close();
+  }
+
+  // Laptop: Der Schalter steht in der Kopfzeile, ist mit der Tastatur bedienbar und wirkt sofort.
+  {
+    const { umgebung, seite } = await neueSeite({ ansicht: LAPTOP, ruhig: true });
+    const anfragen = [];
+    await seite.goto(BASIS + '/', { waitUntil: 'networkidle0' });
+    seite.on('request', (anfrage) => anfragen.push(anfrage.url()));
+    let stand = await lese(seite);
+    pruefe(stand.art === 'BUTTON:button' && stand.rolle === 'switch' && stand.an === 'false' && stand.name === 'Dunkler Modus', `Schalter: echter Knopf mit der Rolle Schalter, Name „${stand.name}“, aus`);
+    pruefe(stand.sichtbar && stand.hoehe >= 44 && stand.breite >= 44, `Laptop: Schalter in der Kopfzeile sichtbar, ${stand.breite} x ${stand.hoehe} px`);
+    const imKopf = await seite.evaluate(() => !!document.querySelector('header.kopf [data-modus-schalter]'));
+    pruefe(imKopf, 'Laptop: Der Schalter steht in der Kopfzeile');
+    const baum = await seite.accessibility.snapshot({ interestingOnly: true });
+    const knoten = [];
+    (function sammle(teil) { if (teil.role === 'switch') knoten.push(teil); for (const kind of teil.children ?? []) sammle(kind); })(baum);
+    pruefe(knoten.length === 1 && knoten[0].name === 'Dunkler Modus' && knoten[0].checked === false, `Bildschirmleser: ein Schalter „${knoten[0]?.name}“, nicht gesetzt`);
+
+    await seite.focus('[data-modus-schalter]');
+    await seite.keyboard.press('Space');
+    stand = await lese(seite);
+    pruefe(stand.modus === 'dunkel' && stand.grund === DUNKEL && stand.schema === 'dark' && stand.an === 'true', `Leertaste schaltet auf dunkel (Hintergrund ${stand.grund}, Schalter an)`);
+    pruefe(stand.eintraege.length === 1 && stand.eintraege[0] === 'darstellung=dunkel', `gespeichert ist genau ein Eintrag: ${stand.eintraege.join(', ') || 'keiner'}`);
+    pruefe(stand.sonst === 0 && (await umgebung.cookies()).length === 0, 'sonst nichts gespeichert (Cookies, sessionStorage, IndexedDB, Cache)');
+    pruefe(anfragen.length === 0, `das Umschalten löst keine Anfrage aus (${anfragen.length})`);
+
+    // Neu laden und eine andere Seite: Die Wahl gilt schon, bevor der Inhalt gezeichnet wird.
+    await seite.evaluateOnNewDocument(() => {
+      new MutationObserver((_, beobachter) => {
+        if (!document.body) return;
+        window.__modusVorDemInhalt = document.documentElement.getAttribute('data-modus');
+        beobachter.disconnect();
+      }).observe(document, { childList: true, subtree: true });
+    });
+    for (const pfad of ['/', '/rezepte/', '/rezepte/bibimbap/', '/datenschutz.html', '/404.html']) {
+      await seite.goto(BASIS + pfad, { waitUntil: 'networkidle0' });
+      stand = await lese(seite);
+      const vorher = await seite.evaluate(() => window.__modusVorDemInhalt);
+      pruefe(vorher === 'dunkel' && stand.grund === DUNKEL && stand.an === 'true', `${pfad}: dunkel schon vor dem Inhalt (kein Aufblitzen), Schalter an`);
+      pruefe(stand.eintraege.length === 1 && stand.eintraege[0] === 'darstellung=dunkel', `${pfad}: weiter genau ein Eintrag (${stand.eintraege.join(', ')})`);
+    }
+
+    await seite.focus('[data-modus-schalter]');
+    await seite.keyboard.press('Enter');
+    stand = await lese(seite);
+    pruefe(stand.modus === null && stand.grund === HELL && stand.an === 'false', `Enter schaltet zurück auf hell (Hintergrund ${stand.grund})`);
+    pruefe(stand.eintraege.length === 1 && stand.eintraege[0] === 'darstellung=hell', `gespeichert ist genau ein Eintrag: ${stand.eintraege.join(', ')}`);
+    await seite.goto(BASIS + '/fragen/', { waitUntil: 'networkidle0' });
+    stand = await lese(seite);
+    pruefe(stand.modus === null && stand.grund === HELL && (await seite.evaluate(() => window.__modusVorDemInhalt)) === null, '/fragen/: nach dem Zurückschalten wieder hell');
+    await umgebung.close();
+  }
+
+  // Handy: Der Schalter steht im Menü, als ganze Zeile mit seinem Namen; das Menü bleibt beim Umschalten offen.
+  {
+    const { umgebung, seite } = await neueSeite({ ansicht: HANDY, ruhig: true });
+    await seite.goto(BASIS + '/rezepte/', { waitUntil: 'networkidle0' });
+    let stand = await lese(seite);
+    pruefe(!stand.sichtbar, 'Handy: Schalter bei geschlossenem Menü nicht zu sehen');
+    await seite.click('[data-menue]');
+    stand = await lese(seite);
+    const zeile = await seite.evaluate(() => {
+      const schalter = document.querySelector('[data-modus-schalter]');
+      const text = schalter.querySelector('.modus-text').getBoundingClientRect();
+      return { imMenue: !!schalter.closest('#hauptliste'), text: Math.round(text.width) };
+    });
+    pruefe(stand.sichtbar && zeile.imMenue && stand.hoehe >= 44 && zeile.text > 40, `Handy: Schalter im Menü, mit sichtbarem Namen, ${stand.breite} x ${stand.hoehe} px`);
+    await seite.click('[data-modus-schalter]');
+    stand = await lese(seite);
+    const offen = await seite.evaluate(() => document.querySelector('[data-menue]').getAttribute('aria-expanded'));
+    pruefe(stand.modus === 'dunkel' && stand.grund === DUNKEL && offen === 'true', 'Handy: Tippen schaltet auf dunkel, das Menü bleibt offen');
+    pruefe(stand.eintraege.length === 1 && stand.eintraege[0] === 'darstellung=dunkel', `Handy: genau ein Eintrag (${stand.eintraege.join(', ')})`);
+    await umgebung.close();
+  }
+
+  // Ohne JavaScript gibt es keinen Schalter; die Seite ist hell.
+  {
+    const { umgebung, seite } = await neueSeite({ ansicht: LAPTOP, schema: 'dark', skript: false });
+    await seite.goto(BASIS + '/', { waitUntil: 'networkidle0' });
+    seite.setJavaScriptEnabled(true);
+    const ohne = await seite.evaluate(() => ({
+      zusehen: getComputedStyle(document.querySelector('[data-modus-schalter]')).display,
+      grund: getComputedStyle(document.body).backgroundColor,
+    }));
+    pruefe(ohne.zusehen === 'none' && ohne.grund === HELL, 'Ohne JavaScript: kein Schalter, die Seite ist hell');
+    await umgebung.close();
+  }
+}
+
+// 2f Kontrast der Texte, hell und dunkel, auf allen Seitenarten (AP-18 Teil C: mindestens 4,5:1)
+sage();
+sage('## 2f Kontrast der Texte (mindestens 4,5:1), hell und dunkel');
+{
+  const messe = (seite) => seite.evaluate(() => {
+    const zahlen = (wert) => {
+      const teile = wert.match(/[\d.]+/g)?.map(Number) ?? [0, 0, 0, 0];
+      return { r: teile[0], g: teile[1], b: teile[2], a: teile.length > 3 ? teile[3] : 1 };
+    };
+    const ueber = (oben, unten) => ({
+      r: oben.r * oben.a + unten.r * (1 - oben.a), g: oben.g * oben.a + unten.g * (1 - oben.a), b: oben.b * oben.a + unten.b * (1 - oben.a), a: 1,
+    });
+    const hell = ({ r, g, b }) => {
+      const kanal = (wert) => { const anteil = wert / 255; return anteil <= 0.03928 ? anteil / 12.92 : ((anteil + 0.055) / 1.055) ** 2.4; };
+      return 0.2126 * kanal(r) + 0.7152 * kanal(g) + 0.0722 * kanal(b);
+    };
+    // Hintergrund eines Elements: alle Flächen der Vorfahren von unten nach oben übereinandergelegt. Liegt ein Bild
+    // oder ein Verlauf dazwischen, lässt sich die Farbe nicht bestimmen; solche Stellen werden gezählt, nicht gewertet.
+    const grund = (element) => {
+      const kette = [];
+      for (let teil = element; teil; teil = teil.parentElement) {
+        const stil = getComputedStyle(teil);
+        if (stil.backgroundImage !== 'none') return null;
+        const farbe = zahlen(stil.backgroundColor);
+        if (farbe.a > 0) kette.push(farbe);
+        if (farbe.a === 1) break;
+      }
+      let flaeche = { r: 255, g: 255, b: 255, a: 1 };
+      for (const farbe of kette.reverse()) flaeche = ueber(farbe, flaeche);
+      return flaeche;
+    };
+    const funde = [];
+    let geprueft = 0;
+    let offen = 0;
+    const lauf = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    const gesehen = new Set();
+    for (let knoten = lauf.nextNode(); knoten; knoten = lauf.nextNode()) {
+      const element = knoten.parentElement;
+      if (!knoten.textContent.trim() || gesehen.has(element)) continue;
+      gesehen.add(element);
+      // Nicht gemessen: Unsichtbares und reiner Schmuck, den auch ein Bildschirmleser übergeht (aria-hidden), etwa die
+      // großen Ziffern hinter den drei Schritten der Startseite.
+      if (element.closest('script, style, noscript, [hidden], [aria-hidden="true"], .vh, .modus-text, .sprung')) continue;
+      if (!element.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })) continue;
+      const kasten = element.getBoundingClientRect();
+      if (kasten.width < 2 || kasten.height < 2) continue;
+      // Texte auf einem Bildschirmfoto der App oder im gezeichneten Handy haben feste Farben und gehören zum Bild.
+      if (element.closest('.schirm, .nf-handy')) continue;
+      const stil = getComputedStyle(element);
+      const flaeche = grund(element);
+      if (!flaeche) { offen++; continue; }
+      const schrift = ueber(zahlen(stil.color), flaeche);
+      const [heller, dunkler] = [hell(schrift), hell(flaeche)].sort((a, b) => b - a);
+      const kontrast = (heller + 0.05) / (dunkler + 0.05);
+      geprueft++;
+      if (kontrast < 4.5) {
+        funde.push(`${kontrast.toFixed(2)}:1 „${knoten.textContent.trim().slice(0, 40)}“ (${element.tagName.toLowerCase()}.${element.className || '-'}, ${stil.color} auf rgb(${Math.round(flaeche.r)}, ${Math.round(flaeche.g)}, ${Math.round(flaeche.b)}), ${stil.fontSize})`);
+      }
+    }
+    return { geprueft, offen, funde };
+  });
+  for (const pfad of SEITEN) {
+    for (const [wort, dunkel] of [['hell', false], ['dunkel', true]]) {
+      const { umgebung, seite } = await neueSeite({ ansicht: LAPTOP, ruhig: true, dunkel });
+      await seite.goto(BASIS + pfad, { waitUntil: 'networkidle0' });
+      await durchscrollen(seite);
+      // Menü und alle aufklappbaren Teile öffnen, damit auch ihre Texte gemessen werden.
+      await seite.evaluate(() => {
+        for (const teil of document.querySelectorAll('details')) teil.open = true;
+        document.querySelector('[data-mega-knopf]')?.click();
+      });
+      await warte(200);
+      const ergebnis = await messe(seite);
+      pruefe(ergebnis.funde.length === 0, `${pfad}, ${wort}: ${ergebnis.geprueft} Texte gemessen, unter 4,5:1: ${ergebnis.funde.length}${ergebnis.offen ? ` (${ergebnis.offen} auf Bild oder Verlauf nicht messbar)` : ''}`);
+      for (const fund of ergebnis.funde.slice(0, 12)) sage(`    ${fund}`);
+      await umgebung.close();
+    }
+  }
 }
 
 sage();
@@ -729,8 +941,8 @@ if (MIT_BILDERN) {
   sage('## 5 Bildschirmfotos');
   const aufnahmen = [];
   for (const [name, ansicht, streifen, breite] of [['Handy', HANDY, 4, 300], ['Laptop', LAPTOP, 2, 640]]) {
-    for (const [schema, wort] of [['light', 'hell'], ['dark', 'dunkel']]) {
-      const { umgebung, seite } = await neueSeite({ ansicht, schema });
+    for (const [dunkel, wort] of [[false, 'hell'], [true, 'dunkel']]) {
+      const { umgebung, seite } = await neueSeite({ ansicht, dunkel });
       await seite.goto(BASIS + '/', { waitUntil: 'networkidle0' });
       await warte(2500);
       await durchscrollen(seite);

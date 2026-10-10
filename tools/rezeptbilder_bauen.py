@@ -12,10 +12,12 @@ Je Rezept unter public/bilder/rezepte/:
     <slug>-4x3-1200.avif/.webp       1200 x 900    Bild der Rezeptseite und strukturierte Daten (4:3)
     <slug>-16x9-1200.webp            1200 x 675    strukturierte Daten (16:9)
     <slug>-1x1-1200.webp             1200 x 1200   strukturierte Daten (1:1)
+    <slug>-teilen.jpg                1200 x 630    Bild beim Teilen (Open Graph, Twitter-Karte), mit --teilen
 
 Aufruf:
     python tools/rezeptbilder_bauen.py --archiv <Bildarchiv> --karten
     python tools/rezeptbilder_bauen.py --archiv <Bildarchiv> --seiten bibimbap [weitere Adressen | alle]
+    python tools/rezeptbilder_bauen.py --archiv <Bildarchiv> --teilen --seiten alle   (nur die Bilder zum Teilen)
 """
 import argparse
 import json
@@ -44,6 +46,8 @@ SEITE = {
     "16x9-1200": ((16, 9), 1200, 675, ("webp",)),
     "1x1-1200": ((1, 1), 1200, 1200, ("webp",)),
 }
+# Bild beim Teilen: JPEG, weil nicht jeder Dienst WebP in der Vorschau zeigt.
+TEILEN = {"teilen": ((40, 21), 1200, 630, ("jpg",))}
 
 
 def zuschnitt(bild: Image.Image, verhaeltnis: tuple[int, int]) -> Image.Image:
@@ -67,6 +71,8 @@ def schreibe(bild: Image.Image, slug: str, groessen: dict) -> int:
             datei = ZIEL / f"{slug}-{name}.{endung}"
             if endung == "avif":
                 fertig.save(datei, "AVIF", quality=58, speed=3, xmp=XMP)
+            elif endung == "jpg":
+                fertig.save(datei, "JPEG", quality=84, optimize=True, progressive=True, xmp=XMP)
             else:
                 fertig.save(datei, "WEBP", quality=78, method=6, xmp=XMP)
             if HERKUNFT.encode() not in datei.read_bytes():
@@ -84,6 +90,7 @@ def main() -> None:
     eingabe.add_argument("--archiv", required=True)
     eingabe.add_argument("--karten", action="store_true")
     eingabe.add_argument("--seiten", nargs="*", default=[])
+    eingabe.add_argument("--teilen", action="store_true")
     wahl = eingabe.parse_args()
     archiv = Path(wahl.archiv)
     auswahl = json.loads((archiv / "auswahl.json").read_text(encoding="utf-8"))["auswahl"]
@@ -110,7 +117,7 @@ def main() -> None:
             if wahl.karten and r["slug"] in gewaehlt_web:
                 summe["karten"] += schreibe(bild, r["slug"], KARTE)
             if r["slug"] in seiten:
-                summe["seiten"] += schreibe(bild, r["slug"], SEITE)
+                summe["seiten"] += schreibe(bild, r["slug"], TEILEN if wahl.teilen else SEITE)
     print(f"Karten: {summe['karten']} Byte, Seitenbilder ({len(seiten)} Rezepte): {summe['seiten']} Byte")
 
 

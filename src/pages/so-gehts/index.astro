@@ -1,5 +1,50 @@
 ---
-import Platzhalter from '../../components/Platzhalter.astro';
-import { geruest } from '../../daten/startseite.mjs';
+// "So geht's", Übersicht (AP-15 Teil B2, Karte C): sechs Kacheln, eine je Kapitel. Alle Texte kommen aus
+// src/daten/sogehts.mjs.
+import Basis from '../../layouts/Basis.astro';
+import Seitenkopf from '../../components/Seitenkopf.astro';
+import '../../styles/sogehts.css';
+import { seite } from '../../daten/seite.mjs';
+import { BEREICH, adresse, kapitel, uebersicht } from '../../daten/sogehts.mjs';
+
+// Gliederung für Suchmaschinen und KI-Antworten: die Kapitel als Liste. In den Daten steht nur, was auf der Seite
+// sichtbar ist.
+const daten = [{
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: uebersicht.titel,
+  itemListElement: kapitel.map((eintrag) => ({
+    '@type': 'ListItem',
+    position: eintrag.nummer,
+    name: eintrag.titel,
+    url: seite.adresse + adresse(eintrag),
+  })),
+}];
 ---
-<Platzhalter texte={geruest.platzhalter.soGehts} />
+<Basis daten={daten}>
+  <Seitenkopf krumen={[{ titel: uebersicht.titel, ziel: BEREICH }]} titel={uebersicht.titel} vorspann={uebersicht.vorspann} />
+  <div class="s-inhalt innen">
+    <ol class="g-kacheln">
+      {kapitel.map((eintrag) => (
+        <li data-ein>
+          <a class="g-kachel" href={adresse(eintrag)}>
+            <span class="g-nummer" aria-hidden="true">{eintrag.nummer}</span>
+            <span class="g-kachel-text">
+              <span class="vh">{uebersicht.kapitelWort} {eintrag.nummer}: </span>
+              <b>{eintrag.titel}</b>
+              <span>{eintrag.kurz}</span>
+            </span>
+            <span class="g-lesen" aria-hidden="true">
+              {uebersicht.lesen}
+              <svg viewBox="0 0 24 24" focusable="false"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            </span>
+          </a>
+        </li>
+      ))}
+    </ol>
+    <div class="s-karte g-hinweis" data-ein>
+      <p>{uebersicht.hinweis}</p>
+      <p>{uebersicht.fragen.vor}<a href={uebersicht.fragen.ziel}>{uebersicht.fragen.text}</a>{uebersicht.fragen.nach}</p>
+    </div>
+  </div>
+</Basis>

@@ -2,9 +2,7 @@
    mit Rahmen per CSS, Akzente nach Theme F3. Ohne Bewegung. Hell und dunkel über die Farben aus basis.css; die Karte
    "Was ist FoodAsu?" und die Handys haben feste Farben. */
 :root { --nf-fleck: rgba(74, 63, 209, 0.13); --nf-ring: rgba(74, 63, 209, 0.18); --nf-punkt: rgba(74, 63, 209, 0.35); --nf-karte: #ffffff; }
-@media (prefers-color-scheme: dark) {
-  :root { --nf-fleck: rgba(179, 171, 255, 0.12); --nf-ring: rgba(179, 171, 255, 0.2); --nf-punkt: rgba(179, 171, 255, 0.4); --nf-karte: #1c1b28; }
-}
+:root[data-modus="dunkel"] { --nf-fleck: rgba(179, 171, 255, 0.12); --nf-ring: rgba(179, 171, 255, 0.2); --nf-punkt: rgba(179, 171, 255, 0.4); --nf-karte: #1c1b28; }
 .nf { position: relative; overflow: hidden; }
 .nf-fleck { position: absolute; top: -11.25rem; right: -10rem; width: 38.75rem; height: 35rem; border-radius: 48% 52% 44% 56% / 55% 45% 55% 45%; background: var(--nf-fleck); pointer-events: none; }
 .nf-kreis { position: absolute; bottom: 5rem; left: -5.6rem; width: 16.25rem; height: 16.25rem; border: 3px solid var(--nf-ring); border-radius: 50%; pointer-events: none; }

@@ -4,13 +4,14 @@ import { writeFileSync } from 'node:fs';
 import { mega, hauptpunkte } from '../src/daten/navigation.mjs';
 import * as t from '../src/daten/startseite.mjs';
 import { texte as r, rezepte, themen } from '../src/daten/rezeptseiten.mjs';
+import { metaVon } from '../src/daten/meta.mjs';
 
 const ziel = process.argv[2] ?? 'C:/Users/ali/foodasu-play/Website_Texte_Startseite.md';
 const z = [];
 const zeile = (text = '') => z.push(text);
 const punkt = (name, text) => zeile(`- **${name}:** ${text}`);
 
-zeile('# Website foodasu.com: Texte der Startseite und des Gerüsts (Stand AP-16)');
+zeile('# Website foodasu.com: Texte der Startseite und des Gerüsts (Stand AP-18)');
 zeile();
 zeile('Texte der Startseite: von Ali am 09.10.2026 freigegeben (Karte B), mit den Entscheidungen am Ende. Mit AP-16 dazugekommen: die Texte, die eindeutig die App meinen (Entscheidungen 18 bis 20), die 404-Seite nach dem Entwurf der Projektleitung, die Seiten Fragen, Lizenzen, Quellen und Lizenzen und die festen Texte des Rezeptbereichs; diese prüft die Projektleitung nach der Veröffentlichung.');
 zeile('Erzeugt aus `foodasu-web/src/daten/startseite.mjs` und `rezeptseiten.mjs` mit `npm run texte`; geändert wird dort, nicht hier.');
@@ -21,7 +22,8 @@ zeile();
 
 zeile('## Kopfdaten der Seite');
 punkt('Titel', `${t.kopfdaten.titel} (${t.kopfdaten.titel.length} Zeichen)`);
-punkt('Beschreibung', `${t.kopfdaten.beschreibung} (${t.kopfdaten.beschreibung.length} Zeichen)`);
+punkt('Beschreibung', `${metaVon('/').beschreibung} (${metaVon('/').beschreibung.length} Zeichen)`);
+punkt('Titel und Beschreibung aller Seiten', 'stehen in src/daten/meta.mjs, als Tabelle in der Datei Website_Meta_Uebersicht.md (AP-18 Nachtrag Meta)');
 zeile();
 
 zeile('## Navigation');
@@ -91,24 +93,27 @@ for (const f of t.fragen.liste) {
 zeile();
 
 zeile('## Abschnitt 8: Fuß');
-punkt('Links', Object.values(t.fuss.links).join(', '));
-punkt('Hinweis', t.fuss.hinweis);
-punkt('Bild beim Teilen (Open Graph), Bildbeschreibung', `FoodAsu: ${t.kopf.ueberschrift.join('')}`);
-punkt('Auftritte', `${t.fuss.auftritte.facebook}, ${t.fuss.auftritte.instagram}; bis zum öffentlichen Start „${t.fuss.auftritte.storeBald}“ als Text, danach der Link „${t.fuss.auftritte.storeLink}“`);
-punkt('Offenlegung', 'steht wie bisher am Ende der Startseite, Wortlaut unverändert (Adresse /#offenlegung)');
+punkt('Aufbau', 'Fußzeile A (Entscheidung Ali vom 10.10.2026): links Logo und Satz, daneben drei Spalten, unten eine schmale Zeile');
+punkt('Satz unter dem Logo', t.fuss.satz);
+punkt('Hinweis darunter', `${t.fuss.hinweis} (stand bisher als eigene Zeile im Fuß und bleibt auf jeder Seite)`);
+punkt(`Spalte „${t.fuss.spalten.recht}“`, [t.fuss.links.datenschutz, t.fuss.links.offenlegung, t.fuss.links.lizenzen, t.fuss.links.quellen].join(', '));
+punkt(`Spalte „${t.fuss.spalten.foodasu}“`, [...t.fuss.seiten.map((eintrag) => eintrag.titel), t.fuss.links.kontakt].join(', '));
+punkt(`Spalte „${t.fuss.spalten.folgen}“`, `Knöpfe mit Symbol: ${t.fuss.auftritte.facebook}, ${t.fuss.auftritte.instagram}`);
+punkt('Zeile unten', `links „${t.fuss.rechte}“; rechts bis zum öffentlichen Start „${t.fuss.auftritte.storeBald}“ in Mint mit Handy-Symbol, danach der Link „${t.fuss.auftritte.storeLink}“`);
+punkt('Schalter in der Kopfzeile (am Handy im Menü)', `„${t.geruest.modus}“, mit Sonne und Mond; aus = hell, an = dunkel`);
+punkt('Bild beim Teilen (Open Graph)', `Logo auf Indigo mit dem Satz „${t.fuss.satz}“; Bildbeschreibung „FoodAsu: ${t.fuss.satz}“. Rezeptseiten zeigen ihr Symbolbild.`);
+punkt('Offenlegung', 'eigene Seite /offenlegung/ (seit AP-17), Wortlaut unverändert; auf der Startseite trägt der Link im Fuß weiter die Marke „offenlegung“');
 zeile();
 
 zeile('## Weitere Seiten des Gerüsts');
-for (const p of Object.values(t.geruest.platzhalter)) {
-  punkt(`Platzhalter „${p.titel}“`, `${p.text}${p.link ? ` Link: „${p.link}“.` : ''} Beschreibung: ${p.beschreibung}`);
-}
+punkt("Bereich „So geht's“", 'sieben Seiten, alle Texte in der Datei Website_Texte_SoGehts.md (aus src/daten/sogehts.mjs)');
 const n = t.geruest.nichtGefunden;
 punkt('Seite 404 (Entwurf der Projektleitung, von Ali freigegeben)', `Etikett „${n.etikett}“, Zahl „${n.zahl}“, Überschrift „${n.titel.join('')}“. ${n.text} Knöpfe: „${n.start}“, „${n.rezepte}“. Zwischenüberschrift „${n.themenTitel}“ mit ${n.themen.map((e) => `„${e.titel}“`).join(', ')}. Karte „${n.karte.titel}“: ${n.karte.text} Knopf „${n.karte.knopf}“. Bildbeschreibungen: „${n.bilder.karte}“, „${n.bilder.start}“. Titel der Seite: ${n.seitentitel}.`);
 const f = t.geruest.fragenSeite;
-punkt('Seite Fragen und Antworten', `Titel „${f.titel}“, Vorspann und Beschreibung: ${f.beschreibung} Fragen und Antworten wie in Abschnitt 7.`);
+punkt('Seite Fragen und Antworten', `Titel „${f.titel}“, Vorspann: ${f.beschreibung} Fragen und Antworten wie in Abschnitt 7.`);
 const l = t.geruest.lizenzen;
 punkt('Seite Lizenzen', `${l.einleitung} ${l.eintraege.map((e) => `${e.name} (${e.art}): ${e.lizenz}${e.zusatz ? e.zusatz.vor + e.zusatz.text : ''}`).join('; ')}; ${l.saetze.map((e) => `${e.name}: ${e.text}${e.link ? e.link.text + e.nach : ''}`).join(' ')} Beschreibung: ${l.beschreibung}`);
-punkt('Seite Datenschutz', `Text der Fassung 2.0 unverändert unter /datenschutz.html, Titel im Kopfbereich, Inhaltsverzeichnis an der Seite mit der Überschrift „${t.geruest.recht.inhalt}“; Brotkrumen „${t.geruest.recht.datenschutz}“`);
+punkt('Seite Datenschutz', `Text der Fassung 2.0.1 unter /datenschutz.html (wie 2.0, dazu der von Ali freigegebene Satz zum Schalter für helle und dunkle Darstellung in Abschnitt 17), Titel im Kopfbereich, Inhaltsverzeichnis an der Seite mit der Überschrift „${t.geruest.recht.inhalt}“; Brotkrumen „${t.geruest.recht.datenschutz}“`);
 zeile();
 
 zeile('## Rezeptbereich: feste Texte (aus src/daten/rezeptseiten.mjs)');
@@ -117,7 +122,7 @@ punkt('Übersicht, Titel und Seitentitel', `${a.titel}; ${a.seitentitel}`);
 punkt('Übersicht, Vorspann', `${a.text(rezepte.length)} ${a.grundlage}`);
 punkt('Übersicht, Suche und Filter', `„${a.suche}“; Auswahlknöpfe „${Object.values(a.gruppen).join('“, „')}“ (in der Liste „Passt für“ der Zusatz „${a.passtZusatz}“); „${a.ohne('...')}“; „${a.weitere.land}“, „${a.weitere.passt}“; „${a.zuruecksetzen}“, „${a.fertig}“; für Bildschirmleser „${a.gewaehlt}“ und „${a.entfernen('Italien')}“; „${a.alleZuruecksetzen}“; „${a.stand(1)}“, „${a.stand(40)}“; am Handy „${a.filter}“, „${a.schliessen}“, „${a.zeigen(1)}“, „${a.zeigen(5)}“; „${a.leer}“`);
 punkt('Übersicht, Ende der Seite', `„${a.themen}“: ${a.mehrThemen.map((e) => `„${e.titel}“`).join(', ')}`);
-punkt('Rezeptseite, Titel der Seite', '<Name>: Rezept mit Hinweisen zu den Zutaten | FoodAsu');
+punkt('Rezeptseite, Titel der Seite', '<Name>: Rezept aus <Land> | FoodAsu; bei mehreren Ländern <Name>: Rezept mit Hinweisen zu den Zutaten | FoodAsu (Kürzung und alle Titel: Website_Meta_Uebersicht.md)');
 punkt('Rezeptseite, „Passt für“', `${r.passt.titel} ${r.passt.zusatz}; ${r.passt.erklaerung} ${r.passt.moeglichText('vegetarisch', '...')}`);
 punkt('Rezeptseite, Hinweise', `${r.hinweise.titel}: ${r.hinweise.einleitung} ${r.hinweise.stufen.map(([wort, text]) => `${wort}: ${text}`).join(' ')} ${r.hinweise.app} Aufklappen: „${r.hinweise.tabelle}“`);
 punkt('Rezeptseite, Nährwerte', `${r.naehrwerte.proPortion}; ${r.naehrwerte.energieText} ${r.naehrwerte.energieHinweis} ${r.naehrwerte.grundlage} Aufklappen: „${r.naehrwerte.tabelle}“`);

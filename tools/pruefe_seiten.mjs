@@ -1,11 +1,14 @@
 // Prüft die gebaute Website in dist/: Kopfdaten und Aufbau jeder Seite, Links, fremde Adressen, Speicher im Browser,
 // strukturierte Daten, Sitemap und die Wortlisten (gesperrte Wörter, Bezahl- und Fristwörter wie in
 // texte_pruefen.py, dazu die Wendungen aus dem Nachtrag SEO, Punkt 7). Aufruf nach dem Bau: node tools/pruefe_seiten.mjs
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+// Mit "--meta <Datei>" schreibt der Lauf dazu die Tabelle aller Titel und Beschreibungen (AP-18 Nachtrag Meta).
+import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { begriffe } from '../src/daten/sprachen.mjs';
 import { AUSDRUCK, durchlaufe } from './sprache_setzen.mjs';
 import { muster as nurMuster } from '../src/daten/auswahl.mjs';
+import { BEREICH, adresse as kapitelAdresse, kapitel } from '../src/daten/sogehts.mjs';
+import { GRENZEN, grenzBefunde, masse } from '../src/daten/breite.mjs';
 
 const DIST = 'dist';
 const HOST = 'https://foodasu.com';
@@ -38,6 +41,21 @@ const WENDUNGEN = [
 ].map((wort) => ['WENDUNG', muster(wort)]);
 const AUSNAHMEN = ['Pro Portion', 'Pro Stück'];
 const SPEICHER = /document\.cookie|localStorage|sessionStorage|indexedDB|sendBeacon|XMLHttpRequest|\bfetch\(/;
+// Die eine Ausnahme (AP-18 Teil C): Der Schalter für helle und dunkle Darstellung liest und schreibt genau einen
+// Eintrag "darstellung" im Speicher des Browsers, mit dem Wert "hell" oder "dunkel". Jeder andere Zugriff auf den
+// Speicher bleibt ein Befund. Was der Browser wirklich speichert, misst tools/nachweise.mjs.
+// Der gebaute Quelltext schreibt Zeichenketten je nach Stelle mit einfachen, doppelten oder schrägen Anführungszeichen.
+const DARSTELLUNG_LESEN = /localStorage\.getItem\(\s*(["'`])darstellung\1\s*\)/g;
+const DARSTELLUNG_SCHREIBEN = /localStorage\.setItem\(\s*(["'`])darstellung\1\s*,([^()]*)\)/g;
+const NUR_HELL_ODER_DUNKEL = /^[\s\w$!?:]*(["'`])(?:dunkel|hell)\1[\s?:]*(["'`])(?:dunkel|hell)\2\s*$/;
+// Liefert den Befund eines Skripts zum Speicher oder null. Erlaubt sind nur die beiden Zugriffe des Schalters.
+const speicherBefund = (skript) => {
+  for (const [, , wert] of skript.matchAll(DARSTELLUNG_SCHREIBEN)) {
+    if (!NUR_HELL_ODER_DUNKEL.test(wert)) return `Eintrag "darstellung" mit anderem Wert als "hell" oder "dunkel": ${wert.trim()}`;
+  }
+  const rest = skript.replace(DARSTELLUNG_LESEN, ' ').replace(DARSTELLUNG_SCHREIBEN, ' ');
+  return SPEICHER.test(rest) ? `Speicher oder Anfrage im Skript: ${rest.match(SPEICHER)[0]}` : null;
+};
 
 const fehler = [];
 const hinweise = [];
@@ -75,19 +93,88 @@ const sichtbar = (html) => {
   return text;
 };
 
-for (const [adresse, html] of seiten) {
-  const titel = alle(html, /<title>([^<]*)<\/title>/g);
-  if (titel.length !== 1 || !titel[0][1].trim()) melde(adresse, 'genau ein Titel erwartet');
-  const beschreibung = html.match(/<meta name="description" content="([^"]*)"/);
-  if (!beschreibung || !beschreibung[1].trim()) melde(adresse, 'Beschreibung fehlt');
-  else if (beschreibung[1].length > 160) hinweise.push(`${adresse}: Beschreibung hat ${beschreibung[1].length} Zeichen`);
-  const kanonisch = html.match(/<link rel="canonical" href="([^"]*)"/);
-  if (!kanonisch || kanonisch[1] !== HOST + adresse) melde(adresse, `kanonische Adresse erwartet: ${HOST + adresse}`);
-  if (alle(html, /<h1[\s>]/g).length !== 1) melde(adresse, 'genau eine Überschrift h1 erwartet');
-  if (!/<html lang="de"/.test(html)) melde(adresse, 'lang="de" fehlt');
-  for (const angabe of ['og:title', 'og:description', 'og:url', 'twitter:card']) {
-    if (!html.includes(`="${angabe}"`)) melde(adresse, `${angabe} fehlt`);
+// Kopfdaten je Seite (AP-18 Nachtrag Meta): Titel und Beschreibung vorhanden, eindeutig, in den Grenzen (Zeichen und
+// Pixel wie in der Vorschau der Suche, src/daten/breite.mjs) und ohne Wort aus den Wortlisten; kanonische Adresse;
+// noindex nur auf den drei genannten Seiten, sonst keine Robots-Angabe; genau eine h1 und keine Sprünge in der
+// Reihenfolge der Überschriften; Open Graph und Twitter-Karte vollständig, mit einem Bild 1200 x 630 von dieser
+// Website. Die Prüfung liest nur die gebauten Seiten, nicht src/daten/meta.mjs.
+const OHNE_INDEX = new Set(['/offenlegung/', '/quellen-und-lizenzen/', '/404.html']);
+const TITEL_ZEICHEN = /^[\p{L}\p{N} :|()'-]+$/u;
+const META_WORTE = [['LADEN-WORT', muster('herunterladen|herunter\\s+laden|download|jetzt\\s+laden|jetzt\\s+holen')]];
+const TEILEN = { breite: 1200, hoehe: 630, gemeinsam: '/bilder/foodasu-teilen.jpg' };
+const inhaltVon = (html, name) => {
+  const treffer = alle(html, new RegExp(`<meta (?:name|property)="${name}" content="([^"]*)"`, 'g'));
+  return treffer.length === 1 ? entschluesselt(treffer[0][1]) : null;
+};
+// Maße einer JPEG-Datei aus ihrem Rahmen-Abschnitt (SOF), oder null.
+const jpegMasse = (daten) => {
+  if (daten[0] !== 0xff || daten[1] !== 0xd8) return null;
+  for (let ort = 2; ort + 9 < daten.length;) {
+    if (daten[ort] !== 0xff) return null;
+    const art = daten[ort + 1];
+    if (art >= 0xc0 && art <= 0xcf && ![0xc4, 0xc8, 0xcc].includes(art)) return { hoehe: daten.readUInt16BE(ort + 5), breite: daten.readUInt16BE(ort + 7) };
+    ort += 2 + daten.readUInt16BE(ort + 2);
   }
+  return null;
+};
+const gesehen = { titel: new Map(), beschreibung: new Map() };
+const metaZeilen = [];
+
+for (const [adresse, html] of seiten) {
+  const titelTreffer = alle(html, /<title>([^<]*)<\/title>/g);
+  const titel = titelTreffer.length === 1 ? entschluesselt(titelTreffer[0][1]) : '';
+  if (!titel.trim()) melde(adresse, 'genau ein Titel erwartet');
+  const beschreibung = inhaltVon(html, 'description') ?? '';
+  if (!beschreibung.trim()) melde(adresse, 'genau eine Beschreibung erwartet');
+  for (const [art, text] of [['titel', titel], ['beschreibung', beschreibung]]) {
+    if (!text.trim()) continue;
+    for (const befund of grenzBefunde(text, art)) melde(adresse, `${art === 'titel' ? 'Titel' : 'Beschreibung'} „${text}“: ${befund}`);
+    if (gesehen[art].has(text)) melde(adresse, `${art === 'titel' ? 'Titel' : 'Beschreibung'} doppelt, auch auf ${gesehen[art].get(text)}`);
+    gesehen[art].set(text, adresse);
+    // Auch die Kopfdaten der Rechtstexte laufen durch alle Wortlisten.
+    for (const [sorte, ausdruck] of [...GESPERRT, ...BEZAHL_UND_FRIST, ...BETA, ...WENDUNGEN, ...META_WORTE]) {
+      for (const fund of alle(text, ausdruck)) melde(adresse, `${sorte} in ${art === 'titel' ? 'Titel' : 'Beschreibung'}: ${fund[0]}`);
+    }
+  }
+  if (titel && !TITEL_ZEICHEN.test(titel)) melde(adresse, `Titel mit einem Zeichen, das nicht erlaubt ist: „${titel}“`);
+  if (beschreibung.includes('"')) melde(adresse, 'Beschreibung mit geradem Anführungszeichen');
+  if (beschreibung && !/[.?!]$/.test(beschreibung)) melde(adresse, 'Beschreibung endet nicht mit einem Satzzeichen');
+  if (/^\/rezepte\/(ohne-|vegetarisch|vegan)/.test(adresse) && !(beschreibung.includes('laut Zutatenliste') && beschreibung.includes('Verpackung'))) {
+    melde(adresse, 'Beschreibung ohne „laut Zutatenliste“ oder ohne den Hinweis auf die Verpackung');
+  }
+  const kanonisch = alle(html, /<link rel="canonical" href="([^"]*)"/g);
+  if (kanonisch.length !== 1 || kanonisch[0][1] !== HOST + adresse) melde(adresse, `kanonische Adresse erwartet: ${HOST + adresse}`);
+  const robots = alle(html, /<meta name="robots" content="([^"]*)"/g);
+  if (OHNE_INDEX.has(adresse)) {
+    if (robots.length !== 1 || robots[0][1] !== 'noindex, follow') melde(adresse, 'Robots-Angabe "noindex, follow" erwartet');
+  } else if (robots.length > 0) melde(adresse, `Robots-Angabe gehört nicht auf diese Seite: ${robots[0][1]}`);
+  if (alle(html, /<h1[\s>]/g).length !== 1) melde(adresse, 'genau eine Überschrift h1 erwartet');
+  const stufen = alle(html, /<h([1-6])[\s>]/g).map((treffer) => Number(treffer[1]));
+  if (stufen[0] !== 1) melde(adresse, 'die erste Überschrift der Seite ist nicht die h1');
+  stufen.forEach((stufe, nummer) => {
+    if (nummer > 0 && stufe - stufen[nummer - 1] > 1) melde(adresse, `Sprung in den Überschriften: h${stufen[nummer - 1]} vor h${stufe}`);
+  });
+  if (!/<html lang="de"/.test(html)) melde(adresse, 'lang="de" fehlt');
+
+  // Open Graph und Twitter-Karte
+  const istRezept = /<script type="application\/ld\+json">[^<]*"@type":"Recipe"/.test(html);
+  const bildPfad = istRezept ? `/bilder/rezepte/${adresse.split('/').at(-2)}-teilen.jpg` : TEILEN.gemeinsam;
+  const teilen = {
+    'og:type': istRezept ? 'article' : 'website', 'og:site_name': 'FoodAsu', 'og:locale': 'de_AT', 'og:title': titel,
+    'og:description': beschreibung, 'og:url': HOST + adresse, 'og:image': HOST + bildPfad,
+    'og:image:width': String(TEILEN.breite), 'og:image:height': String(TEILEN.hoehe),
+    'twitter:card': 'summary_large_image', 'twitter:title': titel, 'twitter:description': beschreibung, 'twitter:image': HOST + bildPfad,
+  };
+  for (const [name, wert] of Object.entries(teilen)) {
+    if (inhaltVon(html, name) !== wert) melde(adresse, `${name}: erwartet „${wert}“, gefunden „${inhaltVon(html, name)}“`);
+  }
+  for (const name of ['og:image:alt', 'twitter:image:alt']) if (!inhaltVon(html, name)?.trim()) melde(adresse, `${name} fehlt`);
+  if (!vorhanden.has(bildPfad)) melde(adresse, `Bild zum Teilen fehlt: ${bildPfad}`);
+  else {
+    const groesse = jpegMasse(readFileSync(join(DIST, bildPfad)));
+    if (!groesse || groesse.breite !== TEILEN.breite || groesse.hoehe !== TEILEN.hoehe) melde(adresse, `Bild zum Teilen ist kein JPEG mit ${TEILEN.breite} x ${TEILEN.hoehe}: ${bildPfad}`);
+  }
+  metaZeilen.push({ adresse, titel, beschreibung, robots: OHNE_INDEX.has(adresse) ? 'noindex, follow' : 'keine Angabe (im Index)' });
 
   // Fremde Adressen: Erlaubt sind nur einfache Links (<a href>), die kanonische Adresse und og:url.
   for (const [, marke, adr] of alle(html, /<(script|img|iframe|source|video|audio|embed|object|link)\b[^>]*?(?:src|href|data)="((?:https?:)?\/\/[^"]*)"/g)) {
@@ -138,6 +225,18 @@ for (const [adresse, html] of seiten) {
   }
   const erwartet = adresse === '/' ? ['WebSite', 'Organization', 'MobileApplication'] : OHNE_EINGANG.has(adresse) ? [] : ['BreadcrumbList'];
   for (const art of erwartet) if (!arten.includes(art)) melde(adresse, `strukturierte Daten fehlen: ${art}`);
+  // Brotkrumen: Die strukturierten Daten nennen dieselben Stufen wie die sichtbare Zeile, die letzte ist die Seite.
+  const krumenZeile = html.match(/<nav class="krumen[\s\S]*?<\/nav>/)?.[0];
+  if (krumenZeile) {
+    const sichtbareStufen = alle(krumenZeile, /<li[^>]*>([\s\S]*?)<\/li>/g).map((treffer) => entschluesselt(treffer[1].replace(/<[^>]+>/g, '')).trim());
+    const liste = alle(html, /<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)
+      .map(([, roh]) => { try { return JSON.parse(roh); } catch { return {}; } })
+      .find((block) => block['@type'] === 'BreadcrumbList');
+    const stufenDaten = (liste?.itemListElement ?? []).map((punkt) => punkt.name);
+    if (sichtbareStufen.join(' > ') !== stufenDaten.join(' > ')) melde(adresse, `Brotkrumen: sichtbar „${sichtbareStufen.join(' > ')}“, in den Daten „${stufenDaten.join(' > ')}“`);
+    if (liste && liste.itemListElement.at(-1)?.item !== HOST + adresse) melde(adresse, 'Brotkrumen: Die letzte Stufe zeigt nicht auf die Seite selbst');
+    if (liste && liste.itemListElement.some((punkt, nummer) => punkt.position !== nummer + 1 || !String(punkt.item).startsWith(HOST))) melde(adresse, 'Brotkrumen: position oder item fehlt');
+  }
 
   // Rezept- und Themenseiten: Pflichtfelder der strukturierten Daten, Bilder in drei Seitenverhältnissen,
   // FoodAsu-eigener Teil, Lizenzzeile.
@@ -225,12 +324,63 @@ for (const datei of dateien.filter((d) => /\.(js|css)$/.test(d))) {
   for (const fund of alle(inhalt, /(?:url\(|@import\s*|["'`])\s*((?:https?:)?\/\/[^"'`)\s]+)/g)) {
     if (!/^https?:\/\/(www\.w3\.org|schema\.org)\//.test(fund[1])) melde(name, `fremde Adresse: ${fund[1]}`);
   }
-  if (datei.endsWith('.js') && SPEICHER.test(inhalt)) melde(name, `Speicher oder Anfrage im Skript: ${inhalt.match(SPEICHER)[0]}`);
+  if (datei.endsWith('.js') && speicherBefund(inhalt)) melde(name, speicherBefund(inhalt));
+}
+// Schalter für helle und dunkle Darstellung (AP-18 Teil C): Jede Seite liest die gemerkte Wahl schon im Kopf, vor dem
+// ersten Zeichnen, und hat genau einen Schalter (ein echter Knopf mit der Rolle Schalter und einem Namen). Der
+// Eintrag wird auf jeder Seite höchstens an einer Stelle geschrieben. Die Farben hängen nur noch an data-modus, nie
+// mehr an der Einstellung des Geräts.
+const SCHALTER = /<button\b[^>]*\bdata-modus-schalter\b[^>]*>/g;
+for (const [adresse, html] of seiten) {
+  const skripte = alle(html, /<script(?![^>]*ld\+json)[^>]*>([\s\S]*?)<\/script>/g).map((treffer) => treffer[1]);
+  for (const skript of skripte) {
+    if (speicherBefund(skript)) melde(adresse, speicherBefund(skript));
+  }
+  const kopf = html.slice(0, html.indexOf('</head>'));
+  const imKopf = alle(kopf, /<script(?![^>]*ld\+json)[^>]*>([\s\S]*?)<\/script>/g).map((treffer) => treffer[1]).join('\n');
+  if (alle(imKopf, DARSTELLUNG_LESEN).length !== 1 || !/data-modus/.test(imKopf)) melde(adresse, 'das Skript im Kopf liest die gemerkte Darstellung nicht (genau einmal erwartet)');
+  if (alle(imKopf, DARSTELLUNG_SCHREIBEN).length > 0) melde(adresse, 'das Skript im Kopf schreibt in den Speicher');
+  const schalter = alle(html, SCHALTER);
+  if (schalter.length !== 1) melde(adresse, `genau ein Schalter für die Darstellung erwartet, gefunden: ${schalter.length}`);
+  else if (!/\btype="button"/.test(schalter[0][0]) || !/\brole="switch"/.test(schalter[0][0]) || !/\baria-checked="false"/.test(schalter[0][0])) {
+    melde(adresse, 'der Schalter für die Darstellung ist kein Knopf mit der Rolle Schalter (aus)');
+  }
+}
+const schreibStellen = dateien.filter((d) => d.endsWith('.js')).map((d) => alle(readFileSync(d, 'utf8'), DARSTELLUNG_SCHREIBEN).length)
+  .concat([...seiten.values()].slice(0, 1).map((html) => alle(html, DARSTELLUNG_SCHREIBEN).length));
+if (schreibStellen.reduce((summe, zahl) => summe + zahl, 0) < 1) melde('Skripte', 'der Schalter schreibt seine Wahl nirgends');
+for (const datei of dateien.filter((d) => d.endsWith('.css'))) {
+  if (/prefers-color-scheme/.test(readFileSync(datei, 'utf8'))) melde(adresseVon(datei), 'Farben folgen der Einstellung des Geräts (prefers-color-scheme); hell ist der Standard');
 }
 for (const [adresse, html] of seiten) {
-  for (const [, skript] of alle(html, /<script(?![^>]*ld\+json)[^>]*>([\s\S]*?)<\/script>/g)) {
-    if (SPEICHER.test(skript)) melde(adresse, `Speicher oder Anfrage im Skript: ${skript.match(SPEICHER)[0]}`);
+  if (/prefers-color-scheme/.test(html)) melde(adresse, 'Farben folgen der Einstellung des Geräts (prefers-color-scheme); hell ist der Standard');
+}
+
+// Fußzeile A (AP-18 Teil D): auf jeder Seite Logo mit Satz und Hinweis, drei Spalten mit ihren Links, die schmale
+// Zeile mit dem Vermerk. Facebook und Instagram sind einfache Links; eingebettet wird nichts.
+const FUSS_LINKS = ['/datenschutz.html', '/offenlegung/', '/lizenzen/', '/quellen-und-lizenzen/', '/so-gehts/', '/rezepte/', '/fragen/'];
+const FUSS_TEXTE = [
+  'Der Lebensmittel-Scanner für den ganzen Haushalt.', 'Maßgeblich ist die Verpackung.', 'Rechtliches', 'Folge uns',
+  '© 2026 FoodAsu · Eine App von Ali',
+];
+for (const [adresse, html] of seiten) {
+  const fuss = alle(html, /<footer class="fuss"[\s\S]*?<\/footer>/g);
+  if (fuss.length !== 1) { melde(adresse, 'genau eine Fußzeile erwartet'); continue; }
+  const inhalt = fuss[0][0];
+  // Fließtext der Fußzeile: Auszeichnungen innerhalb einer Zeile (etwa die Sprachangabe um ein englisches Wort)
+  // trennen keine Wörter.
+  const text = entschluesselt(
+    inhalt.replace(/<svg[\s\S]*?<\/svg>/g, ' ').replace(/<\/?(?:span|b|i|em|strong)\b[^>]*>/g, '').replace(/<[^>]+>/g, ' '),
+  ).replace(/\s+/g, ' ');
+  for (const ziel of FUSS_LINKS) if (!inhalt.includes(`href="${ziel}"`)) melde(adresse, `Fußzeile ohne Link auf ${ziel}`);
+  for (const satz of FUSS_TEXTE) if (!text.includes(satz)) melde(adresse, `Fußzeile ohne den Text „${satz}“`);
+  if (alle(inhalt, /<h2\b/g).length !== 3) melde(adresse, 'Fußzeile: drei Spalten mit Überschrift erwartet');
+  if (!/href="mailto:|href="&#/.test(inhalt)) melde(adresse, 'Fußzeile ohne Kontakt per E-Mail');
+  for (const dienst of ['facebook.com', 'instagram.com']) {
+    if (!new RegExp(`<a class="fuss-knopf" href="https://www\\.${dienst.replace('.', '\\.')}/[^"]*" rel="me noopener">\\s*<svg`).test(inhalt)) melde(adresse, `Fußzeile: Knopf mit Symbol für ${dienst} fehlt`);
   }
+  if (/<(?:iframe|img|script|link)\b/.test(inhalt)) melde(adresse, 'Fußzeile bettet etwas ein (erlaubt sind nur Links und Zeichnungen im Quelltext)');
+  if (!text.includes('Bald im Play Store') && !inhalt.includes('play.google.com')) melde(adresse, 'Fußzeile ohne Hinweis auf den Play Store');
 }
 
 // Symbolbilder sind mit Adobe Firefly erzeugt: Jede Datei trägt die IPTC-Angabe DigitalSourceType =
@@ -284,10 +434,50 @@ for (const [adresse, html] of seiten) {
     if (sichtbar(html).includes('Grundlegende Richtung')) melde('/', 'die Offenlegung steht noch auf der Startseite');
   } else if (marken.length > 0) melde(adresse, 'id="offenlegung" gehört nur auf die Startseite');
 }
-// "So geht's" bleibt bis zur Karte C ein Platzhalter mit noindex (die Sitemap prüft der nächste Abschnitt).
-const soGehts = seiten.get('/so-gehts/');
-if (!soGehts) melde('/so-gehts/', 'Seite fehlt');
-else if (!/<meta name="robots" content="noindex/.test(soGehts)) melde('/so-gehts/', 'noindex fehlt');
+// "So geht's" (Karte C, AP-18 Teil E): Übersicht und sechs Kapitel, alle im Index (die Sitemap prüft der nächste
+// Abschnitt). Die Übersicht verlinkt jedes Kapitel; jedes Kapitel hat seine Abschnitte, mindestens ein Bildschirmfoto
+// mit Beschreibung, führt zum vorigen und zum nächsten Kapitel und zurück zur Übersicht. Die 404-Seite führt mit
+// ihrem Knopf zur Anleitung, und llms.txt nennt die Übersicht und alle Kapitel.
+const soGehts = seiten.get(BEREICH);
+if (!soGehts) melde(BEREICH, 'Seite fehlt');
+else {
+  if (soGehts.includes('noindex')) melde(BEREICH, 'steht noch auf noindex');
+  for (const eintrag of kapitel) if (!soGehts.includes(`href="${kapitelAdresse(eintrag)}"`)) melde(BEREICH, `Kachel für „${eintrag.titel}“ fehlt`);
+}
+if (kapitel.length !== 6) melde(BEREICH, `sechs Kapitel erwartet, gefunden: ${kapitel.length}`);
+kapitel.forEach((eintrag, stelle) => {
+  const adresse = kapitelAdresse(eintrag);
+  const html = seiten.get(adresse);
+  if (!html) { melde(adresse, 'Seite fehlt'); return; }
+  if (html.includes('noindex')) melde(adresse, 'steht auf noindex');
+  const text = sichtbar(html);
+  for (const teil of eintrag.teile) if (!text.includes(teil.titel)) melde(adresse, `Abschnitt „${teil.titel}“ fehlt`);
+  const bilder = alle(html, /<img\b[^>]*src="\/bilder\/sogehts\/([^"]+)"[^>]*>/g);
+  if (bilder.length < 1 || bilder.length > 3) melde(adresse, `ein bis drei Bilder erwartet, gefunden: ${bilder.length}`);
+  for (const [marke, datei] of bilder) {
+    if (!vorhanden.has(`/bilder/sogehts/${datei}`)) melde(adresse, `Bild fehlt: ${datei}`);
+    if (!/\balt="[^"]{20,}"/.test(marke)) melde(adresse, `Bild ohne Beschreibung: ${datei}`);
+  }
+  const film = html.match(/data-film="([^"]+)"/);
+  if (Boolean(film) !== Boolean(eintrag.film)) melde(adresse, 'Schleife passt nicht zu den Daten');
+  if (film && !vorhanden.has(film[1])) melde(adresse, `Schleife fehlt: ${film[1]}`);
+  if (/<video\b|autoplay/.test(html)) melde(adresse, 'Die Schleife steht fest im Quelltext; sie darf nur mit Bewegung per Skript entstehen');
+  const nachbarn = [kapitel[stelle - 1], kapitel[stelle + 1]].filter(Boolean).map(kapitelAdresse);
+  for (const ziel of [BEREICH, ...nachbarn]) if (!html.includes(`href="${ziel}"`)) melde(adresse, `Link fehlt: ${ziel}`);
+});
+if (kapitel.filter((eintrag) => eintrag.film).length > 3) melde(BEREICH, 'höchstens drei Schleifen (Karte C)');
+const nichtGefunden = seiten.get('/404.html') ?? '';
+if (!/<a class="nf-knopf" href="\/so-gehts\/"/.test(nichtGefunden)) melde('/404.html', "der Knopf „So geht's“ führt nicht zur Anleitung");
+const llms = existsSync(join(DIST, 'llms.txt')) ? readFileSync(join(DIST, 'llms.txt'), 'utf8') : '';
+for (const ziel of [BEREICH, ...kapitel.map(kapitelAdresse)]) if (!llms.includes(`(${HOST}${ziel})`)) melde('llms.txt', `Eintrag fehlt: ${ziel}`);
+// llms.txt nennt jede Seite im Index mit ihrer Beschreibung und keine Seite mit noindex (AP-18 Nachtrag Meta).
+const llmsZeilen = llms.split('\n');
+for (const { adresse, beschreibung } of metaZeilen) {
+  const zeile = llmsZeilen.find((eine) => eine.includes(`](${HOST}${adresse})`));
+  if (OHNE_INDEX.has(adresse)) { if (zeile) melde('llms.txt', `Seite mit noindex ist genannt: ${adresse}`); continue; }
+  if (!zeile) melde('llms.txt', `Seite fehlt: ${adresse}`);
+  else if (!zeile.endsWith(`: ${beschreibung}`)) melde('llms.txt', `Beschreibung weicht von der Seite ab: ${adresse}`);
+}
 
 // Sitemap und robots.txt
 for (const datei of ['sitemap.xml', 'robots.txt', '404.html']) if (!existsSync(join(DIST, datei))) melde(datei, 'fehlt');
@@ -300,13 +490,43 @@ if (existsSync(join(DIST, 'sitemap.xml'))) {
     if (!seiten.has(adresse)) melde('sitemap.xml', `Seite fehlt: ${ort}`);
     else if (seiten.get(adresse).includes('noindex')) melde('sitemap.xml', `Seite mit noindex: ${ort}`);
   }
-  for (const [adresse, html] of seiten) {
-    // Die 404-Seite gehört nicht in die Sitemap: GitHub Pages liefert sie mit Status 404 aus.
-    if (adresse === '/404.html') { if (karte.includes('/404.html')) melde('sitemap.xml', 'die 404-Seite ist eingetragen'); continue; }
-    if (!html.includes('noindex') && !karte.includes(`<loc>${HOST + adresse}</loc>`)) melde('sitemap.xml', `Seite nicht eingetragen: ${adresse}`);
+  // Die Sitemap enthält genau die Seiten im Index: jede ohne noindex, keine der drei Seiten mit noindex.
+  for (const adresse of seiten.keys()) {
+    const eingetragen = karte.includes(`<loc>${HOST + adresse}</loc>`);
+    if (OHNE_INDEX.has(adresse) && eingetragen) melde('sitemap.xml', `Seite mit noindex ist eingetragen: ${adresse}`);
+    if (!OHNE_INDEX.has(adresse) && !eingetragen) melde('sitemap.xml', `Seite nicht eingetragen: ${adresse}`);
   }
+  if (eintraege.length !== seiten.size - OHNE_INDEX.size) melde('sitemap.xml', `${eintraege.length} Einträge, erwartet ${seiten.size - OHNE_INDEX.size}`);
 }
 if (!seiten.get('/')?.includes('facebook.com')) hinweise.push('Fuß: Adresse der Facebook-Seite fehlt (src/daten/seite.mjs)');
+
+// Tabelle aller Titel und Beschreibungen, wie sie auf den gebauten Seiten stehen (Aufruf mit --meta <Datei>).
+const metaZiel = process.argv.includes('--meta') ? process.argv[process.argv.indexOf('--meta') + 1] : null;
+if (metaZiel) {
+  const zelle = (text) => text.replaceAll('|', '\\|');
+  const tabelle = [
+    '# Website foodasu.com: Titel und Beschreibung jeder Seite (AP-18 Nachtrag Meta)',
+    '',
+    `Gelesen aus den gebauten Seiten (\`npm run meta\` nach \`npm run build\`); geändert wird in \`foodasu-web/src/daten/meta.mjs\`. ${metaZeilen.length} Seiten, davon ${metaZeilen.length - OHNE_INDEX.size} im Index.`,
+    '',
+    `Grenzen: Titel ${GRENZEN.titel.von} bis ${GRENZEN.titel.bis} Zeichen und höchstens ${GRENZEN.titel.pixel} Pixel (Arial ${GRENZEN.titel.schrift} px); Beschreibung ${GRENZEN.beschreibung.von} bis ${GRENZEN.beschreibung.bis} Zeichen und höchstens ${GRENZEN.beschreibung.pixel} Pixel (Arial ${GRENZEN.beschreibung.schrift} px). Die Pixel sind die Summe der Zeichenbreiten ohne Unterschneidung, also eher zu breit als zu schmal gerechnet.`,
+    '',
+    '| Adresse | Titel | Zeichen | Pixel | Beschreibung | Zeichen | Pixel | Robots |',
+    '|---|---|---|---|---|---|---|---|',
+    // Reihenfolge: Startseite, dann nach Adresse, die 404-Seite am Ende.
+    ...[...metaZeilen].sort((a, b) => {
+      const rang = (zeile) => (zeile.adresse === '/' ? 0 : zeile.adresse === '/404.html' ? 2 : 1);
+      return rang(a) - rang(b) || a.adresse.localeCompare(b.adresse, 'de');
+    }).map((zeile) => {
+      const t = masse(zeile.titel, 'titel');
+      const b = masse(zeile.beschreibung, 'beschreibung');
+      return `| ${zeile.adresse} | ${zelle(zeile.titel)} | ${t.zeichen} | ${t.pixel} | ${zelle(zeile.beschreibung)} | ${b.zeichen} | ${b.pixel} | ${zeile.robots} |`;
+    }),
+    '',
+  ];
+  writeFileSync(metaZiel, tabelle.join('\n'), 'utf8');
+  console.log(`Geschrieben: ${metaZiel} (${metaZeilen.length} Seiten)`);
+}
 
 console.log(`Geprüft: ${seiten.size} Seiten (${[...seiten.keys()].join(', ')}), ${dateien.length} Dateien`);
 for (const hinweis of hinweise) console.log(`HINWEIS ${hinweis}`);

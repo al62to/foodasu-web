@@ -1,3 +1,5 @@
+import { kapitel as anleitung } from './sogehts.mjs';
+
 // Angaben zur Website an einer Stelle. Schalter stehen hier, damit kein Text und kein Link an mehreren Stellen
 // gepflegt wird.
 export const seite = {
@@ -5,7 +7,8 @@ export const seite = {
   adresse: 'https://foodasu.com',
   sprache: 'de',
   logo: '/apple-touch-icon.png',
-  // Bild für Open Graph und die Twitter-Karte (gebaut mit tools/teilen_bild.mjs).
+  // Gemeinsames Bild für Open Graph und die Twitter-Karte (gebaut mit tools/teilen_bild.mjs). Rezeptseiten zeigen
+  // ihr eigenes Bild in denselben Maßen (tools/rezeptbilder_bauen.py).
   teilen: { pfad: '/bilder/foodasu-teilen.jpg', breite: 1200, hoehe: 630 },
 };
 
@@ -25,16 +28,15 @@ export const store = {
   kategorie: 'ShoppingApplication',
 };
 
-// Seitenverzeichnis: Grundlage für sitemap.xml (nur "index: true") und das Prüfskript. "stand" ist der Tag der
-// letzten inhaltlichen Änderung der Seite und wird von Hand gepflegt.
+// Seitenverzeichnis der festen Seiten für sitemap.xml: "stand" ist der Tag der letzten inhaltlichen Änderung der
+// Seite und wird von Hand gepflegt. Welche Seiten im Index stehen, sagt src/daten/meta.mjs.
 export const seiten = [
-  { pfad: '/', stand: '2026-10-10', index: true },
-  { pfad: '/datenschutz.html', stand: '2026-10-10', index: true },
-  { pfad: '/lizenzen/', stand: '2026-10-10', index: true },
-  { pfad: '/quellen-und-lizenzen/', stand: '2026-10-10', index: false },
-  // Offenlegung nach § 25 Mediengesetz: eigene Seite, nicht im Index und nicht in der Sitemap (AP-17 Teil E1).
-  { pfad: '/offenlegung/', stand: '2026-10-10', index: false },
-  { pfad: '/so-gehts/', stand: '2026-10-10', index: false },
-  { pfad: '/rezepte/', stand: '2026-10-10', index: true },
-  { pfad: '/fragen/', stand: '2026-10-10', index: true },
+  { pfad: '/', stand: '2026-10-10' },
+  { pfad: '/datenschutz.html', stand: '2026-10-10' },
+  { pfad: '/lizenzen/', stand: '2026-10-10' },
+  // "So geht's" (Karte C, AP-18 Teil E): Übersicht und sechs Kapitel.
+  { pfad: '/so-gehts/', stand: '2026-10-10' },
+  ...anleitung.map((eintrag) => ({ pfad: `/so-gehts/${eintrag.slug}/`, stand: '2026-10-10' })),
+  { pfad: '/rezepte/', stand: '2026-10-10' },
+  { pfad: '/fragen/', stand: '2026-10-10' },
 ];

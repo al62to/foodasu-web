@@ -10,7 +10,6 @@ const { adresse } = Astro.props;
 const thema = alleThemen.find((eintrag) => eintrag.adresse === adresse);
 const zeigtZutaten = ['ohne', 'passt'].includes(thema.art);
 const text = thema.text(thema.rezepte.length);
-const beschreibung = text;
 const nah = verwandte(thema).filter((anderes) => ziel(anderes.adresse));
 const jeNach = thema.jeNachRezepte.filter((rezept) => ziel(rezeptAdresse(rezept)));
 const daten = [{
@@ -23,7 +22,7 @@ const daten = [{
   })),
 }];
 ---
-<Basis titel={`${thema.titel} | ${seite.name}`} beschreibung={beschreibung} daten={daten}>
+<Basis daten={daten}>
   <Seitenkopf krumen={[{ titel: texte.uebersicht, ziel: '/rezepte/' }, { titel: thema.titel, ziel: adresse }]} titel={thema.titel} vorspann={`${text} ${texte.thema.inDerApp(thema.inDerApp)}`}>
     {zeigtZutaten && <p class="klein">{texte.thema.grundlage}</p>}
   </Seitenkopf>

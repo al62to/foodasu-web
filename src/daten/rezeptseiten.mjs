@@ -155,7 +155,6 @@ export const texte = {
     seite: {
       titel: 'Quellen und Lizenzen',
       adresse: '/quellen-und-lizenzen/',
-      beschreibung: 'Quelle, Urheber, Lizenz und Änderungen zu jedem Rezept auf foodasu.com.',
       einleitung: 'Zu jedem Rezept dieser Website stehen hier Quelle, Urheber, Lizenz und Änderungen, dazu die Angaben zum Bild und zu den Nährwerten.',
       uebersicht: 'Rezepte auf dieser Seite',
       zumRezept: 'Zum Rezept',

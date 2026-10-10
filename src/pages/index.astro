@@ -5,7 +5,7 @@
 import Basis from '../layouts/Basis.astro';
 import '../styles/start.css';
 import { seite, auftritte, store } from '../daten/seite.mjs';
-import { kopfdaten, kopf, wort, schritte, funktionen, zahlen, vorschau, fragen, geruest } from '../daten/startseite.mjs';
+import { kopf, wort, schritte, funktionen, zahlen, vorschau, fragen, geruest } from '../daten/startseite.mjs';
 
 const organisation = `${seite.adresse}/#organisation`;
 const gleich = [auftritte.facebook, auftritte.instagram, store.oeffentlich ? store.adresse : ''].filter(Boolean);
@@ -52,7 +52,7 @@ const zeichen = [
 ];
 const urteilZeichen = 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM9 9l6 6M15 9l-6 6';
 ---
-<Basis titel={kopfdaten.titel} beschreibung={kopfdaten.beschreibung} daten={daten}>
+<Basis daten={daten}>
   <button type="button" class="bewegung-knopf" data-bewegung data-anhalten={geruest.bewegung.anhalten} data-fortsetzen={geruest.bewegung.fortsetzen} hidden>
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path class="z-halt" d="M8 5v14M16 5v14" /><path class="z-lauf" d="M8 5l11 7-11 7z" /></svg>
     <span data-bewegung-text>{geruest.bewegung.anhalten}</span>

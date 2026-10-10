@@ -1,5 +1,6 @@
-/* Farben und Formen nach Theme F3 (Indigo, Lavendel, Mint). Hell und dunkel folgen der Systemeinstellung; es wird
-   nichts im Browser gespeichert. */
+/* Farben und Formen nach Theme F3 (Indigo, Lavendel, Mint). Hell ist der Standard, unabhängig von der Einstellung
+   des Geräts. Dunkel wird die Seite nur über den Schalter in der Kopfzeile (AP-18 Teil C): Er setzt
+   data-modus="dunkel" am html-Element und merkt sich die Wahl im Browser (ein Eintrag "hell" oder "dunkel"). */
 :root {
   --main: #4a3fd1;
   --on-main: #ffffff;
@@ -15,26 +16,29 @@
   --line: #c7c4d7;
   --logo-word: #1a1a24;
   --logo-script: #4a3fd1;
+  --fuss: #fbfaff;
+  --fuss-linie: #efedff;
   --breite: 72rem;
-  color-scheme: light dark;
+  color-scheme: light;
 }
-@media (prefers-color-scheme: dark) {
-  :root {
-    --main: #b3abff;
-    --on-main: #1d1670;
-    --deep: #dedaff;
-    --tone: #1f1d33;
-    --tone-deep: #2a2745;
-    --mint: #b8f0d2;
-    --on-mint: #00382a;
-    --bg: #121219;
-    --flaeche: #0d0d13;
-    --text: #e5e4ee;
-    --muted: #a9a8b8;
-    --line: #464554;
-    --logo-word: #ffffff;
-    --logo-script: #b8f0d2;
-  }
+:root[data-modus="dunkel"] {
+  color-scheme: dark;
+  --main: #b3abff;
+  --on-main: #1d1670;
+  --deep: #dedaff;
+  --tone: #1f1d33;
+  --tone-deep: #2a2745;
+  --mint: #b8f0d2;
+  --on-mint: #00382a;
+  --bg: #121219;
+  --flaeche: #0d0d13;
+  --text: #e5e4ee;
+  --muted: #a9a8b8;
+  --line: #464554;
+  --logo-word: #ffffff;
+  --logo-script: #b8f0d2;
+  --fuss: #1b1b24;
+  --fuss-linie: #2a2745;
 }
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; scroll-padding-top: 5rem; }
@@ -103,6 +107,22 @@ img, svg { max-width: 100%; }
 html:not(.js) .mega-knopf, html:not(.js) .mega-wahl { display: none; }
 .js .mega-link { display: none; }
 
+/* Schalter für helle und dunkle Darstellung (AP-18 Teil C): Sonne links, Mond rechts, der Griff liegt unter dem
+   gewählten Zeichen. Seine Lage folgt data-modus am html-Element und stimmt deshalb schon beim ersten Zeichnen.
+   Ohne JavaScript gibt es den Schalter nicht; die Seite ist dann hell. */
+.modus { display: none; align-items: center; gap: 0.75rem; min-height: 2.75rem; padding: 0 0.5rem; border: 0; border-radius: 999px; background: transparent; color: var(--text); font: inherit; font-weight: 700; cursor: pointer; }
+.js .modus { display: inline-flex; }
+.modus:hover .modus-bahn { border-color: var(--main); }
+.modus-bahn { position: relative; flex: none; display: inline-flex; align-items: center; justify-content: space-between; width: 3.75rem; height: 2rem; padding: 0 0.42rem; border: 1px solid var(--line); border-radius: 999px; background: var(--tone); }
+.modus-bahn svg { position: relative; z-index: 1; width: 1.05rem; height: 1.05rem; }
+.modus-griff { position: absolute; top: 50%; left: 0.2rem; width: 1.5rem; height: 1.5rem; border-radius: 50%; background: var(--main); transform: translateY(-50%); }
+.modus .sonne { color: var(--on-main); }
+.modus .mond { color: var(--muted); }
+:root[data-modus="dunkel"] .modus-griff { left: calc(100% - 1.7rem); }
+:root[data-modus="dunkel"] .modus .sonne { color: var(--muted); }
+:root[data-modus="dunkel"] .modus .mond { color: var(--on-main); }
+@media (prefers-reduced-motion: no-preference) { .modus-griff { transition: left 0.18s ease; } }
+
 @media (max-width: 55.99rem) {
   .haupt-liste { display: grid; gap: 0.15rem; }
   .haupt-liste > li > a, .mega-knopf { display: flex; width: 100%; min-height: 3.25rem; border-radius: 0.9rem; font-size: 1.1rem; }
@@ -122,6 +142,8 @@ html:not(.js) .mega-knopf, html:not(.js) .mega-wahl { display: none; }
   .mega-probe.mobil a { flex-direction: column; align-items: stretch; gap: 0.5rem; padding: 0; }
   .mega-probe.mobil img { width: 100%; height: 6.25rem; }
   .mega-probe.mobil .mega-probe-text > span { display: none; }
+  .js .modus { display: flex; justify-content: space-between; width: 100%; min-height: 3.25rem; margin-top: 0.4rem; padding: 0 1rem; border-radius: 0.9rem; font-size: 1.1rem; }
+  .js .modus:hover { background: var(--tone); }
   .haupt-recht { display: flex; gap: 1.25rem; margin-top: 1rem; padding: 0.5rem 0.9rem 0; border-top: 1px solid var(--tone-deep); font-size: 0.95rem; }
   .haupt-recht a { display: inline-flex; align-items: center; min-height: 2.75rem; color: var(--muted); text-decoration: underline; }
   /* Mit JavaScript: Das Menü füllt den Bildschirm unter dem Kopf; die Seite dahinter scrollt nicht mit. */
@@ -137,7 +159,9 @@ html:not(.js) .mega-knopf, html:not(.js) .mega-wahl { display: none; }
 }
 @media (min-width: 56rem) {
   .menue-knopf { display: none; }
+  .haupt-flaeche { display: flex; align-items: center; gap: 0.5rem; }
   .haupt-liste { display: flex; align-items: stretch; gap: 0.25rem; }
+  .modus-text { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
   /* Der Eintrag reicht bis zur Unterkante des Kopfs: Zwischen "Rezepte" und dem Menü liegt keine Lücke, über der
      der Mauszeiger das Menü verlassen würde. */
   .haupt-liste > li { display: flex; align-items: center; min-height: 4rem; }
@@ -179,7 +203,6 @@ main { display: block; }
 .klein { font-size: 0.95rem; color: var(--muted); }
 .karte { background: var(--bg); border: 1px solid var(--line); border-radius: 1.5rem; padding: 1.25rem; }
 .karte p:last-child, .karte ul:last-child { margin-bottom: 0; }
-.platzhalter { min-height: 40vh; }
 
 /* Rechtstexte */
 .text h1 { margin-top: 1.5rem; }
@@ -198,12 +221,34 @@ main { display: block; }
 .text hr { border: 0; border-top: 1px solid var(--line); margin: 2rem 0; }
 .text .stand { color: var(--muted); font-size: 0.95rem; }
 
-/* Fuß */
-.fuss { border-top: 1px solid var(--line); background: var(--flaeche); color: var(--muted); font-size: 0.95rem; padding: 2rem 0 2.5rem; }
-.fuss-innen { display: grid; gap: 1.25rem; }
-.fuss ul { list-style: none; display: flex; flex-wrap: wrap; gap: 0.25rem 1.25rem; margin: 0; padding: 0; }
-.fuss a { display: inline-flex; align-items: center; gap: 0.5rem; min-height: 2.75rem; color: var(--text); }
-.fuss svg { width: 1.4rem; height: 1.4rem; fill: currentColor; }
-.fuss .bald { display: inline-flex; align-items: center; gap: 0.5rem; min-height: 2.75rem; }
-.fuss .hinweis { margin: 0; font-weight: 700; color: var(--text); }
-@media (min-width: 56rem) { .fuss-innen { grid-template-columns: 1fr auto; align-items: center; } .fuss .hinweis { grid-column: 1 / -1; } }
+/* Fuß: Fußzeile A (AP-18 Teil D). Links Logo und Satz, daneben drei Spalten, unten eine schmale Zeile. Am Handy
+   steht alles untereinander, die beiden Knöpfe nebeneinander. Jeder Link ist mindestens 44 Pixel hoch. Die
+   Überschriften der Spalten stehen als Kapitälchen da, nicht per Großschreibung: So liest ein Bildschirmleser die
+   Wörter, wie sie geschrieben sind. */
+.fuss { border-top: 1px solid var(--fuss-linie); background: var(--fuss); color: var(--muted); font-size: 0.95rem; }
+.fuss-raster { display: grid; gap: 1.75rem; padding-top: 2.5rem; padding-bottom: 2rem; }
+.fuss-marke .marke svg { height: 1.9rem; }
+.fuss-satz { max-width: 19rem; margin: 0.6rem 0 0; color: var(--text); font-weight: 600; }
+.fuss .hinweis { margin: 0.4rem 0 0; font-weight: 700; color: var(--text); }
+.fuss-titel { margin: 0 0 0.25rem; font-size: 1.05rem; font-weight: 800; letter-spacing: 0.09em; line-height: 1.6; font-variant-caps: all-small-caps; color: var(--muted); hyphens: none; }
+.fuss ul { list-style: none; margin: 0; padding: 0; }
+.fuss-spalte li a { display: inline-flex; align-items: center; min-height: 2.75rem; color: var(--text); text-decoration: none; }
+.fuss-spalte li a:hover { color: var(--main); text-decoration: underline; }
+.fuss .fuss-knoepfe { display: flex; flex-wrap: wrap; gap: 0.6rem; padding-top: 0.25rem; }
+.fuss-spalte .fuss-knopf { gap: 0.55rem; padding: 0 1.05rem 0 0.85rem; border: 1px solid var(--line); border-radius: 999px; background: var(--bg); font-weight: 700; }
+.fuss-spalte .fuss-knopf:hover { border-color: var(--main); text-decoration: none; }
+.fuss-knopf svg { flex: none; width: 1.3rem; height: 1.3rem; fill: currentColor; }
+.fuss-zeile { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem 1.5rem; padding: 1rem 0 1.5rem; border-top: 1px solid var(--fuss-linie); }
+.fuss-zeile p { margin: 0; }
+.fuss-bald, .fuss-store { display: inline-flex; align-items: center; gap: 0.5rem; min-height: 2.25rem; padding: 0 0.95rem 0 0.75rem; border-radius: 999px; background: var(--mint); color: var(--on-mint); font-weight: 700; }
+.fuss-store { min-height: 2.75rem; text-decoration: none; }
+.fuss-bald svg, .fuss-store svg { flex: none; width: 1.2rem; height: 1.2rem; }
+.fuss-store svg { fill: currentColor; }
+@media (min-width: 40rem) {
+  .fuss-raster { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .fuss-marke { grid-column: 1 / -1; }
+}
+@media (min-width: 56rem) {
+  .fuss-raster { grid-template-columns: minmax(0, 1.5fr) repeat(3, minmax(0, 1fr)); gap: 2.5rem; padding-top: 3rem; }
+  .fuss-marke { grid-column: auto; }
+}

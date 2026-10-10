@@ -1,0 +1,54 @@
+/* Bereich "So geht's" (AP-15 Teil B2, Karte C): Übersicht mit sechs Kacheln und die Kapitelseiten. Farben und Flächen
+   kommen aus basis.css und seiten.css und folgen damit dem Schalter für helle und dunkle Darstellung; nur der Rahmen
+   um ein Bildschirmfoto hat eine feste Farbe. Bewegung gibt es hier keine eigene: Das Einblenden kommt aus seiten.css,
+   die Schleife eines Kapitels startet das Skript der Seite nur mit Bewegung. */
+
+/* Übersicht */
+.g-kacheln { list-style: none; display: grid; gap: 1rem; margin: 0; padding: 0; }
+.g-kacheln > li { display: flex; }
+.g-kachel { display: flex; flex: 1; flex-direction: column; gap: 0.85rem; min-height: 12.5rem; padding: 1.4rem; border: 1px solid var(--line); border-radius: 1.75rem; background: var(--karte); color: var(--text); text-decoration: none; box-shadow: 0 30px 60px -44px rgb(var(--schatten) / 0.45); }
+.g-kachel:hover { border-color: var(--main); }
+.g-nummer { display: grid; place-items: center; width: 2.75rem; height: 2.75rem; border-radius: 0.9rem; background: var(--tone); color: var(--deep); font-size: 1.25rem; font-weight: 800; }
+.g-kachel-text { display: grid; gap: 0.3rem; }
+.g-kachel-text b { font-size: 1.3rem; line-height: 1.25; letter-spacing: -0.02em; }
+.g-kachel-text > span:last-child { color: var(--muted); }
+.g-lesen { display: inline-flex; align-items: center; gap: 0.4rem; min-height: 1.75rem; margin-top: auto; color: var(--main); font-weight: 800; }
+.g-lesen svg { width: 1.1rem; height: 1.1rem; }
+.g-hinweis { max-width: 46rem; margin-top: 2rem; }
+@media (min-width: 40rem) { .g-kacheln { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 64rem) { .g-kacheln { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+/* Kapitel: Am Handy stehen zuerst die Bilder, dann der Text; am Laptop steht der Text links, die Bilder rechts. */
+.g-seite { display: grid; gap: 2.25rem; }
+.g-text { min-width: 0; max-width: 44rem; }
+.g-inhalt { padding: 1rem 1.25rem 0.75rem; border-radius: 1.4rem; background: var(--tone); }
+.g-inhalt h2 { margin: 0; font-size: 1rem; letter-spacing: 0; color: var(--muted); }
+.g-inhalt ul { list-style: none; display: flex; flex-wrap: wrap; gap: 0 1.4rem; margin: 0; padding: 0; }
+.g-inhalt a { display: inline-flex; align-items: center; min-height: 2.75rem; color: var(--deep); font-weight: 700; }
+.g-text .s-teil { margin-top: clamp(2rem, 4vw, 2.75rem); }
+.g-text .s-teil > h2 { scroll-margin-top: 5.5rem; }
+.g-text .r-schritte, .g-text .r-stufen { margin: 1rem 0; }
+.g-text .s-teil > p:last-child { margin-bottom: 0; }
+.g-mehr h2 { font-size: 1.15rem; }
+
+.g-bilder { order: -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem 1rem; align-items: start; max-width: 30rem; }
+.g-handy { margin: 0; }
+.g-rahmen { padding: 3.4%; border-radius: 13% / 5.8%; background: #1a1a24; box-shadow: 0 30px 60px -32px rgb(var(--schatten) / 0.55); }
+.g-rahmen img, .g-rahmen video { display: block; width: 100%; height: auto; aspect-ratio: 4 / 9; border-radius: 10.5% / 4.7%; background: #fff; object-fit: cover; }
+.g-handy figcaption { margin-top: 0.6rem; font-size: 0.92rem; line-height: 1.4; color: var(--muted); text-align: center; }
+.g-bildhinweis { grid-column: 1 / -1; margin: 0; }
+
+.g-blaettern { display: grid; gap: 0.75rem; }
+.g-blatt { display: grid; align-content: center; gap: 0.15rem; min-height: 4.5rem; padding: 0.9rem 1.25rem; border: 1px solid var(--line); border-radius: 1.4rem; background: var(--karte); color: var(--text); text-decoration: none; }
+.g-blatt:hover { border-color: var(--main); }
+.g-blatt span { font-size: 0.9rem; color: var(--muted); }
+.g-blatt b { color: var(--main); }
+@media (min-width: 40rem) {
+  .g-blaettern { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .g-blatt.weiter { text-align: right; }
+}
+@media (min-width: 56rem) {
+  .g-seite { grid-template-columns: minmax(0, 1fr) 16rem; column-gap: 3.5rem; align-items: start; }
+  .g-bilder { order: 0; grid-column: 2; grid-row: 1; grid-template-columns: minmax(0, 1fr); gap: 1.75rem; max-width: none; }
+  .g-blaettern { grid-column: 1 / -1; }
+}

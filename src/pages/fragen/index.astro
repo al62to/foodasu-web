@@ -3,7 +3,6 @@
 // als FAQPage in den strukturierten Daten. In den Daten steht nur, was sichtbar auf der Seite steht.
 import Basis from '../../layouts/Basis.astro';
 import Seitenkopf from '../../components/Seitenkopf.astro';
-import { seite } from '../../daten/seite.mjs';
 import { fragen, geruest } from '../../daten/startseite.mjs';
 
 const texte = geruest.fragenSeite;
@@ -19,7 +18,7 @@ const daten = [{
   })),
 }];
 ---
-<Basis titel={`${texte.titel} | ${seite.name}`} beschreibung={texte.beschreibung} daten={daten}>
+<Basis daten={daten}>
   <Seitenkopf krumen={[{ titel: texte.titel, ziel: '/fragen/' }]} titel={texte.titel} vorspann={texte.beschreibung} />
   <div class="s-inhalt innen">
     <ul class="s-liste breit">

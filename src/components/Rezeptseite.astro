@@ -10,7 +10,7 @@ import { fuss } from '../daten/startseite.mjs';
 import {
   rezepte, texte, LAND, KATEGORIE, AUFWAND, ENERGIE, QUELLE, NAEHRWERT, STAND, ausLand, zahl, dauer, iso, portionen,
   zutatText, hinweiseVon, hinweisText, ohneHinweis, ernaehrung, einleitung, themaZu, ziel, aehnliche, schrittName, rezeptAdresse,
-  quelleAdresse, EINTRAEGE, suchtitel,
+  quelleAdresse, EINTRAEGE,
 } from '../daten/rezeptseiten.mjs';
 
 const { slug } = Astro.props;
@@ -19,8 +19,6 @@ const adresse = rezeptAdresse(rezept);
 const voll = seite.adresse + adresse;
 const eintragVon = new Map(EINTRAEGE.map((eintrag) => [eintrag.schluessel, eintrag]));
 const text = einleitung(rezept);
-const titel = `${suchtitel(rezept)}: Rezept mit Hinweisen zu den Zutaten | ${seite.name}`;
-const beschreibung = text.length > 158 ? text.slice(0, 157).replace(/\s+\S*$/, '') + '…' : text;
 
 const bild = (name, endung) => `/bilder/rezepte/${rezept.slug}-${name}.${endung}`;
 const quellen = (endung) => [720, 1200].map((breite) => `${bild(`4x3-${breite}`, endung)} ${breite}w`).join(', ');
@@ -89,7 +87,7 @@ const daten = [{
   ...(proPortion && menge ? { nutrition: { '@type': 'NutritionInformation', calories: `${Math.round(rezept.portion.kcal)} kcal`, servingSize: stueck ? '1 Stück' : '1 Portion' } } : {}),
 }];
 ---
-<Basis titel={titel} beschreibung={beschreibung} daten={daten}>
+<Basis daten={daten}>
   <article class="rezept">
     <Seitenkopf krumen={[{ titel: texte.uebersicht, ziel: '/rezepte/' }, { titel: rezept.kurztitel, ziel: adresse }]} titel={rezept.titel} vorspann={text}>
       <dl class="s-kacheln">

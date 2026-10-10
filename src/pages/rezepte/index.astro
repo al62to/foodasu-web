@@ -49,7 +49,7 @@ const daten = [{
   itemListElement: nachName.map((rezept, nummer) => ({ '@type': 'ListItem', position: nummer + 1, url: seite.adresse + rezeptAdresse(rezept) })),
 }];
 ---
-<Basis titel={`${t.seitentitel} | ${seite.name}`} beschreibung={text} daten={daten}>
+<Basis daten={daten}>
   <Seitenkopf krumen={[{ titel: texte.uebersicht, ziel: '/rezepte/' }]} titel={t.titel} vorspann={text} />
 
   <div class="s-inhalt innen">
