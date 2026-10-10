@@ -612,9 +612,10 @@ if (!seiten.get('/')?.includes('facebook.com')) hinweise.push('Fuß: Adresse der
 // Anleitung steht mit Übersicht und allen Kapiteln in der Datei.
 if (existsSync(join(DIST, 'sitemap.xml'))) {
   const karte = readFileSync(join(DIST, 'sitemap.xml'), 'utf8');
-  const heute = new Date().toLocaleDateString('sv-SE');
+  // Ein Tag Spielraum: Git nennt den Tag in der Zeitzone des Commits, der Bau bei GitHub läuft in Weltzeit.
+  const morgen = new Date(Date.now() + 86400000).toLocaleDateString('sv-SE');
   for (const [, ort, tag] of alle(karte, /<url><loc>([^<]+)<\/loc><lastmod>(\d{4}-\d{2}-\d{2})<\/lastmod><\/url>/g)) {
-    if (tag > heute || tag < '2026-10-01') melde('sitemap.xml', `Tag der letzten Änderung unplausibel: ${ort} ${tag}`);
+    if (tag > morgen || tag < '2026-10-01') melde('sitemap.xml', `Tag der letzten Änderung unplausibel: ${ort} ${tag}`);
   }
   for (const ziel of [BEREICH, ...kapitel.map(kapitelAdresse)]) if (!karte.includes(`<loc>${HOST}${ziel}</loc>`)) melde('sitemap.xml', `Seite der Anleitung fehlt: ${ziel}`);
 }
