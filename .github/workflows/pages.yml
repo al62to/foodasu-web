@@ -27,10 +27,11 @@ jobs:
         with:
           node-version: 24
           cache: npm
-      # "npm install" statt "npm ci": Die Sperrdatei entsteht unter Windows, und npm trägt dort zwei Pakete nicht ein, die
-      # nur die Linux-Fassung eines Bausteins braucht (@emnapi/core, @emnapi/runtime); "npm ci" bricht deshalb hier ab.
-      # Alle übrigen Versionen kommen weiter aus der Sperrdatei.
-      - run: npm install --no-audit --no-fund
+      # "npm ci": genau die Versionen der Sperrdatei. Die Sperrdatei entsteht unter Windows; npm lässt dort zwei Pakete
+      # weg, die hier gebraucht werden (@emnapi/core und @emnapi/runtime in der Fassung, die
+      # @astrojs/compiler-binding-wasm32-wasi verlangt). Sie sind von Hand eingetragen. Bricht dieser Schritt nach einem
+      # "npm install" unter Windows mit "Missing: @emnapi/..." ab, fehlen die beiden Einträge wieder.
+      - run: npm ci --no-audit --no-fund
       - run: npm run build
       - run: npm run pruefen
       - if: github.ref == 'refs/heads/main'
