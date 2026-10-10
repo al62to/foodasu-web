@@ -1,0 +1,27 @@
+---
+// "Zum Ausprobieren" im Mega-Menü: drei Rezepte mit Bild. Am Laptop steht der Block rechts im Menü, am Handy unten im
+// aufgeklappten Menü; deshalb gibt es ihn zweimal, und je Breite ist nur einer sichtbar ("mobil").
+import { mega } from '../daten/navigation.mjs';
+
+const { mobil = false } = Astro.props;
+const kennung = mobil ? 'mega-probe-titel-mobil' : 'mega-probe-titel';
+const bild = (slug, endung) => `/bilder/rezepte/${slug}-karte-360.${endung}`;
+---
+{mega.probieren.rezepte.length > 0 && (
+  <div class:list={['mega-probe', { mobil }]}>
+    <p class="mega-kopf" id={kennung}>{mega.probieren.titel}</p>
+    <ul aria-labelledby={kennung}>
+      {mega.probieren.rezepte.map((rezept) => (
+        <li>
+          <a href={rezept.ziel}>
+            <picture>
+              <source type="image/avif" srcset={bild(rezept.slug, 'avif')} />
+              <img src={bild(rezept.slug, 'webp')} alt={`${mega.probieren.symbolbild}: ${rezept.titel}`} width="360" height="270" loading="lazy" decoding="async" />
+            </picture>
+            <span class="mega-probe-text"><b>{rezept.titel}</b><span>{rezept.land}</span></span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+)}

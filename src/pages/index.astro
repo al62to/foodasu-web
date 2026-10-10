@@ -4,7 +4,6 @@
 // src/skripte/bewegung.js (GSAP, wird erst nach dem ersten Zeichnen geladen).
 import Basis from '../layouts/Basis.astro';
 import '../styles/start.css';
-import offenlegung from '../inhalte/offenlegung.html?raw';
 import { seite, auftritte, store } from '../daten/seite.mjs';
 import { kopfdaten, kopf, wort, schritte, funktionen, zahlen, vorschau, fragen, geruest } from '../daten/startseite.mjs';
 
@@ -269,10 +268,6 @@ const urteilZeichen = 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM9 9l6 6M15 9l-6 6';
         </details>
       ))}
     </div>
-  </section>
-
-  <section class="abschnitt text">
-    <div class="innen schmal" set:html={offenlegung} />
   </section>
 </Basis>
 

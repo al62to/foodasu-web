@@ -32,7 +32,7 @@ export function GET() {
     '',
     '## Rechtliches',
     link('Datenschutzerklärung', '/datenschutz.html'),
-    link(fuss.links.offenlegung, '/#offenlegung', 'Offenlegung nach § 25 Mediengesetz'),
+    link(fuss.links.offenlegung, '/offenlegung/', 'Offenlegung nach § 25 Mediengesetz'),
     link(geruest.lizenzen.titel, '/lizenzen/', geruest.lizenzen.beschreibung),
     link(texte.quelle.seite.titel, texte.quelle.seite.adresse, texte.quelle.seite.beschreibung),
     '',

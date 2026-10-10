@@ -32,6 +32,8 @@ export const seiten = [
   { pfad: '/datenschutz.html', stand: '2026-10-10', index: true },
   { pfad: '/lizenzen/', stand: '2026-10-10', index: true },
   { pfad: '/quellen-und-lizenzen/', stand: '2026-10-10', index: false },
+  // Offenlegung nach § 25 Mediengesetz: eigene Seite, nicht im Index und nicht in der Sitemap (AP-17 Teil E1).
+  { pfad: '/offenlegung/', stand: '2026-10-10', index: false },
   { pfad: '/so-gehts/', stand: '2026-10-10', index: false },
   { pfad: '/rezepte/', stand: '2026-10-10', index: true },
   { pfad: '/fragen/', stand: '2026-10-10', index: true },

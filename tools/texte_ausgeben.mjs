@@ -26,11 +26,12 @@ zeile();
 
 zeile('## Navigation');
 punkt('Hauptpunkte', hauptpunkte.map((p) => p.titel).join(', '));
-mega.spalten.forEach((spalte, nummer) => {
-  for (const gruppe of spalte.gruppen) punkt(`Mega-Menü, Spalte ${nummer + 1}, Gruppe „${gruppe.titel}“`, gruppe.eintraege.map((e) => e.name).join(', '));
-});
-punkt('Mega-Menü, letzte Zeile', mega.alle.titel);
-punkt('Für Bildschirmleser', `„${t.geruest.sprung}“, „${t.geruest.marke}“, „${t.geruest.navigation}“, „${t.geruest.menue}“, „${t.geruest.untermenue}“, „${t.geruest.brotkrumen}“; Knopf der Startseite „${t.geruest.bewegung.anhalten}“ und „${t.geruest.bewegung.fortsetzen}“ (sichtbar, unten rechts); vor den Einträgen des Mega-Menüs unsichtbar „Rezepte aus: …“, „Rezepte der Kategorie …“, „Rezepte ohne …“, „Rezepte, passt für: …“`);
+punkt('Mega-Menü, links oben', mega.titel);
+for (const gruppe of mega.gruppen) punkt(`Mega-Menü, Gruppe „${gruppe.titel}“`, gruppe.eintraege.map((e) => e.name).join(', '));
+punkt('Mega-Menü, links unten', mega.alle.titel);
+punkt('Mega-Menü, rechts', `${mega.probieren.titel}: ${mega.probieren.rezepte.map((r) => `${r.titel} (${r.land})`).join(', ')}`);
+punkt('Mega-Menü am Handy, Ebene einer Gruppe', `„${mega.zurueck}“`);
+punkt('Für Bildschirmleser', `„${t.geruest.sprung}“, „${t.geruest.marke}“, „${t.geruest.navigation}“, „${t.geruest.menue}“, „${t.geruest.menueZu}“, „${t.geruest.brotkrumen}“; Knopf der Startseite „${t.geruest.bewegung.anhalten}“ und „${t.geruest.bewegung.fortsetzen}“ (sichtbar, unten rechts); vor den Einträgen des Mega-Menüs unsichtbar „Rezepte aus: …“, „Rezepte der Kategorie …“, „Rezepte ohne …“, „Rezepte, passt für: …“`);
 zeile();
 
 zeile('## Abschnitt 1: Kopf mit Scan-Geschichte');
@@ -114,7 +115,8 @@ zeile('## Rezeptbereich: feste Texte (aus src/daten/rezeptseiten.mjs)');
 const a = r.alle;
 punkt('Übersicht, Titel und Seitentitel', `${a.titel}; ${a.seitentitel}`);
 punkt('Übersicht, Vorspann', `${a.text(rezepte.length)} ${a.grundlage}`);
-punkt('Übersicht, Suche und Filter', `„${a.suche}“; Gruppen „${Object.values(a.gruppen).join('“, „')}“; „${a.alleWaehlen}“; „${a.ohne('...')}“; „${a.stand(1)}“, „${a.stand(40)}“; „${a.leer}“; „${a.zuruecksetzen}“; „${a.themen}“`);
+punkt('Übersicht, Suche und Filter', `„${a.suche}“; Auswahlknöpfe „${Object.values(a.gruppen).join('“, „')}“ (in der Liste „Passt für“ der Zusatz „${a.passtZusatz}“); „${a.ohne('...')}“; „${a.weitere.land}“, „${a.weitere.passt}“; „${a.zuruecksetzen}“, „${a.fertig}“; für Bildschirmleser „${a.gewaehlt}“ und „${a.entfernen('Italien')}“; „${a.alleZuruecksetzen}“; „${a.stand(1)}“, „${a.stand(40)}“; am Handy „${a.filter}“, „${a.schliessen}“, „${a.zeigen(1)}“, „${a.zeigen(5)}“; „${a.leer}“`);
+punkt('Übersicht, Ende der Seite', `„${a.themen}“: ${a.mehrThemen.map((e) => `„${e.titel}“`).join(', ')}`);
 punkt('Rezeptseite, Titel der Seite', '<Name>: Rezept mit Hinweisen zu den Zutaten | FoodAsu');
 punkt('Rezeptseite, „Passt für“', `${r.passt.titel} ${r.passt.zusatz}; ${r.passt.erklaerung} ${r.passt.moeglichText('vegetarisch', '...')}`);
 punkt('Rezeptseite, Hinweise', `${r.hinweise.titel}: ${r.hinweise.einleitung} ${r.hinweise.stufen.map(([wort, text]) => `${wort}: ${text}`).join(' ')} ${r.hinweise.app} Aufklappen: „${r.hinweise.tabelle}“`);

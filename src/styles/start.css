@@ -215,8 +215,12 @@
   .js .glas-flaechen .c { animation-duration: 22s; }
   .js .glas-flaechen .d { animation-duration: 25s; animation-direction: alternate-reverse; }
   .faq summary::after { transition: rotate 0.2s; }
-  .mega { transition: opacity 0.18s, translate 0.18s; }
-  @starting-style { .mega { opacity: 0; translate: 0 -0.4rem; } }
+  /* Nur am Laptop: Am Handy liegt im Menü eine Ebene mit fester Lage. Solange das Menü verschoben einblendet,
+     hinge sie am Menü statt am Bildschirm. */
+  @media (min-width: 56rem) {
+    .mega { transition: opacity 0.18s, translate 0.18s; }
+    @starting-style { .mega { opacity: 0; translate: 0 -0.4rem; } }
+  }
   /* Laufbänder: eine Zeile, das Skript der Seite hängt Kopien an und startet den Lauf. */
   .js .band { overflow: hidden; }
   .js .band-spur { display: flex; width: max-content; }

@@ -1,33 +1,45 @@
 ---
-// Übersicht "Alle Rezepte": die Rezepte der Website mit Suche und Filter ohne Server. Gefiltert wird im Browser über
-// Angaben an den Karten; ohne JavaScript stehen alle Karten da, und die Themenseiten darunter übernehmen die Auswahl.
+// Übersicht "Rezepte" nach Entwurf 1 der Projektleitung (AP-17 Teil E3): Suche, drei Auswahlknöpfe (Kategorie, Land,
+// Passt für) mit Listen zum Ankreuzen, darunter die gewählten Filter als Kärtchen und die Trefferzahl. Am Handy ein
+// Knopf "Filter", der ein Blatt von unten öffnet.
+// Gefiltert wird im Browser über Angaben an den Karten: keine neuen Adressen, nichts wird gespeichert oder geladen.
+// Ohne JavaScript stehen alle Karten da; die Themenseiten übernehmen dann die Auswahl.
 import Basis from '../../layouts/Basis.astro';
 import Seitenkopf from '../../components/Seitenkopf.astro';
 import Rezeptkarte from '../../components/Rezeptkarte.astro';
 import { seite } from '../../daten/seite.mjs';
-import { mega } from '../../daten/navigation.mjs';
-import { rezepte, texte, themen, KATEGORIE, LAND, EINTRAEGE, FILTER_PASST, rezeptAdresse } from '../../daten/rezeptseiten.mjs';
+import {
+  rezepte, texte, KATEGORIE, LAND, LAND_REIHENFOLGE, EINTRAEGE, FILTER_PASST, FILTER_ZUERST, rezeptAdresse, ziel,
+  filterAngaben,
+} from '../../daten/rezeptseiten.mjs';
 
 const t = texte.alle;
 const nachName = [...rezepte].sort((a, b) => a.titel.localeCompare(b.titel, 'de'));
-const kategorien = Object.keys(KATEGORIE).filter((schluessel) => rezepte.some((rezept) => rezept.kategorie === schluessel));
-const laender = Object.keys(LAND)
-  .filter((kuerzel) => rezepte.some((rezept) => rezept.laender.includes(kuerzel)))
-  .sort((a, b) => LAND[a].localeCompare(LAND[b], 'de'));
+const angaben = rezepte.map(filterAngaben);
+const anzahl = (probe) => angaben.filter(probe).length;
 const eintragVon = new Map(EINTRAEGE.map((eintrag) => [eintrag.schluessel, eintrag]));
-const passt = FILTER_PASST.map((schluessel) => {
-  const eintrag = eintragVon.get(schluessel);
-  return { schluessel, wort: eintrag.adresse ? t.ohne(eintrag.ohne) : eintrag.name };
-});
+
+// Nur Möglichkeiten, zu denen es Rezepte gibt, jede mit ihrer Anzahl.
+const kategorien = Object.keys(KATEGORIE)
+  .map((schluessel) => ({ wert: schluessel, wort: KATEGORIE[schluessel][0], zahl: anzahl((a) => a.kategorie === schluessel) }));
+const laender = LAND_REIHENFOLGE
+  .map((kuerzel) => ({ wert: kuerzel, wort: LAND[kuerzel], zahl: anzahl((a) => a.land.split(' ').includes(kuerzel)) }));
+const passt = FILTER_PASST
+  .map((schluessel) => {
+    const eintrag = eintragVon.get(schluessel);
+    return { wert: schluessel, wort: eintrag.adresse ? t.ohne(eintrag.ohne) : eintrag.name, zahl: anzahl((a) => a.passt.split(' ').includes(schluessel)) };
+  });
 const gruppen = [
-  { kennung: 'kategorie', titel: t.gruppen.kategorie, wahl: kategorien.map((schluessel) => ({ wert: schluessel, wort: KATEGORIE[schluessel][0] })) },
-  { kennung: 'land', titel: t.gruppen.land, wahl: laender.map((kuerzel) => ({ wert: kuerzel, wort: LAND[kuerzel] })) },
-  { kennung: 'passt', titel: t.gruppen.passt, wahl: passt.map(({ schluessel, wort }) => ({ wert: schluessel, wort })) },
-];
-const themenGruppen = mega.spalten
-  .flatMap((spalte) => spalte.gruppen)
-  .map((gruppe) => ({ titel: gruppe.titel, themen: themen.filter((thema) => thema.art === gruppe.kennung).sort((a, b) => a.titel.localeCompare(b.titel, 'de')) }))
-  .filter((gruppe) => gruppe.themen.length > 0);
+  { kennung: 'kategorie', titel: t.gruppen.kategorie, wahl: kategorien },
+  { kennung: 'land', titel: t.gruppen.land, wahl: laender, mehr: t.weitere.land },
+  { kennung: 'passt', titel: t.gruppen.passt, zusatz: t.passtZusatz, wahl: passt, mehr: t.weitere.passt },
+].map((gruppe) => {
+  const wahl = gruppe.wahl.filter((eintrag) => eintrag.zahl > 0);
+  // Lange Listen zeigen zuerst nur den Anfang; der Rest folgt hinter "Weitere ... anzeigen".
+  const vorn = gruppe.mehr && wahl.length > FILTER_ZUERST + 2 ? FILTER_ZUERST : wahl.length;
+  return { ...gruppe, wahl: wahl.map((eintrag, nummer) => ({ ...eintrag, spaeter: nummer >= vorn })), geteilt: vorn < wahl.length };
+});
+const mehrThemen = t.mehrThemen.filter((thema) => ziel(thema.ziel));
 const text = t.text(rezepte.length);
 const daten = [{
   '@context': 'https://schema.org',
@@ -38,94 +50,275 @@ const daten = [{
 }];
 ---
 <Basis titel={`${t.seitentitel} | ${seite.name}`} beschreibung={text} daten={daten}>
-  <Seitenkopf krumen={[{ titel: texte.uebersicht, ziel: '/rezepte/' }]} titel={t.titel} vorspann={text}>
-    <p class="klein">{t.grundlage}</p>
-  </Seitenkopf>
+  <Seitenkopf krumen={[{ titel: texte.uebersicht, ziel: '/rezepte/' }]} titel={t.titel} vorspann={text} />
 
   <div class="s-inhalt innen">
-    <form class="f-leiste s-karte" role="search" aria-label={t.suche} data-filter>
+    <form class="f-leiste" id="filter" role="search" aria-label={t.suche} data-filter>
       <label class="f-suche">
-        {t.suche}
-        <input type="search" name="suche" autocomplete="off" enterkeyhint="search" data-suche />
+        <span class="vh">{t.suche}</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
+        <input type="search" name="suche" placeholder={t.suche} autocomplete="off" enterkeyhint="search" data-suche />
       </label>
-      {gruppen.map((gruppe) => (
-        <fieldset class="f-gruppe" data-gruppe={gruppe.kennung}>
-          <legend>{gruppe.titel}</legend>
-          <ul class="chips">
-            <li><button type="button" class="chip" aria-pressed="true" data-wert="">{t.alleWaehlen}<span class="vh">: {gruppe.titel}</span></button></li>
-            {gruppe.wahl.map((eintrag) => (
-              <li><button type="button" class="chip" aria-pressed="false" data-wert={eintrag.wert}>{eintrag.wort}</button></li>
-            ))}
-          </ul>
-        </fieldset>
-      ))}
-      <p class="f-stand" role="status" data-stand data-eins={t.stand(1)} data-viele={t.stand(2).replace('2', '{zahl}')}>{t.stand(nachName.length)}</p>
-    </form>
 
-    <ul class="r-karten" data-karten>{nachName.map((rezept, nummer) => <Rezeptkarte rezept={rezept} vorn={nummer < 4} filter ein={false} />)}</ul>
+      <div class="f-zeile">
+        <button type="button" class="f-knopf f-mobil" aria-haspopup="dialog" aria-expanded="false" aria-controls="f-blatt" data-blatt-auf>
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 6h16M7 12h10M10 18h4" /></svg>
+          {t.filter}
+          <span class="f-marke" data-aktiv-zahl hidden></span>
+        </button>
+
+        <div class="f-blatt" id="f-blatt" aria-labelledby="f-blatt-titel" data-blatt>
+          <div class="f-blatt-kopf">
+            <p id="f-blatt-titel">{t.filter}</p>
+            <button type="button" class="f-rund" aria-label={t.schliessen} data-blatt-zu>
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18" /></svg>
+            </button>
+          </div>
+          <div class="f-gruppen">
+            {gruppen.map((gruppe) => (
+              <div class="f-gruppe" data-gruppe={gruppe.kennung}>
+                <button type="button" class="f-knopf" aria-expanded="false" aria-controls={`f-${gruppe.kennung}`} data-knopf data-titel={gruppe.titel}>
+                  <span data-knopf-text>{gruppe.titel}</span>
+                  <svg class="pfeil" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 9l6 6 6-6" /></svg>
+                </button>
+                <div class="f-feld" id={`f-${gruppe.kennung}`} data-feld>
+                  <fieldset>
+                    <legend>{gruppe.titel}{gruppe.zusatz && <span>, {gruppe.zusatz}</span>}</legend>
+                    <ul>
+                      {gruppe.wahl.map((eintrag) => (
+                        <li data-spaeter={eintrag.spaeter ? '' : undefined}>
+                          <label>
+                            <input type="checkbox" name={gruppe.kennung} value={eintrag.wert} data-wort={eintrag.wort} />
+                            <span>{eintrag.wort}</span>
+                            <span class="f-anzahl">{eintrag.zahl}</span>
+                          </label>
+                        </li>
+                      ))}
+                    </ul>
+                  </fieldset>
+                  {gruppe.geteilt && <button type="button" class="f-schlicht" data-mehr>{gruppe.mehr}</button>}
+                  <div class="f-feld-fuss">
+                    <button type="button" class="f-schlicht grau" data-leeren>{t.zuruecksetzen}</button>
+                    <button type="button" class="f-voll" data-fertig>{t.fertig}</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div class="f-blatt-fuss">
+            <button type="button" class="f-voll" data-blatt-zu data-zeigen data-eins={t.zeigen(1)} data-viele={t.zeigen(2).replace('2', '{zahl}')}>{t.zeigen(nachName.length)}</button>
+          </div>
+        </div>
+
+        <p class="f-stand" role="status" data-stand data-eins={t.stand(1)} data-viele={t.stand(2).replace('2', '{zahl}')}>{t.stand(nachName.length)}</p>
+      </div>
+
+      <div class="f-aktiv" data-aktiv hidden>
+        <ul class="f-aktiv-liste" aria-label={t.gewaehlt} data-aktiv-liste data-entfernen={t.entfernen('{wort}')}></ul>
+        <button type="button" class="f-schlicht" data-alle-leeren>{t.alleZuruecksetzen}</button>
+      </div>
+    </form>
+    <div class="f-schleier" data-schleier hidden></div>
+
+    <ul class="r-karten" data-karten>{nachName.map((rezept, nummer) => <Rezeptkarte rezept={rezept} vorn={nummer < 4} filter land ein={false} />)}</ul>
     <div class="f-leer" data-leer hidden>
       <p>{t.leer}</p>
-      <button type="button" class="chip" data-zurueck>{t.zuruecksetzen}</button>
+      <button type="button" class="chip" data-alle-leeren>{t.alleZuruecksetzen}</button>
     </div>
+    <p class="klein f-grundlage">{t.grundlage}</p>
 
-    <section class="s-teil" aria-labelledby="themen">
-      <h2 id="themen">{t.themen}</h2>
-      {themenGruppen.map((gruppe) => (
-        <>
-          <h3>{gruppe.titel}</h3>
-          <ul class="chips">{gruppe.themen.map((thema) => <li><a class="chip" href={thema.adresse}>{thema.titel}</a></li>)}</ul>
-        </>
-      ))}
-    </section>
+    {mehrThemen.length > 0 && (
+      <section class="s-teil f-themen" aria-labelledby="themen">
+        <h2 id="themen">{t.themen}</h2>
+        <ul class="chips">{mehrThemen.map((thema) => <li><a class="chip" href={thema.ziel}>{thema.titel}</a></li>)}</ul>
+      </section>
+    )}
   </div>
 </Basis>
 
 <script>
   // Suche und Filter ohne Server: Jede Karte trägt ihre Angaben als Attribute. Nichts wird gespeichert, nichts geladen.
+  // Verknüpfung: innerhalb von Kategorie und innerhalb von Land "oder", innerhalb von "Passt für" "und" (ohne Nüsse
+  // und vegan heißt beides), zwischen den Gruppen "und".
   const form = document.querySelector('[data-filter]');
   if (form) {
     const karten = [...document.querySelectorAll('[data-karte]')];
     const suche = form.querySelector('[data-suche]');
     const stand = form.querySelector('[data-stand]');
     const leer = document.querySelector('[data-leer]');
-    const wahl = { kategorie: '', land: '', passt: '' };
+    const blatt = form.querySelector('[data-blatt]');
+    const blattAuf = form.querySelector('[data-blatt-auf]');
+    const schleier = document.querySelector('[data-schleier]');
+    const aktiv = form.querySelector('[data-aktiv]');
+    const aktivListe = form.querySelector('[data-aktiv-liste]');
+    const aktivZahl = form.querySelector('[data-aktiv-zahl]');
+    const zeigen = form.querySelector('[data-zeigen]');
+    const gruppen = [...form.querySelectorAll('[data-gruppe]')];
+    const schmal = window.matchMedia('(max-width: 47.99rem)');
+    const UND = new Set(['passt']);
+    const kreuz = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18" /></svg>';
+
+    const gewaehlt = (gruppe) => [...gruppe.querySelectorAll('input:checked')];
+    const offen = (el) => el.getAttribute('aria-expanded') === 'true';
+    const knopfVon = (gruppe) => gruppe.querySelector('[data-knopf]');
 
     const zeige = () => {
       const worte = suche.value.toLocaleLowerCase('de').split(/\s+/).filter(Boolean);
+      const wahl = Object.fromEntries(gruppen.map((gruppe) => [gruppe.dataset.gruppe, gewaehlt(gruppe).map((feld) => feld.value)]));
       let zahl = 0;
       for (const karte of karten) {
         const passt =
-          (!wahl.kategorie || karte.dataset.kategorie === wahl.kategorie) &&
-          (!wahl.land || karte.dataset.land.split(' ').includes(wahl.land)) &&
-          (!wahl.passt || karte.dataset.passt.split(' ').includes(wahl.passt)) &&
-          worte.every((wort) => karte.dataset.text.includes(wort));
+          Object.entries(wahl).every(([art, werte]) => {
+            if (werte.length === 0) return true;
+            const hat = karte.dataset[art].split(' ');
+            return UND.has(art) ? werte.every((wert) => hat.includes(wert)) : werte.some((wert) => hat.includes(wert));
+          }) && worte.every((wort) => karte.dataset.text.includes(wort));
         karte.hidden = !passt;
         if (passt) zahl++;
       }
-      stand.textContent = zahl === 1 ? stand.dataset.eins : stand.dataset.viele.replace('{zahl}', String(zahl));
+      const text = (el) => (zahl === 1 ? el.dataset.eins : el.dataset.viele.replace('{zahl}', String(zahl)));
+      stand.textContent = text(stand);
+      zeigen.textContent = text(zeigen);
       leer.hidden = zahl > 0;
-    };
-    const setze = (gruppe, wert) => {
-      wahl[gruppe.dataset.gruppe] = wert;
-      for (const knopf of gruppe.querySelectorAll('button')) knopf.setAttribute('aria-pressed', String(knopf.dataset.wert === wert));
+
+      // Gewählte Filter als Kärtchen mit X, die Knöpfe nennen ihre Auswahl.
+      aktivListe.replaceChildren();
+      let alle = 0;
+      for (const gruppe of gruppen) {
+        const felder = gewaehlt(gruppe);
+        alle += felder.length;
+        const knopf = knopfVon(gruppe);
+        const titel = knopf.dataset.titel;
+        knopf.querySelector('[data-knopf-text]').textContent =
+          felder.length === 0 ? titel : `${titel}: ${felder[0].dataset.wort}${felder.length > 1 ? ` +${felder.length - 1}` : ''}`;
+        knopf.classList.toggle('gewaehlt', felder.length > 0);
+        for (const feld of felder) {
+          const punkt = document.createElement('li');
+          const entfernen = document.createElement('button');
+          entfernen.type = 'button';
+          entfernen.className = 'f-karte';
+          entfernen.setAttribute('aria-label', aktivListe.dataset.entfernen.replace('{wort}', feld.dataset.wort));
+          entfernen.innerHTML = kreuz;
+          entfernen.prepend(feld.dataset.wort);
+          entfernen.addEventListener('click', () => {
+            feld.checked = false;
+            zeige();
+            (aktivListe.querySelector('button') ?? knopf).focus();
+          });
+          punkt.append(entfernen);
+          aktivListe.append(punkt);
+        }
+      }
+      aktiv.hidden = alle === 0;
+      aktivZahl.hidden = alle === 0;
+      aktivZahl.textContent = String(alle);
     };
 
-    for (const gruppe of form.querySelectorAll('[data-gruppe]')) {
-      gruppe.addEventListener('click', (ereignis) => {
-        const knopf = ereignis.target.closest('button');
-        if (!knopf) return;
-        // Ein zweiter Tipp auf dieselbe Wahl hebt sie auf.
-        setze(gruppe, knopf.getAttribute('aria-pressed') === 'true' ? '' : knopf.dataset.wert);
+    // Auswahlknöpfe: am Laptop kleine Listen unter dem Knopf (immer nur eine offen), am Handy Abschnitte im Blatt.
+    const schliesseFelder = (ausser) => {
+      for (const gruppe of gruppen) if (gruppe !== ausser) knopfVon(gruppe).setAttribute('aria-expanded', 'false');
+    };
+    for (const gruppe of gruppen) {
+      const knopf = knopfVon(gruppe);
+      knopf.addEventListener('click', () => {
+        const auf = !offen(knopf);
+        if (!schmal.matches) schliesseFelder(gruppe);
+        knopf.setAttribute('aria-expanded', String(auf));
+      });
+      gruppe.addEventListener('change', zeige);
+      gruppe.querySelector('[data-leeren]').addEventListener('click', () => {
+        for (const feld of gewaehlt(gruppe)) feld.checked = false;
         zeige();
       });
+      gruppe.querySelector('[data-fertig]').addEventListener('click', () => {
+        knopf.setAttribute('aria-expanded', 'false');
+        knopf.focus();
+      });
+      const mehr = gruppe.querySelector('[data-mehr]');
+      mehr?.addEventListener('click', () => {
+        const erstes = gruppe.querySelector('[data-spaeter] input');
+        gruppe.classList.add('ganz');
+        mehr.hidden = true;
+        erstes?.focus();
+      });
     }
+
+    // Blatt am Handy: ein Dialog von unten; der Fokus bleibt darin, Esc und der Schleier schließen.
+    const setzeBlatt = (auf) => {
+      blattAuf.setAttribute('aria-expanded', String(auf));
+      document.documentElement.classList.toggle('blatt-offen', auf);
+      schleier.hidden = !auf;
+      if (auf) {
+        blatt.setAttribute('role', 'dialog');
+        blatt.setAttribute('aria-modal', 'true');
+        if (!gruppen.some((gruppe) => offen(knopfVon(gruppe)))) knopfVon(gruppen[0]).setAttribute('aria-expanded', 'true');
+        blatt.querySelector('[data-blatt-zu]').focus();
+      } else {
+        blatt.removeAttribute('role');
+        blatt.removeAttribute('aria-modal');
+        schliesseFelder(null);
+      }
+    };
+    blattAuf.addEventListener('click', () => setzeBlatt(!offen(blattAuf)));
+    for (const zu of form.querySelectorAll('[data-blatt-zu]')) {
+      zu.addEventListener('click', () => {
+        setzeBlatt(false);
+        blattAuf.focus();
+      });
+    }
+    schleier.addEventListener('click', () => setzeBlatt(false));
+    blatt.addEventListener('keydown', (ereignis) => {
+      if (ereignis.key !== 'Tab' || !offen(blattAuf)) return;
+      const ziele = [...blatt.querySelectorAll('button, input')].filter((el) => el.offsetParent !== null);
+      const erstes = ziele[0];
+      const letztes = ziele.at(-1);
+      if (ereignis.shiftKey && document.activeElement === erstes) {
+        ereignis.preventDefault();
+        letztes.focus();
+      } else if (!ereignis.shiftKey && document.activeElement === letztes) {
+        ereignis.preventDefault();
+        erstes.focus();
+      }
+    });
+
+    form.addEventListener('keydown', (ereignis) => {
+      if (ereignis.key !== 'Escape') return;
+      if (offen(blattAuf)) {
+        setzeBlatt(false);
+        blattAuf.focus();
+        return;
+      }
+      const gruppe = gruppen.find((eine) => offen(knopfVon(eine)));
+      if (gruppe) {
+        knopfVon(gruppe).setAttribute('aria-expanded', 'false');
+        knopfVon(gruppe).focus();
+      }
+    });
+    // Am Laptop schließt ein Klick neben der offenen Liste sie wieder.
+    document.addEventListener('click', (ereignis) => {
+      if (schmal.matches) return;
+      const gruppe = ereignis.target.closest?.('[data-gruppe]');
+      schliesseFelder(gruppe ?? null);
+    });
+    schmal.addEventListener('change', () => {
+      setzeBlatt(false);
+    });
+
     suche.addEventListener('input', zeige);
     form.addEventListener('submit', (ereignis) => ereignis.preventDefault());
-    document.querySelector('[data-zurueck]').addEventListener('click', () => {
-      suche.value = '';
-      for (const gruppe of form.querySelectorAll('[data-gruppe]')) setze(gruppe, '');
-      zeige();
-      suche.focus();
-    });
+    for (const knopf of document.querySelectorAll('[data-alle-leeren]')) {
+      knopf.addEventListener('click', () => {
+        suche.value = '';
+        for (const feld of form.querySelectorAll('input:checked')) feld.checked = false;
+        zeige();
+        suche.focus();
+      });
+    }
+    // Ein Verweis auf "#filter" zeigt die Seite mit geöffnetem Filter (am Handy das Blatt, am Laptop die erste Liste).
+    if (window.location.hash === '#filter') {
+      if (schmal.matches) setzeBlatt(true);
+      else knopfVon(gruppen[0]).setAttribute('aria-expanded', 'true');
+    }
+    zeige();
   }
 </script>

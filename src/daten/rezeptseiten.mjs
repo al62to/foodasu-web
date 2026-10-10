@@ -24,6 +24,12 @@ export const LAND = {
   MX: 'Mexiko', PS: 'Palästina', JP: 'Japan', MA: 'Marokko', KR: 'Südkorea', IL: 'Israel', IR: 'Iran', VN: 'Vietnam',
   HU: 'Ungarn', CZ: 'Tschechien', LI: 'Liechtenstein', PE: 'Peru',
 };
+// Reihenfolge der Länder im Filter der Übersicht: zuerst Österreich, Deutschland und die Schweiz, dann die Nachbarn
+// und der Rest (wie im Mega-Menü, src/daten/navigation.mjs).
+export const LAND_REIHENFOLGE = [
+  'AT', 'DE', 'CH', 'IT', 'FR', 'ES', 'GR', 'TR', 'IN', 'HU', 'CZ', 'LI', 'SY', 'LB', 'JO', 'PS', 'IL', 'IR', 'MA', 'TH',
+  'VN', 'JP', 'KR', 'MX', 'PE',
+];
 const ARTIKEL = { TR: 'der Türkei', CH: 'der Schweiz', LB: 'dem Libanon', IR: 'dem Iran' };
 export const ausLand = (kuerzel) => `aus ${ARTIKEL[kuerzel] ?? LAND[kuerzel]}`;
 // Kategorie (App) und die Form für den Einleitungssatz.
@@ -174,20 +180,40 @@ export const texte = {
   },
   aehnlich: 'Ähnliche Rezepte',
   themenTitel: 'Mehr Rezepte',
-  // Übersicht "Alle Rezepte" (neu, AP-16).
+  // Übersicht "Rezepte" nach Entwurf 1 der Projektleitung (AP-17 Teil E3): Suche, drei Auswahlknöpfe mit Listen zum
+  // Ankreuzen, gewählte Filter als Kärtchen, am Handy ein Blatt von unten.
   alle: {
     titel: 'Rezepte',
     seitentitel: 'Rezepte mit Hinweisen zu den Zutaten',
-    text: (zahl) => `${zahl} Rezepte mit Hinweisen zu den Zutaten, laut Zutatenliste. In der App FoodAsu gibt es über 300 Rezepte.`,
+    text: (zahl) => `${zahl} Rezepte mit Hinweisen zu den Zutaten. In der App sind es über 300.`,
     grundlage: 'Grundlage ist die Zutatenliste des Rezepts. Was in einem Produkt aus dem Laden steckt, steht auf der Packung. Maßgeblich ist die Verpackung.',
     suche: 'Rezept oder Zutat suchen',
-    gruppen: { kategorie: 'Kategorie', land: 'Land', passt: 'Passt für, laut Zutatenliste' },
-    alleWaehlen: 'Alle',
+    gruppen: { kategorie: 'Kategorie', land: 'Land', passt: 'Passt für' },
+    // Zusatz in der Liste "Passt für": Die Auswahl richtet sich nach der Zutatenliste des Rezepts.
+    passtZusatz: 'laut Zutatenliste',
     ohne: (wort) => `Ohne ${wort}`,
+    weitere: { land: 'Weitere Länder anzeigen', passt: 'Weitere anzeigen' },
+    zuruecksetzen: 'Zurücksetzen',
+    fertig: 'Fertig',
+    gewaehlt: 'Gewählte Filter',
+    entfernen: (wort) => `Filter ${wort} entfernen`,
+    alleZuruecksetzen: 'Alle Filter zurücksetzen',
     stand: (zahl) => (zahl === 1 ? '1 Rezept' : `${zahl} Rezepte`),
+    // Am Handy: Knopf "Filter" mit der Zahl der gewählten Filter, Blatt von unten, Knopf zum Schließen des Blatts.
+    filter: 'Filter',
+    schliessen: 'Filter schließen',
+    zeigen: (zahl) => (zahl === 1 ? '1 Rezept anzeigen' : `${zahl} Rezepte anzeigen`),
     leer: 'Kein Rezept passt zu dieser Auswahl.',
-    zuruecksetzen: 'Auswahl zurücksetzen',
-    themen: 'Rezepte nach Thema',
+    themen: 'Mehr Themen',
+    // Sechs Themen am Ende der Seite (statt der langen Liste "Rezepte nach Thema"); alle Themen stehen im Menü.
+    mehrThemen: [
+      { titel: 'Rezepte ohne Nüsse', ziel: '/rezepte/ohne-nuesse/' },
+      { titel: 'Rezepte ohne Gluten', ziel: '/rezepte/ohne-gluten/' },
+      { titel: 'Vegetarische Rezepte', ziel: '/rezepte/vegetarisch/' },
+      { titel: 'Vegane Rezepte', ziel: '/rezepte/vegan/' },
+      { titel: 'Rezepte aus Österreich', ziel: '/rezepte/land/oesterreich/' },
+      { titel: 'Süßspeisen', ziel: '/rezepte/kategorie/suessspeise/' },
+    ],
   },
   thema: {
     grundlage: 'Grundlage ist die Zutatenliste des Rezepts. Was in einem Produkt aus dem Laden steckt, steht auf der Packung. Maßgeblich ist die Verpackung.',
@@ -358,7 +384,13 @@ export function aehnliche(rezept) {
 
 // Angaben einer Karte für Suche und Filter der Übersicht: Kategorie, Länder, die Einträge ohne jeden Hinweis (nur die
 // mit eigener Themenseite, dazu vegetarisch und vegan) und der Suchtext aus Titel und Zutaten.
-export const FILTER_PASST = [...OHNE_MIT_SEITE, 'en:vegetarian', 'en:vegan'];
+// Reihenfolge in der Liste "Passt für": zuerst die am häufigsten gesuchten.
+export const FILTER_PASST = [
+  'en:vegetarian', 'en:vegan', 'en:nuts', 'en:gluten', 'en:milk', 'en:eggs',
+  ...OHNE_MIT_SEITE.filter((schluessel) => !['en:nuts', 'en:gluten', 'en:milk', 'en:eggs'].includes(schluessel)),
+];
+// So viele Möglichkeiten zeigt eine lange Liste zuerst; der Rest folgt hinter "Weitere ... anzeigen".
+export const FILTER_ZUERST = 6;
 export function filterAngaben(rezept) {
   const worte = [rezept.titel, ...new Set(rezept.zutaten.map((zutat) => zutat.grundbegriff))];
   return {
@@ -368,6 +400,22 @@ export function filterAngaben(rezept) {
     text: worte.join(' ').toLocaleLowerCase('de'),
   };
 }
+
+// Titel einer Rezeptseite für die Suche (AP-17 Teil E5): Wo der Name des Rezepts von der gängigsten Suchschreibweise
+// abweicht, steht diese im <title> in Klammern dabei. Auf der Seite selbst bleibt der Name, wie er im Rezeptpaket steht.
+export const SUCHTITEL = {
+  tsatsiki: 'Tsatsiki (Tzatziki)',
+  gulyas: 'Gulyás (ungarische Gulaschsuppe)',
+  kaiserschmarren: 'Kaiserschmarren (Kaiserschmarrn)',
+  'alt-wiener-erdaepfelsalat': 'Alt-Wiener Erdäpfelsalat (Wiener Kartoffelsalat)',
+  'mercimek-corbasi': 'Mercimek çorbası (rote Linsensuppe)',
+  lahmacun: 'Lahmacun (türkische Pizza)',
+  knoblauchgarnelen: 'Knoblauchgarnelen (Gambas al ajillo)',
+  'insalata-caprese': 'Insalata caprese (Tomate-Mozzarella)',
+  'tortilla-espanola': 'Tortilla española (spanische Tortilla)',
+};
+for (const slug of Object.keys(SUCHTITEL)) if (!nachSlug.has(slug)) throw new Error(`SUCHTITEL nennt ein Rezept, das es nicht gibt: ${slug}`);
+export const suchtitel = (rezept) => SUCHTITEL[rezept.slug] ?? rezept.kurztitel;
 
 // Kurzer Name eines Schritts für die strukturierten Daten: der Anfang bis zum ersten Satzzeichen, höchstens 60 Zeichen.
 export function schrittName(text) {

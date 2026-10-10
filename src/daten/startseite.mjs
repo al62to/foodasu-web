@@ -139,7 +139,7 @@ export const fragen = {
       frage: 'Woher kommen die Daten?',
       antwort: [
         'Die Angaben zu Produkten kommen aus der offenen Datenbank Open Food Facts. Eine Gemeinschaft trägt dort ein, was auf der Verpackung steht. Die Angaben können unvollständig oder veraltet sein.',
-        'Die Rezepte stammen aus offenen Rezeptsammlungen; Quelle und Lizenz stehen bei jedem Rezept. Die Nährwerte der Rezepte sind aus den rohen Zutaten berechnet, mit dem Bundeslebensmittelschlüssel (BLS 4.0).',
+        'Die Rezepte stammen aus offenen Rezeptsammlungen; Quelle und Lizenz sind bei jedem Rezept verlinkt. Die Nährwerte der Rezepte sind aus den rohen Zutaten berechnet, mit dem Bundeslebensmittelschlüssel (BLS 4.0).',
       ],
     },
     {
@@ -192,9 +192,11 @@ export const geruest = {
   marke: 'FoodAsu, Startseite',
   navigation: 'Hauptnavigation',
   menue: 'Menü',
-  untermenue: 'Untermenü Rezepte',
+  menueZu: 'Menü schließen',
   brotkrumen: 'Brotkrumen',
   recht: { datenschutz: 'Datenschutz', inhalt: 'Inhalt' },
+  // Eigene Seite der Offenlegung (AP-17 Teil E1). Der Wortlaut kommt aus dem Baustein src/inhalte/offenlegung.html.
+  offenlegung: { titel: 'Offenlegung', beschreibung: 'Offenlegung nach § 25 Mediengesetz für die Website foodasu.com.' },
   fragenSeite: {
     titel: 'Fragen und Antworten',
     beschreibung: 'Woher die Daten von FoodAsu kommen, was mit deinen Angaben passiert und warum die Verpackung maßgeblich bleibt.',

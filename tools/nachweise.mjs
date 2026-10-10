@@ -360,22 +360,31 @@ for (const pfad of SEITEN) {
   sage(`${pfad}  ${ergebnis.join(', ')}`);
 }
 
-// 4 Mega-Menü
+// 4 Mega-Menü (Entwurf A, AP-17 Teil E2)
 sage();
 sage('## 4 Mega-Menü');
 const aktiv = (seite) => seite.evaluate(() => {
   const element = document.activeElement;
   return { name: (element.getAttribute('aria-label') || element.textContent || '').trim().replace(/\s+/g, ' '), marke: element.tagName, mega: !!element.closest('#mega-rezepte') };
 });
-const zustand = (seite) => seite.evaluate(() => ({
-  mega: document.querySelector('[data-mega-knopf]').getAttribute('aria-expanded'),
-  menue: document.querySelector('[data-menue]').getAttribute('aria-expanded'),
-  megaSichtbar: getComputedStyle(document.querySelector('#mega-rezepte')).display !== 'none',
-  listeSichtbar: getComputedStyle(document.querySelector('#hauptliste')).display !== 'none',
-  links: [...document.querySelectorAll('.haupt a')].filter((link) => link.getClientRects().length > 0).length,
-  alleLinks: document.querySelectorAll('.haupt a').length,
-}));
-async function tabBis(seite, auswahl, hoechstens = 20) {
+const zustand = (seite) => seite.evaluate(() => {
+  const sichtbar = (element) => element.getClientRects().length > 0;
+  const wahlen = [...document.querySelectorAll('[data-wahl]')];
+  return {
+    mega: document.querySelector('[data-mega-knopf]').getAttribute('aria-expanded'),
+    menue: document.querySelector('[data-menue]').getAttribute('aria-expanded'),
+    megaSichtbar: getComputedStyle(document.querySelector('#mega-rezepte')).display !== 'none',
+    listeSichtbar: getComputedStyle(document.querySelector('#hauptliste')).display !== 'none',
+    links: [...document.querySelectorAll('.haupt a')].filter(sichtbar).length,
+    alleLinks: document.querySelectorAll('.haupt a').length,
+    gewaehlt: wahlen.filter((wahl) => wahl.getAttribute('aria-expanded') === 'true').map((wahl) => wahl.textContent.trim()),
+    // Je Gruppe: wie viele ihrer Links zu sehen sind.
+    gruppen: wahlen.map((wahl) => [...wahl.parentElement.querySelectorAll('[data-feld] a')].filter(sichtbar).length),
+    gruppenLinks: wahlen.map((wahl) => wahl.parentElement.querySelectorAll('[data-feld] a').length),
+    probe: [...document.querySelectorAll('.mega-probe a')].filter(sichtbar).length,
+  };
+});
+async function tabBis(seite, auswahl, hoechstens = 30) {
   const weg = [];
   for (let nummer = 0; nummer < hoechstens; nummer++) {
     await seite.keyboard.press('Tab');
@@ -384,35 +393,54 @@ async function tabBis(seite, auswahl, hoechstens = 20) {
   }
   return null;
 }
+const mitte = (seite, auswahl) => seite.evaluate((ziel) => {
+  const rahmen = document.querySelector(ziel).getBoundingClientRect();
+  return { x: Math.round(rahmen.left + rahmen.width / 2), y: Math.round(rahmen.top + rahmen.height / 2), oben: rahmen.top, unten: rahmen.bottom };
+}, auswahl);
 {
   const { umgebung, seite } = await neueSeite({ ansicht: LAPTOP });
   await seite.goto(BASIS + '/', { waitUntil: 'networkidle0' });
   const weg = await tabBis(seite, '[data-mega-knopf]');
   sage(`Laptop, Tab-Reihenfolge bis zum Knopf: ${weg ? weg.join(' > ') : 'nicht erreicht'}`);
-  pruefe(!!weg, 'Laptop: Knopf "Untermenü Rezepte" mit Tab erreichbar');
+  pruefe(!!weg, 'Laptop: Knopf "Rezepte" mit Tab erreichbar');
   const umriss = await seite.evaluate(() => { const stil = getComputedStyle(document.activeElement); return `${stil.outlineStyle} ${stil.outlineWidth}`; });
   pruefe(/solid [1-9]/.test(umriss), `Laptop: Fokus sichtbar (Umriss ${umriss})`);
   await seite.keyboard.press('Enter');
   let stand = await zustand(seite);
   pruefe(stand.mega === 'true' && stand.megaSichtbar, 'Laptop: Enter öffnet das Menü (aria-expanded="true")');
-  pruefe(stand.links === stand.alleLinks, `Laptop: ${stand.links} von ${stand.alleLinks} Links sichtbar`);
+  pruefe(stand.gewaehlt.join() === 'Nach Land' && stand.gruppen[0] === stand.gruppenLinks[0] && stand.gruppen.slice(1).every((zahl) => zahl === 0),
+    `Laptop: Die erste Gruppe ist gewählt, nur ihre ${stand.gruppen[0]} Links stehen in der Mitte`);
+  pruefe(stand.probe === 3, `Laptop: rechts ${stand.probe} Rezepte mit Bild`);
   await seite.keyboard.press('Tab');
   const erster = await aktiv(seite);
-  pruefe(erster.mega && erster.marke === 'A', `Laptop: Tab führt in das Menü, erster Link "${erster.name}"`);
+  pruefe(erster.mega, `Laptop: Tab führt in das Menü, zuerst "${erster.name}"`);
   await seite.keyboard.press('Escape');
   stand = await zustand(seite);
   const danach = await seite.evaluate(() => document.activeElement.matches('[data-mega-knopf]'));
   pruefe(stand.mega === 'false' && !stand.megaSichtbar && danach, 'Laptop: Esc schließt das Menü, der Fokus steht wieder auf dem Knopf');
   await seite.keyboard.press('Space');
   // Ein Klick neben dem Menü: knapp unter seinem unteren Rand (das Menü ist je nach Zahl der Themen verschieden hoch).
-  const unten = await seite.evaluate(() => Math.round(document.querySelector('#mega-rezepte').getBoundingClientRect().bottom));
+  const unten = await seite.evaluate(() => Math.round(document.querySelector('#mega-rezepte .mega-innen').getBoundingClientRect().bottom));
   pruefe(unten + 40 < LAPTOP.height, `Laptop: Das offene Menü passt in das Fenster (unterer Rand bei ${unten} von ${LAPTOP.height} Pixel)`);
   await seite.mouse.click(700, Math.min(unten + 30, LAPTOP.height - 5));
   pruefe((await zustand(seite)).mega === 'false', 'Laptop: Leertaste öffnet, ein Klick daneben schließt');
 
-  // Was ein Bildschirmleser gemeldet bekommt: Baum der Bedienungshilfen für die Navigation.
+  // Gruppen wechseln per Klick und per Tastatur.
   await seite.focus('[data-mega-knopf]');
   await seite.keyboard.press('Enter');
+  await seite.click('[data-wahl][aria-controls="mega-ohne"]');
+  stand = await zustand(seite);
+  pruefe(stand.gewaehlt.join() === 'Ohne …' && stand.gruppen[2] === stand.gruppenLinks[2] && stand.gruppen[0] === 0, 'Laptop: Ein Klick auf "Ohne …" zeigt nur die Links dieser Gruppe');
+  await seite.focus('[data-wahl][aria-controls="mega-kategorie"]');
+  await seite.keyboard.press('Enter');
+  stand = await zustand(seite);
+  pruefe(stand.gewaehlt.join() === 'Nach Kategorie', 'Laptop: Enter auf einer Gruppe wählt sie');
+  await seite.keyboard.press('Tab');
+  const inGruppe = await aktiv(seite);
+  pruefe(inGruppe.mega && inGruppe.marke === 'A', `Laptop: Tab führt von der Gruppe zu ihren Links ("${inGruppe.name}")`);
+
+  // Was ein Bildschirmleser gemeldet bekommt: Baum der Bedienungshilfen für die Navigation.
+  await seite.click('[data-wahl][aria-controls="mega-land"]');
   const baum = await seite.accessibility.snapshot({ root: await seite.$('nav.haupt'), interestingOnly: false });
   const zeilenBaum = [];
   (function lauf(knoten, ebene) {
@@ -427,46 +455,271 @@ async function tabBis(seite, auswahl, hoechstens = 20) {
   writeFileSync(join(ZIEL, 'menue_baum.txt'), zeilenBaum.join('\n'), 'utf8');
   const text = zeilenBaum.join('\n');
   pruefe(/navigation "Hauptnavigation"/.test(text), 'Baum: Navigation heißt "Hauptnavigation"');
-  pruefe(/button "Untermenü Rezepte" \(aufgeklappt\)/.test(text), 'Baum: Knopf "Untermenü Rezepte" meldet "aufgeklappt"');
-  for (const name of ['Nach Land', 'Nach Kategorie', 'Ohne ...', 'Passt für']) pruefe(text.includes(`list "${name}"`), `Baum: Liste "${name}" hat ihren Namen`);
-  pruefe(text.includes('link "Rezepte ohne Nüsse"') && text.includes('link "Rezepte aus: Italien"') && text.includes('link "Rezepte, passt für: Vegan"'), 'Baum: Links tragen den vollen Text (z. B. "Rezepte ohne Nüsse")');
+  pruefe(/button "Rezepte" \(aufgeklappt\)/.test(text), 'Baum: Knopf "Rezepte" meldet "aufgeklappt"');
+  pruefe(/button "Nach Land" \(aufgeklappt\)/.test(text) && /button "Nach Kategorie" \(zugeklappt\)/.test(text), 'Baum: Die Gruppen melden "aufgeklappt" und "zugeklappt"');
+  pruefe(text.includes('list "Nach Land"') && text.includes('list "Zum Ausprobieren"'), 'Baum: Die Listen haben ihren Namen');
+  pruefe(text.includes('link "Rezepte aus: Italien"') && /link "Alle \d+ Rezepte"/.test(text), 'Baum: Links tragen den vollen Text (z. B. "Rezepte aus: Italien")');
   sage(`Baum der Bedienungshilfen: ${zeilenBaum.length} Zeilen in menue_baum.txt`);
+  await seite.keyboard.press('Escape');
+
+  // Mauszeiger: öffnet nach kurzer Verzögerung, bleibt auf dem Weg nach unten offen, schließt erst nach einer Weile
+  // außerhalb. Zwischen "Rezepte" und dem Menü liegt keine Lücke.
+  await seite.mouse.move(5, 500);
+  await warte(450);
+  const knopf = await mitte(seite, '[data-mega-knopf]');
+  await seite.mouse.move(knopf.x, knopf.y);
+  pruefe((await zustand(seite)).mega === 'false', 'Maus: Das Menü öffnet nicht im selben Augenblick (kurze Verzögerung)');
+  await warte(260);
+  pruefe((await zustand(seite)).mega === 'true', 'Maus: Nach kurzer Verzögerung ist das Menü offen');
+  const feld = await mitte(seite, '#mega-rezepte .mega-innen');
+  const luecke = await seite.evaluate((x, von, bis) => {
+    for (let y = Math.floor(von); y <= Math.ceil(bis) + 2; y++) {
+      if (!document.elementFromPoint(x, y)?.closest('[data-mega-eintrag]')) return y;
+    }
+    return null;
+  }, knopf.x, knopf.unten, feld.oben);
+  pruefe(luecke === null, `Maus: keine Lücke zwischen "Rezepte" und dem Menü${luecke === null ? '' : ` (Lücke bei y = ${luecke})`}`);
+  // Langsam nach unten in das Menü, in kleinen Schritten.
+  for (let y = knopf.y; y <= feld.oben + 60; y += 6) { await seite.mouse.move(knopf.x, y); await warte(12); }
+  pruefe((await zustand(seite)).mega === 'true', 'Maus: Beim Runterfahren in das Menü bleibt es offen');
+  // Kurz daneben geraten und zurück: Das Menü bleibt offen.
+  await seite.mouse.move(knopf.x, feld.unten + 40);
+  await warte(150);
+  pruefe((await zustand(seite)).mega === 'true', 'Maus: 150 ms außerhalb schließen das Menü noch nicht');
+  await seite.mouse.move(knopf.x, feld.oben + 60);
+  await warte(400);
+  pruefe((await zustand(seite)).mega === 'true', 'Maus: Zurück im Menü bleibt es offen');
+  // Gruppe wechseln mit dem Mauszeiger.
+  const kategorie = await mitte(seite, '[data-wahl][aria-controls="mega-kategorie"]');
+  await seite.mouse.move(kategorie.x, kategorie.y);
+  await warte(280);
+  pruefe((await zustand(seite)).gewaehlt.join() === 'Nach Kategorie', 'Maus: Überfahren einer Gruppe wählt sie');
+  await seite.mouse.move(knopf.x, feld.unten + 60);
+  await warte(520);
+  pruefe((await zustand(seite)).mega === 'false', 'Maus: Etwa 300 ms außerhalb schließen das Menü');
   await umgebung.close();
 }
 {
   const { umgebung, seite } = await neueSeite({ ansicht: HANDY });
   await seite.goto(BASIS + '/', { waitUntil: 'networkidle0' });
   let stand = await zustand(seite);
-  pruefe(!stand.listeSichtbar, 'Handy: Liste ist am Anfang zugeklappt');
+  pruefe(!stand.listeSichtbar, 'Handy: Das Menü ist am Anfang zu');
   pruefe(!!(await tabBis(seite, '[data-menue]')), 'Handy: Knopf "Menü" mit Tab erreichbar');
   await seite.keyboard.press('Enter');
   stand = await zustand(seite);
-  pruefe(stand.menue === 'true' && stand.listeSichtbar, 'Handy: Enter klappt die Liste auf');
-  pruefe(!!(await tabBis(seite, '[data-mega-knopf]')), 'Handy: Knopf "Untermenü Rezepte" mit Tab erreichbar');
+  pruefe(stand.menue === 'true' && stand.listeSichtbar, 'Handy: Enter öffnet das Menü');
+  const flaeche = await seite.evaluate(() => {
+    const rahmen = document.querySelector('#hauptliste').getBoundingClientRect();
+    return { breite: Math.round(rahmen.width), unten: Math.round(rahmen.bottom), name: document.querySelector('[data-menue]').textContent.trim() };
+  });
+  pruefe(flaeche.breite === HANDY.width && flaeche.unten === HANDY.height, `Handy: Das Menü füllt den Bildschirm unter dem Kopf (${flaeche.breite} px breit, bis ${flaeche.unten} px)`);
+  pruefe(flaeche.name === 'Menü schließen', `Handy: Der Knopf heißt jetzt "${flaeche.name}"`);
+  pruefe(stand.probe === 3, `Handy: unten ${stand.probe} Rezepte zum Ausprobieren`);
+  pruefe(!!(await tabBis(seite, '[data-mega-knopf]')), 'Handy: Knopf "Rezepte" mit Tab erreichbar');
   await seite.keyboard.press('Enter');
   stand = await zustand(seite);
-  pruefe(stand.megaSichtbar && stand.links === stand.alleLinks, `Handy: Untermenü aufgeklappt, ${stand.links} von ${stand.alleLinks} Links sichtbar`);
-  const hoehe = await seite.evaluate(() => Math.min(...[...document.querySelectorAll('.haupt button')].map((knopf) => knopf.getBoundingClientRect().height)));
+  const wahlen = await seite.evaluate(() => [...document.querySelectorAll('.mega .alle a, [data-wahl]')].filter((el) => el.getClientRects().length > 0).map((el) => el.textContent.trim()));
+  pruefe(stand.megaSichtbar && stand.gewaehlt.length === 0 && stand.gruppen.every((zahl) => zahl === 0), 'Handy: "Rezepte" klappt auf, noch ist keine Gruppe offen');
+  pruefe(/^Alle \d+ Rezepte$/.test(wahlen[0]) && wahlen.slice(1).join() === 'Nach Land,Nach Kategorie,Ohne …,Vegetarisch und vegan', `Handy: darin ${wahlen.join(', ')}`);
+  const hoehe = await seite.evaluate(() => Math.min(...[...document.querySelectorAll('.haupt button')].filter((knopf) => knopf.getClientRects().length > 0).map((knopf) => knopf.getBoundingClientRect().height)));
   pruefe(hoehe >= 44, `Handy: Knöpfe mindestens 44 px hoch (${Math.round(hoehe)} px)`);
+  await tabBis(seite, '[data-wahl][aria-controls="mega-land"]');
+  await seite.keyboard.press('Enter');
+  stand = await zustand(seite);
+  const ebene = await seite.evaluate(() => {
+    const rahmen = document.querySelector('#mega-land').getBoundingClientRect();
+    return { breite: Math.round(rahmen.width), unten: Math.round(rahmen.bottom), fokus: document.activeElement.matches('#mega-land [data-zurueck]') };
+  });
+  pruefe(stand.gewaehlt.join() === 'Nach Land' && stand.gruppen[0] === stand.gruppenLinks[0], `Handy: Die Gruppe öffnet eine Ebene mit ihren ${stand.gruppen[0]} Links`);
+  pruefe(ebene.breite === HANDY.width && ebene.unten === HANDY.height && ebene.fokus, 'Handy: Die Ebene füllt den Bildschirm, der Fokus steht auf "Zurück"');
+  await seite.keyboard.press('Enter');
+  stand = await zustand(seite);
+  pruefe(stand.gewaehlt.length === 0 && (await seite.evaluate(() => document.activeElement.matches('[data-wahl][aria-controls="mega-land"]'))), 'Handy: "Zurück" schließt die Ebene, der Fokus steht wieder auf der Gruppe');
+  await seite.keyboard.press('Enter');
   await seite.keyboard.press('Escape');
   stand = await zustand(seite);
-  pruefe(stand.mega === 'false' && stand.menue === 'true', 'Handy: Esc schließt zuerst das Untermenü');
+  pruefe(stand.gewaehlt.length === 0 && stand.mega === 'true', 'Handy: Esc schließt zuerst die Ebene');
   await seite.keyboard.press('Escape');
   stand = await zustand(seite);
-  pruefe(stand.menue === 'false' && (await seite.evaluate(() => document.activeElement.matches('[data-menue]'))), 'Handy: zweites Esc schließt die Liste, der Fokus steht auf "Menü"');
+  pruefe(stand.mega === 'false' && stand.menue === 'true', 'Handy: das zweite Esc klappt "Rezepte" zu');
+  await seite.keyboard.press('Escape');
+  stand = await zustand(seite);
+  pruefe(stand.menue === 'false' && (await seite.evaluate(() => document.activeElement.matches('[data-menue]'))), 'Handy: das dritte Esc schließt das Menü, der Fokus steht auf "Menü"');
+  // Antippen statt Tastatur.
+  await seite.tap('[data-menue]');
+  await seite.tap('[data-mega-knopf]');
+  await seite.tap('[data-wahl][aria-controls="mega-ohne"]');
+  stand = await zustand(seite);
+  pruefe(stand.gewaehlt.join() === 'Ohne …' && stand.gruppen[2] === stand.gruppenLinks[2], 'Handy: Tippen öffnet Menü, "Rezepte" und die Ebene "Ohne …"');
   await umgebung.close();
 }
 for (const [name, ansicht] of [['Handy', HANDY], ['Laptop', LAPTOP]]) {
   const { umgebung, seite } = await neueSeite({ ansicht, skript: false });
   await seite.goto(BASIS + '/', { waitUntil: 'load' });
-  if (name === 'Laptop') await tabBis(seite, '.mit-menue > .haupt-zeile > a');
+  if (name === 'Laptop') await tabBis(seite, '.mit-menue > .mega-link');
   const stand = await zustand(seite);
   const fokus = name === 'Laptop' ? ` (Fokus auf "${(await aktiv(seite)).name}")` : '';
-  pruefe(stand.links === stand.alleLinks, `Ohne JavaScript, ${name}: ${stand.links} von ${stand.alleLinks} Links sichtbar${fokus}`);
+  // Ohne JavaScript stehen alle Themen da; die drei Rezepte mit Bild gibt es je Breite einmal.
+  const themen = stand.gruppen.every((zahl, nummer) => zahl === stand.gruppenLinks[nummer]);
+  pruefe(themen, `Ohne JavaScript, ${name}: alle Themen des Menüs sichtbar (${stand.gruppen.join(' + ')} Links)${fokus}`);
   if (name === 'Handy') {
     const inhalt = await seite.evaluate(() => [...document.querySelectorAll('.held h1, [data-person], .schritt, .glaskarte, .zaehler li, .rezeptkarte')].every((element) => getComputedStyle(element).opacity === '1'));
     pruefe(inhalt, 'Ohne JavaScript: Inhalte der Startseite sichtbar');
   }
+  await umgebung.close();
+}
+
+// 4b Rezeptübersicht: Filter (Entwurf 1, AP-17 Teil E3)
+sage();
+sage('## 4b Rezeptübersicht: Suche und Filter');
+const treffer = (seite) => seite.evaluate(() => ({
+  karten: [...document.querySelectorAll('[data-karte]')].filter((karte) => !karte.hidden).length,
+  stand: document.querySelector('[data-stand]').textContent.trim(),
+  aktiv: [...document.querySelectorAll('[data-aktiv-liste] button')].map((knopf) => knopf.textContent.trim()),
+  knoepfe: [...document.querySelectorAll('[data-knopf] [data-knopf-text]')].map((el) => el.textContent.trim()),
+  adresse: window.location.pathname + window.location.search,
+}));
+const waehle = (seite, gruppe, wert) => seite.evaluate((art, was) => {
+  const feld = document.querySelector(`[data-gruppe="${art}"] input[value="${was}"]`);
+  feld.checked = !feld.checked;
+  feld.dispatchEvent(new Event('change', { bubbles: true }));
+}, gruppe, wert);
+{
+  const { umgebung, seite } = await neueSeite({ ansicht: LAPTOP });
+  await seite.goto(BASIS + '/rezepte/', { waitUntil: 'networkidle0' });
+  let stand = await treffer(seite);
+  const alle = stand.karten;
+  pruefe(alle > 0 && stand.stand === `${alle} Rezepte` && stand.aktiv.length === 0, `Laptop: am Anfang alle ${alle} Rezepte, kein Filter gewählt`);
+  pruefe(stand.knoepfe.join() === 'Kategorie,Land,Passt für', `Laptop: drei Auswahlknöpfe (${stand.knoepfe.join(', ')})`);
+  const ohneAlle = await seite.evaluate(() => [...document.querySelectorAll('[data-filter] button, [data-filter] label')].every((el) => el.textContent.trim() !== 'Alle'));
+  pruefe(ohneAlle, 'Laptop: kein Knopf "Alle"');
+  // Liste öffnen: nur Möglichkeiten mit Rezepten, jede mit Anzahl.
+  await seite.click('[data-gruppe="land"] [data-knopf]');
+  const liste = await seite.evaluate(() => {
+    const gruppe = document.querySelector('[data-gruppe="land"]');
+    const punkte = [...gruppe.querySelectorAll('li')];
+    return {
+      offen: gruppe.querySelector('[data-knopf]').getAttribute('aria-expanded'),
+      sichtbar: punkte.filter((punkt) => punkt.getClientRects().length > 0).length,
+      alle: punkte.length,
+      zahlen: punkte.every((punkt) => Number(punkt.querySelector('.f-anzahl').textContent) > 0),
+      knoepfe: [...gruppe.querySelectorAll('[data-feld] button')].filter((knopf) => knopf.getClientRects().length > 0).map((knopf) => knopf.textContent.trim()),
+    };
+  });
+  pruefe(liste.offen === 'true' && liste.zahlen, `Laptop: "Land" öffnet eine Liste zum Ankreuzen, jede der ${liste.alle} Möglichkeiten hat Rezepte und nennt ihre Anzahl`);
+  pruefe(liste.knoepfe.includes('Zurücksetzen') && liste.knoepfe.includes('Fertig'), `Laptop: Knöpfe der Liste: ${liste.knoepfe.join(', ')}`);
+  if (liste.knoepfe.includes('Weitere Länder anzeigen')) {
+    await seite.click('[data-gruppe="land"] [data-mehr]');
+    const danach = await seite.evaluate(() => [...document.querySelectorAll('[data-gruppe="land"] li')].filter((punkt) => punkt.getClientRects().length > 0).length);
+    pruefe(liste.sichtbar < liste.alle && danach === liste.alle, `Laptop: zuerst ${liste.sichtbar} Länder, nach "Weitere Länder anzeigen" alle ${danach}`);
+  }
+  // Verknüpfung: oder innerhalb von Land und Kategorie, und innerhalb von "Passt für", und zwischen den Gruppen.
+  const zaehle = (probe) => seite.evaluate((quelle) => {
+    const pruefung = new Function('k', `return ${quelle}`);
+    return [...document.querySelectorAll('[data-karte]')].filter((karte) => pruefung({ kategorie: karte.dataset.kategorie, land: karte.dataset.land.split(' '), passt: karte.dataset.passt.split(' ') })).length;
+  }, probe);
+  await waehle(seite, 'land', 'IT');
+  stand = await treffer(seite);
+  pruefe(stand.karten === (await zaehle("k.land.includes('IT')")) && stand.stand === (stand.karten === 1 ? '1 Rezept' : `${stand.karten} Rezepte`), `Laptop: Land Italien: ${stand.stand}`);
+  pruefe(stand.knoepfe[1] === 'Land: Italien' && stand.aktiv.join() === 'Italien', 'Laptop: Der Knopf nennt die Auswahl, darunter steht ein Kärtchen "Italien"');
+  await waehle(seite, 'land', 'AT');
+  stand = await treffer(seite);
+  pruefe(stand.karten === (await zaehle("k.land.includes('IT') || k.land.includes('AT')")), `Laptop: Italien oder Österreich: ${stand.stand} (oder innerhalb von Land)`);
+  await waehle(seite, 'kategorie', 'SUESSSPEISE');
+  stand = await treffer(seite);
+  pruefe(stand.karten === (await zaehle("(k.land.includes('IT') || k.land.includes('AT')) && k.kategorie === 'SUESSSPEISE'")), `Laptop: dazu Kategorie Süßspeise: ${stand.stand} (und zwischen den Gruppen)`);
+  // Die Liste "Land" ist noch offen und liegt über den Kärtchen: "Fertig" schließt sie.
+  await seite.click('[data-gruppe="land"] [data-fertig]');
+  const landZu = await seite.evaluate(() => document.querySelector('[data-gruppe="land"] [data-knopf]').getAttribute('aria-expanded') === 'false');
+  pruefe(landZu, 'Laptop: "Fertig" schließt die Liste');
+  await seite.click('[data-filter] [data-alle-leeren]');
+  stand = await treffer(seite);
+  pruefe(stand.karten === alle && stand.aktiv.length === 0, 'Laptop: "Alle Filter zurücksetzen" zeigt wieder alle Rezepte');
+  await waehle(seite, 'passt', 'en:nuts');
+  const ohneNuesse = (await treffer(seite)).karten;
+  await waehle(seite, 'passt', 'en:vegan');
+  stand = await treffer(seite);
+  pruefe(stand.karten === (await zaehle("k.passt.includes('en:nuts') && k.passt.includes('en:vegan')")) && stand.karten <= ohneNuesse, `Laptop: Ohne Nüsse und Vegan: ${stand.stand} von ${ohneNuesse} ohne Nüsse (und innerhalb von "Passt für")`);
+  // Kärtchen mit X entfernt einen Filter.
+  await seite.click('[data-aktiv-liste] button');
+  stand = await treffer(seite);
+  pruefe(stand.aktiv.length === 1, `Laptop: Das X am Kärtchen nimmt den Filter weg (übrig: ${stand.aktiv.join(', ')})`);
+  await seite.click('[data-filter] [data-alle-leeren]');
+  // Suche
+  await seite.type('[data-suche]', 'mozzarella');
+  stand = await treffer(seite);
+  pruefe(stand.karten > 0 && stand.karten < alle, `Laptop: Suche nach einer Zutat ("mozzarella"): ${stand.stand}`);
+  pruefe(stand.adresse === '/rezepte/', `Laptop: Die Adresse bleibt ${stand.adresse} (keine neuen Adressen durch Filter)`);
+  // Tastatur: Esc schließt die Liste, der Fokus steht auf ihrem Knopf.
+  await seite.focus('[data-gruppe="kategorie"] [data-knopf]');
+  await seite.keyboard.press('Enter');
+  await seite.keyboard.press('Tab');
+  const imFeld = await seite.evaluate(() => document.activeElement.matches('[data-gruppe="kategorie"] input'));
+  await seite.keyboard.press('Space');
+  await seite.keyboard.press('Escape');
+  const nachEsc = await seite.evaluate(() => ({ zu: document.querySelector('[data-gruppe="kategorie"] [data-knopf]').getAttribute('aria-expanded') === 'false', fokus: document.activeElement.matches('[data-gruppe="kategorie"] [data-knopf]') }));
+  pruefe(imFeld && nachEsc.zu && nachEsc.fokus, 'Laptop: Tastatur: Enter öffnet, Tab und Leertaste kreuzen an, Esc schließt und gibt den Fokus zurück');
+  const themen = await seite.evaluate(() => ({ titel: document.querySelector('#themen')?.textContent.trim(), links: document.querySelectorAll('.f-themen a').length }));
+  pruefe(themen.titel === 'Mehr Themen' && themen.links === 6, `Laptop: am Ende "${themen.titel}" mit ${themen.links} Links`);
+  await umgebung.close();
+}
+{
+  const { umgebung, seite } = await neueSeite({ ansicht: HANDY });
+  await seite.goto(BASIS + '/rezepte/', { waitUntil: 'networkidle0' });
+  const alle = (await treffer(seite)).karten;
+  const anfang = await seite.evaluate(() => ({
+    knopf: document.querySelector('[data-blatt-auf]').getClientRects().length > 0,
+    blatt: document.querySelector('[data-blatt]').getClientRects().length > 0,
+  }));
+  pruefe(anfang.knopf && !anfang.blatt, 'Handy: ein Knopf "Filter", das Blatt ist zu');
+  await seite.tap('[data-blatt-auf]');
+  await warte(400);
+  let blatt = await seite.evaluate(() => {
+    const el = document.querySelector('[data-blatt]');
+    const rahmen = el.getBoundingClientRect();
+    return {
+      rolle: el.getAttribute('role'), modal: el.getAttribute('aria-modal'), unten: Math.round(rahmen.bottom), breite: Math.round(rahmen.width),
+      gruppen: [...el.querySelectorAll('[data-knopf]')].map((knopf) => knopf.textContent.trim()),
+      zeigen: el.querySelector('[data-zeigen]').textContent.trim(),
+      fokus: el.contains(document.activeElement),
+    };
+  });
+  pruefe(blatt.rolle === 'dialog' && blatt.modal === 'true' && blatt.unten === HANDY.height && blatt.breite === HANDY.width, 'Handy: "Filter" öffnet ein Blatt von unten (Dialog über die ganze Breite)');
+  pruefe(blatt.gruppen.join() === 'Kategorie,Land,Passt für' && blatt.fokus, `Handy: im Blatt die drei Gruppen zum Aufklappen (${blatt.gruppen.join(', ')}), der Fokus steht im Blatt`);
+  pruefe(blatt.zeigen === `${alle} Rezepte anzeigen`, `Handy: Knopf "${blatt.zeigen}"`);
+  await waehle(seite, 'land', 'IT');
+  await waehle(seite, 'passt', 'en:vegetarian');
+  const gefiltert = await treffer(seite);
+  blatt = await seite.evaluate(() => ({ zeigen: document.querySelector('[data-zeigen]').textContent.trim(), marke: document.querySelector('[data-aktiv-zahl]').textContent.trim() }));
+  pruefe(blatt.zeigen === (gefiltert.karten === 1 ? '1 Rezept anzeigen' : `${gefiltert.karten} Rezepte anzeigen`), `Handy: Der Knopf zählt mit: "${blatt.zeigen}"`);
+  // Der Fokus bleibt im Blatt.
+  let drin = true;
+  for (let nummer = 0; nummer < 40; nummer++) {
+    await seite.keyboard.press('Tab');
+    drin = drin && (await seite.evaluate(() => document.querySelector('[data-blatt]').contains(document.activeElement)));
+  }
+  pruefe(drin, 'Handy: Tab bleibt im Blatt');
+  await seite.tap('[data-zeigen]');
+  const zu = await seite.evaluate(() => ({
+    blatt: document.querySelector('[data-blatt]').getClientRects().length > 0,
+    fokus: document.activeElement.matches('[data-blatt-auf]'),
+    marke: document.querySelector('[data-aktiv-zahl]').textContent.trim(),
+  }));
+  pruefe(!zu.blatt && zu.fokus && zu.marke === '2', `Handy: Der Knopf schließt das Blatt, "Filter" zeigt ${zu.marke} gewählte Filter`);
+  await seite.tap('[data-blatt-auf]');
+  await seite.keyboard.press('Escape');
+  pruefe(await seite.evaluate(() => document.querySelector('[data-blatt]').getClientRects().length === 0 && document.activeElement.matches('[data-blatt-auf]')), 'Handy: Esc schließt das Blatt');
+  await umgebung.close();
+}
+{
+  const { umgebung, seite } = await neueSeite({ ansicht: LAPTOP, skript: false });
+  await seite.goto(BASIS + '/rezepte/', { waitUntil: 'load' });
+  const ohne = await seite.evaluate(() => ({
+    karten: [...document.querySelectorAll('[data-karte]')].filter((karte) => karte.getClientRects().length > 0).length,
+    alle: document.querySelectorAll('[data-karte]').length,
+    leiste: document.querySelector('[data-filter]').getClientRects().length > 0,
+  }));
+  pruefe(ohne.karten === ohne.alle && !ohne.leiste, `Ohne JavaScript: alle ${ohne.karten} Rezepte stehen da, die Filterleiste entfällt`);
   await umgebung.close();
 }
 

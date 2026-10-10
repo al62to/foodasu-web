@@ -10,7 +10,7 @@ import { fuss } from '../daten/startseite.mjs';
 import {
   rezepte, texte, LAND, KATEGORIE, AUFWAND, ENERGIE, QUELLE, NAEHRWERT, STAND, ausLand, zahl, dauer, iso, portionen,
   zutatText, hinweiseVon, hinweisText, ohneHinweis, ernaehrung, einleitung, themaZu, ziel, aehnliche, schrittName, rezeptAdresse,
-  quelleAdresse, EINTRAEGE,
+  quelleAdresse, EINTRAEGE, suchtitel,
 } from '../daten/rezeptseiten.mjs';
 
 const { slug } = Astro.props;
@@ -19,7 +19,7 @@ const adresse = rezeptAdresse(rezept);
 const voll = seite.adresse + adresse;
 const eintragVon = new Map(EINTRAEGE.map((eintrag) => [eintrag.schluessel, eintrag]));
 const text = einleitung(rezept);
-const titel = `${rezept.kurztitel}: Rezept mit Hinweisen zu den Zutaten | ${seite.name}`;
+const titel = `${suchtitel(rezept)}: Rezept mit Hinweisen zu den Zutaten | ${seite.name}`;
 const beschreibung = text.length > 158 ? text.slice(0, 157).replace(/\s+\S*$/, '') + '…' : text;
 
 const bild = (name, endung) => `/bilder/rezepte/${rezept.slug}-${name}.${endung}`;

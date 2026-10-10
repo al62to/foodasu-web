@@ -1,10 +1,13 @@
 ---
-// Kopf mit Logo und Hauptnavigation. Das Mega-Menü unter "Rezepte" folgt dem Muster "Disclosure Navigation": echte
-// Links, ein eigener Knopf mit aria-expanded, Esc schließt. Ohne JavaScript bleiben alle Links les- und klickbar
-// (am Laptop öffnet sich das Menü bei Fokus oder Mauszeiger, am Handy steht es ausgeklappt da).
+// Kopf mit Logo und Hauptnavigation. Das Mega-Menü unter "Rezepte" folgt Entwurf A (AP-17 Teil E2): links die
+// Gruppen, in der Mitte die Links der gewählten Gruppe, rechts drei Rezepte mit Bild. Am Handy füllt das Menü den
+// Bildschirm; "Rezepte" klappt auf, jede Gruppe öffnet eine eigene Ebene mit "Zurück".
+// Muster "Disclosure Navigation": echte Links, Knöpfe mit aria-expanded, Esc schließt. Ohne JavaScript bleiben alle
+// Links les- und klickbar (am Laptop öffnet sich das Menü bei Fokus oder Mauszeiger, am Handy steht es ausgeklappt da).
 import Logo from './Logo.astro';
+import MegaProbe from './MegaProbe.astro';
 import { hauptpunkte, mega } from '../daten/navigation.mjs';
-import { geruest } from '../daten/startseite.mjs';
+import { fuss, geruest } from '../daten/startseite.mjs';
 
 const pfad = Astro.url.pathname;
 const aktuell = (ziel) => (ziel === '/' ? pfad === '/' : pfad.startsWith(ziel));
@@ -13,75 +16,152 @@ const aktuell = (ziel) => (ziel === '/' ? pfad === '/' : pfad.startsWith(ziel));
   <div class="innen kopf-innen" data-nav>
     <a class="marke" href="/" aria-label={geruest.marke}><Logo /></a>
     <nav class="haupt" aria-label={geruest.navigation}>
-      <button class="knopf-schlicht menue-knopf" type="button" aria-expanded="false" aria-controls="hauptliste" data-menue>
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 6h18M3 12h18M3 18h18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
-        {geruest.menue}
+      <button class="knopf-schlicht menue-knopf" type="button" aria-expanded="false" aria-controls="hauptliste" data-menue data-auf={geruest.menue} data-zu={geruest.menueZu}>
+        <svg class="z-auf" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 6h18M3 12h18M3 18h18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+        <svg class="z-zu" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" /></svg>
+        <span data-menue-text>{geruest.menue}</span>
       </button>
-      <ul class="haupt-liste" id="hauptliste">
-        {hauptpunkte.map((punkt) =>
-          punkt.mega ? (
-            <li class="mit-menue" data-mega-eintrag>
-              <div class="haupt-zeile">
-                <a href={punkt.pfad} aria-current={aktuell(punkt.pfad) ? 'page' : undefined}>{punkt.titel}</a>
-                <button class="knopf-schlicht mega-knopf" type="button" aria-expanded="false" aria-controls="mega-rezepte" aria-label={geruest.untermenue} data-mega-knopf>
-                  <svg class="pfeil" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      <div class="haupt-flaeche" id="hauptliste">
+        <ul class="haupt-liste">
+          {hauptpunkte.map((punkt) =>
+            punkt.mega ? (
+              <li class="mit-menue" data-mega-eintrag>
+                <a class="mega-link" href={punkt.pfad} aria-current={aktuell(punkt.pfad) ? 'page' : undefined}>{punkt.titel}</a>
+                <button class:list={['mega-knopf', { hier: aktuell(punkt.pfad) }]} type="button" aria-expanded="false" aria-controls="mega-rezepte" data-mega-knopf>
+                  {punkt.titel}
+                  <svg class="pfeil" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" /></svg>
                 </button>
-              </div>
-              <div class="mega" id="mega-rezepte">
-                <div class="innen mega-innen">
-                  {mega.spalten.map((spalte) => (
-                    <div class:list={['mega-spalte', { breit: spalte.breit }]}>
-                      {spalte.gruppen.map((gruppe) => (
+                <div class="mega" id="mega-rezepte" data-mega>
+                  <div class="mega-innen">
+                    <div class="mega-gruppen">
+                      <p class="mega-kopf">{mega.titel}</p>
+                      <p class="alle"><a href={mega.alle.ziel}>
+                        {mega.alle.titel}
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                      </a></p>
+                      {mega.gruppen.map((gruppe) => (
                         <div class="mega-gruppe">
-                          <p class="mega-titel" id={`mega-${gruppe.kennung}`}>{gruppe.titel}</p>
-                          <ul aria-labelledby={`mega-${gruppe.kennung}`}>
-                            {gruppe.eintraege.map((eintrag) => (
-                              <li><a href={eintrag.ziel}><span class="vh">{eintrag.vorsatz}</span>{eintrag.name}</a></li>
-                            ))}
-                          </ul>
+                          <button class="mega-wahl" type="button" aria-expanded="false" aria-controls={`mega-${gruppe.kennung}`} data-wahl>
+                            {gruppe.titel}
+                            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                          </button>
+                          <div class="mega-feld" id={`mega-${gruppe.kennung}`} data-feld>
+                            <button class="mega-zurueck" type="button" data-zurueck>
+                              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                              {mega.zurueck}
+                            </button>
+                            <p class="mega-titel" id={`mega-titel-${gruppe.kennung}`}>{gruppe.titel}</p>
+                            <ul aria-labelledby={`mega-titel-${gruppe.kennung}`}>
+                              {gruppe.eintraege.map((eintrag) => (
+                                <li><a href={eintrag.ziel}><span class="vh">{eintrag.vorsatz}</span>{eintrag.name}</a></li>
+                              ))}
+                            </ul>
+                          </div>
                         </div>
                       ))}
                     </div>
-                  ))}
-                  <p class="alle"><a href={mega.alle.ziel}>{mega.alle.titel}</a></p>
+                    <MegaProbe />
+                  </div>
                 </div>
-              </div>
-            </li>
-          ) : (
-            <li><a href={punkt.pfad} aria-current={aktuell(punkt.pfad) ? 'page' : undefined}>{punkt.titel}</a></li>
-          )
-        )}
-      </ul>
+              </li>
+            ) : (
+              <li><a href={punkt.pfad} aria-current={aktuell(punkt.pfad) ? 'page' : undefined}>{punkt.titel}</a></li>
+            )
+          )}
+        </ul>
+        <MegaProbe mobil />
+        <ul class="haupt-recht">
+          <li><a href="/datenschutz.html">{fuss.links.datenschutz}</a></li>
+          <li><a href="/offenlegung/">{fuss.links.offenlegung}</a></li>
+        </ul>
+      </div>
     </nav>
   </div>
 </header>
 
 <script>
+  // Mega-Menü und Menü am Handy. Zustand nur in aria-expanded; nichts wird gespeichert.
+  // Laptop: Der Mauszeiger öffnet nach kurzer Verzögerung und schließt erst, wenn er eine Weile außerhalb war; so
+  // geht das Menü nicht zu, wenn die Maus auf dem Weg nach unten kurz daneben gerät. Klick, Enter und Leertaste
+  // öffnen und schließen ebenfalls, Esc schließt.
   const nav = document.querySelector('[data-nav]');
   const menue = nav?.querySelector('[data-menue]');
   const knopf = nav?.querySelector('[data-mega-knopf]');
   const eintrag = nav?.querySelector('[data-mega-eintrag]');
   if (nav && menue && knopf && eintrag) {
+    const OEFFNEN_MS = 100;
+    const SCHLIESSEN_MS = 300;
+    const WECHSEL_MS = 120;
     const breit = window.matchMedia('(min-width: 56rem)');
+    const wahlen = [...eintrag.querySelectorAll('[data-wahl]')];
+    const wurzel = document.documentElement;
     const offen = (el) => el.getAttribute('aria-expanded') === 'true';
     const setze = (el, wert) => el.setAttribute('aria-expanded', String(wert));
-    const schliesse = () => {
+    let uhr = 0;
+    let wechselUhr = 0;
+
+    // Am Laptop ist immer genau eine Gruppe gewählt, am Handy höchstens eine (ihre Ebene liegt dann über dem Menü).
+    const waehle = (wahl) => {
+      for (const andere of wahlen) setze(andere, andere === wahl);
+    };
+    const oeffneMega = () => {
+      if (breit.matches && !wahlen.some(offen)) waehle(wahlen[0]);
+      if (!breit.matches) waehle(null);
+      setze(knopf, true);
+    };
+    const schliesseMega = () => {
       setze(knopf, false);
-      setze(menue, false);
+      if (!breit.matches) waehle(null);
+    };
+    const setzeMenue = (wert) => {
+      setze(menue, wert);
+      wurzel.classList.toggle('menue-offen', wert);
+      menue.querySelector('[data-menue-text]').textContent = wert ? menue.dataset.zu : menue.dataset.auf;
+      if (!wert) schliesseMega();
+    };
+    const schliesse = () => {
+      window.clearTimeout(uhr);
+      schliesseMega();
+      setzeMenue(false);
     };
 
-    knopf.addEventListener('click', () => setze(knopf, !offen(knopf)));
-    menue.addEventListener('click', () => {
-      setze(menue, !offen(menue));
-      if (!offen(menue)) setze(knopf, false);
+    knopf.addEventListener('click', () => {
+      window.clearTimeout(uhr);
+      if (offen(knopf)) schliesseMega();
+      else oeffneMega();
     });
+    menue.addEventListener('click', () => setzeMenue(!offen(menue)));
+
+    for (const wahl of wahlen) {
+      wahl.addEventListener('click', () => {
+        window.clearTimeout(wechselUhr);
+        // Am Handy öffnet der Knopf die Ebene der Gruppe; der Fokus geht auf ihr "Zurück".
+        waehle(wahl);
+        if (!breit.matches) wahl.parentElement.querySelector('[data-zurueck]').focus();
+      });
+      wahl.addEventListener('pointerenter', (ereignis) => {
+        if (ereignis.pointerType !== 'mouse' || !breit.matches) return;
+        window.clearTimeout(wechselUhr);
+        wechselUhr = window.setTimeout(() => waehle(wahl), WECHSEL_MS);
+      });
+      wahl.addEventListener('pointerleave', () => window.clearTimeout(wechselUhr));
+      wahl.parentElement.querySelector('[data-zurueck]').addEventListener('click', () => {
+        setze(wahl, false);
+        wahl.focus();
+      });
+    }
+
     nav.addEventListener('keydown', (ereignis) => {
       if (ereignis.key !== 'Escape') return;
-      if (offen(knopf)) {
-        setze(knopf, false);
+      const ebene = !breit.matches && wahlen.find(offen);
+      if (ebene) {
+        setze(ebene, false);
+        ebene.focus();
+      } else if (offen(knopf)) {
+        schliesseMega();
         knopf.focus();
       } else if (offen(menue)) {
-        setze(menue, false);
+        setzeMenue(false);
         menue.focus();
       }
     });
@@ -92,12 +172,15 @@ const aktuell = (ziel) => (ziel === '/' ? pfad === '/' : pfad.startsWith(ziel));
     document.addEventListener('click', (ereignis) => {
       if (!nav.contains(ereignis.target)) schliesse();
     });
-    // Am Laptop öffnet auch der Mauszeiger das Menü.
     eintrag.addEventListener('pointerenter', (ereignis) => {
-      if (ereignis.pointerType === 'mouse' && breit.matches) setze(knopf, true);
+      if (ereignis.pointerType !== 'mouse' || !breit.matches) return;
+      window.clearTimeout(uhr);
+      if (!offen(knopf)) uhr = window.setTimeout(oeffneMega, OEFFNEN_MS);
     });
     eintrag.addEventListener('pointerleave', (ereignis) => {
-      if (ereignis.pointerType === 'mouse' && breit.matches) setze(knopf, false);
+      if (ereignis.pointerType !== 'mouse' || !breit.matches) return;
+      window.clearTimeout(uhr);
+      uhr = window.setTimeout(schliesseMega, SCHLIESSEN_MS);
     });
     breit.addEventListener('change', schliesse);
   }

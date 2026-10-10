@@ -1,14 +1,16 @@
 ---
 // Karte eines Rezepts mit Symbolbild; die ganze Karte führt zum Rezept. Am Laptop neigt sie sich leicht unter dem
-// Mauszeiger (Skript in Seitenkopf.astro). Mit "filter" trägt sie die Angaben für Suche und Filter der Übersicht.
-import { texte, KATEGORIE, dauer, rezeptAdresse, ziel, filterAngaben } from '../daten/rezeptseiten.mjs';
+// Mauszeiger (Skript in Seitenkopf.astro). Mit "filter" trägt sie die Angaben für Suche und Filter der Übersicht;
+// mit "land" steht unter dem Titel das Land statt der Zeit (Übersicht nach Entwurf 1).
+import { texte, KATEGORIE, LAND, dauer, rezeptAdresse, ziel, filterAngaben } from '../daten/rezeptseiten.mjs';
 
-const { rezept, vorn = false, filter = false, ein = true } = Astro.props;
+const { rezept, vorn = false, filter = false, ein = true, land = false } = Astro.props;
 const adresse = ziel(rezeptAdresse(rezept));
 const bild = (endung, breite = 360) => `/bilder/rezepte/${rezept.slug}-karte-${breite}.${endung}`;
 const quellen = (endung) => [360, 720].map((breite) => `${bild(endung, breite)} ${breite}w`).join(', ');
 const groessen = '(min-width: 48rem) 17rem, 46vw';
-const zeile = [KATEGORIE[rezept.kategorie][0], rezept.zeitGesamt != null ? dauer(rezept.zeitGesamt) : null].filter(Boolean).join(' · ');
+const zusatz = land ? LAND[rezept.laender[0]] : rezept.zeitGesamt != null ? dauer(rezept.zeitGesamt) : null;
+const zeile = [KATEGORIE[rezept.kategorie][0], zusatz].filter(Boolean).join(' · ');
 const angaben = filter ? filterAngaben(rezept) : {};
 ---
 <li class="r-karte" data-neigung data-ein={ein && !vorn ? '' : undefined} data-karte={filter ? '' : undefined} data-kategorie={angaben.kategorie} data-land={angaben.land} data-passt={angaben.passt} data-text={angaben.text}>

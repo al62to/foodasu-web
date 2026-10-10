@@ -47,7 +47,8 @@
 }
 
 /* Inhalt */
-.s-inhalt { padding: clamp(2rem, 5vw, 3.5rem) 0 clamp(3rem, 7vw, 5rem); }
+/* Nur oben und unten: Den Rand links und rechts setzt .innen (am Handy 1rem). */
+.s-inhalt { padding-block: clamp(2rem, 5vw, 3.5rem) clamp(3rem, 7vw, 5rem); }
 .s-teil { margin-top: clamp(2.25rem, 5vw, 3.5rem); }
 .s-teil:first-child { margin-top: 0; }
 .s-teil > h2, .s-karte > h2 { font-size: clamp(1.45rem, 3.2vw, 2rem); letter-spacing: -0.03em; }
@@ -171,23 +172,82 @@
 .r-quelle dd { margin: 0; overflow-wrap: anywhere; }
 @media (min-width: 56rem) { .r-quelle dl div { grid-template-columns: 9rem 1fr; gap: 1rem; } }
 
-/* Übersicht "Alle Rezepte": Suche und Filter ohne Server */
-.f-leiste { display: grid; gap: 0.9rem; }
-.f-suche { display: grid; gap: 0.35rem; max-width: 34rem; font-weight: 800; }
-.f-suche input { min-height: 3rem; padding: 0 1.2rem; border: 1.5px solid var(--line); border-radius: 999px; background: var(--karte); color: var(--text); font: inherit; }
-.f-gruppe { display: grid; gap: 0.4rem; margin: 0; padding: 0; border: 0; }
-.f-gruppe legend { padding: 0; font-size: 0.9rem; font-weight: 800; color: var(--muted); }
-/* Die Höhe der Filterleiste hängt nicht vom Umbruch der Schrift ab (keine Verschiebung beim Laden der Schrift):
-   am Handy je Gruppe eine Zeile zum Wischen, ab Tablet ein festes Raster aus gleich hohen Chips. */
-.f-gruppe .chips { flex-wrap: nowrap; overflow-x: auto; padding: 0.2rem 0.2rem 0.45rem; scrollbar-width: thin; }
-.f-gruppe .chip { flex: none; white-space: nowrap; }
-@media (min-width: 48rem) {
-  .f-gruppe .chips { display: grid; grid-template-columns: repeat(auto-fill, minmax(10.5rem, 1fr)); overflow: visible; padding: 0; }
-  .f-gruppe .chip { width: 100%; height: 3rem; justify-content: center; padding: 0 0.7rem; white-space: normal; text-align: center; line-height: 1.15; }
-}
-.f-stand { margin: 0; font-weight: 800; }
-.f-leer { margin: 1.5rem 0 0; }
+/* Übersicht "Rezepte" nach Entwurf 1 (AP-17 Teil E3): Suche, drei Auswahlknöpfe mit Listen zum Ankreuzen, gewählte
+   Filter als Kärtchen, Trefferzahl. Am Handy ein Knopf "Filter" mit einem Blatt von unten. Ohne JavaScript entfällt
+   die Leiste, und alle Rezepte stehen da. */
+.f-leiste { display: grid; gap: 1rem; scroll-margin-top: 5.5rem; }
 html:not(.js) .f-leiste { display: none; }
+.f-leiste svg { flex: none; width: 1.15rem; height: 1.15rem; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.f-suche { display: flex; align-items: center; gap: 0.75rem; max-width: 45rem; min-height: 3.6rem; padding: 0 1.25rem; border: 1.5px solid var(--tone-deep); border-radius: 999px; background: var(--tone); }
+.f-suche svg { width: 1.35rem; height: 1.35rem; color: var(--main); }
+.f-suche input { flex: 1 1 auto; min-width: 0; min-height: 3.3rem; border: 0; background: transparent; color: var(--text); font: inherit; outline: none; }
+.f-suche input::placeholder { color: var(--muted); opacity: 1; }
+.f-suche:focus-within { outline: 3px solid var(--main); outline-offset: 3px; }
+.f-zeile { position: relative; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem; }
+.f-gruppen { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.f-gruppe { position: relative; }
+.f-knopf { display: inline-flex; align-items: center; gap: 0.5rem; min-height: 3rem; padding: 0 1.1rem; border: 1.5px solid var(--tone-deep); border-radius: 999px; background: var(--karte); color: var(--text); font: inherit; font-weight: 600; cursor: pointer; }
+.f-knopf:hover { border-color: var(--main); }
+.f-knopf.gewaehlt, .f-knopf[aria-expanded="true"] { border-color: var(--main); background: var(--tone); color: var(--deep); font-weight: 700; }
+.f-knopf[aria-expanded="true"] .pfeil { transform: rotate(180deg); }
+.f-marke { display: inline-flex; align-items: center; justify-content: center; min-width: 1.6rem; height: 1.6rem; padding: 0 0.4rem; border-radius: 999px; background: var(--main); color: var(--on-main); font-size: 0.85rem; font-weight: 800; }
+.f-marke[hidden] { display: none; }
+.f-stand { margin: 0; font-weight: 800; }
+.f-feld { display: none; }
+.f-knopf[aria-expanded="true"] + .f-feld { display: grid; }
+.f-feld fieldset { margin: 0; padding: 0; border: 0; min-width: 0; }
+.f-feld legend { padding: 0 0.6rem 0.4rem; font-size: 0.85rem; font-weight: 800; color: var(--muted); }
+.f-feld ul { list-style: none; display: grid; gap: 0.1rem; margin: 0; padding: 0; }
+.f-feld li[data-spaeter] { display: none; }
+.f-gruppe.ganz li[data-spaeter] { display: block; }
+.f-feld label { display: flex; align-items: center; gap: 0.75rem; min-height: 2.75rem; padding: 0 0.6rem; border-radius: 0.65rem; cursor: pointer; }
+.f-feld label:hover { background: var(--flaeche); }
+.f-feld label:has(input:checked) { background: var(--tone); color: var(--deep); font-weight: 700; }
+.f-feld input { flex: none; width: 1.25rem; height: 1.25rem; margin: 0; accent-color: var(--main); }
+.f-anzahl { margin-left: auto; font-size: 0.9rem; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
+.f-feld-fuss { display: flex; justify-content: space-between; gap: 0.6rem; margin-top: 0.3rem; padding-top: 0.6rem; border-top: 1px solid var(--tone-deep); }
+.f-schlicht { align-self: flex-start; min-height: 2.75rem; padding: 0 0.6rem; border: 0; border-radius: 0.65rem; background: transparent; color: var(--main); font: inherit; font-size: 0.95rem; font-weight: 700; cursor: pointer; }
+.f-schlicht:hover { background: var(--tone); }
+.f-schlicht.grau { color: var(--muted); }
+.f-schlicht[hidden] { display: none; }
+.f-voll { min-height: 2.75rem; padding: 0 1.4rem; border: 0; border-radius: 999px; background: var(--main); color: var(--on-main); font: inherit; font-size: 0.95rem; font-weight: 700; cursor: pointer; }
+.f-rund { display: inline-flex; align-items: center; justify-content: center; width: 3rem; height: 3rem; border: 0; border-radius: 50%; background: var(--tone); color: var(--deep); cursor: pointer; }
+.f-aktiv { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }
+.f-aktiv[hidden] { display: none; }
+.f-aktiv-liste { list-style: none; display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 0; padding: 0; }
+.f-karte { display: inline-flex; align-items: center; gap: 0.5rem; min-height: 2.75rem; padding: 0 0.8rem 0 1rem; border: 0; border-radius: 999px; background: var(--deep); color: var(--bg); font: inherit; font-size: 0.95rem; font-weight: 600; cursor: pointer; }
+.f-karte svg { width: 0.95rem; height: 0.95rem; stroke-width: 2.6; }
+.f-aktiv .f-schlicht { text-decoration: underline; text-underline-offset: 0.18em; }
+.f-blatt-kopf, .f-blatt-fuss, .f-schleier { display: none; }
+.f-leer { margin: 1.5rem 0 0; }
+.f-grundlage { max-width: 46rem; margin: 1.75rem 0 0; }
+.f-themen { padding-top: 1.5rem; border-top: 1px solid var(--tone-deep); }
+.f-themen h2 { font-size: 1.25rem; }
+@media (min-width: 48rem) {
+  .f-mobil { display: none; }
+  /* Liste zum Ankreuzen unter ihrem Knopf */
+  .f-knopf[aria-expanded="true"] + .f-feld { position: absolute; left: 0; top: calc(100% + 0.6rem); z-index: 5; width: 20rem; max-width: calc(100vw - 2rem); max-height: min(31rem, 70vh); overflow-y: auto; gap: 0.15rem; padding: 0.9rem; border: 1px solid var(--tone-deep); border-radius: 1.25rem; background: var(--karte); box-shadow: 0 20px 50px rgb(var(--schatten) / 0.18); }
+}
+@media (max-width: 47.99rem) {
+  .f-zeile { justify-content: space-between; }
+  /* Blatt von unten mit den drei Gruppen zum Aufklappen */
+  .f-blatt { display: none; }
+  .blatt-offen .f-blatt { display: flex; flex-direction: column; position: fixed; left: 0; right: 0; bottom: 0; z-index: 61; max-height: 88dvh; border-radius: 1.5rem 1.5rem 0 0; background: var(--karte); box-shadow: 0 -20px 50px rgb(var(--schatten) / 0.25); }
+  .blatt-offen .f-schleier { display: block; position: fixed; inset: 0; z-index: 60; background: rgb(18 18 25 / 0.5); }
+  .blatt-offen .f-schleier[hidden] { display: none; }
+  .blatt-offen { overflow: hidden; }
+  .f-blatt-kopf { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.9rem 1rem 0.6rem 1.25rem; }
+  .f-blatt-kopf p { margin: 0; font-size: 1.25rem; font-weight: 800; letter-spacing: -0.02em; }
+  .f-gruppen { display: grid; gap: 0.5rem; overflow-y: auto; padding: 0.25rem 1rem 1rem; }
+  .f-gruppe { border: 1.5px solid var(--tone-deep); border-radius: 1.1rem; }
+  .f-gruppe .f-knopf { width: 100%; justify-content: space-between; min-height: 3.25rem; border: 0; border-radius: 1.1rem; background: transparent; }
+  .f-knopf[aria-expanded="true"] + .f-feld { gap: 0.15rem; padding: 0 0.5rem 0.6rem; }
+  .f-feld legend { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .f-feld-fuss { justify-content: flex-start; border-top: 0; margin-top: 0; padding-top: 0; }
+  .f-feld-fuss .f-voll { display: none; }
+  .f-blatt-fuss { display: block; padding: 0.75rem 1rem calc(0.9rem + env(safe-area-inset-bottom)); border-top: 1px solid var(--tone-deep); }
+  .f-blatt-fuss .f-voll { width: 100%; min-height: 3.25rem; font-size: 1rem; }
+}
 
 /* Rechtstexte: ruhig, mit Inhaltsverzeichnis an der Seite am Laptop */
 .s-recht { display: grid; gap: 2rem; }
@@ -240,7 +300,13 @@ html:not(.js) .f-leiste { display: none; }
   .ein [data-ein].da { opacity: 1; translate: none; }
   .r-karte { transition: transform 0.25s ease, box-shadow 0.25s ease; }
   .s-fragen summary::after { transition: rotate 0.2s; }
-  .mega { transition: opacity 0.18s, translate 0.18s; }
-  @starting-style { .mega { opacity: 0; translate: 0 -0.4rem; } }
+  /* Nur am Laptop: Am Handy liegt im Menü eine Ebene mit fester Lage. Solange das Menü verschoben einblendet,
+     hinge sie am Menü statt am Bildschirm. */
+  @media (min-width: 56rem) {
+    .mega { transition: opacity 0.18s, translate 0.18s; }
+    @starting-style { .mega { opacity: 0; translate: 0 -0.4rem; } }
+  }
+  .blatt-offen .f-blatt { transition: translate 0.22s cubic-bezier(0.22, 1, 0.36, 1); }
+  @starting-style { .blatt-offen .f-blatt { translate: 0 2rem; } }
 }
 @keyframes s-treiben { to { transform: translate(3.5rem, -2.5rem) scale(1.1); } }

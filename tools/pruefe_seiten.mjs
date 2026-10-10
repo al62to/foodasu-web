@@ -193,7 +193,7 @@ for (const [adresse, html] of seiten) {
   // Linktexte: derselbe Text darf nicht zu verschiedenen Zielen führen (Navigation und Fuß ausgenommen).
   const inhalt = html.match(/<main[\s\S]*<\/main>/)?.[0] ?? '';
   const texteZuZiel = new Map();
-  for (const [, ziel, innen] of alle(inhalt, /<a[^>]*?href="([^"]*)"[^>]*>([\s\S]*?)<\/a>/g)) {
+  for (const [, ziel, innen] of alle(inhalt, /<a\b[^>]*?href="([^"]*)"[^>]*>([\s\S]*?)<\/a>/g)) {
     const text = innen.replace(/<[^>]+>/g, '').trim();
     if (!text) continue;
     if (texteZuZiel.has(text) && texteZuZiel.get(text) !== ziel) melde(adresse, `Linktext "${text}" führt zu verschiedenen Zielen`);
@@ -266,6 +266,28 @@ for (const datei of dateien.filter((d) => d.endsWith('.css'))) {
   const frei = rest.replace(/@keyframes[^{]*\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}/g, '').match(/[^{}]*\{[^{}]*\b(?:animation|transition)\s*:[^{}]*\}/);
   if (frei) melde(adresseVon(datei), `Animation außerhalb der Abfrage "no-preference": ${frei[0].trim().slice(0, 100)}`);
 }
+
+// Offenlegung (AP-17 Teil E1): eigene Seite mit noindex und dem Satz zur grundlegenden Richtung; auf der Startseite
+// steht kein Block mehr, nur der Link im Fuß mit id="offenlegung", damit alte Verweise auf /#offenlegung ankommen.
+const RICHTUNG = 'Grundlegende Richtung: Diese Website stellt die App FoodAsu vor, zeigt eine Auswahl an Rezepten mit Hinweisen zu den Zutaten und enthält die Datenschutzerklärung der App.';
+const offenlegung = seiten.get('/offenlegung/');
+if (!offenlegung) melde('/offenlegung/', 'Seite fehlt');
+else {
+  if (!/<meta name="robots" content="noindex/.test(offenlegung)) melde('/offenlegung/', 'noindex fehlt');
+  if (!sichtbar(offenlegung).includes(RICHTUNG)) melde('/offenlegung/', 'Satz zur grundlegenden Richtung fehlt oder weicht ab');
+}
+for (const [adresse, html] of seiten) {
+  if (!html.includes('href="/offenlegung/"')) melde(adresse, 'Link auf die Offenlegung fehlt');
+  const marken = alle(html, /<([a-z0-9]+)\b[^>]*\bid="offenlegung"[^>]*>/g);
+  if (adresse === '/') {
+    if (marken.length !== 1 || marken[0][1] !== 'a' || !marken[0][0].includes('href="/offenlegung/"')) melde('/', 'im Fuß fehlt der Link mit id="offenlegung"');
+    if (sichtbar(html).includes('Grundlegende Richtung')) melde('/', 'die Offenlegung steht noch auf der Startseite');
+  } else if (marken.length > 0) melde(adresse, 'id="offenlegung" gehört nur auf die Startseite');
+}
+// "So geht's" bleibt bis zur Karte C ein Platzhalter mit noindex (die Sitemap prüft der nächste Abschnitt).
+const soGehts = seiten.get('/so-gehts/');
+if (!soGehts) melde('/so-gehts/', 'Seite fehlt');
+else if (!/<meta name="robots" content="noindex/.test(soGehts)) melde('/so-gehts/', 'noindex fehlt');
 
 // Sitemap und robots.txt
 for (const datei of ['sitemap.xml', 'robots.txt', '404.html']) if (!existsSync(join(DIST, datei))) melde(datei, 'fehlt');

@@ -58,7 +58,8 @@ img, svg { max-width: 100%; }
 .sprung { position: absolute; left: 1rem; top: -4rem; z-index: 100; background: var(--main); color: var(--on-main); padding: 0.6rem 1rem; border-radius: 0.75rem; font-weight: 700; }
 .sprung:focus { top: 0.5rem; }
 
-/* Kopf und Navigation */
+/* Kopf und Navigation. Das Mega-Menü folgt Entwurf A (AP-17 Teil E2): links die Gruppen, in der Mitte die Links der
+   gewählten Gruppe, rechts drei Rezepte mit Bild. Am Handy füllt das Menü den Bildschirm. */
 .kopf { position: sticky; top: 0; z-index: 50; background: var(--bg); border-bottom: 1px solid var(--line); }
 .kopf-innen { display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-height: 4rem; }
 .marke { display: inline-flex; align-items: center; min-height: 2.75rem; line-height: 0; }
@@ -67,46 +68,97 @@ img, svg { max-width: 100%; }
 .marke .schrift { fill: var(--logo-script); }
 .haupt ul { list-style: none; margin: 0; padding: 0; }
 .haupt a { text-decoration: none; }
-.haupt-liste > li > a, .haupt-zeile > a { display: inline-flex; align-items: center; min-height: 2.75rem; padding: 0 0.75rem; border-radius: 0.75rem; color: var(--text); font-weight: 700; }
-.haupt-liste > li > a:hover, .haupt-zeile > a:hover, .mega a:hover { background: var(--tone); }
-.haupt a[aria-current="page"] { color: var(--main); }
-.haupt-zeile { display: flex; align-items: center; }
+.haupt-liste > li > a, .mega-knopf { display: inline-flex; align-items: center; gap: 0.4rem; min-height: 2.75rem; padding: 0 1rem; border: 0; border-radius: 999px; background: transparent; color: var(--text); font: inherit; font-weight: 700; cursor: pointer; }
+.haupt-liste > li > a:hover, .mega-knopf:hover { background: var(--tone); }
+.haupt a[aria-current="page"], .mega-knopf.hier { color: var(--main); }
+.mega-knopf[aria-expanded="true"] { background: var(--tone); color: var(--deep); }
+.mega-knopf svg { flex: none; width: 1rem; height: 1rem; }
+.mega-knopf[aria-expanded="true"] .pfeil { transform: rotate(180deg); }
 .knopf-schlicht { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; min-width: 2.75rem; min-height: 2.75rem; padding: 0 0.6rem; border: 0; border-radius: 0.75rem; background: transparent; color: var(--text); font: inherit; font-weight: 700; cursor: pointer; }
 .knopf-schlicht:hover { background: var(--tone); }
 .knopf-schlicht svg { width: 1.1rem; height: 1.1rem; }
-.knopf-schlicht[aria-expanded="true"] .pfeil { transform: rotate(180deg); }
-.mega { display: none; background: var(--bg); }
+.menue-knopf .z-zu, .menue-knopf[aria-expanded="true"] .z-auf { display: none; }
+.menue-knopf[aria-expanded="true"] .z-zu { display: inline; }
+.mega { display: none; }
 /* Ohne Großschreibung per CSS: Sie landet sonst im Namen der Liste, den ein Bildschirmleser vorliest. */
-.mega-titel { margin: 0 0 0.4rem; padding: 0 0.6rem; font-size: 0.9rem; font-weight: 800; color: var(--muted); }
-.mega a { display: block; padding: 0.45rem 0.6rem; border-radius: 0.6rem; color: var(--text); }
-.mega .alle a { display: inline-block; font-weight: 800; color: var(--main); }
-.mega-gruppe + .mega-gruppe { margin-top: 1.1rem; }
+.mega-kopf { margin: 0 0 0.5rem; padding: 0 1rem; font-size: 0.85rem; font-weight: 800; letter-spacing: 0.04em; color: var(--muted); }
+.mega-wahl { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; width: 100%; min-height: 3rem; padding: 0.6rem 1rem; border: 0; border-radius: 0.9rem; background: transparent; color: var(--text); font: inherit; font-weight: 600; text-align: left; cursor: pointer; }
+.mega-wahl:hover { background: var(--flaeche); }
+.mega-wahl svg, .mega .alle svg, .mega-zurueck svg { flex: none; width: 1.1rem; height: 1.1rem; }
+.mega-titel { margin: 0 0 0.6rem; padding: 0 0.75rem; font-size: 1.25rem; font-weight: 800; letter-spacing: -0.02em; }
+.mega-feld ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.15rem 0.75rem; }
+.mega-feld a { display: flex; align-items: center; min-height: 2.75rem; padding: 0.5rem 0.75rem; border-radius: 0.75rem; color: var(--text); font-weight: 500; }
+.mega-feld a:hover, .mega-probe a:hover { background: var(--tone); color: var(--deep); }
+.mega .alle { margin: 0; }
+.mega .alle a { display: inline-flex; align-items: center; gap: 0.5rem; min-height: 3rem; padding: 0.6rem 1rem; border-radius: 0.9rem; font-weight: 800; color: var(--main); }
+.mega .alle a:hover { background: var(--tone); }
+.mega-zurueck { display: none; }
+.mega-probe ul { display: grid; gap: 0.25rem; }
+.mega-probe a { display: flex; align-items: center; gap: 0.9rem; padding: 0.5rem; border-radius: 1rem; color: var(--text); }
+.mega-probe img { display: block; width: 4.75rem; height: 4.75rem; border-radius: 0.9rem; object-fit: cover; background: var(--tone-deep); }
+.mega-probe-text { display: grid; gap: 0.1rem; min-width: 0; }
+.mega-probe-text b { font-weight: 700; }
+.mega-probe-text > span { font-size: 0.9rem; color: var(--muted); }
+.mega-probe.mobil, .haupt-recht { display: none; }
+html:not(.js) .mega-knopf, html:not(.js) .mega-wahl { display: none; }
+.js .mega-link { display: none; }
 
 @media (max-width: 55.99rem) {
-  .haupt-liste { padding: 0.5rem 0 1rem; }
-  .haupt-liste > li > a, .haupt-zeile > a { display: flex; flex: 1; }
-  .haupt-zeile { justify-content: space-between; }
-  .mega { padding: 0.25rem 0 0.5rem 0.75rem; }
-  .mega-spalte { margin-top: 0.75rem; }
-  .mega-spalte.breit ul { columns: 2; }
-  .js .haupt-liste { display: none; position: absolute; left: 0; right: 0; top: 100%; padding: 0.5rem 1rem 1rem; background: var(--bg); border-bottom: 1px solid var(--line); max-height: calc(100dvh - 4.5rem); overflow-y: auto; }
-  .js .menue-knopf[aria-expanded="true"] ~ .haupt-liste { display: block; }
-  .js .haupt-zeile:has(.mega-knopf[aria-expanded="true"]) + .mega { display: block; }
-  html:not(.js) .menue-knopf, html:not(.js) .mega-knopf { display: none; }
+  .haupt-liste { display: grid; gap: 0.15rem; }
+  .haupt-liste > li > a, .mega-knopf { display: flex; width: 100%; min-height: 3.25rem; border-radius: 0.9rem; font-size: 1.1rem; }
+  .mega-knopf { justify-content: space-between; }
+  .mit-menue:has(> .mega-knopf[aria-expanded="true"]) { padding: 0.25rem; border-radius: 1.1rem; background: var(--flaeche); }
+  .js .mega-knopf[aria-expanded="true"] + .mega { display: block; padding: 0.25rem 0 0; }
+  .mega-gruppen > .mega-kopf, .mega .mega-probe { display: none; }
+  .mega .alle a { display: flex; justify-content: space-between; }
+  /* Ebene einer Gruppe: liegt über dem ganzen Menü und hat oben "Zurück". */
+  .js .mega-feld { display: none; position: fixed; inset: 4rem 0 0; z-index: 2; overflow-y: auto; padding: 0.75rem 1rem 1.5rem; background: var(--bg); }
+  .js .mega-wahl[aria-expanded="true"] + .mega-feld { display: block; }
+  .js .mega-zurueck { display: inline-flex; align-items: center; gap: 0.4rem; min-height: 3rem; margin: 0 0 1rem; padding: 0 1rem 0 0.6rem; border: 0; border-radius: 999px; background: var(--tone); color: var(--deep); font: inherit; font-weight: 800; cursor: pointer; }
+  .mega-probe.mobil { display: block; margin-top: 1rem; }
+  .mega-probe.mobil .mega-kopf { padding: 0 0.9rem; }
+  .mega-probe.mobil ul { display: flex; gap: 0.75rem; overflow-x: auto; padding: 0 0.9rem 0.5rem; }
+  .mega-probe.mobil li { flex: none; width: 9.4rem; }
+  .mega-probe.mobil a { flex-direction: column; align-items: stretch; gap: 0.5rem; padding: 0; }
+  .mega-probe.mobil img { width: 100%; height: 6.25rem; }
+  .mega-probe.mobil .mega-probe-text > span { display: none; }
+  .haupt-recht { display: flex; gap: 1.25rem; margin-top: 1rem; padding: 0.5rem 0.9rem 0; border-top: 1px solid var(--tone-deep); font-size: 0.95rem; }
+  .haupt-recht a { display: inline-flex; align-items: center; min-height: 2.75rem; color: var(--muted); text-decoration: underline; }
+  /* Mit JavaScript: Das Menü füllt den Bildschirm unter dem Kopf; die Seite dahinter scrollt nicht mit. */
+  .js .haupt-flaeche { display: none; position: fixed; inset: 4rem 0 0; z-index: 49; overflow-y: auto; padding: 0.6rem 0.75rem 1.5rem; background: var(--bg); }
+  .js .menue-knopf[aria-expanded="true"] ~ .haupt-flaeche { display: block; }
+  .js.menue-offen { overflow: hidden; }
+  html:not(.js) .menue-knopf { display: none; }
   html:not(.js) .kopf { position: static; }
   html:not(.js) .kopf-innen { flex-direction: column; align-items: stretch; }
-  html:not(.js) .mega { display: block; }
+  html:not(.js) .haupt-flaeche { padding: 0.5rem 0 1rem; }
+  html:not(.js) .mega { display: block; padding: 0.25rem 0 0.5rem 0.75rem; }
+  html:not(.js) .mega-feld { margin-top: 0.75rem; }
 }
 @media (min-width: 56rem) {
   .menue-knopf { display: none; }
-  .haupt-liste { display: flex; align-items: center; gap: 0.25rem; }
-  .mega { position: absolute; left: 0; right: 0; top: 100%; border-bottom: 1px solid var(--line); box-shadow: 0 24px 40px -28px rgba(42, 34, 119, 0.45); }
-  .mega-innen { display: grid; grid-template-columns: 1.4fr 1fr 1.6fr; gap: 2rem; padding: 1.5rem 1rem 1.25rem; }
-  .mega-spalte.breit ul { columns: 2; }
-  .mega .alle { grid-column: 1 / -1; border-top: 1px solid var(--line); padding-top: 0.75rem; }
-  .js .haupt-zeile:has(.mega-knopf[aria-expanded="true"]) + .mega { display: block; }
-  html:not(.js) .mega-knopf { display: none; }
+  .haupt-liste { display: flex; align-items: stretch; gap: 0.25rem; }
+  /* Der Eintrag reicht bis zur Unterkante des Kopfs: Zwischen "Rezepte" und dem Menü liegt keine Lücke, über der
+     der Mauszeiger das Menü verlassen würde. */
+  .haupt-liste > li { display: flex; align-items: center; min-height: 4rem; }
+  .mega { position: absolute; left: 0; right: 0; top: 100%; padding: 0 1rem; }
+  .mega-innen { display: grid; grid-template-columns: minmax(0, 1fr) 20.5rem; gap: 1.75rem; max-width: 75rem; margin: 0 auto; padding: 1.75rem; border: 1px solid var(--line); border-top: 0; border-radius: 0 0 1.75rem 1.75rem; background: var(--bg); box-shadow: 0 24px 60px rgb(42 34 119 / 0.16); }
+  .mega-gruppen { display: grid; grid-template-columns: 15.5rem minmax(0, 1fr); grid-template-rows: repeat(5, auto) 1fr auto; column-gap: 1.75rem; row-gap: 0.25rem; align-content: start; }
+  .mega-gruppen > .mega-kopf { grid-column: 1; grid-row: 1; }
+  .mega-gruppe { display: contents; }
+  .mega-wahl { grid-column: 1; }
+  .mega-wahl[aria-expanded="true"] { background: var(--tone); color: var(--deep); font-weight: 700; }
+  .mega .alle { grid-column: 1; grid-row: 7; margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px solid var(--tone-deep); }
+  .mega-feld { grid-column: 2; grid-row: 1 / 8; display: none; padding-left: 1.75rem; border-left: 1px solid var(--tone-deep); }
+  .js .mega-wahl[aria-expanded="true"] + .mega-feld { display: block; }
+  .mega-probe { align-self: start; padding: 1.1rem; border-radius: 1.25rem; background: var(--flaeche); }
+  .mega-probe .mega-kopf { padding: 0 0.5rem; }
+  .js .mega-knopf[aria-expanded="true"] + .mega { display: block; }
+  /* Ohne JavaScript: Mauszeiger oder Fokus öffnen das Menü, alle Gruppen stehen nebeneinander. */
   html:not(.js) .mit-menue:hover > .mega, html:not(.js) .mit-menue:focus-within > .mega { display: block; }
+  html:not(.js) .mega-gruppen { display: block; columns: 3; column-gap: 1.75rem; }
+  html:not(.js) .mega-feld { display: block; break-inside: avoid; margin-bottom: 1rem; padding: 0; border: 0; }
+  html:not(.js) .mega-feld ul { grid-template-columns: 1fr; }
 }
 
 /* Brotkrumen */
