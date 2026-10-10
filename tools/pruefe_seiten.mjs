@@ -7,7 +7,8 @@ import { join, relative, sep } from 'node:path';
 import { begriffe } from '../src/daten/sprachen.mjs';
 import { AUSDRUCK, durchlaufe } from './sprache_setzen.mjs';
 import { muster as nurMuster } from '../src/daten/auswahl.mjs';
-import { BEREICH, adresse as kapitelAdresse, kapitel } from '../src/daten/sogehts.mjs';
+import { BEREICH, adresse as kapitelAdresse, fotosVon, kapitel } from '../src/daten/sogehts.mjs';
+import { einblick } from '../src/daten/startseite.mjs';
 import { GRENZEN, grenzBefunde, masse } from '../src/daten/breite.mjs';
 
 const DIST = 'dist';
@@ -471,30 +472,49 @@ for (const [adresse, html] of seiten) {
     if (sichtbar(html).includes('Grundlegende Richtung')) melde('/', 'die Offenlegung steht noch auf der Startseite');
   } else if (marken.length > 0) melde(adresse, 'id="offenlegung" gehört nur auf die Startseite');
 }
-// "So geht's" (Karte C, AP-18 Teil E): Übersicht und sechs Kapitel, alle im Index (die Sitemap prüft der nächste
-// Abschnitt). Die Übersicht verlinkt jedes Kapitel; jedes Kapitel hat seine Abschnitte, mindestens ein Bildschirmfoto
-// mit Beschreibung, führt zum vorigen und zum nächsten Kapitel und zurück zur Übersicht. Die 404-Seite führt mit
-// ihrem Knopf zur Anleitung, und llms.txt nennt die Übersicht und alle Kapitel.
+// "So geht's" (Karte C, AP-18 Teil E; neu gebaut in AP-19 Teil G): Übersicht und acht Kapitel, alle im Index (die
+// Sitemap prüft der nächste Abschnitt). Die Übersicht verlinkt jedes Kapitel. Jedes Kapitel hat seine Abschnitte, jeder
+// mit seinem festen Anker aus den Daten; eine Funktion steht mit ihrem Nutzen und dem Weg in der App da, ohne
+// nummerierte Schrittfolge. Das Kapitel zeigt genau die Bildschirmfotos aus den Daten (höchstens eines je Abschnitt,
+// höchstens 45 im ganzen Bereich: Das prüfen die Daten beim Laden), jedes mit Beschreibung, Maßen und, bis auf das
+// erste Foto und das Standbild der Schleife, erst beim Scrollen geladen; es führt zum vorigen und zum nächsten
+// Kapitel und zurück zur Übersicht. Die 404-Seite führt mit ihrem Knopf zur Anleitung, und llms.txt
+// nennt die Übersicht und alle Kapitel.
+const KAPITEL_ZAHL = 8;
 const soGehts = seiten.get(BEREICH);
 if (!soGehts) melde(BEREICH, 'Seite fehlt');
 else {
   if (soGehts.includes('noindex')) melde(BEREICH, 'steht noch auf noindex');
   for (const eintrag of kapitel) if (!soGehts.includes(`href="${kapitelAdresse(eintrag)}"`)) melde(BEREICH, `Kachel für „${eintrag.titel}“ fehlt`);
 }
-if (kapitel.length !== 6) melde(BEREICH, `sechs Kapitel erwartet, gefunden: ${kapitel.length}`);
+if (kapitel.length !== KAPITEL_ZAHL) melde(BEREICH, `${KAPITEL_ZAHL} Kapitel erwartet, gefunden: ${kapitel.length}`);
 kapitel.forEach((eintrag, stelle) => {
   const adresse = kapitelAdresse(eintrag);
   const html = seiten.get(adresse);
   if (!html) { melde(adresse, 'Seite fehlt'); return; }
   if (html.includes('noindex')) melde(adresse, 'steht auf noindex');
   const text = sichtbar(html);
-  for (const teil of eintrag.teile) if (!text.includes(teil.titel)) melde(adresse, `Abschnitt „${teil.titel}“ fehlt`);
+  for (const teil of eintrag.teile) {
+    if (!text.includes(teil.titel)) melde(adresse, `Abschnitt „${teil.titel}“ fehlt`);
+    if (!new RegExp(`<h2 id="${teil.anker}"`).test(html)) melde(adresse, `Anker fehlt: #${teil.anker}`);
+    if ((teil.funktionen ?? []).length > 0 && !(teil.nutzen && teil.wo)) melde(adresse, `Abschnitt „${teil.titel}“ ohne Nutzen oder ohne Weg in der App`);
+  }
+  const wege = eintrag.teile.filter((teil) => teil.wo).length;
+  if (alle(html, /<p class="g-wo"/g).length !== wege) melde(adresse, `Weg in der App: ${wege} erwartet`);
+  // Die Krümel im Kopf sind die einzige nummerierte Liste der Seite.
+  if (alle(html, /<ol[ >]/g).length > 1) melde(adresse, 'nummerierte Schrittfolge gefunden; die Anleitung nennt nur Nutzen und Weg');
   const bilder = alle(html, /<img\b[^>]*src="\/bilder\/sogehts\/([^"]+)"[^>]*>/g);
-  if (bilder.length < 1 || bilder.length > 3) melde(adresse, `ein bis drei Bilder erwartet, gefunden: ${bilder.length}`);
+  const erwartet = fotosVon(eintrag).map((foto) => `${foto.name}-720.webp`);
+  const gezeigt = bilder.map(([, datei]) => datei).filter((datei) => !datei.startsWith('film-'));
+  if ([...gezeigt].sort().join(' ') !== [...erwartet].sort().join(' ')) melde(adresse, `Bildschirmfotos passen nicht zu den Daten: erwartet ${erwartet.length}, gefunden ${gezeigt.length}`);
+  if (gezeigt.length < 1) melde(adresse, 'mindestens ein Bildschirmfoto erwartet');
   for (const [marke, datei] of bilder) {
     if (!vorhanden.has(`/bilder/sogehts/${datei}`)) melde(adresse, `Bild fehlt: ${datei}`);
     if (!/\balt="[^"]{20,}"/.test(marke)) melde(adresse, `Bild ohne Beschreibung: ${datei}`);
+    if (/original/.test(datei)) melde(adresse, `Bild aus dem Ordner der Originale: ${datei}`);
   }
+  const sofort = bilder.filter(([marke]) => !/\bloading="lazy"/.test(marke)).length;
+  if (sofort > 2) melde(adresse, `höchstens zwei Bilder laden sofort, gefunden: ${sofort}`);
   const film = html.match(/data-film="([^"]+)"/);
   if (Boolean(film) !== Boolean(eintrag.film)) melde(adresse, 'Schleife passt nicht zu den Daten');
   if (film && !vorhanden.has(film[1])) melde(adresse, `Schleife fehlt: ${film[1]}`);
@@ -502,6 +522,21 @@ kapitel.forEach((eintrag, stelle) => {
   const nachbarn = [kapitel[stelle - 1], kapitel[stelle + 1]].filter(Boolean).map(kapitelAdresse);
   for (const ziel of [BEREICH, ...nachbarn]) if (!html.includes(`href="${ziel}"`)) melde(adresse, `Link fehlt: ${ziel}`);
 });
+// Jedes Bild im Ordner gehört zu einer Seite: Was keine Seite zeigt, liegt nicht auf der Website.
+const gebraucht = new Set([...kapitel.flatMap((eintrag) => fotosVon(eintrag).map((foto) => foto.name)), ...einblick.karten.map((karte) => karte.datei.replaceAll('_', '-'))]);
+for (const datei of [...vorhanden].filter((pfad) => pfad.startsWith('/bilder/sogehts/') && pfad.endsWith('.webp') && !pfad.includes('/film-'))) {
+  const name = datei.slice('/bilder/sogehts/'.length).replace(/-\d+\.webp$/, '');
+  if (!gebraucht.has(name)) melde(BEREICH, `Bild ohne Seite: ${datei}`);
+}
+// Startseite, Abschnitt "FoodAsu im Bild" (AP-19 Teil G): fünf bis sechs Bildschirmfotos, jedes mit einem Link auf
+// eine Stelle der Anleitung, die es gibt (die Sprungmarke prüft die Linkprüfung oben).
+const startseite = seiten.get('/') ?? '';
+if (einblick.karten.length < 5 || einblick.karten.length > 6) melde('/', `Abschnitt „${einblick.ueberschrift}“: fünf bis sechs Bilder erwartet, gefunden: ${einblick.karten.length}`);
+for (const karte of einblick.karten) {
+  if (!karte.ziel.startsWith(BEREICH)) melde('/', `Abschnitt „${einblick.ueberschrift}“: Ziel außerhalb der Anleitung: ${karte.ziel}`);
+  if (!startseite.includes(`href="${karte.ziel}"`)) melde('/', `Abschnitt „${einblick.ueberschrift}“: Link fehlt: ${karte.ziel}`);
+  if (!startseite.includes(`/bilder/sogehts/${karte.datei.replaceAll('_', '-')}-720.webp`)) melde('/', `Abschnitt „${einblick.ueberschrift}“: Bild fehlt: ${karte.datei}`);
+}
 if (kapitel.filter((eintrag) => eintrag.film).length > 3) melde(BEREICH, 'höchstens drei Schleifen (Karte C)');
 const nichtGefunden = seiten.get('/404.html') ?? '';
 if (!/<a class="nf-knopf" href="\/so-gehts\/"/.test(nichtGefunden)) melde('/404.html', "der Knopf „So geht's“ führt nicht zur Anleitung");

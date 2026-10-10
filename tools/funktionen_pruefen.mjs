@@ -208,12 +208,17 @@ async function pruefen() {
     if (!mitAnleitung && !entfaellt) ohneAnleitung.push(titel);
     if (mitAnleitung) {
       for (const verweis of anleitung.split(';').map(kurz).filter(Boolean)) {
+        // Form: kapitel / Abschnitt (#anker). Der Anker ist die feste Sprungmarke des Abschnitts auf der Seite.
         const [slug, ...rest] = verweis.split(' / ');
-        const abschnittName = rest.join(' / ');
+        const mitAnker = rest.join(' / ').match(/^(.*) \(#([a-z0-9-]+)\)$/);
+        const abschnittName = mitAnker ? mitAnker[1] : rest.join(' / ');
         if (kapitel === null) continue;
         const eintrag = kapitel.find((kandidat) => kandidat.slug === slug);
+        const teil = eintrag?.teile.find((kandidat) => kandidat.titel === abschnittName);
         if (!eintrag) falsch.push(`${titel}: Kapitel \`${slug}\` gibt es in „So geht's“ nicht`);
-        else if (!eintrag.teile.some((teil) => teil.titel === abschnittName)) falsch.push(`${titel}: Abschnitt „${abschnittName}“ fehlt im Kapitel \`${slug}\``);
+        else if (!teil) falsch.push(`${titel}: Abschnitt „${abschnittName}“ fehlt im Kapitel \`${slug}\``);
+        else if (teil.anker && !mitAnker) falsch.push(`${titel}: Anker fehlt bei „${abschnittName}“ im Kapitel \`${slug}\` (auf der Seite: #${teil.anker})`);
+        else if (mitAnker && teil.anker !== mitAnker[2]) falsch.push(`${titel}: Anker #${mitAnker[2]} passt nicht zu „${abschnittName}“ im Kapitel \`${slug}\` (auf der Seite: #${teil.anker})`);
       }
     }
     const einfuehrung = feld('Einführung');

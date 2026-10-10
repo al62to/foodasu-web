@@ -1,13 +1,15 @@
 ---
-// "So geht's", ein Kapitel (AP-15 Teil B2, Karte C): kurze Abschnitte mit den Begriffen der App, ein bis drei
-// Bildschirmfotos und, wo es hilft, eine kurze Schleife ohne Ton. Alle Texte kommen aus src/daten/sogehts.mjs.
+// "So geht's", ein Kapitel (AP-15 Teil B2, Karte C; neu gebaut in AP-19 Teil G): eine Seite je Bereich der App. Jeder
+// Abschnitt erklärt eine Funktion: der Nutzen, der kurze Weg in der App und bei den wichtigen Funktionen ein
+// Bildschirmfoto. Jeder Abschnitt hat einen festen Anker aus den Daten. Alle Texte kommen aus src/daten/sogehts.mjs
+// und src/daten/anleitung/.
 // Die Schleife läuft nur mit Bewegung: Ohne JavaScript und mit "Bewegung reduzieren" steht ihr Standbild da, und der
 // Knopf "Bewegung anhalten" im Kopfbereich hält auch sie an.
 import Basis from '../../../layouts/Basis.astro';
 import Seitenkopf from '../../../components/Seitenkopf.astro';
 import '../../../styles/sogehts.css';
 import { seite } from '../../../daten/seite.mjs';
-import { BEREICH, adresse, kapitel, rahmen, uebersicht } from '../../../daten/sogehts.mjs';
+import { BEREICH, adresse, fotoDaten, kapitel, rahmen, uebersicht } from '../../../daten/sogehts.mjs';
 import { metaVon } from '../../../daten/meta.mjs';
 
 export function getStaticPaths() {
@@ -20,12 +22,16 @@ const eintrag = kapitel[stelle];
 const davor = kapitel[stelle - 1];
 const danach = kapitel[stelle + 1];
 const pfad = adresse(eintrag);
-const marke = (titel) => titel.toLowerCase().replace(/[„“?]/g, '').replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 const ORDNER = '/bilder/sogehts/';
 const BREITEN = [360, 720];
 const bild = (name, breite) => `${ORDNER}${name}-${breite}.webp`;
 const quellen = (name) => BREITEN.map((breite) => `${bild(name, breite)} ${breite}w`).join(', ');
+// Spalte rechts (am Handy oben) und Fotos im Text: Die Angabe sagt dem Browser, wie breit das Bild auf der Seite ist.
 const GROESSEN = '(min-width: 56rem) 16rem, 60vw';
+const GROESSEN_FOTO = '(min-width: 40rem) 13rem, 12rem';
+const mitSpalte = Boolean(eintrag.film);
+// Das erste Foto der Seite lädt sofort, alle weiteren erst beim Scrollen.
+const ersterTeilMitFotos = eintrag.teile.findIndex((teil) => (teil.fotos ?? []).length > 0);
 
 // Gliederung für Suchmaschinen und KI-Antworten: das Kapitel als Artikel mit seinen Abschnitten. In den Daten steht
 // nur, was auf der Seite sichtbar ist.
@@ -48,32 +54,51 @@ const daten = [{
     titel={eintrag.titel}
     vorspann={eintrag.vorspann}
   />
-  <div class="s-inhalt innen g-seite">
+  <div class:list={['s-inhalt', 'innen', 'g-seite', { 'g-ohne-spalte': !mitSpalte }]}>
     <article class="g-text">
       <nav class="g-inhalt" aria-labelledby="g-inhalt-titel">
         <h2 id="g-inhalt-titel">{rahmen.inhalt}</h2>
         <ul>
-          {eintrag.teile.map((teil) => <li><a href={`#${marke(teil.titel)}`}>{teil.titel}</a></li>)}
+          {eintrag.teile.map((teil) => <li><a href={`#${teil.anker}`}>{teil.titel}</a></li>)}
         </ul>
       </nav>
-      {eintrag.teile.map((teil) => (
-        <section class="s-teil" aria-labelledby={marke(teil.titel)}>
-          <h2 id={marke(teil.titel)}>{teil.titel}</h2>
-          {teil.einleitung && <p>{teil.einleitung}</p>}
-          {teil.schritte && (
-            <ol class="r-schritte">
-              {teil.schritte.map((schritt) => <li>{schritt}</li>)}
-            </ol>
-          )}
-          {teil.liste && (
-            <dl class="r-stufen">
-              {teil.liste.map((punkt) => <div><dt>{punkt.name}</dt><dd>{punkt.text}</dd></div>)}
-            </dl>
-          )}
-          {(teil.absaetze ?? []).map((absatz) => <p>{absatz}</p>)}
-          {teil.extern && <p><a href={teil.extern.ziel} rel="noopener">{teil.extern.text}</a></p>}
-        </section>
-      ))}
+      {eintrag.teile.map((teil, stelle) => {
+        const foto = teil.fotos?.[0] && fotoDaten(teil.fotos[0]);
+        return (
+          <section class:list={['s-teil', 'g-funktion', { 'g-mit-foto': foto }]} aria-labelledby={teil.anker}>
+            {(teil.alteAnker ?? []).map((marke) => <span id={marke} class="g-alt-anker"></span>)}
+            <h2 id={teil.anker}>{teil.titel}</h2>
+            <div class="g-worte">
+              {teil.nutzen && <p class="g-nutzen">{teil.nutzen}</p>}
+              {teil.wo && <p class="g-wo"><b>{rahmen.wo}:</b> {teil.wo}</p>}
+              {teil.liste && (
+                <dl class="r-stufen">
+                  {teil.liste.map((punkt) => <div><dt>{punkt.name}</dt><dd>{punkt.text}</dd></div>)}
+                </dl>
+              )}
+              {(teil.absaetze ?? []).map((absatz) => <p>{absatz}</p>)}
+              {teil.verweis && <p>{teil.verweis.vor}<a href={teil.verweis.ziel}>{teil.verweis.text}</a>{teil.verweis.nach}</p>}
+              {teil.extern && <p><a href={teil.extern.ziel} rel="noopener">{teil.extern.text}</a></p>}
+            </div>
+            {foto && (
+              <figure class="g-foto">
+                <img
+                  src={bild(foto.name, 720)}
+                  srcset={quellen(foto.name)}
+                  sizes={GROESSEN_FOTO}
+                  alt={foto.alt}
+                  width={foto.breite}
+                  height={foto.hoehe}
+                  loading={stelle === ersterTeilMitFotos ? 'eager' : 'lazy'}
+                  decoding="async"
+                />
+                <figcaption>{foto.unterschrift}</figcaption>
+              </figure>
+            )}
+          </section>
+        );
+      })}
+      <p class="klein g-bildhinweis">{rahmen.bild}</p>
       {eintrag.verweise && (
         <div class="s-teil g-mehr">
           <h2>{rahmen.mehr}</h2>
@@ -84,34 +109,27 @@ const daten = [{
       )}
     </article>
 
-    <aside class="g-bilder" aria-label={rahmen.bilder}>
-      {eintrag.film && (
-        <figure class="g-handy" data-ein>
-          <div class="g-rahmen">
-            <img
-              src={bild(`film-${eintrag.film.datei}`, 720)}
-              srcset={quellen(`film-${eintrag.film.datei}`)}
-              sizes={GROESSEN}
-              alt={eintrag.film.alt}
-              width="720"
-              height="1620"
-              decoding="async"
-              data-film={`${ORDNER}film-${eintrag.film.datei}.webm`}
-            />
-          </div>
-          <figcaption>{eintrag.film.unterschrift}<span class="g-film-hinweis" data-film-hinweis hidden> {rahmen.filmHinweis}</span></figcaption>
-        </figure>
-      )}
-      {eintrag.bilder.map((eintragBild) => (
-        <figure class="g-handy" data-ein>
-          <div class="g-rahmen">
-            <img src={bild(eintragBild.datei, 720)} srcset={quellen(eintragBild.datei)} sizes={GROESSEN} alt={eintragBild.alt} width="720" height="1620" loading="lazy" decoding="async" />
-          </div>
-          <figcaption>{eintragBild.unterschrift}</figcaption>
-        </figure>
-      ))}
-      <p class="klein g-bildhinweis">{rahmen.bild}</p>
-    </aside>
+    {mitSpalte && (
+      <aside class="g-bilder" aria-label={rahmen.bilder}>
+        {eintrag.film && (
+          <figure class="g-handy" data-ein>
+            <div class="g-rahmen">
+              <img
+                src={bild(`film-${eintrag.film.datei}`, 720)}
+                srcset={quellen(`film-${eintrag.film.datei}`)}
+                sizes={GROESSEN}
+                alt={eintrag.film.alt}
+                width="720"
+                height="1620"
+                decoding="async"
+                data-film={`${ORDNER}film-${eintrag.film.datei}.webm`}
+              />
+            </div>
+            <figcaption>{eintrag.film.unterschrift}<span class="g-film-hinweis" data-film-hinweis hidden> {rahmen.filmHinweis}</span></figcaption>
+          </figure>
+        )}
+      </aside>
+    )}
 
     <nav class="g-blaettern" aria-label={uebersicht.titel}>
       {davor ? (

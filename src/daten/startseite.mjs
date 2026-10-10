@@ -96,6 +96,55 @@ export const funktionen = {
   ],
 };
 
+// Abschnitt "FoodAsu im Bild" (AP-19 Teil G, Entscheidung Ali vom 10.10.2026): sechs Bildschirmfotos der App, je mit
+// einem Satz zum Nutzen und einem Link auf die passende Stelle von "So geht's". "datei" nennt das Bildschirmfoto wie in
+// src/daten/anleitung (gebaut mit tools/sogehts_fotos.py); die Bildbeschreibung kommt aus sogehts_fotos.json.
+export const einblick = {
+  ueberschrift: 'FoodAsu im Bild',
+  text: 'Sechs Bildschirmfotos aus der App. Jedes führt zu der Stelle der Anleitung, die es erklärt.',
+  karten: [
+    {
+      datei: 'karte_urteil_01',
+      titel: 'Das Urteil für den Haushalt',
+      text: 'Oben auf der Produktkarte steht, für wen ein Produkt laut Daten nicht passt. Darunter steht jede Person einzeln.',
+      ziel: '/so-gehts/scannen-und-urteil/#das-urteil',
+    },
+    {
+      datei: 'liste_eintraege_02',
+      titel: 'Zu Hause aufschreiben',
+      text: 'Schreib auf, was du brauchst, zum Beispiel „2 Zwiebeln“. Scannen musst du dafür nichts.',
+      ziel: '/so-gehts/zu-hause-schreiben-im-laden-abhaken/#zu-hause',
+    },
+    {
+      datei: 'liste_abhaken_02',
+      titel: 'Im Laden abhaken',
+      text: 'Ein Tipp auf das Kästchen hakt ab. Erledigtes rutscht nach unten, oben bleibt, was noch fehlt.',
+      ziel: '/so-gehts/einkaufslisten/#abhaken',
+    },
+    {
+      datei: 'liste_kochen_01',
+      titel: 'Was kann ich damit kochen?',
+      text: 'FoodAsu zeigt Rezepte, für die schon vieles auf deiner Liste steht, und sagt, was noch fehlt.',
+      ziel: '/so-gehts/einkaufslisten/#was-kann-ich-damit-kochen',
+    },
+    {
+      datei: 'rezepte_hinweise_01',
+      titel: 'Hinweise bei den Zutaten',
+      text: 'Im Rezept steht bei den Zutaten, wen in deinem Haushalt etwas betrifft.',
+      ziel: '/so-gehts/rezepte/#hinweise-bei-zutaten',
+    },
+    {
+      datei: 'haushalt_stufen_01',
+      titel: 'Drei Stufen je Eintrag',
+      text: 'Für jeden Eintrag wählst du, wie deutlich FoodAsu hinweist: von „Lieber nicht“ bis „Auf keinen Fall“.',
+      ziel: '/so-gehts/haushalt-und-meiden/#die-drei-stufen',
+    },
+  ],
+  hinweis: 'Die Bildschirmfotos zeigen die App mit einem erfundenen Beispielhaushalt. Namen, Marken und Fotos von Produkten sind unkenntlich gemacht.',
+  link: "Die ganze Anleitung: So geht's",
+  ziel: '/so-gehts/',
+};
+
 export const zahlen = {
   ueberschrift: 'Die App in Zahlen',
   zutatenband: [

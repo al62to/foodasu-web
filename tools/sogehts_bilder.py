@@ -20,16 +20,10 @@ ZIEL = WURZEL / "public" / "bilder" / "sogehts"
 APP = WURZEL / "public" / "bilder" / "app"
 SEITE = (4, 9)
 
-# Name auf der Website -> Datei aus dem Gerätetest. Scanner, Liste und Kochvorschläge stehen als Standbild ihrer
-# Schleife auf der Seite (letztes Bild der Folge) und brauchen kein eigenes Foto.
-BILDER = {
-    "start": "store_7_start.png",
-    "person": "store_2_person.png",
-    "warum": "store_4_warum.png",
-    "listen": "web_listen.png",
-    "rezept": "store_3_rezept.png",
-    "einstellungen": "web_einstellungen.png",
-}
+# Name auf der Website -> Datei aus dem Gerätetest. Seit AP-19 Teil G kommen die Bildschirmfotos der Anleitung aus der
+# Play-Fassung (tools/sogehts_fotos.py); hier entstehen nur noch die Schleifen mit ihren Standbildern und die zwei Fotos
+# der 404-Seite.
+BILDER = {}
 # Name der Schleife -> Folge aus (Datei, Sekunden, die das Bild ruhig steht)
 FILME = {
     "scannen": [("film_scannen_1.png", 1.6), ("store_1_scanner.png", 3.2)],

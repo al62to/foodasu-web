@@ -144,6 +144,26 @@
   }
 }
 
+/* 4b FoodAsu im Bild (AP-19 Teil G): sechs Bildschirmfotos der App, am Handy zwei, sonst drei nebeneinander. Die ganze
+   Karte ist der Link ihrer Überschrift. Bewegung gibt es hier keine. */
+.einblick { padding: clamp(3.5rem, 8vw, 6.5rem) 0; }
+.einblick .titel { margin-bottom: 0.9rem; }
+.einblick-text { max-width: 40rem; margin: 0; font-size: 1.15rem; color: var(--muted); }
+.einblick-karten { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.75rem 0.9rem; margin: 2rem 0 0; padding: 0; list-style: none; }
+.einblick-karte { position: relative; display: flex; flex-direction: column; }
+.einblick-karte img { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: 1.3rem; background: #fff; box-shadow: 0 30px 60px -40px rgb(var(--schatten) / 0.5); }
+.einblick-karte h3 { margin: 0.9rem 0 0.3rem; font-size: 1.1rem; }
+.einblick-karte h3 a { color: var(--main); text-decoration: none; }
+.einblick-karte h3 a::after { content: ""; position: absolute; inset: 0; border-radius: 1.3rem; }
+.einblick-karte h3 a:hover { text-decoration: underline; }
+.einblick-karte p { margin: 0; font-size: 0.98rem; color: var(--muted); }
+.einblick-hinweis { max-width: 40rem; margin: 2rem 0 0; font-size: 0.95rem; color: var(--muted); }
+.einblick-hinweis + .knoepfe { margin-top: 0.9rem; }
+@media (min-width: 56rem) {
+  .einblick-karten { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2.5rem 2rem; }
+  .einblick-karte img { max-width: 14rem; }
+}
+
 /* 5 Laufbänder und Zahlen */
 .zahlen { padding: 0 0 clamp(3.5rem, 8vw, 6rem); }
 .baender { padding: 1.4rem 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }

@@ -69,6 +69,14 @@ for (const k of t.funktionen.karten) {
 }
 zeile();
 
+zeile('## Abschnitt 4b: FoodAsu im Bild (AP-19 Teil G)');
+punkt('Überschrift', t.einblick.ueberschrift);
+punkt('Text', t.einblick.text);
+t.einblick.karten.forEach((karte, nummer) => punkt(`Karte ${nummer + 1}`, `${karte.titel}. ${karte.text} Bild: \`${karte.datei}.png\`. Link der Überschrift: ${karte.ziel}`));
+punkt('Satz unter den Karten', t.einblick.hinweis);
+punkt('Link', `${t.einblick.link} (${t.einblick.ziel})`);
+zeile();
+
 zeile('## Abschnitt 5: Laufbänder und Zahlen');
 punkt('Überschrift (nur für Bildschirmleser)', t.zahlen.ueberschrift);
 punkt('Band 1, Einträge wie in der App', t.zahlen.zutatenband.join(', '));

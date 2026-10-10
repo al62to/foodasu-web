@@ -1,0 +1,113 @@
+// "So geht's", Kapitel "Rezepte": Bereich "Rezepte" der App (Stand 0.14.3). Ein ganzes Rezept mit Zutaten oder
+// Schritten zeigen die Bilder nur von "Pizza Margherita", einem der 40 Rezepte dieser Website.
+import { foto, link } from './hilfen.mjs';
+
+export default {
+  slug: 'rezepte',
+  titel: 'Rezepte',
+  kurz: 'Finden, merken, Hinweise lesen, Portionen, vom Rezept auf die Liste.',
+  vorspann: 'Rezepte finden, Hinweise bei den Zutaten lesen und fehlende Zutaten auf eine Liste setzen.',
+  film: { datei: 'kochen', alt: 'In der Einkaufsliste steht der Knopf „Was kann ich damit kochen?“; danach erscheinen Rezepte mit der Zahl der Zutaten, die schon auf der Liste stehen, und dem Knopf „Fehlende auf die Liste“.', unterschrift: '„Was kann ich damit kochen?“' },
+  teile: [
+    {
+      titel: 'Rezepte finden',
+      anker: 'rezepte-finden',
+      funktionen: ['REZEPT-01'],
+      nutzen: 'Du blätterst durch über 300 Rezepte aus 25 Ländern. Die Rezepte liegen in der App; Internet brauchst du dafür nicht.',
+      wo: 'Reiter Rezepte > Karte antippen',
+      fotos: [foto('rezepte_ansehen_01', 'Der Reiter Rezepte')],
+      absaetze: [
+        'Jedes Rezept zeigt ein gezeichnetes Bild. Es ist ein Symbolbild und kann vom fertigen Gericht abweichen. Was im Gericht ist, steht in der Zutatenliste.',
+      ],
+    },
+    {
+      titel: 'Rezepte suchen',
+      anker: 'suchen',
+      funktionen: ['REZEPT-02'],
+      nutzen: 'Du suchst ein Rezept nach seinem Titel oder nach einer Zutat, zum Beispiel nach dem, was noch im Kühlschrank liegt.',
+      wo: 'Rezepte > Suchfeld „Titel oder Zutat“',
+    },
+    {
+      titel: 'Nach Land und Kategorie filtern',
+      anker: 'filtern',
+      funktionen: ['REZEPT-03'],
+      nutzen: 'Du grenzt die Rezepte mit einem Tipp auf ein Land oder eine Kategorie ein; beides lässt sich verbinden.',
+      wo: 'Rezepte > Reihen mit Ländern und Kategorien unter dem Suchfeld',
+      fotos: [foto('rezepte_filter_01', 'Gewählt: „Österreich“')],
+    },
+    {
+      titel: 'Rezept merken',
+      anker: 'merken',
+      funktionen: ['REZEPT-04'],
+      nutzen: 'Mit dem Herz merkst du dir ein Rezept. Gemerkte Rezepte stehen im Reiter Rezepte ganz oben.',
+      wo: 'Herz auf der Rezeptkarte oder oben rechts auf der Rezeptseite',
+      fotos: [foto('rezepte_merken_02', 'Der Abschnitt „Gemerkt“')],
+    },
+    {
+      titel: 'Hinweise bei Zutaten',
+      anker: 'hinweise-bei-zutaten',
+      funktionen: ['REZEPT-05'],
+      nutzen: 'Bei den Zutaten und auf der Rezeptkarte steht, wen im Haushalt etwas betrifft. Das ist ein Hinweis, kein Urteil; ein Urteil gibt es erst, wenn du ein Produkt scannst.',
+      wo: 'Rezeptseite > „Zutaten“; auf der Rezeptkarte als Abzeichen',
+      fotos: [foto('rezepte_hinweise_01', 'Hinweise unter den Zutaten')],
+    },
+    {
+      titel: 'Ausgeblendete Rezepte',
+      anker: 'ausgeblendete-rezepte',
+      funktionen: ['REZEPT-06'],
+      nutzen: 'Passt ein Rezept gar nicht zu deinem Haushalt, blendet FoodAsu es aus und nennt die Zahl der ausgeblendeten Rezepte. Mit einem Tipp holst du sie zurück.',
+      wo: 'Rezepte > ganz unten > „Anzeigen“',
+      fotos: [foto('rezepte_ausblenden_01', 'Am Ende der Rezepte: „Anzeigen“')],
+    },
+    {
+      titel: 'Vegetarisch oder vegan möglich',
+      anker: 'vegetarisch-oder-vegan-moeglich',
+      funktionen: ['REZEPT-10'],
+      nutzen: 'Rezepte tragen ein Kennzeichen für vegetarisch oder vegan. Bei „möglich“ sagt dir ein Tipp, worauf du bei den Zutaten achten musst.',
+      wo: 'Rezeptseite > Kennzeichen unter dem Titel antippen',
+    },
+    {
+      titel: 'Portionen',
+      anker: 'portionen',
+      funktionen: ['REZEPT-07'],
+      nutzen: 'Du stellst die Zahl der Portionen ein, und die Mengen der Zutaten rechnen mit.',
+      wo: 'Rezeptseite > „Weniger“ und „Mehr“ bei den Portionen',
+      fotos: [foto('rezepte_portionen_01', '6 Portionen: Aus 500 g Mehl wurden 750 g')],
+    },
+    {
+      titel: 'Nährwerte',
+      anker: 'naehrwerte',
+      funktionen: ['REZEPT-09'],
+      nutzen: 'Du siehst die Nährwerte eines Gerichts für eine Portion, bei manchen Rezepten je 100 g oder je Stück. Die Flammen zeigen, wie gehaltvoll es ist.',
+      wo: 'Rezeptseite > „Nährwerte“; ein Tipp auf „Energiedichte“ erklärt die Flammen',
+      fotos: [foto('rezepte_naehrwerte_01', 'Die Nährwerte einer Portion')],
+    },
+    {
+      titel: 'Fehlende Zutaten auf die Liste',
+      anker: 'fehlende-zutaten-auf-die-liste',
+      funktionen: ['REZEPT-11'],
+      nutzen: 'Du setzt die Zutaten eines Rezepts mit wenigen Tipps auf eine eigene Liste mit dem Namen des Rezepts. Was du schon zu Hause hast, wählst du vorher ab.',
+      wo: 'Rezeptseite > unter den Zutaten > „Fehlende Zutaten auf die Liste“',
+      fotos: [foto('rezepte_liste_01', 'Die Auswahl der Zutaten')],
+    },
+    {
+      titel: '„Was kann ich damit kochen?“',
+      anker: 'was-kann-ich-damit-kochen',
+      absaetze: [
+        'In jeder Liste zeigt dir dieser Knopf Rezepte, für die schon vieles auf deiner Liste steht, und was noch fehlt.',
+      ],
+      verweis: link('Mehr dazu im Kapitel „Einkaufslisten“: ', 'Rezepte zur Liste finden', '/so-gehts/einkaufslisten/#was-kann-ich-damit-kochen'),
+    },
+    {
+      titel: 'Beim Kochen',
+      anker: 'beim-kochen',
+      funktionen: ['REZEPT-08', 'REZEPT-12'],
+      nutzen: 'Du kochst nach der Zubereitung auf der Rezeptseite und lässt den Bildschirm dabei an. Woher ein Rezept stammt, steht ganz unten unter „Quelle und Lizenz“.',
+      wo: 'Rezeptseite > „Zubereitung“ > Schalter „Bildschirm anlassen“',
+    },
+  ],
+  verweise: [
+    { text: 'Rezepte auf dieser Website', ziel: '/rezepte/' },
+    { text: 'Einkaufslisten', ziel: '/so-gehts/einkaufslisten/' },
+  ],
+};

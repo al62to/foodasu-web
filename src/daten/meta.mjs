@@ -46,7 +46,7 @@ const FEST = [
   {
     pfad: BEREICH,
     titel: `So geht's mit FoodAsu: Anleitung in ${kapitel.length} Kapiteln`,
-    beschreibung: `Die Anleitung zu FoodAsu in ${kapitel.length} kurzen Kapiteln: erste Schritte, Haushalt und Meiden, Scannen, Einkaufslisten, Rezepte und deine Daten.`,
+    beschreibung: `Die Anleitung zu FoodAsu in ${kapitel.length} kurzen Kapiteln mit Bildschirmfotos: Haushalt, Scannen, Produktkarte, Einkaufslisten, Rezepte und deine Daten.`,
   },
   {
     pfad: '/fragen/',
@@ -92,19 +92,28 @@ const KAPITEL = {
   },
   'scannen-und-urteil': {
     thema: 'Scannen und das Urteil verstehen',
-    beschreibung: 'Strichcode scannen und die Produktkarte lesen: was „enthält“, „Spuren“, „Angaben unvollständig“ und „Kein Konflikt laut Daten“ bedeuten.',
+    beschreibung: 'Strichcode scannen und das Urteil für den Haushalt lesen: was „Angaben unvollständig“ und „Kein Konflikt laut Daten“ auf der Karte bedeuten.',
+  },
+  produktkarte: {
+    thema: 'Die Produktkarte',
+    beschreibung: 'Die Produktkarte von FoodAsu lesen: Nährwerte, Nutri-Score, Abzeichen und Zutaten, Daten neu laden und ein Produkt auf die Liste setzen.',
   },
   einkaufslisten: {
     thema: 'Einkaufslisten',
-    beschreibung: 'Einkaufslisten anlegen, Einträge nach Warengruppen ordnen, Produkte direkt in die Liste scannen und die Liste als Text teilen.',
+    beschreibung: 'Einkaufslisten in FoodAsu: aufschreiben, im Laden abhaken, nach Warengruppen ordnen, Produkte in die Liste scannen und als Text teilen.',
+  },
+  // Der Titel der Seite hat ein Komma und passt deshalb nicht in das Muster "Thema: So geht's mit FoodAsu".
+  'zu-hause-schreiben-im-laden-abhaken': {
+    titel: 'Einkaufsliste schreiben und im Laden abhaken | FoodAsu',
+    beschreibung: 'Einkaufsliste ohne Scannen: zu Hause aufschreiben, was du brauchst, und im Laden mit einem Tipp abhaken. Kurz erklärt, mit Bildern aus der App.',
   },
   rezepte: {
     thema: 'Rezepte in der App',
     beschreibung: 'Rezepte in der App FoodAsu: Hinweise bei den Zutaten lesen, Portionen anpassen und fehlende Zutaten auf die Einkaufsliste setzen.',
   },
   'deine-daten': {
-    thema: 'Deine Daten und Backup',
-    beschreibung: 'Haushalt exportieren und importieren, was das Backup von Android enthält und wie du ein fehlendes Produkt bei Open Food Facts ergänzt.',
+    thema: 'Einstellungen und deine Daten',
+    beschreibung: 'Einstellungen von FoodAsu: Haushalt exportieren und importieren, was das Backup von Android enthält, Verlauf löschen und Feedback geben.',
   },
 };
 
@@ -282,7 +291,7 @@ const anleitung = kapitel.map((eintrag) => {
   const pfad = kapitelAdresse(eintrag);
   const angaben = KAPITEL[eintrag.slug];
   if (!angaben) { fehler.push(`${pfad}: Titel und Beschreibung fehlen (KAPITEL in meta.mjs)`); return { pfad, titel: '', beschreibung: '' }; }
-  return { pfad, titel: `${angaben.thema}: So geht's mit ${seite.name}`, beschreibung: angaben.beschreibung };
+  return { pfad, titel: angaben.titel ?? `${angaben.thema}: So geht's mit ${seite.name}`, beschreibung: angaben.beschreibung };
 });
 const uebersicht = {
   pfad: '/rezepte/',
