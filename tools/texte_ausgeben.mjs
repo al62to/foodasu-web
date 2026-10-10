@@ -41,7 +41,7 @@ punkt('Überschrift', `${t.kopf.ueberschrift.join('')} („${t.kopf.ueberschrift
 punkt('Text', t.kopf.text);
 punkt('Aufruf', `${t.kopf.aufruf} (Text ohne Link)`);
 punkt('Zweiter Knopf', `${t.kopf.zweiterKnopf} (springt zu Abschnitt 3)`);
-punkt('Zeile darunter', `${t.kopf.stand} (Beta-Satz und Satz zum iPhone wörtlich wie freigegeben)`);
+punkt('Zeile darunter', `${t.kopf.stand} (Beta-Satz wörtlich wie freigegeben; im Satz zum iPhone seit den Nacharbeiten zu AP-18 „geplant“ statt „in Arbeit“)`);
 punkt('Im Handy, Produkt', `${t.kopf.handy.produkt}, ${t.kopf.handy.zusatz} (erfunden, ohne Marke)`);
 punkt('Im Handy, Urteil', `${t.kopf.handy.urteil} (App)`);
 punkt('Im Handy, Personen', t.kopf.handy.personen.map((p) => `${p.name}: ${p.ergebnis}`).join('; '));
@@ -113,7 +113,7 @@ const f = t.geruest.fragenSeite;
 punkt('Seite Fragen und Antworten', `Titel „${f.titel}“, Vorspann: ${f.beschreibung} Fragen und Antworten wie in Abschnitt 7.`);
 const l = t.geruest.lizenzen;
 punkt('Seite Lizenzen', `${l.einleitung} ${l.eintraege.map((e) => `${e.name} (${e.art}): ${e.lizenz}${e.zusatz ? e.zusatz.vor + e.zusatz.text : ''}`).join('; ')}; ${l.saetze.map((e) => `${e.name}: ${e.text}${e.link ? e.link.text + e.nach : ''}`).join(' ')} Beschreibung: ${l.beschreibung}`);
-punkt('Seite Datenschutz', `Text der Fassung 2.0.1 unter /datenschutz.html (wie 2.0, dazu der von Ali freigegebene Satz zum Schalter für helle und dunkle Darstellung in Abschnitt 17), Titel im Kopfbereich, Inhaltsverzeichnis an der Seite mit der Überschrift „${t.geruest.recht.inhalt}“; Brotkrumen „${t.geruest.recht.datenschutz}“`);
+punkt('Seite Datenschutz', `Text der Fassung 2.0.2 unter /datenschutz.html (wie 2.0.1, in Abschnitt 17 zwei von Ali freigegebene Sätze geändert: Schalter „in der Kopfzeile (am Handy im Menü)“, Offenlegung „auf der Seite „Offenlegung“ der Website“ mit Link), Titel im Kopfbereich, Inhaltsverzeichnis an der Seite mit der Überschrift „${t.geruest.recht.inhalt}“; Brotkrumen „${t.geruest.recht.datenschutz}“`);
 zeile();
 
 zeile('## Rezeptbereich: feste Texte (aus src/daten/rezeptseiten.mjs)');

@@ -49,7 +49,7 @@ export const kapitel = [
       {
         titel: 'Installieren',
         absaetze: [
-          'FoodAsu ist eine App für Android und kommt über Google Play auf dein Handy. FoodAsu ist in der Beta: Sobald die App für alle im Play Store steht, findest du den Weg dorthin auf dieser Website. Eine Version fürs iPhone ist in Arbeit.',
+          'FoodAsu ist eine App für Android und kommt über Google Play auf dein Handy. FoodAsu ist in der Beta: Sobald die App für alle im Play Store steht, findest du den Weg dorthin auf dieser Website. Eine Version fürs iPhone ist geplant.',
           'Ein Konto brauchst du nicht. Du gibst keinen Namen und keine E-Mail-Adresse ein, um die App zu nutzen.',
         ],
       },
