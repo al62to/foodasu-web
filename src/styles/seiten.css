@@ -317,3 +317,6 @@ html:not(.js) .f-leiste { display: none; }
   @starting-style { .blatt-offen .f-blatt { translate: 0 2rem; } }
 }
 @keyframes s-treiben { to { transform: translate(3.5rem, -2.5rem) scale(1.1); } }
+
+/* Einleitungstext einer Themenseite über den Karten (AP-22). */
+.t-einleitung { max-width: 46rem; margin-bottom: 0; font-size: 1.06rem; }

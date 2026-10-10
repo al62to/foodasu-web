@@ -6,9 +6,10 @@ import { kopf, fuss, geruest } from '../daten/startseite.mjs';
 import { rezeptSeiten, texte, themen } from '../daten/rezeptseiten.mjs';
 import { BEREICH, adresse, kapitel, uebersicht } from '../daten/sogehts.mjs';
 import { alleMeta, metaVon } from '../daten/meta.mjs';
+import { datenquellen } from '../daten/datenquellen.mjs';
 
 const link = (titel, pfad) => `- [${titel}](${seite.adresse + pfad}): ${metaVon(pfad).beschreibung}`;
-const gruppe = (art) => themen.filter((thema) => thema.art === art).sort((a, b) => a.titel.localeCompare(b.titel, 'de'));
+const gruppe = (art) => themen.filter((thema) => thema.art === art && thema.imIndex).sort((a, b) => a.titel.localeCompare(b.titel, 'de'));
 const nachName = [...rezeptSeiten].sort((a, b) => a.titel.localeCompare(b.titel, 'de'));
 
 export function GET() {
@@ -22,6 +23,7 @@ export function GET() {
     '## Website',
     link('Startseite', '/'),
     link(geruest.fragenSeite.titel, '/fragen/'),
+    link(datenquellen.titel, '/daten-und-quellen/'),
     '',
     `## ${uebersicht.titel}`,
     link(`${uebersicht.titel}: Übersicht`, BEREICH),

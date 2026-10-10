@@ -1,5 +1,3 @@
-import { kapitel as anleitung } from './sogehts.mjs';
-
 // Angaben zur Website an einer Stelle. Schalter stehen hier, damit kein Text und kein Link an mehreren Stellen
 // gepflegt wird.
 export const seite = {
@@ -28,15 +26,5 @@ export const store = {
   kategorie: 'ShoppingApplication',
 };
 
-// Seitenverzeichnis der festen Seiten für sitemap.xml: "stand" ist der Tag der letzten inhaltlichen Änderung der
-// Seite und wird von Hand gepflegt. Welche Seiten im Index stehen, sagt src/daten/meta.mjs.
-export const seiten = [
-  { pfad: '/', stand: '2026-10-10' },
-  { pfad: '/datenschutz.html', stand: '2026-10-10' },
-  { pfad: '/lizenzen/', stand: '2026-10-10' },
-  // "So geht's" (Karte C, AP-18 Teil E): Übersicht und sechs Kapitel.
-  { pfad: '/so-gehts/', stand: '2026-10-10' },
-  ...anleitung.map((eintrag) => ({ pfad: `/so-gehts/${eintrag.slug}/`, stand: '2026-10-10' })),
-  { pfad: '/rezepte/', stand: '2026-10-10' },
-  { pfad: '/fragen/', stand: '2026-10-10' },
-];
+// Der Tag der letzten Änderung jeder Seite für sitemap.xml kommt seit AP-22 aus dem Git-Datum ihrer Quelldateien
+// (src/daten/stand.mjs) und wird nicht mehr von Hand gepflegt. Welche Seiten im Index stehen, sagt src/daten/meta.mjs.

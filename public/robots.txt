@@ -1,4 +1,68 @@
+# foodasu.com: Alle Seiten dürfen gelesen werden, von Suchmaschinen, von Assistenten im Auftrag ihrer Nutzer und für
+# das Training von Modellen. Die Bots der großen Anbieter sind unten ausdrücklich genannt; die Namen stammen von den
+# offiziellen Seiten der Anbieter (abgerufen am 10.10.2026). Für alle anderen gilt der erste Block.
+# Welche Seiten im Index stehen, sagt jede Seite selbst (noindex) und die Sitemap.
+
 User-agent: *
+Allow: /
+
+# Google: Suche
+User-agent: Googlebot
+User-agent: Googlebot-Image
+User-agent: Googlebot-Video
+User-agent: Googlebot-News
+User-agent: Storebot-Google
+User-agent: Google-InspectionTool
+Allow: /
+
+# Google: weitere Crawler und Training (Google-Extended steuert Gemini, nicht die Suche)
+User-agent: GoogleOther
+User-agent: GoogleOther-Image
+User-agent: GoogleOther-Video
+User-agent: Google-CloudVertexBot
+User-agent: Google-Extended
+Allow: /
+
+# Microsoft Bing: Suche und Vorschau
+User-agent: bingbot
+User-agent: adidxbot
+User-agent: BingPreview
+User-agent: MicrosoftPreview
+User-agent: BingVideoPreview
+Allow: /
+
+# OpenAI: Suche (OAI-SearchBot), Abruf für Nutzer (ChatGPT-User), Training (GPTBot)
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: GPTBot
+Allow: /
+
+# Anthropic: Suche (Claude-SearchBot), Abruf für Nutzer (Claude-User), Training (ClaudeBot)
+User-agent: Claude-SearchBot
+User-agent: Claude-User
+User-agent: ClaudeBot
+Allow: /
+
+# Perplexity: Suche (PerplexityBot), Abruf für Nutzer (Perplexity-User)
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+Allow: /
+
+# Apple: Suche (Applebot), Training (Applebot-Extended)
+User-agent: Applebot
+User-agent: Applebot-Extended
+Allow: /
+
+# Common Crawl: offenes Archiv des Webs
+User-agent: CCBot
+Allow: /
+
+# Meta: Vorschau geteilter Links (facebookexternalhit), Suche (meta-webindexer), Abruf für Nutzer
+# (meta-externalfetcher), Training (meta-externalagent)
+User-agent: facebookexternalhit
+User-agent: meta-webindexer
+User-agent: meta-externalfetcher
+User-agent: meta-externalagent
 Allow: /
 
 Sitemap: https://foodasu.com/sitemap.xml

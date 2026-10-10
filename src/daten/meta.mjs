@@ -10,7 +10,10 @@
 //   aus den Daten der Seite, keine geraden Anführungszeichen. "Ohne ...", vegetarisch und vegan stehen immer mit
 //   "laut Zutatenliste" und dem Hinweis auf die Verpackung.
 // - Zahlen kommen aus den Daten und werden nie von Hand geschrieben.
-// - noindex tragen nur /offenlegung/, /quellen-und-lizenzen/ und die 404-Seite.
+// - noindex tragen /offenlegung/, /quellen-und-lizenzen/ und die 404-Seite, dazu jede Themenseite der Rezepte mit
+//   weniger als sechs Rezepten oder ohne eigenen Einleitungstext (AP-22, src/daten/rezeptseiten.mjs).
+// - Wortwahl (AP-22 Teil 1 Nr. 7): Wo es ohne Bruch der Wortregeln geht, steht das Wort, nach dem laut Keyword-Planer
+//   gesucht wird (Stand 10.10.2026: "einkaufsliste app", "lebensmittel scanner app"). Der Titel der Startseite bleibt.
 import { grenzBefunde } from './breite.mjs';
 import { seite } from './seite.mjs';
 import { kopfdaten, fuss } from './startseite.mjs';
@@ -41,7 +44,7 @@ const FEST = [
   {
     pfad: '/',
     titel: kopfdaten.titel,
-    beschreibung: 'Der Lebensmittel-Scanner FoodAsu zeigt, ob ein Produkt laut den Angaben für alle im Haushalt passt. Android-App ohne Konto und ohne Werbung.',
+    beschreibung: 'Lebensmittel-Scanner und Einkaufsliste in einer App: FoodAsu zeigt, ob ein Produkt laut den Angaben für alle im Haushalt passt. Für Android.',
   },
   {
     pfad: BEREICH,
@@ -52,6 +55,11 @@ const FEST = [
     pfad: '/fragen/',
     titel: 'Fragen und Antworten zu FoodAsu',
     beschreibung: 'Fragen und Antworten zu FoodAsu: woher die Daten kommen, was mit deinen Angaben passiert und warum die Verpackung maßgeblich bleibt.',
+  },
+  {
+    pfad: '/daten-und-quellen/',
+    titel: mitMarke('/daten-und-quellen/', 'Daten und Quellen: woher die Angaben kommen'),
+    beschreibung: 'Woher FoodAsu Produktangaben, Rezepte, Nährwerte und Bilder hat, was „laut Daten“ bedeutet und warum die Verpackung maßgeblich bleibt.',
   },
   {
     pfad: '/datenschutz.html',
@@ -91,16 +99,16 @@ const KAPITEL = {
     beschreibung: 'Personen im Haushalt anlegen, Einträge bei „Meiden“ wählen und die drei Stufen verstehen: von „Lieber nicht“ bis „Auf keinen Fall“.',
   },
   'scannen-und-urteil': {
-    thema: 'Scannen und das Urteil verstehen',
-    beschreibung: 'Strichcode scannen und das Urteil für den Haushalt lesen: was „Angaben unvollständig“ und „Kein Konflikt laut Daten“ auf der Karte bedeuten.',
+    titel: 'Lebensmittel scannen und das Urteil verstehen | FoodAsu',
+    beschreibung: 'Lebensmittel scannen und das Urteil für den Haushalt lesen: was „Angaben unvollständig“ und „Kein Konflikt laut Daten“ auf der Karte bedeuten.',
   },
   produktkarte: {
     thema: 'Die Produktkarte',
     beschreibung: 'Die Produktkarte von FoodAsu lesen: Nährwerte, Nutri-Score, Abzeichen und Zutaten, Daten neu laden und ein Produkt auf die Liste setzen.',
   },
   einkaufslisten: {
-    thema: 'Einkaufslisten',
-    beschreibung: 'Einkaufslisten in FoodAsu: aufschreiben, im Laden abhaken, nach Warengruppen ordnen, Produkte in die Liste scannen und als Text teilen.',
+    thema: 'Einkaufsliste als App',
+    beschreibung: 'Die Einkaufsliste als App: aufschreiben, im Laden abhaken, nach Warengruppen ordnen, Produkte in die Liste scannen und die Liste als Text teilen.',
   },
   // Der Titel der Seite hat ein Komma und passt deshalb nicht in das Muster "Thema: So geht's mit FoodAsu".
   'zu-hause-schreiben-im-laden-abhaken': {
@@ -299,13 +307,13 @@ const uebersicht = {
   beschreibung: `${rezeptSeiten.length} Rezepte aus ${new Set(rezeptSeiten.flatMap((rezept) => rezept.laender)).size} Ländern mit Hinweisen zu den Zutaten. Suche nach Rezept oder Zutat und filtere nach Kategorie, Land und „Passt für“.`,
 };
 const REIHE = ['ohne', 'passt', 'kategorie', 'land'];
-const themenSeiten = [...themen].sort((a, b) => REIHE.indexOf(a.art) - REIHE.indexOf(b.art)).map((thema) => ({ pfad: thema.adresse, ...themaMeta(thema) }));
+const themenSeiten = [...themen].sort((a, b) => REIHE.indexOf(a.art) - REIHE.indexOf(b.art)).map((thema) => ({ pfad: thema.adresse, ...themaMeta(thema), imIndex: thema.imIndex }));
 const rezeptListe = rezeptSeiten.map((rezept) => ({ pfad: rezeptAdresse(rezept), ...rezeptMeta(rezept) }));
 
 export const alleMeta = [
   fest('/'), fest(BEREICH), ...anleitung, uebersicht, ...themenSeiten, ...rezeptListe, fest('/fragen/'),
-  fest('/datenschutz.html'), fest('/lizenzen/'), fest('/offenlegung/'), fest('/quellen-und-lizenzen/'), fest('/404.html'),
-].map((eintrag) => ({ art: 'website', bild: GEMEINSAM, ...eintrag, index: !OHNE_INDEX.includes(eintrag.pfad) }));
+  fest('/daten-und-quellen/'), fest('/datenschutz.html'), fest('/lizenzen/'), fest('/offenlegung/'), fest('/quellen-und-lizenzen/'), fest('/404.html'),
+].map(({ imIndex = true, ...eintrag }) => ({ art: 'website', bild: GEMEINSAM, ...eintrag, index: imIndex && !OHNE_INDEX.includes(eintrag.pfad) }));
 
 // ---- Prüfung beim Laden: Jeder Verstoß bricht den Bau ab. ----
 const gesehen = { titel: new Map(), beschreibung: new Map() };

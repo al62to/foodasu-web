@@ -3,6 +3,7 @@
 // Texten der App (strings_rezept_teile.xml, strings_rezept_seite.xml, strings_urteil.xml, strings_karte.xml).
 import daten from './rezepte.json' with { type: 'json' };
 import { auswahl, muster, HOECHSTENS } from './auswahl.mjs';
+import { THEMEN_TEXTE } from './themen_texte.mjs';
 
 export const paket = daten.paket;
 // Zahlen über alle Rezepte der App. In rezepte.json stehen nur die Rezepte der Website (tools/rezepte_exportieren.py).
@@ -336,6 +337,38 @@ export const alleThemen = themenBauen();
 // Eine Themenseite gibt es nur, wenn sie mindestens drei Rezepte der Website zeigt.
 export const MINDESTENS = 3;
 const mitSeite = alleThemen.filter((thema) => thema.rezepte.length >= MINDESTENS);
+// Im Index der Suchmaschinen steht eine Themenseite nur mit mindestens sechs Rezepten und einem eigenen Einleitungstext
+// (AP-22 Teil 1 Nr. 2, src/daten/themen_texte.mjs). Alle anderen tragen "noindex, follow" und fehlen in sitemap.xml und
+// llms.txt; für Besucher bleiben sie, auch im Menü.
+export const INDEX_AB = 6;
+{
+  const fehler = [];
+  for (const [adresse, eintrag] of Object.entries(THEMEN_TEXTE)) {
+    const thema = mitSeite.find((eines) => eines.adresse === adresse);
+    if (!thema) { fehler.push(`${adresse}: Text für eine Seite, die es nicht gibt`); continue; }
+    const aufSeite = new Set(thema.rezepte.map((rezept) => rezept.slug));
+    const jeNach = new Set(thema.jeNachRezepte.map((rezept) => rezept.slug));
+    const genannt = (slug) => {
+      const rezept = nachSlug.get(slug);
+      if (!rezept) { fehler.push(`${adresse}: Rezept ${slug} gibt es nicht`); return false; }
+      if (!eintrag.text.includes(rezept.kurztitel)) fehler.push(`${adresse}: Der Text nennt „${rezept.kurztitel}“ nicht`);
+      return true;
+    };
+    for (const slug of eintrag.dabei ?? []) if (genannt(slug) && !aufSeite.has(slug)) fehler.push(`${adresse}: ${slug} steht nicht auf der Seite`);
+    for (const slug of eintrag.nichtDabei ?? []) if (genannt(slug) && (aufSeite.has(slug) || jeNach.has(slug))) fehler.push(`${adresse}: ${slug} steht auf der Seite, der Text sagt das Gegenteil`);
+    for (const slug of eintrag.jeNach ?? []) if (genannt(slug) && !jeNach.has(slug)) fehler.push(`${adresse}: ${slug} steht nicht unter „Je nach Produkt“`);
+    if (eintrag.vegetarisch) {
+      const voll = thema.rezepte.filter((rezept) => !('en:vegetarian' in rezept.hinweise)).map((rezept) => rezept.slug).sort().join(' ');
+      if (voll !== [...eintrag.vegetarisch].sort().join(' ')) fehler.push(`${adresse}: vegetarisch laut Zutatenliste sind ${voll}`);
+    }
+    if (thema.art === 'ohne' && !eintrag.text.toLocaleLowerCase('de').includes(`ohne ${thema.menue} als zutat laut zutatenliste`.toLocaleLowerCase('de'))) fehler.push(`${adresse}: Die Wendung „ohne ${thema.menue} als Zutat laut Zutatenliste“ fehlt`);
+    if (thema.art === 'passt' && !eintrag.text.includes('laut Zutatenliste')) fehler.push(`${adresse}: „laut Zutatenliste“ fehlt`);
+    if (/\d/.test(eintrag.text)) fehler.push(`${adresse}: Zahl im Text (Zahlen kommen aus den Daten)`);
+    thema.einleitung = eintrag.text;
+  }
+  if (fehler.length) throw new Error(`Einleitungstexte der Themenseiten (src/daten/themen_texte.mjs):\n- ${fehler.join('\n- ')}`);
+  for (const thema of alleThemen) thema.imIndex = thema.rezepte.length >= INDEX_AB && Boolean(thema.einleitung);
+}
 export const themen = muster ? mitSeite.filter((thema) => muster.themen.includes(thema.adresse)) : mitSeite;
 export const rezeptSeiten = muster ? rezepte.filter((rezept) => muster.rezepte.includes(rezept.slug)) : rezepte;
 

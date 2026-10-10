@@ -1,5 +1,6 @@
 ---
-// Themenseite: alle Rezepte der Website zu einem Eintrag, Land oder einer Kategorie, mit ItemList.
+// Themenseite: alle Rezepte der Website zu einem Eintrag, Land oder einer Kategorie, mit ItemList. Seiten ab sechs
+// Rezepten zeigen über den Karten ihren eigenen Einleitungstext (src/daten/themen_texte.mjs, AP-22).
 import Basis from '../layouts/Basis.astro';
 import Seitenkopf from './Seitenkopf.astro';
 import Rezeptkarte from './Rezeptkarte.astro';
@@ -28,6 +29,7 @@ const daten = [{
   </Seitenkopf>
 
   <div class="s-inhalt innen">
+    {thema.einleitung && <p class="s-teil t-einleitung">{thema.einleitung}</p>}
     <ul class="r-karten s-teil">{thema.rezepte.map((rezept, nummer) => <Rezeptkarte rezept={rezept} vorn={nummer < 4} />)}</ul>
 
     {jeNach.length > 0 && (

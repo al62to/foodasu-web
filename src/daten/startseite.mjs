@@ -1,6 +1,8 @@
 // Alle Texte der Startseite an einer Stelle (AP-15 Teil B, Abschnitte 1 bis 8). Von Ali am 09.10.2026 freigegeben.
 // Die Datei Website_Texte_Startseite.md entsteht daraus mit tools/texte_ausgeben.mjs.
 // Titel der Startseite. Die Beschreibung steht mit denen aller Seiten in src/daten/meta.mjs.
+import { lizenzen } from './lizenzen.mjs';
+
 export const kopfdaten = {
   titel: 'FoodAsu: Lebensmittel-Scanner für den ganzen Haushalt',
 };
@@ -180,48 +182,8 @@ export const vorschau = {
   link: '40 Rezepte auf der Website ansehen',
 };
 
-export const fragen = {
-  ueberschrift: 'Fragen und Antworten',
-  liste: [
-    {
-      frage: 'Woher kommen die Daten?',
-      antwort: [
-        'Die Angaben zu Produkten kommen aus der offenen Datenbank Open Food Facts. Eine Gemeinschaft trägt dort ein, was auf der Verpackung steht. Die Angaben können unvollständig oder veraltet sein.',
-        'Die Rezepte stammen aus offenen Rezeptsammlungen; Quelle und Lizenz sind bei jedem Rezept verlinkt. Die Nährwerte der Rezepte sind aus den rohen Zutaten berechnet, mit dem Bundeslebensmittelschlüssel (BLS 4.0).',
-      ],
-    },
-    {
-      frage: 'Was passiert mit meinen Angaben?',
-      antwort: [
-        'Was dein Haushalt meidet, bleibt nur auf deinem Handy, außer du exportierst es selbst. FoodAsu braucht kein Konto und zeigt keine Werbung. Beim Scannen fragt FoodAsu mit dem Strichcode bei der offenen Datenbank Open Food Facts nach und lädt von dort Produktangaben und Produktbild.',
-      ],
-      verweis: { vor: 'Alles Weitere steht in der ', text: 'Datenschutzerklärung', nach: '.', ziel: '/datenschutz.html' },
-    },
-    {
-      frage: 'Ersetzt FoodAsu die Verpackung?',
-      antwort: [
-        'Nein. FoodAsu zeigt, was laut Daten im Produkt ist. Daten können fehlen oder veraltet sein. Maßgeblich ist immer die Verpackung.',
-        'FoodAsu ist kein medizinisches Hilfsmittel und ersetzt keine ärztliche Beratung.',
-      ],
-    },
-    {
-      frage: 'Was bedeutet „Angaben unvollständig“?',
-      antwort: [
-        'Dann fehlt in den Daten die Zutatenliste, oder sie ist nicht vollständig erfasst. FoodAsu schreibt in dem Fall „Angaben unvollständig, Verpackung prüfen“ und nicht „Kein Konflikt laut Daten“.',
-      ],
-    },
-    {
-      frage: 'Brauche ich ein Konto?',
-      antwort: ['Nein. FoodAsu funktioniert ohne Registrierung.'],
-    },
-    {
-      frage: 'Wo bekomme ich FoodAsu?',
-      antwort: [
-        'FoodAsu ist in der Beta. Wir bauen laufend neue Funktionen ein und freuen uns über dein Feedback. Die App kommt für Android in den Play Store. Eine Version fürs iPhone ist geplant.',
-      ],
-    },
-  ],
-};
+// Fragen und Antworten stehen seit AP-22 in src/daten/fragen.mjs.
+export { fragen } from './fragen.mjs';
 
 // Fußzeile A (Entscheidung Ali vom 10.10.2026, AP-18 Teil D): links Logo und Satz, daneben drei Spalten, unten eine
 // schmale Zeile. Der Hinweis zur Verpackung steht weiter auf jeder Seite, jetzt unter dem Satz.
@@ -235,6 +197,8 @@ export const fuss = {
     { titel: "So geht's", ziel: '/so-gehts/' },
     { titel: 'Rezepte', ziel: '/rezepte/' },
     { titel: 'Fragen', ziel: '/fragen/' },
+    // AP-22: woher die Angaben kommen, verständlich erklärt; die Einzelnachweise bleiben unter "Quellen und Lizenzen".
+    { titel: 'Daten und Quellen', ziel: '/daten-und-quellen/' },
   ],
   rechte: '© 2026 FoodAsu · Eine App von Ali',
   auftritte: {
@@ -291,25 +255,6 @@ export const geruest = {
     },
     bilder: { karte: 'FoodAsu-App: Produktkarte nach dem Scan mit Urteil', start: 'FoodAsu-App: Startbildschirm' },
   },
-  lizenzen: {
-    titel: 'Lizenzen',
-    einleitung: 'Diese Website verwendet die folgenden Schriften, Daten, Bilder und Programme.',
-    eintraege: [
-      { name: 'Plus Jakarta Sans', art: 'Schrift', lizenz: 'SIL Open Font License 1.1', ziel: 'https://openfontlicense.org/open-font-license-official-text/' },
-      { name: 'Pacifico', art: 'Schrift im Logo', lizenz: 'SIL Open Font License 1.1', ziel: 'https://openfontlicense.org/open-font-license-official-text/' },
-      { name: 'Astro', art: 'Programm, mit dem die Seiten gebaut werden', lizenz: 'MIT License', ziel: 'https://github.com/withastro/astro/blob/main/LICENSE' },
-      { name: 'GSAP', art: 'Programm für die Animationen', lizenz: 'Standard „no charge“ GSAP License', ziel: 'https://gsap.com/standard-license' },
-      {
-        name: 'Bundeslebensmittelschlüssel (BLS) 4.0',
-        art: 'Daten für die Nährwerte der Rezepte, herausgegeben vom Max Rubner-Institut (2025). Die Nährwerte sind eine eigene Berechnung aus den rohen Zutaten; das Max Rubner-Institut hat sie nicht geprüft.',
-        lizenz: 'CC BY 4.0',
-        ziel: 'https://creativecommons.org/licenses/by/4.0/deed.de',
-        zusatz: { vor: ', DOI ', text: '10.25826/Data20251217-134202-0', ziel: 'https://doi.org/10.25826/Data20251217-134202-0' },
-      },
-    ],
-    saetze: [
-      { name: 'Rezepte', text: 'Die Rezepte stammen aus offenen Rezeptsammlungen. Quelle, Urheber, Lizenz und Änderungen stehen für jedes Rezept auf der Seite ', link: { text: 'Quellen und Lizenzen', ziel: '/quellen-und-lizenzen/' }, nach: '.' },
-      { name: 'Bilder', text: 'Symbolbilder, mit Adobe Firefly erzeugt.' },
-    ],
-  },
+  // Seite /lizenzen/: Die Texte stehen seit AP-22 in src/daten/lizenzen.mjs.
+  lizenzen,
 };

@@ -40,7 +40,10 @@ const WENDUNGEN = [
   'heutigen\\s+schnelllebigen', 'tauche\\s+ein', 'entdecke\\s+die\\s+welt', 'nahtlos', 'revolutionär', 'ganzheitlich',
   'egal\\s+ob', 'hier\\s+klicken',
 ].map((wort) => ['WENDUNG', muster(wort)]);
-const AUSNAHMEN = ['Pro Portion', 'Pro Stück'];
+// Der Satz zum Medizinprodukt (AP-22 Teil 1 Nr. 6, wörtlich von der Projektleitung) enthält "gesundheitlichen". Nur
+// dieser eine Satz ist von der Wortliste ausgenommen; er steht in src/daten/fragen.mjs.
+const MEDIZIN = 'FoodAsu ist kein Medizinprodukt und ersetzt keine ärztliche Beratung. Maßgeblich ist immer die Verpackung. Bei gesundheitlichen Fragen wende dich an Fachleute.';
+const AUSNAHMEN = ['Pro Portion', 'Pro Stück', 'Bei gesundheitlichen Fragen wende dich an Fachleute.'];
 const SPEICHER = /document\.cookie|localStorage|sessionStorage|indexedDB|sendBeacon|XMLHttpRequest|\bfetch\(/;
 // Die eine Ausnahme (AP-18 Teil C): Der Schalter für helle und dunkle Darstellung liest und schreibt genau einen
 // Eintrag "darstellung" im Speicher des Browsers, mit dem Wert "hell" oder "dunkel". Jeder andere Zugriff auf den
@@ -104,10 +107,38 @@ const sichtbar = (html) => {
 
 // Kopfdaten je Seite (AP-18 Nachtrag Meta): Titel und Beschreibung vorhanden, eindeutig, in den Grenzen (Zeichen und
 // Pixel wie in der Vorschau der Suche, src/daten/breite.mjs) und ohne Wort aus den Wortlisten; kanonische Adresse;
-// noindex nur auf den drei genannten Seiten, sonst keine Robots-Angabe; genau eine h1 und keine Sprünge in der
-// Reihenfolge der Überschriften; Open Graph und Twitter-Karte vollständig, mit einem Bild 1200 x 630 von dieser
+// noindex nur auf den drei genannten Seiten und auf den kleinen Themenseiten (siehe unten), sonst keine Robots-Angabe;
+// genau eine h1 und keine Sprünge in der Reihenfolge der Überschriften; Open Graph und Twitter-Karte vollständig, mit einem Bild 1200 x 630 von dieser
 // Website. Die Prüfung liest nur die gebauten Seiten, nicht src/daten/meta.mjs.
 const OHNE_INDEX = new Set(['/offenlegung/', '/quellen-und-lizenzen/', '/404.html']);
+// Themenseiten der Rezepte (AP-22 Teil 1 Nr. 2): Im Index steht eine Themenseite nur mit mindestens sechs Rezepten und
+// einem eigenen Einleitungstext. Jede andere trägt "noindex, follow" und fehlt in sitemap.xml und llms.txt; für
+// Besucher bleibt sie. Gelesen wird beides aus der gebauten Seite: die Zahl aus der ItemList, der Text aus dem Absatz
+// über den Karten. Seiten "Rezepte ohne ..." nennen im Text "als Zutat laut Zutatenliste".
+const INDEX_AB = 6;
+const EINLEITUNG = /<p class="s-teil t-einleitung">([\s\S]*?)<\/p>/;
+const themenSeiten = { imIndex: [], ohneIndex: [] };
+const einleitungen = new Map();
+for (const [adresse, html] of seiten) {
+  if (!adresse.startsWith('/rezepte/') || adresse === '/rezepte/' || IST_REZEPT.test(html)) continue;
+  const liste = alle(html, /<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)
+    .map(([, roh]) => { try { return JSON.parse(roh); } catch { return {}; } })
+    .find((block) => block['@type'] === 'ItemList');
+  const zahl = liste?.itemListElement?.length ?? 0;
+  const text = entschluesselt(html.match(EINLEITUNG)?.[1].replace(/<[^>]+>/g, '').trim() ?? '');
+  if (zahl >= INDEX_AB && text) {
+    themenSeiten.imIndex.push(adresse);
+    if (text.length < 120) melde(adresse, `Einleitungstext zu kurz (${text.length} Zeichen)`);
+    if (einleitungen.has(text)) melde(adresse, `Einleitungstext doppelt, auch auf ${einleitungen.get(text)}`);
+    einleitungen.set(text, adresse);
+    if (/^\/rezepte\/ohne-/.test(adresse) && !text.includes('als Zutat laut Zutatenliste')) melde(adresse, 'Einleitungstext ohne „als Zutat laut Zutatenliste“');
+  } else {
+    OHNE_INDEX.add(adresse);
+    themenSeiten.ohneIndex.push(adresse);
+    if (zahl >= INDEX_AB) hinweise.push(`${adresse}: ${zahl} Rezepte, aber kein Einleitungstext; die Seite steht deshalb auf noindex`);
+    if (text) melde(adresse, 'Einleitungstext auf einer Seite mit weniger als sechs Rezepten');
+  }
+}
 const TITEL_ZEICHEN = /^[\p{L}\p{N} :|()'-]+$/u;
 const META_WORTE = [['LADEN-WORT', muster('herunterladen|herunter\\s+laden|download|jetzt\\s+laden|jetzt\\s+holen')]];
 const TEILEN = { breite: 1200, hoehe: 630, gemeinsam: '/bilder/foodasu-teilen.jpg' };
@@ -396,7 +427,7 @@ for (const [adresse, html] of seiten) {
 
 // Fußzeile A (AP-18 Teil D): auf jeder Seite Logo mit Satz und Hinweis, drei Spalten mit ihren Links, die schmale
 // Zeile mit dem Vermerk. Facebook und Instagram sind einfache Links; eingebettet wird nichts.
-const FUSS_LINKS = ['/datenschutz.html', '/offenlegung/', '/lizenzen/', '/quellen-und-lizenzen/', '/so-gehts/', '/rezepte/', '/fragen/'];
+const FUSS_LINKS = ['/datenschutz.html', '/offenlegung/', '/lizenzen/', '/quellen-und-lizenzen/', '/so-gehts/', '/rezepte/', '/fragen/', '/daten-und-quellen/'];
 const FUSS_TEXTE = [
   'Der Lebensmittel-Scanner für den ganzen Haushalt.', 'Maßgeblich ist die Verpackung.', 'Rechtliches', 'Folge uns',
   '© 2026 FoodAsu · Eine App von Ali',
@@ -577,6 +608,49 @@ if (existsSync(join(DIST, 'sitemap.xml'))) {
   if (eintraege.length !== seiten.size - OHNE_INDEX.size) melde('sitemap.xml', `${eintraege.length} Einträge, erwartet ${seiten.size - OHNE_INDEX.size}`);
 }
 if (!seiten.get('/')?.includes('facebook.com')) hinweise.push('Fuß: Adresse der Facebook-Seite fehlt (src/daten/seite.mjs)');
+// sitemap.xml (AP-22 Teil 1 Nr. 1): Der Tag der letzten Änderung kommt aus Git und liegt nie in der Zukunft; die
+// Anleitung steht mit Übersicht und allen Kapiteln in der Datei.
+if (existsSync(join(DIST, 'sitemap.xml'))) {
+  const karte = readFileSync(join(DIST, 'sitemap.xml'), 'utf8');
+  const heute = new Date().toLocaleDateString('sv-SE');
+  for (const [, ort, tag] of alle(karte, /<url><loc>([^<]+)<\/loc><lastmod>(\d{4}-\d{2}-\d{2})<\/lastmod><\/url>/g)) {
+    if (tag > heute || tag < '2026-10-01') melde('sitemap.xml', `Tag der letzten Änderung unplausibel: ${ort} ${tag}`);
+  }
+  for (const ziel of [BEREICH, ...kapitel.map(kapitelAdresse)]) if (!karte.includes(`<loc>${HOST}${ziel}</loc>`)) melde('sitemap.xml', `Seite der Anleitung fehlt: ${ziel}`);
+}
+// robots.txt (AP-22 Teil 1 Nr. 4): alles erlaubt, die Bots der großen Anbieter ausdrücklich genannt, die Zeile zur
+// Sitemap bleibt.
+const ROBOTS_BOTS = [
+  'Googlebot', 'Googlebot-Image', 'Google-Extended', 'bingbot', 'OAI-SearchBot', 'ChatGPT-User', 'GPTBot', 'ClaudeBot',
+  'Claude-User', 'Claude-SearchBot', 'PerplexityBot', 'Perplexity-User', 'Applebot', 'Applebot-Extended', 'CCBot',
+  'facebookexternalhit', 'meta-externalagent', 'meta-externalfetcher',
+];
+if (existsSync(join(DIST, 'robots.txt'))) {
+  const robots = readFileSync(join(DIST, 'robots.txt'), 'utf8').split(/\r?\n/).map((zeile) => zeile.trim());
+  const regeln = robots.filter((zeile) => zeile && !zeile.startsWith('#'));
+  if (regeln.some((zeile) => /^disallow\s*:/i.test(zeile))) melde('robots.txt', 'enthält eine Sperre (Disallow); alles soll erlaubt sein');
+  if (regeln.some((zeile) => !/^(user-agent\s*:\s*\S+|allow\s*:\s*\/|sitemap\s*:\s*\S+)$/i.test(zeile))) melde('robots.txt', 'enthält eine Zeile, die weder User-agent, Allow: / noch Sitemap ist');
+  if (!regeln.includes('User-agent: *')) melde('robots.txt', 'Block für alle Bots fehlt');
+  if (!regeln.includes(`Sitemap: ${HOST}/sitemap.xml`)) melde('robots.txt', 'Zeile zur Sitemap fehlt');
+  for (const bot of ROBOTS_BOTS) if (!regeln.includes(`User-agent: ${bot}`)) melde('robots.txt', `Bot nicht genannt: ${bot}`);
+  // Jeder Block endet mit "Allow: /": Nach der letzten Zeile "User-agent" eines Blocks folgt die Erlaubnis.
+  regeln.forEach((zeile, nummer) => {
+    if (/^user-agent/i.test(zeile) && !/^(user-agent|allow)/i.test(regeln[nummer + 1] ?? '')) melde('robots.txt', `Block ohne Allow: ${zeile}`);
+  });
+}
+// Seite "Daten und Quellen" (AP-22 Teil 1 Nr. 5) und der Satz zum Medizinprodukt (Nr. 6): Der Satz steht wörtlich auf
+// der Startseite, unter /fragen/ und auf "Daten und Quellen"; der frühere Satz steht nirgends mehr. Die neue Seite
+// verlinkt die Einzelnachweise und steht im Index.
+const textVon = (adresse) => entschluesselt((seiten.get(adresse) ?? '').replace(/<script[\s\S]*?<\/script>/g, ' ').replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ');
+for (const adresse of ['/', '/fragen/', '/daten-und-quellen/']) {
+  if (!seiten.has(adresse)) { melde(adresse, 'Seite fehlt'); continue; }
+  if (!textVon(adresse).includes(MEDIZIN)) melde(adresse, 'Satz zum Medizinprodukt fehlt oder weicht ab');
+}
+for (const [adresse, html] of seiten) if (/medizinisches Hilfsmittel/.test(html)) melde(adresse, 'der frühere Satz zum medizinischen Hilfsmittel steht noch da');
+const datenInhalt = (seiten.get('/daten-und-quellen/') ?? '').match(/<main[\s\S]*<\/main>/)?.[0] ?? '';
+for (const ziel of ['/quellen-und-lizenzen/', '/lizenzen/', '/datenschutz.html']) if (!datenInhalt.includes(`href="${ziel}"`)) melde('/daten-und-quellen/', `Link fehlt: ${ziel}`);
+for (const wort of ['Open Food Facts', 'BLS 4.0', 'Adobe Firefly', 'laut Daten', 'Maßgeblich ist immer die Verpackung.']) if (!textVon('/daten-und-quellen/').includes(wort)) melde('/daten-und-quellen/', `Angabe fehlt: ${wort}`);
+if (OHNE_INDEX.has('/daten-und-quellen/')) melde('/daten-und-quellen/', 'steht auf noindex');
 
 // Tabelle aller Titel und Beschreibungen, wie sie auf den gebauten Seiten stehen (Aufruf mit --meta <Datei>).
 const metaZiel = process.argv.includes('--meta') ? process.argv[process.argv.indexOf('--meta') + 1] : null;
@@ -585,7 +659,7 @@ if (metaZiel) {
   const tabelle = [
     '# Website foodasu.com: Titel und Beschreibung jeder Seite (AP-18 Nachtrag Meta)',
     '',
-    `Gelesen aus den gebauten Seiten (\`npm run meta\` nach \`npm run build\`); geändert wird in \`foodasu-web/src/daten/meta.mjs\`. ${metaZeilen.length} Seiten, davon ${metaZeilen.length - OHNE_INDEX.size} im Index.`,
+    `Gelesen aus den gebauten Seiten (\`npm run meta\` nach \`npm run build\`); geändert wird in \`foodasu-web/src/daten/meta.mjs\`. ${metaZeilen.length} Seiten, davon ${metaZeilen.length - OHNE_INDEX.size} im Index. Themenseiten der Rezepte stehen nur mit mindestens ${INDEX_AB} Rezepten und eigenem Einleitungstext im Index (AP-22).`,
     '',
     `Grenzen: Titel ${GRENZEN.titel.von} bis ${GRENZEN.titel.bis} Zeichen und höchstens ${GRENZEN.titel.pixel} Pixel (Arial ${GRENZEN.titel.schrift} px); Beschreibung ${GRENZEN.beschreibung.von} bis ${GRENZEN.beschreibung.bis} Zeichen und höchstens ${GRENZEN.beschreibung.pixel} Pixel (Arial ${GRENZEN.beschreibung.schrift} px). Die Pixel sind die Summe der Zeichenbreiten ohne Unterschneidung, also eher zu breit als zu schmal gerechnet.`,
     '',
@@ -608,6 +682,8 @@ if (metaZiel) {
 
 console.log(`Geprüft: ${seiten.size} Seiten (${[...seiten.keys()].join(', ')}), ${dateien.length} Dateien`);
 console.log(`Knopf „${TEILEN_NAME}“: auf ${teilenKnoepfe} von ${rezeptSeiten} Rezeptseiten, auf keiner anderen Seite`);
+console.log(`Themenseiten: ${themenSeiten.imIndex.length} im Index (ab ${INDEX_AB} Rezepten, mit Einleitungstext), ${themenSeiten.ohneIndex.length} mit noindex (${themenSeiten.ohneIndex.join(', ')})`);
+console.log(`Im Index: ${seiten.size - OHNE_INDEX.size} von ${seiten.size} Seiten`);
 for (const hinweis of hinweise) console.log(`HINWEIS ${hinweis}`);
 for (const eintrag of fehler) console.log(`FEHLER ${eintrag}`);
 console.log(`Ergebnis: ${fehler.length === 0 ? 'bestanden' : fehler.length + ' Befunde'}`);

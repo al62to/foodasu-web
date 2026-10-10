@@ -1,0 +1,26 @@
+---
+// "Daten und Quellen" (AP-22 Teil 1 Nr. 5): woher Produktangaben, Rezepte, Nährwerte und Bilder kommen, was "laut
+// Daten" bedeutet und warum die Verpackung maßgeblich ist. Alle Texte stehen in src/daten/datenquellen.mjs. Die
+// Einzelnachweise bleiben auf der Seite "Quellen und Lizenzen"; diese Seite verlinkt dorthin. Im Fuß jeder Seite
+// verlinkt, im Index der Suchmaschinen und in sitemap.xml.
+import Basis from '../../layouts/Basis.astro';
+import Seitenkopf from '../../components/Seitenkopf.astro';
+import { datenquellen as t } from '../../daten/datenquellen.mjs';
+---
+<Basis>
+  <Seitenkopf krumen={[{ titel: t.titel, ziel: '/daten-und-quellen/' }]} titel={t.titel} vorspann={t.vorspann} still />
+  <div class="s-inhalt innen">
+    <ul class="s-liste breit">
+      {t.teile.map((teil) => (
+        <li class="s-karte">
+          <h2 id={teil.anker}>{teil.titel}</h2>
+          {teil.absaetze.map((absatz) =>
+            typeof absatz === 'string'
+              ? <p>{absatz}</p>
+              : <p>{absatz.vor}<a href={absatz.ziel} rel={absatz.extern ? 'noopener' : undefined}>{absatz.text}</a>{absatz.nach}</p>
+          )}
+        </li>
+      ))}
+    </ul>
+  </div>
+</Basis>
