@@ -8,6 +8,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "pruefen": "node tools/pruefe_seiten.mjs",
+    "funktionen": "node tools/funktionen_pruefen.mjs",
     "texte": "node tools/texte_ausgeben.mjs && node tools/texte_sogehts.mjs",
     "meta": "node tools/pruefe_seiten.mjs --meta C:/Users/ali/foodasu-play/Website_Meta_Uebersicht.md",
     "nachweise": "node tools/nachweise.mjs",
