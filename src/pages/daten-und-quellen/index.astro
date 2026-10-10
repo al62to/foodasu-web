@@ -8,7 +8,7 @@ import Seitenkopf from '../../components/Seitenkopf.astro';
 import { datenquellen as t } from '../../daten/datenquellen.mjs';
 ---
 <Basis>
-  <Seitenkopf krumen={[{ titel: t.titel, ziel: '/daten-und-quellen/' }]} titel={t.titel} vorspann={t.vorspann} still />
+  <Seitenkopf krumen={[{ titel: t.titel, ziel: '/daten-und-quellen/' }]} titel={t.h1} vorspann={t.vorspann} still />
   <div class="s-inhalt innen">
     <ul class="s-liste breit">
       {t.teile.map((teil) => (

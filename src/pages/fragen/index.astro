@@ -19,7 +19,7 @@ const daten = [{
 }];
 ---
 <Basis daten={daten}>
-  <Seitenkopf krumen={[{ titel: texte.titel, ziel: '/fragen/' }]} titel={texte.titel} vorspann={texte.beschreibung} />
+  <Seitenkopf krumen={[{ titel: texte.titel, ziel: '/fragen/' }]} titel={texte.h1} vorspann={texte.beschreibung} />
   <div class="s-inhalt innen">
     <ul class="s-liste breit">
       {fragen.liste.map((eintrag) => (

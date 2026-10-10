@@ -25,7 +25,7 @@ const daten = [{
 }];
 ---
 <Basis daten={daten}>
-  <Seitenkopf krumen={[{ titel: uebersicht.titel, ziel: BEREICH }]} titel={uebersicht.titel} vorspann={uebersicht.vorspann}>
+  <Seitenkopf krumen={[{ titel: uebersicht.titel, ziel: BEREICH }]} titel={uebersicht.h1} vorspann={uebersicht.vorspann}>
     <div class="g-trio" slot="seite">
       {kopfBilder.map((datei, stelle) => (
         <Handy foto={fotoDaten({ datei })} groessen="(min-width: 56rem) 12.5rem, 27vw" laden="eager" vorrang={stelle === 1} schnitt={false} />

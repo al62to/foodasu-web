@@ -105,6 +105,8 @@ export const hinweisText = (stufe, eintrag) =>
 export const texte = {
   uebersicht: 'Rezepte',
   symbolbild: 'Symbolbild',
+  // Vorzeile in der h1 jeder Rezeptseite (AP-22, Wunsch Ali vom 10.10.2026; freigegeben am 10.10.2026).
+  rezeptVorzeile: 'Rezept',
   passt: {
     titel: 'Passt für',
     zusatz: 'laut Zutatenliste',

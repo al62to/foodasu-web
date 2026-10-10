@@ -1,0 +1,27 @@
+---
+// "Über FoodAsu" (AP-22 Teil 2 Nr. 5): wer hinter der App steht, warum es sie gibt, was sie verspricht, wo sie steht
+// und der Kontakt per E-Mail. Alle Texte stehen in src/daten/ueber.mjs. Im Fuß jeder Seite verlinkt.
+import Basis from '../../layouts/Basis.astro';
+import Seitenkopf from '../../components/Seitenkopf.astro';
+import { ueber as t } from '../../daten/ueber.mjs';
+import kontakt from '../../inhalte/kontakt.html?raw';
+
+// Die Adresse bleibt wie im Fuß als Zeichenfolge aus HTML-Entitäten im Quelltext.
+const kontaktLink = (text) => `<a href="${kontakt.trim()}">${text}</a>`;
+---
+<Basis>
+  <Seitenkopf krumen={[{ titel: t.titel, ziel: '/ueber-foodasu/' }]} titel={t.h1} vorspann={t.vorspann} still />
+  <div class="s-inhalt innen">
+    <ul class="s-liste breit">
+      {t.teile.map((teil) => (
+        <li class="s-karte">
+          <h2 id={teil.anker}>{teil.titel}</h2>
+          {teil.absaetze.map((absatz) => <p>{absatz}</p>)}
+          {teil.unterschrift && <p class="unterschrift">{teil.unterschrift}</p>}
+          {teil.kontakt && <p set:html={kontaktLink(teil.kontakt)} />}
+          {teil.verweis && <p>{teil.verweis.vor}<a href={teil.verweis.ziel}>{teil.verweis.text}</a>{teil.verweis.nach}</p>}
+        </li>
+      ))}
+    </ul>
+  </div>
+</Basis>

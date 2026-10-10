@@ -7,6 +7,7 @@ import { rezeptSeiten, texte, themen } from '../daten/rezeptseiten.mjs';
 import { BEREICH, adresse, kapitel, uebersicht } from '../daten/sogehts.mjs';
 import { alleMeta, metaVon } from '../daten/meta.mjs';
 import { datenquellen } from '../daten/datenquellen.mjs';
+import { ueber } from '../daten/ueber.mjs';
 
 const link = (titel, pfad) => `- [${titel}](${seite.adresse + pfad}): ${metaVon(pfad).beschreibung}`;
 const gruppe = (art) => themen.filter((thema) => thema.art === art && thema.imIndex).sort((a, b) => a.titel.localeCompare(b.titel, 'de'));
@@ -24,6 +25,7 @@ export function GET() {
     link('Startseite', '/'),
     link(geruest.fragenSeite.titel, '/fragen/'),
     link(datenquellen.titel, '/daten-und-quellen/'),
+    link(ueber.titel, '/ueber-foodasu/'),
     '',
     `## ${uebersicht.titel}`,
     link(`${uebersicht.titel}: Übersicht`, BEREICH),

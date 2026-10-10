@@ -44,7 +44,7 @@ const FEST = [
   {
     pfad: '/',
     titel: kopfdaten.titel,
-    beschreibung: 'Lebensmittel-Scanner und Einkaufsliste in einer App: FoodAsu zeigt, ob ein Produkt laut den Angaben für alle im Haushalt passt. Für Android.',
+    beschreibung: 'Lebensmittel-Scanner und Einkaufsliste als Android-App: FoodAsu zeigt, ob ein Produkt laut den Angaben für alle im Haushalt passt. Ohne Konto.',
   },
   {
     pfad: BEREICH,
@@ -55,6 +55,11 @@ const FEST = [
     pfad: '/fragen/',
     titel: 'Fragen und Antworten zu FoodAsu',
     beschreibung: 'Fragen und Antworten zu FoodAsu: woher die Daten kommen, was mit deinen Angaben passiert und warum die Verpackung maßgeblich bleibt.',
+  },
+  {
+    pfad: '/ueber-foodasu/',
+    titel: 'Über FoodAsu: eine App für Android aus Vorarlberg',
+    beschreibung: 'Wer FoodAsu in Vorarlberg entwickelt, warum es die App gibt, für wen sie ist und woher die Angaben kommen. Kein Konto, keine Werbung.',
   },
   {
     pfad: '/daten-und-quellen/',
@@ -312,7 +317,7 @@ const rezeptListe = rezeptSeiten.map((rezept) => ({ pfad: rezeptAdresse(rezept),
 
 export const alleMeta = [
   fest('/'), fest(BEREICH), ...anleitung, uebersicht, ...themenSeiten, ...rezeptListe, fest('/fragen/'),
-  fest('/daten-und-quellen/'), fest('/datenschutz.html'), fest('/lizenzen/'), fest('/offenlegung/'), fest('/quellen-und-lizenzen/'), fest('/404.html'),
+  fest('/daten-und-quellen/'), fest('/ueber-foodasu/'), fest('/datenschutz.html'), fest('/lizenzen/'), fest('/offenlegung/'), fest('/quellen-und-lizenzen/'), fest('/404.html'),
 ].map(({ imIndex = true, ...eintrag }) => ({ art: 'website', bild: GEMEINSAM, ...eintrag, index: imIndex && !OHNE_INDEX.includes(eintrag.pfad) }));
 
 // ---- Prüfung beim Laden: Jeder Verstoß bricht den Bau ab. ----

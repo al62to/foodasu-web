@@ -5,6 +5,9 @@ import { mega, hauptpunkte } from '../src/daten/navigation.mjs';
 import * as t from '../src/daten/startseite.mjs';
 import { texte as r, rezepte, themen } from '../src/daten/rezeptseiten.mjs';
 import { metaVon } from '../src/daten/meta.mjs';
+import { seite } from '../src/daten/seite.mjs';
+import { datenquellen } from '../src/daten/datenquellen.mjs';
+import { ueber } from '../src/daten/ueber.mjs';
 
 const ziel = process.argv[2] ?? 'C:/Users/ali/foodasu-play/Website_Texte_Startseite.md';
 const z = [];
@@ -38,7 +41,8 @@ zeile();
 
 zeile('## Abschnitt 1: Kopf mit Scan-Geschichte');
 punkt('Überschrift', `${t.kopf.ueberschrift.join('')} („${t.kopf.ueberschrift[1]}“ mit Unterstreichung in Mint; Überschrift des LinkedIn-Bildes)`);
-punkt('Text', t.kopf.text);
+punkt('Text (Satz zur Beschreibung, AP-22; auch in Organization und WebSite und auf der Seite Über FoodAsu)', seite.beschreibung);
+punkt('Früherer Vorspann (steht nur noch in llms.txt)', t.kopf.text);
 punkt('Aufruf', `${t.kopf.aufruf} (Text ohne Link)`);
 punkt('Zweiter Knopf', `${t.kopf.zweiterKnopf} (springt zu Abschnitt 3)`);
 punkt('Zeile darunter', `${t.kopf.stand} (Beta-Satz wörtlich wie freigegeben; im Satz zum iPhone seit den Nacharbeiten zu AP-18 „geplant“ statt „in Arbeit“)`);
@@ -57,9 +61,17 @@ punkt('Absatz 2', `${t.wort.absaetze[1]} (Beitrag)`);
 punkt('Unterschrift', t.wort.unterschrift);
 zeile();
 
-zeile('## Abschnitt 3: Drei Schritte');
+zeile('## Abschnitt 2b: Alltagslagen (AP-22)');
+punkt('Überschrift', t.lagen.ueberschrift);
+punkt('Satz darunter (für wen FoodAsu ist)', t.lagen.text);
+t.lagen.karten.forEach((k) => punkt(k.titel, k.text));
+punkt('Hinweis darunter', t.lagen.hinweis);
+zeile();
+
+zeile('## Abschnitt 3: Eine Einkaufswoche (Anker #schritte)');
 punkt('Überschrift', t.schritte.ueberschrift);
 t.schritte.liste.forEach((s, i) => punkt(`Schritt ${i + 1}, „${s.titel}“`, s.text));
+punkt('Link darunter', `${t.schritte.link.text} (${t.schritte.link.ziel})`);
 zeile();
 
 zeile('## Abschnitt 4: Funktionen im Glas-Raster');
@@ -119,6 +131,8 @@ const n = t.geruest.nichtGefunden;
 punkt('Seite 404 (Entwurf der Projektleitung, von Ali freigegeben)', `Etikett „${n.etikett}“, Zahl „${n.zahl}“, Überschrift „${n.titel.join('')}“. ${n.text} Knöpfe: „${n.start}“, „${n.rezepte}“. Zwischenüberschrift „${n.themenTitel}“ mit ${n.themen.map((e) => `„${e.titel}“`).join(', ')}. Karte „${n.karte.titel}“: ${n.karte.text} Knopf „${n.karte.knopf}“. Bildbeschreibungen: „${n.bilder.karte}“, „${n.bilder.start}“. Titel der Seite: ${n.seitentitel}.`);
 const f = t.geruest.fragenSeite;
 punkt('Seite Fragen und Antworten', `Titel „${f.titel}“, Vorspann: ${f.beschreibung} Fragen und Antworten wie in Abschnitt 7.`);
+punkt('Seite Daten und Quellen (AP-22)', `Vorspann: ${datenquellen.vorspann} ${datenquellen.teile.map((teil) => `${teil.titel}: ${teil.absaetze.map((absatz) => (typeof absatz === 'string' ? absatz : absatz.vor + absatz.text + absatz.nach)).join(' ')}`).join(' | ')}`);
+punkt('Seite Über FoodAsu (AP-22)', `Vorspann: ${ueber.vorspann} ${ueber.teile.map((teil) => `${teil.titel}: ${[...teil.absaetze, teil.unterschrift, teil.kontakt, teil.verweis ? teil.verweis.vor + teil.verweis.text + teil.verweis.nach : null].filter(Boolean).join(' ')}`).join(' | ')}`);
 const l = t.geruest.lizenzen;
 punkt('Seite Lizenzen', `${l.einleitung} ${l.eintraege.map((e) => `${e.name} (${e.art}): ${e.lizenz}${e.zusatz ? e.zusatz.vor + e.zusatz.text : ''}`).join('; ')}; ${l.saetze.map((e) => `${e.name}: ${e.text}${e.link ? e.link.text + e.nach : ''}`).join(' ')} Beschreibung: ${l.beschreibung}`);
 punkt('Seite Datenschutz', `Text der Fassung 2.0.2 unter /datenschutz.html (wie 2.0.1, in Abschnitt 17 zwei von Ali freigegebene Sätze geändert: Schalter „in der Kopfzeile (am Handy im Menü)“, Offenlegung „auf der Seite „Offenlegung“ der Website“ mit Link), Titel im Kopfbereich, Inhaltsverzeichnis an der Seite mit der Überschrift „${t.geruest.recht.inhalt}“; Brotkrumen „${t.geruest.recht.datenschutz}“`);

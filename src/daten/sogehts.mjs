@@ -45,6 +45,8 @@ export const BEREICH = '/so-gehts/';
 
 export const uebersicht = {
   titel: "So geht's",
+  // Überschrift der Seite (h1) mit Suchwort; "titel" bleibt für Brotkrumen, Menü und Listen (AP-22).
+  h1: "So geht's: Anleitung zur App FoodAsu",
   vorspann: 'Acht kurze Kapitel mit Bildschirmfotos aus der App, vom ersten Start bis zum Backup. Die Begriffe stehen hier so, wie sie in der App heißen.',
   kapitelWort: 'Kapitel',
   lesen: 'Kapitel lesen',
@@ -66,8 +68,25 @@ export const rahmen = {
 };
 
 // Reihenfolge der Kapitel. Die Nummer folgt der Stelle in dieser Liste.
+// Überschrift (h1) jeder Kapitelseite mit Suchwort (AP-22, Wunsch Ali vom 10.10.2026; freigegeben am 10.10.2026). Der
+// Titel des Kapitels bleibt, wie er ist: Er steht in Brotkrumen, Karten, Listen und in der Funktionsliste der App.
+// Adressen und Anker ändern sich nicht.
+export const KAPITEL_H1 = {
+  'erste-schritte': 'Erste Schritte mit FoodAsu',
+  'haushalt-und-meiden': 'Haushalt anlegen und festlegen, wer was meidet',
+  'scannen-und-urteil': 'Lebensmittel scannen und das Urteil verstehen',
+  produktkarte: 'Die Produktkarte: Zutaten, Nährwerte und Nutri-Score',
+  einkaufslisten: 'Einkaufsliste als App: schreiben, abhaken, teilen',
+  'zu-hause-schreiben-im-laden-abhaken': 'Einkaufsliste: zu Hause schreiben, im Laden abhaken',
+  rezepte: 'Rezepte in FoodAsu: Hinweise bei den Zutaten',
+  'deine-daten': 'Einstellungen und deine Daten in FoodAsu',
+};
+
 export const kapitel = [ersteSchritte, haushalt, scannen, produktkarte, einkaufslisten, zuHause, rezepte, deineDaten]
-  .map((eintrag, stelle) => ({ ...eintrag, nummer: stelle + 1 }));
+  .map((eintrag, stelle) => {
+    if (!KAPITEL_H1[eintrag.slug]) throw new Error(`So geht's: Überschrift (h1) fehlt für ${eintrag.slug} (KAPITEL_H1)`);
+    return { ...eintrag, nummer: stelle + 1, h1: KAPITEL_H1[eintrag.slug] };
+  });
 
 export const adresse = (eintrag) => `${BEREICH}${eintrag.slug}/`;
 

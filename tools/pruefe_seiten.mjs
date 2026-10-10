@@ -11,7 +11,8 @@ import { BEREICH, adresse as kapitelAdresse, fotosVon, kapitel } from '../src/da
 import { einblick } from '../src/daten/startseite.mjs';
 import { GRENZEN, grenzBefunde, masse } from '../src/daten/breite.mjs';
 
-const DIST = 'dist';
+// Der Ordner der gebauten Website; mit der Umgebungsvariable DIST prüft der Lauf einen anderen Ordner (Vorschau).
+const DIST = process.env.DIST ?? 'dist';
 const HOST = 'https://foodasu.com';
 const OHNE_EINGANG = new Set(['/', '/404.html']);
 // Rechtstexte laufen wie in texte_pruefen.py nur durch die Bezahl- und Fristlisten.
@@ -189,6 +190,11 @@ for (const [adresse, html] of seiten) {
     if (robots.length !== 1 || robots[0][1] !== 'noindex, follow') melde(adresse, 'Robots-Angabe "noindex, follow" erwartet');
   } else if (robots.length > 0) melde(adresse, `Robots-Angabe gehört nicht auf diese Seite: ${robots[0][1]}`);
   if (alle(html, /<h1[\s>]/g).length !== 1) melde(adresse, 'genau eine Überschrift h1 erwartet');
+  // Überschrift mit Suchwort (AP-22, Wunsch Ali vom 10.10.2026): Auf jeder Seite im Index hat die h1 mindestens drei
+  // Wörter; ein einzelnes Wort wie "Rezepte" reicht nicht. Rezeptseiten tragen dazu die Vorzeile "Rezept".
+  const h1Text = entschluesselt((html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/)?.[1] ?? '').replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ').trim();
+  if (!OHNE_INDEX.has(adresse) && !RECHTSTEXTE.has(adresse) && adresse !== '/lizenzen/' && h1Text.split(' ').length < 3) melde(adresse, `Überschrift h1 ohne Suchwort (weniger als drei Wörter): „${h1Text}“`);
+  if (IST_REZEPT.test(html) && !h1Text.startsWith('Rezept : ') && !h1Text.startsWith('Rezept: ')) melde(adresse, `Überschrift h1 der Rezeptseite ohne die Vorzeile „Rezept“: „${h1Text}“`);
   const stufen = alle(html, /<h([1-6])[\s>]/g).map((treffer) => Number(treffer[1]));
   if (stufen[0] !== 1) melde(adresse, 'die erste Überschrift der Seite ist nicht die h1');
   stufen.forEach((stufe, nummer) => {
@@ -263,8 +269,10 @@ for (const [adresse, html] of seiten) {
       melde(adresse, 'JSON-LD ist kein gültiges JSON');
     }
   }
-  const erwartet = adresse === '/' ? ['WebSite', 'Organization', 'MobileApplication'] : OHNE_EINGANG.has(adresse) ? [] : ['BreadcrumbList'];
+  const erwartet = adresse === '/' ? ['WebSite', 'Organization'] : OHNE_EINGANG.has(adresse) ? [] : ['BreadcrumbList'];
   for (const art of erwartet) if (!arten.includes(art)) melde(adresse, `strukturierte Daten fehlen: ${art}`);
+  // AP-22, Entscheidung Ali vom 10.10.2026: keine Software-App in den strukturierten Daten, auf keiner Seite.
+  for (const art of arten.flat()) if (/Application$/.test(art)) melde(adresse, `strukturierte Daten: ${art} ist nicht vorgesehen`);
   // Brotkrumen: Die strukturierten Daten nennen dieselben Stufen wie die sichtbare Zeile, die letzte ist die Seite.
   const krumenZeile = html.match(/<nav class="krumen[\s\S]*?<\/nav>/)?.[0];
   if (krumenZeile) {
@@ -427,7 +435,7 @@ for (const [adresse, html] of seiten) {
 
 // Fußzeile A (AP-18 Teil D): auf jeder Seite Logo mit Satz und Hinweis, drei Spalten mit ihren Links, die schmale
 // Zeile mit dem Vermerk. Facebook und Instagram sind einfache Links; eingebettet wird nichts.
-const FUSS_LINKS = ['/datenschutz.html', '/offenlegung/', '/lizenzen/', '/quellen-und-lizenzen/', '/so-gehts/', '/rezepte/', '/fragen/', '/daten-und-quellen/'];
+const FUSS_LINKS = ['/datenschutz.html', '/offenlegung/', '/lizenzen/', '/quellen-und-lizenzen/', '/so-gehts/', '/rezepte/', '/fragen/', '/daten-und-quellen/', '/ueber-foodasu/'];
 const FUSS_TEXTE = [
   'Der Lebensmittel-Scanner für den ganzen Haushalt.', 'Maßgeblich ist die Verpackung.', 'Rechtliches', 'Folge uns',
   '© 2026 FoodAsu · Eine App von Ali',
@@ -652,6 +660,48 @@ const datenInhalt = (seiten.get('/daten-und-quellen/') ?? '').match(/<main[\s\S]
 for (const ziel of ['/quellen-und-lizenzen/', '/lizenzen/', '/datenschutz.html']) if (!datenInhalt.includes(`href="${ziel}"`)) melde('/daten-und-quellen/', `Link fehlt: ${ziel}`);
 for (const wort of ['Open Food Facts', 'BLS 4.0', 'Adobe Firefly', 'laut Daten', 'Maßgeblich ist immer die Verpackung.']) if (!textVon('/daten-und-quellen/').includes(wort)) melde('/daten-und-quellen/', `Angabe fehlt: ${wort}`);
 if (OHNE_INDEX.has('/daten-und-quellen/')) melde('/daten-und-quellen/', 'steht auf noindex');
+// Satz zur Beschreibung (AP-22 Teil 2 Nr. 1): wörtlich und sichtbar auf der Startseite und auf "Über FoodAsu", dazu
+// als Beschreibung in Organization und WebSite. Die Einkaufswoche behält den Anker #schritte und verlinkt die Seite
+// "Zu Hause schreiben, im Laden abhaken"; beschrieben ist nur, was 0.14.3 kann.
+const BESCHREIBUNG = 'FoodAsu ist eine App für Android aus Vorarlberg. Beim Scannen zeigt sie für jede Person im Haushalt einzeln, ob laut den Angaben zum Produkt etwas drin ist, das sie meidet. Dazu kommen Einkaufslisten und über 300 Rezepte. Ohne Konto, ohne Werbung.';
+for (const adresse of ['/', '/ueber-foodasu/']) {
+  if (!seiten.has(adresse)) { melde(adresse, 'Seite fehlt'); continue; }
+  if (!textVon(adresse).includes(BESCHREIBUNG)) melde(adresse, 'Satz zur Beschreibung fehlt oder weicht ab');
+}
+const startDaten = alle(startseite, /<script type="application\/ld\+json">([\s\S]*?)<\/script>/g).map(([, roh]) => { try { return JSON.parse(roh); } catch { return {}; } });
+for (const art of ['Organization', 'WebSite']) {
+  const block = startDaten.find((einer) => einer['@type'] === art);
+  if (block?.description !== BESCHREIBUNG) melde('/', `${art}: Beschreibung fehlt oder weicht ab`);
+  if (block && JSON.stringify(block).includes('address')) melde('/', `${art}: Anschrift gehört nicht in die strukturierten Daten`);
+}
+const organisation = startDaten.find((einer) => einer['@type'] === 'Organization');
+if (!organisation?.logo || !(organisation.sameAs ?? []).some((ziel) => ziel.includes('facebook.com')) || !(organisation.sameAs ?? []).some((ziel) => ziel.includes('instagram.com'))) melde('/', 'Organization: Logo oder Links zu Facebook und Instagram fehlen');
+const wochenTeil = startseite.match(/<section class="schritte" id="schritte">[\s\S]*?<\/section>/)?.[0] ?? '';
+if (!wochenTeil) melde('/', 'Abschnitt mit dem Anker #schritte fehlt');
+else {
+  if (alle(wochenTeil, /<li class="schritt">/g).length !== 4) melde('/', 'Einkaufswoche: vier Schritte erwartet');
+  if (!wochenTeil.includes('href="/so-gehts/zu-hause-schreiben-im-laden-abhaken/"')) melde('/', 'Einkaufswoche: Link auf „Zu Hause schreiben, im Laden abhaken“ fehlt');
+}
+// Nichts aus dem Fahrplan: kein Abhaken beim Scannen, kein Teilen von Rezepten in der App.
+for (const adresse of ['/', '/ueber-foodasu/']) {
+  for (const fund of alle(textVon(adresse), /beim Scannen ab(?:ge)?hak|Scannen hakt|hakt beim Scannen|Rezepte? (?:in der App )?teilen/gi)) melde(adresse, `beschreibt etwas aus dem Fahrplan: ${fund[0]}`);
+}
+if (!/als Text teilen/.test(textVon('/'))) melde('/', 'die Karte zur Einkaufsliste nennt „als Text teilen“ nicht');
+// Entscheidungen Ali vom 10.10.2026 (AP-22 Teil 2). Nr. 2: In der Antwort "Ersetzt FoodAsu die Verpackung?" steht
+// "Maßgeblich ist immer die Verpackung." nur einmal (im Satz zum Medizinprodukt). Nr. 5: Schritt 3 der Einkaufswoche
+// nennt "Warum?". Nr. 9: Einkaufsliste im Alltag auf der Startseite und auf "Über FoodAsu", ohne Namen anderer
+// Dienste. Nr. 4: "Über FoodAsu" nennt Ali Tonc und verlinkt "Daten und Quellen".
+for (const adresse of ['/', '/fragen/']) {
+  if (/Daten können fehlen oder veraltet sein\. Maßgeblich ist immer die Verpackung\. FoodAsu ist kein Medizinprodukt/.test(textVon(adresse))) melde(adresse, 'Antwort „Ersetzt FoodAsu die Verpackung?“: „Maßgeblich ist immer die Verpackung.“ steht doppelt');
+}
+if (wochenTeil && !entschluesselt(wochenTeil).includes('„Warum?“')) melde('/', 'Einkaufswoche: Schritt 3 nennt „Warum?“ nicht');
+for (const adresse of ['/', '/ueber-foodasu/']) {
+  for (const wort of ['bleib', 'Erledigt', 'schon einmal aufgeschrieben', 'laut Daten']) if (!textVon(adresse).includes(wort)) melde(adresse, `Einkaufsliste im Alltag: Angabe fehlt: ${wort}`);
+  for (const fund of alle(textVon(adresse), /whatsapp|telegram|signal|messenger|threema/gi)) melde(adresse, `nennt einen anderen Dienst: ${fund[0]}`);
+}
+const ueberInhalt = (seiten.get('/ueber-foodasu/') ?? '').match(/<main[\s\S]*<\/main>/)?.[0] ?? '';
+if (!ueberInhalt.includes('href="/daten-und-quellen/"')) melde('/ueber-foodasu/', 'Link auf „Daten und Quellen“ fehlt');
+if (!textVon('/ueber-foodasu/').includes('Ali Tonc')) melde('/ueber-foodasu/', 'der Name Ali Tonc fehlt');
 
 // Tabelle aller Titel und Beschreibungen, wie sie auf den gebauten Seiten stehen (Aufruf mit --meta <Datei>).
 const metaZiel = process.argv.includes('--meta') ? process.argv[process.argv.indexOf('--meta') + 1] : null;

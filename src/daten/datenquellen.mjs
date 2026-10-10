@@ -8,6 +8,8 @@ import { MEDIZIN } from './fragen.mjs';
 
 export const datenquellen = {
   titel: 'Daten und Quellen',
+  // Überschrift der Seite (h1); "titel" bleibt für Brotkrumen und Fuß.
+  h1: 'Daten und Quellen: woher die Angaben kommen',
   vorspann: 'Woher die Angaben in FoodAsu kommen, was „laut Daten“ bedeutet und warum am Ende die Verpackung zählt.',
   // "absaetze" sind Text; ein Absatz als Objekt hat einen Link: { vor, text, ziel, nach, extern }.
   teile: [

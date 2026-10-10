@@ -623,7 +623,8 @@ sage('## 2g Knopf „Rezept teilen“');
       meldung: status.textContent,
       meldungRolle: status.getAttribute('role'),
       kanonisch: document.querySelector('link[rel="canonical"]').href,
-      titel: document.querySelector('h1').textContent.replace(/\s+/g, ' ').trim(),
+      // Der Titel des Rezepts ohne die Vorzeile "Rezept" der h1 (AP-22).
+      titel: (document.querySelector('h1 [data-titel-kern]') ?? document.querySelector('h1')).textContent.replace(/\s+/g, ' ').trim(),
       modus: document.documentElement.getAttribute('data-modus'),
       geteilt: window.__geteilt,
       kopiert: window.__kopiert,

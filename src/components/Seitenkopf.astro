@@ -7,7 +7,9 @@ import '../styles/seiten.css';
 import Brotkrumen from './Brotkrumen.astro';
 import { geruest } from '../daten/startseite.mjs';
 
-const { krumen, titel, vorspann, etikett, still = false } = Astro.props;
+// "vorzeile" (AP-22, Überschriften mit Suchwort): eine kleine Zeile über dem Titel, die zur h1 gehört, zum Beispiel
+// "Rezept" über dem Namen des Gerichts. Bildschirmleser lesen sie mit Doppelpunkt vor dem Titel.
+const { krumen, titel, vorspann, etikett, vorzeile, still = false } = Astro.props;
 const zwei = Astro.slots.has('seite');
 ---
 {!still && (
@@ -23,7 +25,9 @@ const zwei = Astro.slots.has('seite');
     <div class:list={['s-kopf-raster', { zwei }]}>
       <div>
         {etikett && <p class="s-etikett">{etikett}</p>}
-        <h1><slot name="titel">{titel}</slot></h1>
+        {vorzeile
+          ? <h1><span class="s-vorzeile">{vorzeile}<span class="vh">: </span></span><span data-titel-kern><slot name="titel">{titel}</slot></span></h1>
+          : <h1><slot name="titel">{titel}</slot></h1>}
         {vorspann && <p class="s-vorspann">{vorspann}</p>}
         <slot />
       </div>

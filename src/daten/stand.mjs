@@ -13,7 +13,8 @@ const git = (...werte) => execFileSync('git', werte, { cwd: WURZEL, encoding: 'u
 
 // Feste Seiten. Rezept-, Themen- und Kapitelseiten nennen ihre Quellen über die Funktionen darunter.
 export const QUELLEN = {
-  '/': ['src/pages/index.astro', 'src/daten/startseite.mjs', 'src/daten/fragen.mjs'],
+  '/': ['src/pages/index.astro', 'src/daten/startseite.mjs', 'src/daten/fragen.mjs', 'src/daten/seite.mjs'],
+  '/ueber-foodasu/': ['src/pages/ueber-foodasu/index.astro', 'src/daten/ueber.mjs', 'src/daten/seite.mjs'],
   '/so-gehts/': ['src/pages/so-gehts/index.astro', 'src/daten/sogehts.mjs'],
   '/rezepte/': ['src/pages/rezepte/index.astro', 'src/daten/rezepte.json', 'src/daten/auswahl.mjs'],
   '/fragen/': ['src/pages/fragen/index.astro', 'src/daten/fragen.mjs'],

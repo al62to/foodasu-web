@@ -27,7 +27,9 @@ export const fragen = {
     {
       frage: 'Ersetzt FoodAsu die Verpackung?',
       antwort: [
-        'Nein. FoodAsu zeigt, was laut Daten im Produkt ist. Daten können fehlen oder veraltet sein. Maßgeblich ist immer die Verpackung.',
+        // Entscheidung Ali vom 10.10.2026 (AP-22, Nr. 2): "Maßgeblich ist immer die Verpackung." steht hier nur noch
+        // einmal, im Satz zum Medizinprodukt darunter.
+        'Nein. FoodAsu zeigt, was laut Daten im Produkt ist. Daten können fehlen oder veraltet sein.',
         MEDIZIN,
       ],
     },

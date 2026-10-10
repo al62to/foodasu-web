@@ -8,10 +8,15 @@ export const kopfdaten = {
 };
 
 export const kopf = {
+  // Vorzeile (AP-22, Wunsch Ali vom 10.10.2026: jede h1 mit Suchwort; freigegeben am 10.10.2026): steht klein über
+  // der Überschrift und gehört zur h1. Die Überschrift selbst bleibt.
+  vorzeile: 'Lebensmittel-Scanner und Einkaufsliste in einer App',
   ueberschrift: ['Passt es für ', 'alle', '?'],
+  // Seit AP-22 Teil 2 steht im Kopf der Startseite der Satz zur Beschreibung (seite.beschreibung in seite.mjs). Dieser
+  // frühere Vorspann sagt dasselbe kürzer und steht nur noch in llms.txt.
   text: 'Du scannst den Strichcode und siehst, ob laut den Angaben etwas drin ist, das jemand bei dir zu Hause meidet. Für jede Person einzeln.',
   aufruf: 'Bald im Play Store',
-  zweiterKnopf: 'In drei Schritten',
+  zweiterKnopf: 'Eine Einkaufswoche',
   stand: 'FoodAsu ist in der Beta. Wir bauen laufend neue Funktionen ein und freuen uns über dein Feedback. Eine Version fürs iPhone ist geplant.',
   handy: {
     beschreibung:
@@ -32,31 +37,76 @@ export const kopf = {
 export const wort = {
   vorsatz: 'Einkaufen ohne',
   woerter: ['Nüsse', 'Gluten', 'Schweinefleisch', 'Alkohol', 'Palmöl', 'Sesam', 'Milch'],
+  // Erster Absatz: Beispiel geändert auf Alis Wort vom 10.10.2026 (Gluten statt des früheren ersten Beispiels).
   absaetze: [
-    'In vielen Haushalten isst nicht jeder alles: kein Schweinefleisch für den einen, keine Nüsse für die andere, keine Milch fürs Kind. Im Laden heißt das: Packung umdrehen, Kleingedrucktes lesen, bei jedem Produkt von vorn.',
+    'In vielen Haushalten isst nicht jeder alles: kein Gluten für den einen, keine Nüsse für die andere, keine Milch fürs Kind. Im Laden heißt das: Packung umdrehen, Kleingedrucktes lesen, bei jedem Produkt von vorn.',
     'Deshalb habe ich FoodAsu gebaut. Du legst einmal fest, was jede Person bei dir zu Hause meidet. Danach reicht ein Scan.',
   ],
   unterschrift: 'Ali Tonc, Entwickler von FoodAsu',
 };
 
+// Der Ablauf einer Einkaufswoche (AP-22 Teil 2 Nr. 2, von Ali am 10.10.2026 freigegeben): vier Schritte statt
+// "FoodAsu in drei Schritten" (Scannen, Warum?, Kochen; freigegeben am 09.10.2026). Der Anker #schritte bleibt.
+// Beschrieben ist nur, was 0.14.3 kann: Abgehakt wird mit dem Finger, nicht beim Scannen. Schritt 3 nennt "Warum?"
+// (Entscheidung 5). "symbol" nennt das Zeichen in index.astro.
 export const schritte = {
-  // Überschrift und Schritt 3 weichen von AP-15 Teil B ab ("Scannen, Warum?, Auf die Liste"); von Ali und der
-  // Projektleitung am 09.10.2026 freigegeben (Nachtrag SEO, Punkt 8).
-  ueberschrift: 'FoodAsu in drei Schritten',
+  ueberschrift: 'Eine Einkaufswoche mit FoodAsu',
   liste: [
     {
-      titel: 'Scannen',
-      text: 'Halte den Strichcode vor die Kamera. FoodAsu zeigt für jede Person einzeln, was die Daten zum Produkt sagen.',
+      titel: 'Rezept aussuchen',
+      symbol: 'rezept',
+      text: 'Such dir in der App aus über 300 Rezepten aus, was es geben soll. Die fehlenden Zutaten setzt du aus dem Rezept auf eine Einkaufsliste.',
     },
     {
-      titel: 'Warum?',
-      text: 'Ein Tipp auf „Warum?“ zeigt, welche Zutat oder welche Spurenangabe hinter dem Hinweis steht.',
+      titel: 'Zu Hause schreiben',
+      symbol: 'stift',
+      text: 'Schreib dazu, was sonst noch fehlt, zum Beispiel „2 Zwiebeln“. FoodAsu ordnet die Liste nach Warengruppen.',
+    },
+    {
+      titel: 'Im Laden abhaken und scannen',
+      symbol: 'scan',
+      text: 'Ein Tipp mit dem Finger hakt ab, was im Wagen liegt. Bei einem Produkt scannst du den Strichcode und siehst für jede Person einzeln, was die Daten zum Produkt sagen. Ein Tipp auf „Warum?“ zeigt, welche Zutat oder Spurenangabe dahintersteckt.',
     },
     {
       titel: 'Kochen',
-      text: 'FoodAsu schlägt dir zu deiner Einkaufsliste Rezepte vor und zeigt, was noch fehlt. Es geht auch umgekehrt: Aus einem Rezept setzt du die fehlenden Zutaten auf die Liste.',
+      symbol: 'topf',
+      text: 'Gekocht wird für alle am Tisch: Im Rezept steht bei den Zutaten, wen in deinem Haushalt etwas betrifft.',
     },
   ],
+  link: { text: 'Zu Hause schreiben, im Laden abhaken: so geht das', ziel: '/so-gehts/zu-hause-schreiben-im-laden-abhaken/' },
+};
+
+// Alltagslagen (AP-22 Teil 2 Nr. 3, von Ali am 10.10.2026 freigegeben): vier Lagen aus einem Haushalt, je mit dem, was
+// FoodAsu dann zeigt. Die Einträge heißen wie in der App; keine Namen, keine Aussagen zur Gesundheit. Dazu nach
+// Entscheidung 9 der Satz, für wen FoodAsu ist, und als fünfte Lage der Wocheneinkauf ("breit": Karte über die ganze
+// Zeile): Listen bleiben gespeichert, Erledigtes lässt sich zurückholen (LISTE-04), Vorschläge beim Tippen (LISTE-03).
+export const lagen = {
+  ueberschrift: 'Wenn nicht alle dasselbe essen',
+  text: 'FoodAsu ist für alle, die wissen wollen, was sie einkaufen, statt blind zuzugreifen.',
+  karten: [
+    {
+      titel: 'Das Kind trinkt keine Milch',
+      text: 'Du trägst beim Kind „Milch“ ein. Beim Scannen steht dann oben auf der Karte, wenn laut den Angaben Milch im Produkt ist.',
+    },
+    {
+      titel: 'Der Partner isst vegetarisch',
+      text: 'Mit „Vegetarisch“ weist FoodAsu auf Zutaten hin, die laut den Angaben nicht vegetarisch sind: beim Produkt und bei den Zutaten der Rezepte.',
+    },
+    {
+      titel: 'Gäste essen kein Schweinefleisch',
+      text: 'Leg für den Besuch eine Person an und wähl „Schweinefleisch“ mit der Stufe „Auf keinen Fall“. Rezepte mit Schweinefleisch blendet FoodAsu dann aus und nennt ihre Zahl.',
+    },
+    {
+      titel: 'Die Oma meidet Gluten',
+      text: 'Steht „Gluten“ bei ihr, siehst du es schon auf der Einkaufsliste: Betrifft ein Eintrag jemanden im Haushalt, steht ein Hinweis dabei.',
+    },
+    {
+      titel: 'Der Wocheneinkauf ist jede Woche fast derselbe',
+      text: 'Deine Liste bleibt gespeichert. Was abgehakt ist, steht unter „Erledigt“, und von dort holst du zurück, was du wieder brauchst. Beim Schreiben schlägt FoodAsu Wörter vor, auch solche, die du schon einmal aufgeschrieben hast. Kein Zettel, kein Suchen im Chatverlauf.',
+      breit: true,
+    },
+  ],
+  hinweis: 'FoodAsu zeigt, was laut Daten im Produkt ist. Daten können fehlen oder veraltet sein. Maßgeblich ist immer die Verpackung.',
 };
 
 export const funktionen = {
@@ -82,7 +132,9 @@ export const funktionen = {
     {
       kennung: 'liste',
       titel: 'Einkaufsliste, sortiert wie im Supermarkt',
-      text: 'Schreib auf, was du brauchst, oder setz die fehlenden Zutaten eines Rezepts auf die Liste. Betrifft ein Eintrag jemanden im Haushalt, steht ein Hinweis dabei.',
+      // AP-22 Teil 2 Nr. 4 und Entscheidung 9: Neu sind der zweite Satz (Listen bleiben gespeichert, Vorschläge) und der
+      // letzte ("als Text teilen").
+      text: 'Schreib auf, was du brauchst, oder setz die fehlenden Zutaten eines Rezepts auf die Liste. Deine Listen bleiben gespeichert, und beim Schreiben schlägt FoodAsu vor, was du schon einmal aufgeschrieben hast. Betrifft ein Eintrag jemanden im Haushalt, steht ein Hinweis dabei. Die Liste kannst du als Text teilen, zum Beispiel mit jemandem, der einkaufen geht.',
       beispiel: ['Tomaten', 'Mozzarella', 'Basilikum'],
     },
     {
@@ -199,6 +251,8 @@ export const fuss = {
     { titel: 'Fragen', ziel: '/fragen/' },
     // AP-22: woher die Angaben kommen, verständlich erklärt; die Einzelnachweise bleiben unter "Quellen und Lizenzen".
     { titel: 'Daten und Quellen', ziel: '/daten-und-quellen/' },
+    // AP-22 Teil 2 Nr. 5.
+    { titel: 'Über FoodAsu', ziel: '/ueber-foodasu/' },
   ],
   rechte: '© 2026 FoodAsu · Eine App von Ali',
   auftritte: {
@@ -224,6 +278,8 @@ export const geruest = {
   offenlegung: { titel: 'Offenlegung' },
   fragenSeite: {
     titel: 'Fragen und Antworten',
+    // Überschrift der Seite (h1) mit dem Namen der App; "titel" bleibt für Brotkrumen und Menü.
+    h1: 'Fragen und Antworten zu FoodAsu',
     beschreibung: 'Woher die Daten von FoodAsu kommen, was mit deinen Angaben passiert und warum die Verpackung maßgeblich bleibt.',
   },
   // Knopf der Startseite, der die Bewegung anhält (WCAG 2.2.2). Der Zustand gilt nur für den Besuch.

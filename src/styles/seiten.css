@@ -320,3 +320,9 @@ html:not(.js) .f-leiste { display: none; }
 
 /* Einleitungstext einer Themenseite über den Karten (AP-22). */
 .t-einleitung { max-width: 46rem; margin-bottom: 0; font-size: 1.06rem; }
+
+/* Unterschrift unter einem Text in einer Karte (Seite "Über FoodAsu", AP-22). */
+.s-karte .unterschrift { font-size: 0.95rem; font-weight: 700; color: var(--muted); }
+
+/* Vorzeile in der h1 (AP-22): das Suchwort klein über dem Titel, zum Beispiel "Rezept" über dem Namen des Gerichts. */
+.s-vorzeile { display: block; margin: 0 0 0.6rem; font-size: clamp(1rem, 1.5vw, 1.2rem); line-height: 1.2; letter-spacing: 0.02em; font-weight: 800; color: var(--mint); }

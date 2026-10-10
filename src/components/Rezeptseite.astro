@@ -89,7 +89,7 @@ const daten = [{
 ---
 <Basis daten={daten}>
   <article class="rezept">
-    <Seitenkopf krumen={[{ titel: texte.uebersicht, ziel: '/rezepte/' }, { titel: rezept.kurztitel, ziel: adresse }]} titel={rezept.titel} vorspann={text}>
+    <Seitenkopf krumen={[{ titel: texte.uebersicht, ziel: '/rezepte/' }, { titel: rezept.kurztitel, ziel: adresse }]} titel={rezept.titel} vorzeile={texte.rezeptVorzeile} vorspann={text}>
       <dl class="s-kacheln">
         <div><dt>Land</dt><dd>{rezept.laender.map((kuerzel, nummer) => <>{nummer > 0 && ', '}{landThema(kuerzel) ? <a href={landThema(kuerzel)} aria-label={`Rezepte ${ausLand(kuerzel)}`}>{LAND[kuerzel]}</a> : LAND[kuerzel]}</>)}</dd></div>
         <div><dt>Kategorie</dt><dd>{kategorieThema && ziel(kategorieThema.adresse) ? <a href={kategorieThema.adresse} aria-label={kategorieThema.titel}>{KATEGORIE[rezept.kategorie][0]}</a> : KATEGORIE[rezept.kategorie][0]}</dd></div>

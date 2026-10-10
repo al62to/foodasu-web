@@ -6,10 +6,12 @@ import Basis from '../layouts/Basis.astro';
 import Handy from '../components/Handy.astro';
 import '../styles/start.css';
 import { seite, auftritte, store } from '../daten/seite.mjs';
-import { kopf, wort, schritte, funktionen, einblick, zahlen, vorschau, fragen, geruest } from '../daten/startseite.mjs';
+import { kopf, wort, schritte, lagen, funktionen, einblick, zahlen, vorschau, fragen, geruest } from '../daten/startseite.mjs';
 import { fotoDaten } from '../daten/sogehts.mjs';
 
 const organisation = `${seite.adresse}/#organisation`;
+// Strukturierte Daten: nur WebSite und Organization. MobileApplication steht hier seit AP-22 nicht mehr (Entscheidung Ali
+// vom 10.10.2026). Mit dem öffentlichen Start (store.oeffentlich) kommt der Eintrag bei Google Play in sameAs.
 const gleich = [auftritte.facebook, auftritte.instagram, store.oeffentlich ? store.adresse : ''].filter(Boolean);
 const daten = [
   {
@@ -18,6 +20,7 @@ const daten = [
     '@id': `${seite.adresse}/#website`,
     name: seite.name,
     url: `${seite.adresse}/`,
+    description: seite.beschreibung,
     inLanguage: seite.sprache,
     publisher: { '@id': organisation },
   },
@@ -27,20 +30,9 @@ const daten = [
     '@id': organisation,
     name: seite.name,
     url: `${seite.adresse}/`,
+    description: seite.beschreibung,
     logo: seite.adresse + seite.logo,
     sameAs: gleich,
-  },
-  {
-    '@context': 'https://schema.org',
-    '@type': 'MobileApplication',
-    name: seite.name,
-    operatingSystem: 'Android',
-    applicationCategory: store.kategorie,
-    url: `${seite.adresse}/`,
-    ...(store.oeffentlich ? { installUrl: store.adresse } : {}),
-    ...(store.oeffentlich && store.betaOhneBetrag
-      ? { offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' } }
-      : {}),
   },
 ];
 
@@ -53,6 +45,13 @@ const zeichen = [
   'M5 11h14v5a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4zM3 11h18M9 4c0 1.2 1 1.4 1 2.6S9 8 9 8M14 4c0 1.2 1 1.4 1 2.6S14 8 14 8',
 ];
 const urteilZeichen = 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM9 9l6 6M15 9l-6 6';
+// Zeichen der vier Schritte einer Einkaufswoche ("symbol" in den Daten).
+const schrittZeichen = {
+  rezept: 'M6 3.5h12v17H6zM9 8h6M9 12h6M9 16h3.5',
+  stift: 'M4 20l1-4.2L16.4 4.4a2.05 2.05 0 0 1 2.9 2.9L7.9 18.9zM14.6 6.2l3 3',
+  scan: zeichen[0],
+  topf: zeichen[2],
+};
 ---
 <Basis daten={daten}>
   <button type="button" class="bewegung-knopf" data-bewegung data-anhalten={geruest.bewegung.anhalten} data-fortsetzen={geruest.bewegung.fortsetzen} hidden>
@@ -64,8 +63,8 @@ const urteilZeichen = 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM9 9l6 6M15 9l-6 6';
     <div class="held-fleck f2" aria-hidden="true"></div>
     <div class="innen held-raster">
       <div class="held-text">
-        <h1>{kopf.ueberschrift[0]}<em>{kopf.ueberschrift[1]}</em>{kopf.ueberschrift[2]}</h1>
-        <p class="held-vorspann">{kopf.text}</p>
+        <h1><span class="held-vorzeile">{kopf.vorzeile}<span class="vh">: </span></span>{kopf.ueberschrift[0]}<em>{kopf.ueberschrift[1]}</em>{kopf.ueberschrift[2]}</h1>
+        <p class="held-vorspann lang">{seite.beschreibung}</p>
         <div class="held-knoepfe">
           <span class="bald"><i aria-hidden="true"></i><span>{kopf.aufruf}</span></span>
           <a class="knopf voll" href="#schritte">
@@ -128,20 +127,37 @@ const urteilZeichen = 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM9 9l6 6M15 9l-6 6';
     </div>
   </section>
 
+  <section class="lagen" id="alltag">
+    <div class="innen">
+      <h2 class="titel">{lagen.ueberschrift}</h2>
+      <p class="lagen-text">{lagen.text}</p>
+      <ul class="lagen-liste">
+        {lagen.karten.map((karte) => (
+          <li class:list={['lage', { breit: karte.breit }]}>
+            <h3>{karte.titel}</h3>
+            <p>{karte.text}</p>
+          </li>
+        ))}
+      </ul>
+      <p class="lagen-hinweis">{lagen.hinweis}</p>
+    </div>
+  </section>
+
   <section class="schritte" id="schritte">
     <div class="innen">
       <h2 class="titel">{schritte.ueberschrift}</h2>
       <div class="linie" aria-hidden="true"><i data-linie></i></div>
-      <ol class="schritt-liste">
+      <ol class="schritt-liste vier">
         {schritte.liste.map((schritt, nummer) => (
           <li class="schritt">
             <div class="schritt-nr" aria-hidden="true">{String(nummer + 1).padStart(2, '0')}</div>
-            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...linien}><path d={zeichen[nummer]} /></svg>
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...linien}><path d={schrittZeichen[schritt.symbol]} /></svg>
             <h3>{schritt.titel}</h3>
             <p>{schritt.text}</p>
           </li>
         ))}
       </ol>
+      <div class="knoepfe"><a class="knopf rand" href={schritte.link.ziel}>{schritte.link.text}</a></div>
     </div>
   </section>
 
