@@ -1,0 +1,31 @@
+---
+// Ein Bildschirmfoto der App im Handy-Rahmen (AP-19 Teil H): derselbe Rahmen wie das Handy im Kopf der Startseite
+// (schwarzer Rand, runde Ecken, Schatten), nur mit einem Foto als Schirm. Die Breite gibt die Stelle mit der
+// Eigenschaft --gb vor; alle Maße des Rahmens folgen ihr (src/styles/geraet.css).
+// "foto" kommt aus fotoDaten() in src/daten/sogehts.mjs. Ein Ausschnitt (ein Bild, das über der Tastatur endet, oder ein
+// Teil des Bildschirms) steht in einem Rahmen, der unten offen ist und ausläuft; "schnitt" erzwingt das.
+// "vorrang" lässt den Browser ein Bild zuerst laden (das größte Bild im ersten Bildschirm).
+// Jedes Bild trägt seine Beschreibung, auch wo es nur schmückt (Regel der Website: kein Bild ohne Beschreibung); dort
+// blendet die Stelle es für Bildschirmleser aus.
+import '../styles/geraet.css';
+
+const { foto, groessen, laden = 'lazy', vorrang = false, schnitt = foto.ausschnitt, klasse } = Astro.props;
+const ORDNER = '/bilder/sogehts/';
+const BREITEN = [360, 720];
+const bild = (breite) => `${ORDNER}${foto.name}-${breite}.webp`;
+---
+<div class:list={['geraet', klasse, { schnitt }]}>
+  <div class="geraet-rahmen">
+    <img
+      src={bild(720)}
+      srcset={BREITEN.map((breite) => `${bild(breite)} ${breite}w`).join(', ')}
+      sizes={groessen}
+      alt={foto.alt}
+      width={foto.breite}
+      height={foto.hoehe}
+      loading={laden}
+      fetchpriority={vorrang ? 'high' : undefined}
+      decoding="async"
+    />
+  </div>
+</div>

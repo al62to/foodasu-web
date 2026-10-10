@@ -1,84 +1,84 @@
 {
  "einstellungen_oeffnen_01": {
   "breite": 720,
-  "hoehe": 1491,
+  "hoehe": 1395,
   "zeigt": "Einstellungen: „Darstellung“ mit dem Schalter „Dunkler Modus“, „Scanner“ mit „Vibration bei Treffer“, „Verlauf und Vorschläge“ mit „Verlauf löschen“ und „Vorschläge der Listen löschen“",
   "weich": false,
   "aufnahme": "10.10.2026 14:27"
  },
  "haushalt_export_01": {
   "breite": 720,
-  "hoehe": 1491,
+  "hoehe": 1395,
   "zeigt": "Einstellungen, Abschnitt „Haushalt“: „Haushalt exportieren“, „Haushalt importieren“, „Hinweis zu den Angaben“",
   "weich": false,
   "aufnahme": "10.10.2026 15:03"
  },
  "haushalt_import_01": {
   "breite": 720,
-  "hoehe": 1491,
+  "hoehe": 1395,
   "zeigt": "„Haushalt importieren“: Personen in der Datei und die Wahl „Ergänzen“ oder „Ersetzen“",
   "weich": false,
   "aufnahme": "10.10.2026 14:27"
  },
  "liste_anlegen_03": {
   "breite": 720,
-  "hoehe": 1491,
+  "hoehe": 1395,
   "zeigt": "Übersicht „Deine Listen“: oben die Liste des Rezepts „Pizza Margherita“, darunter „Wocheneinkauf“, je mit „offen“ und „erledigt“, unten „Neue Liste“",
   "weich": false,
   "aufnahme": "10.10.2026 14:57"
  },
  "liste_eintraege_02": {
   "breite": 720,
-  "hoehe": 1491,
+  "hoehe": 752,
   "zeigt": "Feld „Hinzufügen“ mit dem getippten Eintrag „2 Zwiebeln“ und dem Vorschlag „Zwiebeln“",
   "weich": true,
   "aufnahme": "10.10.2026 14:41"
  },
  "liste_abhaken_02": {
   "breite": 720,
-  "hoehe": 1491,
+  "hoehe": 1395,
   "zeigt": "Nach dem Tipp auf das Kästchen: Meldung „Bananen erledigt“ mit „Rückgängig“",
   "weich": false,
   "aufnahme": "10.10.2026 14:42"
  },
  "liste_warengruppen_01": {
   "breite": 720,
-  "hoehe": 1491,
+  "hoehe": 1395,
   "zeigt": "Liste nach Warengruppen: „Obst und Gemüse“, „Brot und Gebäck“, „Milch und Käse“, je mit der Zahl der Einträge",
   "weich": true,
   "aufnahme": "10.10.2026 14:42"
  },
  "liste_bearbeiten_01": {
   "breite": 720,
-  "hoehe": 1491,
+  "hoehe": 1395,
   "zeigt": "Blatt „Eintrag bearbeiten“: Name, Menge mit „Weniger“ und „Mehr“, Einheit, Notiz, Warengruppe, „Löschen“ und „Fertig“",
   "weich": false,
   "aufnahme": "10.10.2026 14:45"
  },
  "liste_erledigte_loeschen_01": {
   "breite": 720,
-  "hoehe": 1491,
+  "hoehe": 1395,
   "zeigt": "Menü „Weitere Aktionen“ der Liste: „Was kann ich damit kochen?“, „Als Text teilen“, „Erledigte löschen“, „Umbenennen“, „Neue Liste“, „Liste löschen“",
   "weich": false,
   "aufnahme": "10.10.2026 14:43"
  },
  "liste_hinweise_01": {
   "breite": 720,
-  "hoehe": 1491,
+  "hoehe": 1395,
   "zeigt": "Hinweise in der Liste: bei „Butter“ und „Milch“ „Milch · Mia“, bei „Mozzarella“ „Milch und 1 weiteres · Mia, Elif“, beim gescannten Produkt das Ergebnis „Nicht für Mia“",
   "weich": true,
   "aufnahme": "10.10.2026 14:42"
  },
  "liste_kochen_01": {
   "breite": 720,
-  "hoehe": 1491,
+  "hoehe": 1395,
   "zeigt": "„Was kann ich damit kochen?“: Rezepte zur Liste „Wocheneinkauf“, je mit „… von … Zutaten auf deiner Liste“ und den Hinweisen für den Haushalt",
   "weich": false,
   "aufnahme": "10.10.2026 14:46"
  },
  "liste_rezeptliste_01": {
   "breite": 720,
-  "hoehe": 1491,
+  "hoehe": 1395,
   "zeigt": "Liste „Pizza Margherita“ aus dem Rezept: oben die Zeile „Dafür kaufst du ein: Pizza Margherita“, darunter die Zutaten mit Menge",
   "weich": false,
   "aufnahme": "10.10.2026 14:57"
@@ -106,161 +106,161 @@
  },
  "einstellungen_dunkel_01": {
   "breite": 720,
-  "hoehe": 1491,
+  "hoehe": 1395,
   "zeigt": "Einstellungen mit eingeschaltetem Schalter „Dunkler Modus“: Die App ist sofort dunkel",
   "weich": false,
   "aufnahme": "10.10.2026 15:06"
  },
  "haushalt_person_05": {
   "breite": 720,
-  "hoehe": 1491,
+  "hoehe": 1395,
   "zeigt": "Reiter Haushalt mit drei Personen: Mia, Jonas und Elif; rechts an jeder Karte der Papierkorb, oben der Hinweis zum Sortieren",
   "weich": false,
   "aufnahme": "10.10.2026 14:28"
  },
  "haushalt_meiden_01": {
   "breite": 720,
-  "hoehe": 1491,
+  "hoehe": 1395,
   "zeigt": "„Was meidet Mia?“: Zutaten zum Antippen, „Milch“ und „Schalenfrüchte“ sind angehakt",
   "weich": false,
   "aufnahme": "10.10.2026 14:26"
  },
  "haushalt_stufen_01": {
   "breite": 720,
-  "hoehe": 1491,
+  "hoehe": 1395,
   "zeigt": "Abschnitt „Wie streng?“: für „Milch“ ist „Meiden“ gewählt, für „Schalenfrüchte“ „Auf keinen Fall“",
   "weich": false,
   "aufnahme": "10.10.2026 15:02"
  },
  "scanner_mehrere_01": {
   "breite": 720,
-  "hoehe": 1491,
+  "hoehe": 1395,
   "zeigt": "Produktkarte ganz nach oben gezogen: Urteil, Ergebnis je Person und die Kacheln mit Kalorien, Zucker, Verarbeitung, Fett, Salz und Nutri-Score",
   "weich": true,
   "aufnahme": "10.10.2026 14:33"
  },
  "karte_abzeichen_01": {
   "breite": 720,
-  "hoehe": 1491,
+  "hoehe": 1395,
   "zeigt": "Produktkarte weiter unten: Abzeichen „Vegetarisch“, „Vegan“, „Ohne Palmöl“, „0 Zusatzstoffe“, die vier kleinen Kacheln, dann „Zutaten“ und der Stand der Daten",
   "weich": false,
   "aufnahme": "10.10.2026 14:33"
  },
  "karte_auf_die_liste_02": {
   "breite": 720,
-  "hoehe": 1491,
+  "hoehe": 1395,
   "zeigt": "Nach „Auf die Liste“: Meldung „Auf „Wocheneinkauf“ gesetzt“ mit „Rückgängig“, der Knopf heißt jetzt „Auf der Liste“",
   "weich": true,
   "aufnahme": "10.10.2026 14:37"
  },
  "rezepte_ansehen_01": {
   "breite": 720,
-  "hoehe": 1491,
+  "hoehe": 1395,
   "zeigt": "Reiter Rezepte: Suchfeld, „Nach Ländern“, die Reihe der Kategorien und die ersten Rezeptkarten mit Symbolbild",
   "weich": false,
   "aufnahme": "10.10.2026 14:48"
  },
  "rezepte_filter_01": {
   "breite": 720,
-  "hoehe": 1491,
+  "hoehe": 1395,
   "zeigt": "Filter „Österreich“ gewählt: 37 Rezepte; auf den Karten die Abzeichen mit Hinweisen für den Haushalt",
   "weich": false,
   "aufnahme": "10.10.2026 14:59"
  },
  "rezepte_merken_02": {
   "breite": 720,
-  "hoehe": 1491,
+  "hoehe": 1395,
   "zeigt": "Reiter Rezepte mit dem Abschnitt „Gemerkt“: „Kaiserschmarren“, „Ratatouille“ und „Pizza Margherita“",
   "weich": false,
   "aufnahme": "10.10.2026 14:59"
  },
  "rezepte_hinweise_01": {
   "breite": 720,
-  "hoehe": 1491,
+  "hoehe": 1395,
   "zeigt": "Zutaten von „Pizza Margherita“: unter Weizenmehl „Enthält Gluten, betrifft Jonas“, unter Mozzarella „Enthält Milch, betrifft Mia“ und „Je nach Produkt mit nicht vegetarischen Zutaten, betrifft Elif“; darunter der Knopf „Fehlende Zutaten auf die Liste“",
   "weich": false,
   "aufnahme": "10.10.2026 14:50"
  },
  "rezepte_ausblenden_01": {
   "breite": 720,
-  "hoehe": 1491,
+  "hoehe": 1395,
   "zeigt": "Ende der Liste: „3 Rezepte ausgeblendet, weil sie für euren Haushalt nicht passen.“ mit „Anzeigen“",
   "weich": false,
   "aufnahme": "10.10.2026 15:01"
  },
  "rezepte_portionen_01": {
   "breite": 720,
-  "hoehe": 1491,
+  "hoehe": 1395,
   "zeigt": "„Pizza Margherita“ auf 6 Portionen gestellt: Aus 500 g Weizenmehl wurden 750 g",
   "weich": false,
   "aufnahme": "10.10.2026 14:49"
  },
  "rezepte_naehrwerte_01": {
   "breite": 720,
-  "hoehe": 1491,
+  "hoehe": 1395,
   "zeigt": "„Nährwerte pro Portion“: Kalorien, Zucker, Fett, Salz, darunter vier kleine Kacheln und „Energiedichte: mittel“",
   "weich": false,
   "aufnahme": "10.10.2026 14:51"
  },
  "rezepte_liste_01": {
   "breite": 720,
-  "hoehe": 1491,
+  "hoehe": 1395,
   "zeigt": "Blatt „Auf die Liste“ aus dem Rezept: Liste „Pizza Margherita“ wird angelegt, vier Zutaten sind angehakt, Mehl, Wasser, Salz und Öl gelten als „meist vorrätig“; unten „4 Zutaten hinzufügen“",
   "weich": false,
   "aufnahme": "10.10.2026 14:50"
  },
  "scanner_scannen_01": {
   "breite": 720,
-  "hoehe": 1491,
+  "hoehe": 1395,
   "zeigt": "Scanner: Rahmen mit „Strichcode in den Rahmen halten“, oben links Schließen, oben rechts die Taschenlampe, unten „EAN eintippen“ und „Zuletzt gescannt“",
   "weich": false,
   "aufnahme": "10.10.2026 14:29"
  },
  "scanner_ean_01": {
   "breite": 720,
-  "hoehe": 1491,
+  "hoehe": 800,
   "zeigt": "Dialog „EAN eintippen“ mit dem leeren Feld und dem Hinweis „Die Ziffern stehen unter dem Strichcode.“",
   "weich": false,
   "aufnahme": "10.10.2026 14:37"
  },
  "scanner_scannen_02": {
   "breite": 720,
-  "hoehe": 1491,
+  "hoehe": 1395,
   "zeigt": "Produktkarte auf halber Höhe über dem Kamerabild: „Nicht für Mia: enthält Schalenfrüchte“, darunter Mia, Jonas und Elif einzeln; oben „Nächstes Produkt einfach scannen“, unten „auf: Wocheneinkauf“ und „Auf die Liste“ (Produkt aus „Zuletzt gescannt“ geöffnet)",
   "weich": true,
   "aufnahme": "10.10.2026 14:32"
  },
  "karte_urteil_01": {
   "breite": 720,
-  "hoehe": 1491,
+  "hoehe": 1395,
   "zeigt": "Produktseite: „Nicht für Mia: enthält Schalenfrüchte“ mit „Warum?“, darunter Mia „enthält“, Jonas und Elif „unvollständig“, dann die Nährwerte je 100 ml",
   "weich": true,
   "aufnahme": "10.10.2026 14:58"
  },
  "karte_warum_01": {
   "breite": 720,
-  "hoehe": 1491,
+  "hoehe": 1395,
   "zeigt": "Dialog „Warum?“: „Laut Zutatenliste: Schalenfrüchte, betrifft Mia“, der Hinweis auf eine nicht eindeutige Zutat, die Quelle Open Food Facts und „Maßgeblich ist die Verpackung.“",
   "weich": false,
   "aufnahme": "10.10.2026 14:33"
  },
  "scanner_ean_03": {
   "breite": 720,
-  "hoehe": 1491,
+  "hoehe": 1395,
   "zeigt": "Produktkarte nach der Suche: „Angaben unvollständig, Verpackung prüfen“, alle drei Personen „unvollständig“, darunter der Knopf „Verpackung gelesen“",
   "weich": true,
   "aufnahme": "10.10.2026 14:38"
  },
  "liste_eintraege_03": {
   "breite": 720,
-  "hoehe": 1491,
+  "hoehe": 1395,
   "zeigt": "Liste „Wocheneinkauf“ mit Einträgen unter „Obst und Gemüse“; über den Einträgen der Knopf „Was kann ich damit kochen?“",
   "weich": false,
   "aufnahme": "10.10.2026 14:42"
  },
  "liste_abhaken_03": {
   "breite": 720,
-  "hoehe": 1491,
+  "hoehe": 1395,
   "zeigt": "Ende der Liste: Bereich „Erledigt (1)“ aufgeklappt, „Bananen“ ist abgehakt",
   "weich": false,
   "aufnahme": "10.10.2026 14:43"

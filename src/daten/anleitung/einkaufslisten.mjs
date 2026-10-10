@@ -3,6 +3,8 @@ import { foto, link } from './hilfen.mjs';
 
 export default {
   slug: 'einkaufslisten',
+  symbol: 'liste',
+  leitbild: 'liste_anlegen_03',
   titel: 'Einkaufslisten',
   kurz: 'Aufschreiben, abhaken, sortieren, teilen und in die Liste scannen.',
   vorspann: 'Listen anlegen, aufschreiben, was du brauchst, im Laden abhaken und die Liste als Text teilen.',
@@ -11,6 +13,7 @@ export default {
     {
       titel: 'Liste anlegen',
       anker: 'liste-anlegen',
+      symbol: 'plus',
       funktionen: ['LISTE-01'],
       nutzen: 'Du legst eine oder mehrere Einkaufslisten an, ganz ohne Scannen, zum Beispiel eine für den Wocheneinkauf und eine für das Fest am Wochenende.',
       wo: 'Listen > „Liste anlegen“, bei jeder weiteren „Neue Liste“',
@@ -19,6 +22,7 @@ export default {
     {
       titel: 'Einträge hinzufügen',
       anker: 'eintraege-hinzufuegen',
+      symbol: 'stift',
       funktionen: ['LISTE-02'],
       nutzen: 'Du schreibst auf, was du brauchst, zum Beispiel „2 Zwiebeln“ oder „500 g Mehl“. Das Feld bleibt offen für den nächsten Eintrag.',
       wo: 'Listen > Liste öffnen > Feld „Hinzufügen“',
@@ -27,6 +31,7 @@ export default {
     {
       titel: 'Vorschläge beim Tippen',
       anker: 'vorschlaege',
+      symbol: 'blitz',
       funktionen: ['LISTE-03'],
       nutzen: 'Beim Tippen schlägt FoodAsu passende Wörter vor, auch solche, die du schon einmal aufgeschrieben hast. Ein Tipp setzt den Vorschlag auf die Liste.',
       wo: 'Liste > Feld „Hinzufügen“, beim Tippen',
@@ -35,6 +40,8 @@ export default {
     {
       titel: 'Abhaken',
       anker: 'abhaken',
+      symbol: 'haken',
+      gross: true,
       funktionen: ['LISTE-04'],
       nutzen: 'Im Laden hakst du jeden Eintrag mit einem Tipp ab. Erledigtes rutscht nach unten in den Bereich „Erledigt“; oben bleibt, was noch fehlt.',
       wo: 'Liste > Kästchen links am Eintrag',
@@ -44,6 +51,7 @@ export default {
     {
       titel: 'Warengruppen',
       anker: 'warengruppen',
+      symbol: 'stapel',
       funktionen: ['LISTE-05'],
       nutzen: 'Die Liste ordnet sich von selbst nach Warengruppen wie im Laden. So gehst du Gruppe für Gruppe durch und musst nicht zurücklaufen.',
       wo: 'Liste; die Gruppe eines Eintrags änderst du unter „Eintrag bearbeiten“',
@@ -52,6 +60,7 @@ export default {
     {
       titel: 'Eintrag bearbeiten',
       anker: 'eintrag-bearbeiten',
+      symbol: 'regler',
       funktionen: ['LISTE-06'],
       nutzen: 'Du änderst Name, Menge, Einheit, Notiz und Warengruppe eines Eintrags.',
       wo: 'Liste > Eintrag antippen; bei einem gescannten Produkt die Menge rechts antippen',
@@ -60,6 +69,7 @@ export default {
     {
       titel: 'Eintrag löschen',
       anker: 'eintrag-loeschen',
+      symbol: 'papierkorb',
       funktionen: ['LISTE-07'],
       nutzen: 'Du entfernst einen Eintrag mit einem Wisch. „Rückgängig“ holt ihn kurz danach zurück.',
       wo: 'Liste > Eintrag zur Seite wischen',
@@ -67,6 +77,7 @@ export default {
     {
       titel: 'Gleiche Einträge',
       anker: 'gleiche-eintraege',
+      symbol: 'plus',
       funktionen: ['LISTE-08'],
       nutzen: 'Setzt du etwas auf die Liste, das schon darauf steht, zählt FoodAsu die Menge zusammen oder sagt dir, dass es schon dasteht.',
       wo: 'Liste, beim Hinzufügen',
@@ -74,6 +85,7 @@ export default {
     {
       titel: 'Erledigte löschen',
       anker: 'erledigte-loeschen',
+      symbol: 'haken',
       funktionen: ['LISTE-09'],
       nutzen: 'Nach dem Einkauf räumst du alle abgehakten Einträge auf einmal weg. Was offen ist, bleibt für den nächsten Einkauf stehen.',
       wo: 'Liste > „Weitere Aktionen“ (drei Punkte) > „Erledigte löschen“',
@@ -81,6 +93,7 @@ export default {
     {
       titel: 'Liste umbenennen oder löschen',
       anker: 'liste-umbenennen-oder-loeschen',
+      symbol: 'stift',
       funktionen: ['LISTE-10'],
       nutzen: 'Du gibst einer Liste einen anderen Namen oder löschst sie samt ihren Einträgen. Löschen lässt sich nicht rückgängig machen.',
       wo: 'Listen > drei Punkte an der Karte der Liste > „Umbenennen“ oder „Löschen“',
@@ -88,6 +101,7 @@ export default {
     {
       titel: 'Als Text teilen',
       anker: 'als-text-teilen',
+      symbol: 'teilen',
       funktionen: ['LISTE-11'],
       nutzen: 'Du schickst die offenen Einträge einer Liste als Text an eine App deiner Wahl, zum Beispiel an jemanden, der einkaufen geht. Was dein Haushalt meidet, steht nicht im Text.',
       wo: 'Liste > „Weitere Aktionen“ (drei Punkte) > „Als Text teilen“',
@@ -96,6 +110,7 @@ export default {
     {
       titel: 'Hinweise auf der Liste',
       anker: 'hinweise-auf-der-liste',
+      symbol: 'info',
       funktionen: ['LISTE-12'],
       nutzen: 'Bei einem Eintrag steht, wen im Haushalt er betrifft. Das ist ein Hinweis, kein Urteil: Ein Urteil gibt es nur bei gescannten Produkten.',
       wo: 'Liste > unter dem Eintrag',
@@ -104,6 +119,7 @@ export default {
     {
       titel: 'In die Liste scannen',
       anker: 'in-die-liste-scannen',
+      symbol: 'scan',
       funktionen: ['LISTE-13'],
       nutzen: 'Du öffnest den Scanner für eine bestimmte Liste, und jedes gescannte Produkt kommt direkt darauf.',
       wo: 'Liste > Scan-Knopf rechts im Feld „Hinzufügen“',
@@ -112,6 +128,7 @@ export default {
     {
       titel: 'Produkt ansehen',
       anker: 'produkt-ansehen',
+      symbol: 'auge',
       funktionen: ['LISTE-16'],
       nutzen: 'Ein Tipp auf ein gescanntes Produkt in der Liste öffnet seine Produktkarte mit dem Urteil für deinen Haushalt.',
       wo: 'Liste > Name des Produkts antippen',
@@ -119,6 +136,8 @@ export default {
     {
       titel: '„Was kann ich damit kochen?“',
       anker: 'was-kann-ich-damit-kochen',
+      symbol: 'topf',
+      gross: true,
       alteAnker: ['vom-einkauf-zum-kochen'],
       funktionen: ['LISTE-14'],
       nutzen: 'FoodAsu zeigt dir Rezepte, für die schon vieles auf deiner Liste steht, und sagt, was noch fehlt. Das Fehlende setzt du mit einem Tipp dazu.',
@@ -128,6 +147,7 @@ export default {
     {
       titel: 'Die Liste eines Rezepts',
       anker: 'liste-eines-rezepts',
+      symbol: 'liste',
       funktionen: ['LISTE-15'],
       nutzen: 'Eine Liste, die aus einem Rezept entstanden ist, heißt wie das Rezept und führt mit einem Tipp dorthin zurück.',
       wo: 'Listen > Liste mit dem Namen des Rezepts > erste Zeile',

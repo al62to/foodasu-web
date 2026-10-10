@@ -1,0 +1,18 @@
+/* Handy-Rahmen für Bildschirmfotos (AP-19 Teil H): dieselbe Form wie das Handy im Kopf der Startseite (dort 290 Pixel
+   breit, 10 Pixel Rand, Ecken 44 und 35 Pixel, derselbe Schatten). Die Breite steht in --gb; Rand, Ecken und Schatten
+   rechnen sich daraus, damit der Rahmen in jeder Größe gleich aussieht. Der Rahmen hat in beiden Farbschemata dieselben
+   festen Farben; dunkel bekommt er nur eine feine helle Kante, damit er sich vom Grund abhebt. */
+.geraet { --gb: 14rem; position: relative; isolation: isolate; width: var(--gb); max-width: 100%; margin-inline: auto; }
+.geraet-rahmen { padding: calc(var(--gb) * 0.0345); border-radius: calc(var(--gb) * 0.152); background: #111; box-shadow: 0 calc(var(--gb) * 0.138) calc(var(--gb) * 0.276) calc(var(--gb) * -0.103) rgb(42 34 119 / 0.55), 0 0 0 1px rgb(255 255 255 / 0.08) inset; }
+.geraet-rahmen img, .geraet-rahmen video { display: block; width: 100%; height: auto; border-radius: calc(var(--gb) * 0.1207); background: #fff; }
+:root[data-modus="dunkel"] .geraet-rahmen { box-shadow: 0 calc(var(--gb) * 0.138) calc(var(--gb) * 0.276) calc(var(--gb) * -0.103) rgb(0 0 0 / 0.7), 0 0 0 1px rgb(255 255 255 / 0.16); }
+
+/* Ausschnitt: Der Rahmen ist unten offen und läuft aus. Der Schatten liegt als weicher Fleck dahinter, weil ein
+   Schatten am Rahmen mit ausgeblendet würde. */
+.geraet.schnitt .geraet-rahmen { padding-bottom: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0; box-shadow: none; -webkit-mask-image: linear-gradient(#000 80%, transparent); mask-image: linear-gradient(#000 80%, transparent); }
+.geraet.schnitt .geraet-rahmen img { border-bottom-right-radius: 0; border-bottom-left-radius: 0; }
+.geraet.schnitt::before { content: ""; position: absolute; inset: 4% -7% 16%; z-index: -1; border-radius: 45%; background: radial-gradient(closest-side, rgb(var(--schatten) / 0.3), rgb(var(--schatten) / 0)); }
+
+/* Weiche Fläche in den Farben der Seite, auf der ein Handy steht. */
+.weich { --weich-a: var(--tone-deep); --weich-b: rgb(184 240 210 / 0.6); position: relative; border-radius: 1.75rem; background: radial-gradient(62% 48% at 88% 8%, var(--weich-a), transparent 72%), radial-gradient(52% 42% at 6% 96%, var(--weich-b), transparent 72%), var(--tone); }
+:root[data-modus="dunkel"] .weich { --weich-a: #37336b; --weich-b: rgb(63 191 143 / 0.16); }

@@ -1,0 +1,9 @@
+---
+// Ein Symbol aus src/daten/zeichen.mjs. Es ist Schmuck neben einem Text und für Bildschirmleser ausgeblendet.
+import { zeichen, linien } from '../daten/zeichen.mjs';
+
+const { name, klasse } = Astro.props;
+const pfad = zeichen[name];
+if (!pfad) throw new Error(`Symbol „${name}“ fehlt in src/daten/zeichen.mjs`);
+---
+<svg class={klasse} viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...linien}><path d={pfad} /></svg>

@@ -3,6 +3,7 @@
 // in src/daten/startseite.mjs. Die Bewegung kommt aus src/styles/start.css (läuft ohne Skript) und aus
 // src/skripte/bewegung.js (GSAP, wird erst nach dem ersten Zeichnen geladen).
 import Basis from '../layouts/Basis.astro';
+import Handy from '../components/Handy.astro';
 import '../styles/start.css';
 import { seite, auftritte, store } from '../daten/seite.mjs';
 import { kopf, wort, schritte, funktionen, einblick, zahlen, vorschau, fragen, geruest } from '../daten/startseite.mjs';
@@ -203,27 +204,18 @@ const urteilZeichen = 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM9 9l6 6M15 9l-6 6';
     <div class="innen">
       <h2 class="titel">{einblick.ueberschrift}</h2>
       <p class="einblick-text">{einblick.text}</p>
-      <ul class="einblick-karten">
-        {einblick.karten.map((karte) => {
-          const foto = fotoDaten({ datei: karte.datei });
-          return (
+      <div class="einblick-flaeche">
+        <div class="einblick-flecken" aria-hidden="true"><i class="a"></i><i class="b"></i></div>
+        <ul class="einblick-karten">
+          {einblick.karten.map((karte) => (
             <li class="einblick-karte">
-              <img
-                src={`/bilder/sogehts/${foto.name}-720.webp`}
-                srcset={`/bilder/sogehts/${foto.name}-360.webp 360w, /bilder/sogehts/${foto.name}-720.webp 720w`}
-                sizes="(min-width: 56rem) 14rem, 44vw"
-                alt={foto.alt}
-                width={foto.breite}
-                height={foto.hoehe}
-                loading="lazy"
-                decoding="async"
-              />
+              <Handy foto={fotoDaten({ datei: karte.datei })} groessen="(min-width: 64rem) 10rem, (min-width: 40rem) 13rem, 58vw" />
               <h3><a href={karte.ziel}>{karte.titel}</a></h3>
               <p>{karte.text}</p>
             </li>
-          );
-        })}
-      </ul>
+          ))}
+        </ul>
+      </div>
       <p class="einblick-hinweis">{einblick.hinweis}</p>
       <div class="knoepfe"><a class="knopf rand" href={einblick.ziel}>{einblick.link}</a></div>
     </div>

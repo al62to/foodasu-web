@@ -5,6 +5,11 @@ C:/Users/ali/foodasu-play/So_gehts_Bilder. Genommen werden nur die Dateien aus d
 Produktnamen, Produktfotos und EAN weichgezeichnet. Der Unterordner "original" (ohne Weichzeichnung) wird nie gelesen;
 eine Quelle, die auf "original" endet, bricht den Lauf ab.
 
+Zuschnitt (AP-19 Teil H): Ein Bild in voller Höhe (1080 x 2237) zeigt unten die Tasten von Android; es wird oberhalb
+davon abgeschnitten (TASTEN). Ein Bild mit Tastatur wird oberhalb der Tastatur abgeschnitten; die Zeile steht je Bild
+in OBERHALB. Ein neues Bild mit Tastatur braucht dort einen Eintrag. Am Ende prüft der Lauf, dass kein Bild die volle
+Höhe behalten hat.
+
 Welche Bilder gebraucht werden, steht in den Daten: Jeder Aufruf foto('bereich_thema_01', ...) in
 src/daten/anleitung/*.mjs und jede Angabe datei: 'bereich_thema_01' in src/daten/startseite.mjs nennt ein Bild. Jedes entsteht als WebP in zwei Breiten unter public/bilder/sogehts/
 (Unterstriche werden zu Bindestrichen). Maße und der Satz, was das Bild zeigt, gehen nach src/daten/sogehts_fotos.json;
@@ -29,6 +34,11 @@ BREITEN = (360, 720)
 # Namen der neuen Bildschirmfotos: Bereich, Thema, Schritt (zum Beispiel liste_abhaken_02).
 NAME = re.compile(r"(?:datei:\s*|foto\()'([a-z]+(?:_[a-z0-9]+)+_\d\d)'")
 BEREICHE = ("start", "scanner", "karte", "liste", "rezepte", "haushalt", "einstellungen")
+# Höhe eines Bildes mit den Tasten von Android (Statusleiste schon entfernt) und Höhe des Streifens mit den Tasten.
+VOLL = 2237
+TASTEN = 144
+# Bilder mit Tastatur: Name -> letzte Zeile über der Tastatur (Bildpunkte des Bildes im Hauptordner).
+OBERHALB = {"liste_eintraege_02": 1128, "scanner_ean_01": 1200}
 
 
 def gebraucht() -> list[str]:
@@ -38,6 +48,15 @@ def gebraucht() -> list[str]:
             if name not in namen:
                 namen.append(name)
     return namen
+
+
+def zuschnitt(name: str, bild: Image.Image) -> Image.Image:
+    """Schneidet unten ab: über der Tastatur (OBERHALB) oder über den Tasten von Android (volle Höhe)."""
+    if name in OBERHALB:
+        return bild.crop((0, 0, bild.width, OBERHALB[name]))
+    if bild.height == VOLL:
+        return bild.crop((0, 0, bild.width, VOLL - TASTEN))
+    return bild
 
 
 def webname(name: str, breite: int) -> str:
@@ -75,7 +94,10 @@ def main() -> int:
     verzeichnis = {}
     groesse = 0
     for name in namen:
-        bild = Image.open(quelle / f"{name}.png").convert("RGB")
+        bild = zuschnitt(name, Image.open(quelle / f"{name}.png").convert("RGB"))
+        if bild.height >= VOLL:
+            print(f"FEHLER: {name} hat nach dem Zuschnitt noch die volle Höhe ({bild.height}).")
+            return 1
         for breite in BREITEN:
             hoehe = round(bild.height * breite / bild.width)
             ziel = ZIEL / webname(name, breite)

@@ -4,6 +4,8 @@ import { foto, link } from './hilfen.mjs';
 
 export default {
   slug: 'produktkarte',
+  symbol: 'etikett',
+  leitbild: 'scanner_mehrere_01',
   titel: 'Die Produktkarte',
   kurz: 'Nährwerte, Abzeichen, Zutaten und „Auf die Liste“.',
   vorspann: 'Was auf der Produktkarte steht und was du von dort aus tun kannst.',
@@ -11,6 +13,8 @@ export default {
     {
       titel: 'Die Karte im Überblick',
       anker: 'ueberblick',
+      symbol: 'etikett',
+      gross: true,
       fotos: [foto('scanner_mehrere_01', 'Die Produktkarte, ganz geöffnet')],
       absaetze: [
         'Die Produktkarte erscheint nach einem Scan und wenn du ein Produkt aus „Zuletzt gescannt“ oder aus einer Liste öffnest. Oben steht das Urteil für deinen Haushalt, darunter folgen Nährwerte, Abzeichen und Zutaten, soweit sie in den Daten stehen.',
@@ -20,6 +24,7 @@ export default {
     {
       titel: 'Nährwerte, Zucker, Nutri-Score und Verarbeitung',
       anker: 'naehrwerte',
+      symbol: 'diagramm',
       funktionen: ['KARTE-04'],
       nutzen: 'Du siehst auf einen Blick Kalorien, Zucker, Fett, Salz, den Nutri-Score und den Grad der Verarbeitung, weiter unten weitere Nährwerte. Fehlt ein Wert, steht dort „keine Angabe“.',
       wo: 'Produktkarte > Kacheln unter dem Urteil',
@@ -27,6 +32,7 @@ export default {
     {
       titel: 'Abzeichen',
       anker: 'abzeichen',
+      symbol: 'blatt',
       funktionen: ['KARTE-05'],
       nutzen: 'Kleine Abzeichen sagen, ob das Produkt laut Daten vegetarisch oder vegan ist, ob Palmöl drin ist und wie viele Zusatzstoffe es hat.',
       wo: 'Produktkarte nach oben ziehen > Abzeichen unter den Kacheln',
@@ -35,6 +41,7 @@ export default {
     {
       titel: 'Zutaten',
       anker: 'zutaten',
+      symbol: 'liste',
       funktionen: ['KARTE-06'],
       nutzen: 'Du liest die Zutaten des Produkts, so wie sie in den Daten stehen.',
       wo: 'Produktkarte nach oben ziehen > „Zutaten“',
@@ -42,6 +49,7 @@ export default {
     {
       titel: 'Stand und Quelle der Daten',
       anker: 'stand-der-daten',
+      symbol: 'datenbank',
       funktionen: ['KARTE-10'],
       nutzen: 'Die Karte sagt, von wann die Angaben sind und woher sie stammen: „Daten: Open Food Facts“. Findet FoodAsu ein Produkt nicht oder besteht keine Verbindung, steht das anstelle der Karte da.',
       wo: 'Produktkarte nach oben ziehen > unter den Zutaten',
@@ -50,6 +58,7 @@ export default {
     {
       titel: '„Daten neu laden“',
       anker: 'daten-neu-laden',
+      symbol: 'neu',
       funktionen: ['KARTE-08'],
       nutzen: 'Du holst die Angaben zu einem Produkt noch einmal frisch von Open Food Facts, etwa wenn dort etwas ergänzt wurde.',
       wo: 'Produktkarte > „Weitere Aktionen“ (drei Punkte) > „Daten neu laden“',
@@ -57,6 +66,7 @@ export default {
     {
       titel: 'Eigener Name für ein Produkt',
       anker: 'eigener-name',
+      symbol: 'stift',
       funktionen: ['KARTE-07'],
       nutzen: 'Du gibst einem Produkt einen eigenen Namen, zum Beispiel wenn der Name in den Daten fehlt oder zu lang ist, und stellst das Original wieder her.',
       wo: 'Produktkarte nach oben ziehen > ganz unten „Name ändern“',
@@ -64,6 +74,7 @@ export default {
     {
       titel: 'Produktbild groß',
       anker: 'produktbild',
+      symbol: 'bild',
       funktionen: ['KARTE-11'],
       nutzen: 'Ein Tipp auf das kleine Produktbild zeigt es groß.',
       wo: 'Produktkarte > Produktbild antippen',
@@ -71,6 +82,8 @@ export default {
     {
       titel: '„Auf die Liste“',
       anker: 'auf-die-liste',
+      symbol: 'plus',
+      gross: true,
       funktionen: ['KARTE-09'],
       nutzen: 'Du setzt ein Produkt mit einem Tipp auf eine Einkaufsliste und wählst Liste und Stückzahl. „Rückgängig“ nimmt es gleich wieder herunter.',
       wo: 'Produktkarte > Leiste unten > „Auf die Liste“',

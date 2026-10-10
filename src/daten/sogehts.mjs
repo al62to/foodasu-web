@@ -20,6 +20,12 @@
 // Sprungmarken aus der Fassung vor AP-19, die weiter ankommen sollen. "funktionen" nennt die Kennungen aus der
 // Funktionsliste der App, die der Abschnitt erklärt.
 //
+// Gestaltung (AP-19 Teil H): "symbol" nennt das Symbol eines Abschnitts oder Kapitels (src/daten/zeichen.mjs).
+// "gross: true" macht aus einem Abschnitt mit Bild eine große Karte; je Kapitel gibt es eine oder zwei. Abschnitte mit
+// Bild ohne "gross" sind helle Karten, Abschnitte ohne Bild kompakte Karten in einem Raster, Abschnitte ohne Funktion
+// (nur Absätze) ruhige Notizen. "leitbild" nennt das Bild eines Kapitels, das seine Karte in der Übersicht zeigt.
+// An Texten, Ankern und an der Reihenfolge ändert das nichts.
+//
 // Bilder: Bildschirmfotos der Play-Fassung mit dem erfundenen Beispielhaushalt (Mia, Jonas, Elif); Namen, Marken und
 // Fotos von Produkten sind unkenntlich. Sie liegen unter public/bilder/sogehts und entstehen mit
 // tools/sogehts_fotos.py; Maße und Bildbeschreibung stehen in sogehts_fotos.json. "film" nennt eine kurze Schleife
@@ -33,6 +39,7 @@ import zuHause from './anleitung/zu-hause-schreiben-im-laden-abhaken.mjs';
 import rezepte from './anleitung/rezepte.mjs';
 import deineDaten from './anleitung/deine-daten.mjs';
 import fotos from './sogehts_fotos.json' with { type: 'json' };
+import { zeichen } from './zeichen.mjs';
 
 export const BEREICH = '/so-gehts/';
 
@@ -65,14 +72,25 @@ export const kapitel = [ersteSchritte, haushalt, scannen, produktkarte, einkaufs
 export const adresse = (eintrag) => `${BEREICH}${eintrag.slug}/`;
 
 // Ein Bildschirmfoto mit Maßen und Bildbeschreibung. Ohne eigene Beschreibung gilt der Satz aus dem Verzeichnis.
+// "ausschnitt" heißt: Das Bild zeigt nicht den ganzen Bildschirm (es endet über der Tastatur oder ist ein Teil des
+// Bildschirms); sein Handy-Rahmen ist dann unten offen.
 export function fotoDaten(eintrag) {
   const angaben = fotos[eintrag.datei];
   if (!angaben) throw new Error(`So geht's: Bild ${eintrag.datei} fehlt in sogehts_fotos.json (python tools/sogehts_fotos.py)`);
-  return { ...eintrag, name: eintrag.datei.replaceAll('_', '-'), alt: eintrag.alt ?? angaben.zeigt, breite: angaben.breite, hoehe: angaben.hoehe };
+  return { ...eintrag, name: eintrag.datei.replaceAll('_', '-'), alt: eintrag.alt ?? angaben.zeigt, breite: angaben.breite, hoehe: angaben.hoehe, ausschnitt: angaben.hoehe / angaben.breite < 1.6 };
 }
 
 // Alle Bildschirmfotos eines Kapitels in der Reihenfolge der Seite (für Prüfung und Vorschau).
 export const fotosVon = (eintrag) => eintrag.teile.flatMap((teil) => teil.fotos ?? []).map(fotoDaten);
+
+// Das Bild, das die Karte eines Kapitels in der Übersicht zeigt: eines der Bilder des Kapitels.
+export const leitbildVon = (eintrag) => fotosVon(eintrag).find((foto) => foto.datei === eintrag.leitbild);
+
+// Die drei Handys im Kopf der Übersicht: links, Mitte, rechts. Es sind Bilder aus den Kapiteln.
+export const kopfBilder = ['liste_abhaken_02', 'karte_urteil_01', 'rezepte_ansehen_01'];
+
+// Art eines Abschnitts für die Gestaltung: große Karte, helle Karte mit Bild, kompakte Karte oder Notiz.
+export const artVon = (teil) => (teil.fotos?.length ? (teil.gross ? 'gross' : 'mittel') : teil.funktionen ? 'klein' : 'notiz');
 
 // ---- Prüfung beim Laden: Jeder Verstoß bricht den Bau ab. ----
 const fehler = [];
@@ -91,8 +109,14 @@ for (const eintrag of kapitel) {
     if (teil.funktionen && !(teil.nutzen && teil.wo)) fehler.push(`${eintrag.slug}#${teil.anker}: Eine Funktion braucht „nutzen“ und „wo“`);
     if ((teil.fotos ?? []).length > 1) fehler.push(`${eintrag.slug}#${teil.anker}: höchstens ein Bild je Abschnitt`);
     for (const feld of ['schritte', 'tipp', 'einleitung']) if (teil[feld]) fehler.push(`${eintrag.slug}#${teil.anker}: Feld „${feld}“ gibt es nicht mehr`);
+    if (!zeichen[teil.symbol]) fehler.push(`${eintrag.slug}#${teil.anker}: Symbol „${teil.symbol}“ gibt es nicht (src/daten/zeichen.mjs)`);
+    if (teil.gross && !(teil.fotos ?? []).length) fehler.push(`${eintrag.slug}#${teil.anker}: Eine große Karte braucht ein Bild`);
   }
   if (eintrag.bilder) fehler.push(`${eintrag.slug}: Bilder neben dem Text gibt es nicht mehr`);
+  if (!zeichen[eintrag.symbol]) fehler.push(`${eintrag.slug}: Symbol „${eintrag.symbol}“ gibt es nicht (src/daten/zeichen.mjs)`);
+  const grosse = eintrag.teile.filter((teil) => teil.gross).length;
+  if (grosse < 1 || grosse > 2) fehler.push(`${eintrag.slug}: eine oder zwei große Karten je Kapitel, gefunden: ${grosse}`);
+  if (!eintrag.teile.some((teil) => (teil.fotos ?? []).some((foto) => foto.datei === eintrag.leitbild))) fehler.push(`${eintrag.slug}: Leitbild „${eintrag.leitbild}“ ist kein Bild des Kapitels`);
 }
 // Höchstens 45 Bilder im ganzen Bereich, die Schleifen mitgezählt.
 export const BILDER_HOECHSTENS = 45;

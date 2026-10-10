@@ -124,6 +124,11 @@ function glas() {
   return () => aufraeumen.forEach((schritt) => schritt());
 }
 
+// 4b FoodAsu im Bild: Die Handys erscheinen nacheinander.
+function einblick() {
+  zeige(alle('.einblick-karte'), { y: 50, stagger: 0.07 });
+}
+
 // 5 Zähler laufen hoch. Im Quelltext steht immer die Endzahl.
 function zaehler() {
   const zahlen = alle('[data-zahl]');
@@ -168,7 +173,7 @@ export function starte() {
   // Die Abschnitte werden nacheinander in eigenen Schritten eingerichtet, damit das Handy dabei bedienbar bleibt.
   if (abfrage) return;
   const lauf = (abfrage = gsap.matchMedia());
-  [kopf, wort, schritte, glas, zaehler, vorschau].forEach((abschnitt, nummer) => {
+  [kopf, wort, schritte, glas, einblick, zaehler, vorschau].forEach((abschnitt, nummer) => {
     setTimeout(() => {
       if (abfrage === lauf) lauf.add('(prefers-reduced-motion: no-preference)', () => abschnitt());
     }, nummer * 40);

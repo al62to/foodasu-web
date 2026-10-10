@@ -1,11 +1,14 @@
 ---
-// "So geht's", Übersicht (AP-15 Teil B2, Karte C): sechs Kacheln, eine je Kapitel. Alle Texte kommen aus
-// src/daten/sogehts.mjs.
+// "So geht's", Übersicht (AP-15 Teil B2, Karte C; gestaltet in AP-19 Teil H): im Kopf drei Handys im Rahmen, darunter
+// acht Karten, eine je Kapitel, jede mit einem Handy-Ausschnitt aus dem Kapitel. Alle Texte kommen aus
+// src/daten/sogehts.mjs. Die Bilder der Karten schmücken nur (der Inhalt steht als Text daneben); sie tragen ihre
+// Beschreibung, sind für Bildschirmleser aber ausgeblendet, damit der Name des Links kurz bleibt.
 import Basis from '../../layouts/Basis.astro';
 import Seitenkopf from '../../components/Seitenkopf.astro';
+import Handy from '../../components/Handy.astro';
 import '../../styles/sogehts.css';
 import { seite } from '../../daten/seite.mjs';
-import { BEREICH, adresse, kapitel, uebersicht } from '../../daten/sogehts.mjs';
+import { BEREICH, adresse, fotoDaten, kapitel, kopfBilder, leitbildVon, uebersicht } from '../../daten/sogehts.mjs';
 
 // Gliederung für Suchmaschinen und KI-Antworten: die Kapitel als Liste. In den Daten steht nur, was auf der Seite
 // sichtbar ist.
@@ -22,22 +25,33 @@ const daten = [{
 }];
 ---
 <Basis daten={daten}>
-  <Seitenkopf krumen={[{ titel: uebersicht.titel, ziel: BEREICH }]} titel={uebersicht.titel} vorspann={uebersicht.vorspann} />
+  <Seitenkopf krumen={[{ titel: uebersicht.titel, ziel: BEREICH }]} titel={uebersicht.titel} vorspann={uebersicht.vorspann}>
+    <div class="g-trio" slot="seite">
+      {kopfBilder.map((datei, stelle) => (
+        <Handy foto={fotoDaten({ datei })} groessen="(min-width: 56rem) 12.5rem, 27vw" laden="eager" vorrang={stelle === 1} schnitt={false} />
+      ))}
+    </div>
+  </Seitenkopf>
   <div class="s-inhalt innen">
     <ol class="g-kacheln">
       {kapitel.map((eintrag) => (
         <li data-ein>
-          <a class="g-kachel" href={adresse(eintrag)}>
-            <span class="g-nummer" aria-hidden="true">{eintrag.nummer}</span>
-            <span class="g-kachel-text">
-              <span class="vh">{uebersicht.kapitelWort} {eintrag.nummer}: </span>
-              <b>{eintrag.titel}</b>
-              <span>{eintrag.kurz}</span>
-            </span>
-            <span class="g-lesen" aria-hidden="true">
-              {uebersicht.lesen}
-              <svg viewBox="0 0 24 24" focusable="false"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" /></svg>
-            </span>
+          <a class="g-kachel" href={adresse(eintrag)} data-neigung>
+            <div class="g-kachel-bild weich" aria-hidden="true">
+              <Handy foto={leitbildVon(eintrag)} groessen="(min-width: 40rem) 9.25rem, 5.75rem" schnitt={false} />
+            </div>
+            <div class="g-kachel-inhalt">
+              <span class="g-nummer" aria-hidden="true">{eintrag.nummer}</span>
+              <span class="g-kachel-text">
+                <span class="vh">{uebersicht.kapitelWort} {eintrag.nummer}: </span>
+                <b>{eintrag.titel}</b>
+                <span>{eintrag.kurz}</span>
+              </span>
+              <span class="g-lesen" aria-hidden="true">
+                {uebersicht.lesen}
+                <svg viewBox="0 0 24 24" focusable="false"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" /></svg>
+              </span>
+            </div>
           </a>
         </li>
       ))}

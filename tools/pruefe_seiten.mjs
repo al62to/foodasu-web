@@ -477,7 +477,8 @@ for (const [adresse, html] of seiten) {
 // mit seinem festen Anker aus den Daten; eine Funktion steht mit ihrem Nutzen und dem Weg in der App da, ohne
 // nummerierte Schrittfolge. Das Kapitel zeigt genau die Bildschirmfotos aus den Daten (höchstens eines je Abschnitt,
 // höchstens 45 im ganzen Bereich: Das prüfen die Daten beim Laden), jedes mit Beschreibung, Maßen und, bis auf das
-// erste Foto und das Standbild der Schleife, erst beim Scrollen geladen; es führt zum vorigen und zum nächsten
+// erste Foto und das Standbild der Schleife, erst beim Scrollen geladen; jedes steht im Handy-Rahmen und ist oberhalb
+// der Tasten von Android abgeschnitten (AP-19 Teil H); es führt zum vorigen und zum nächsten
 // Kapitel und zurück zur Übersicht. Die 404-Seite führt mit ihrem Knopf zur Anleitung, und llms.txt
 // nennt die Übersicht und alle Kapitel.
 const KAPITEL_ZAHL = 8;
@@ -512,7 +513,11 @@ kapitel.forEach((eintrag, stelle) => {
     if (!vorhanden.has(`/bilder/sogehts/${datei}`)) melde(adresse, `Bild fehlt: ${datei}`);
     if (!/\balt="[^"]{20,}"/.test(marke)) melde(adresse, `Bild ohne Beschreibung: ${datei}`);
     if (/original/.test(datei)) melde(adresse, `Bild aus dem Ordner der Originale: ${datei}`);
+    // AP-19 Teil H: Ein Bild in voller Höhe (720 x 1491) zeigt unten die Tasten von Android.
+    if (/\bheight="1491"/.test(marke)) melde(adresse, `Bild in voller Höhe, mit den Tasten von Android: ${datei}`);
   }
+  // Jedes Bild steht im Handy-Rahmen (AP-19 Teil H).
+  if (alle(html, /<div class="geraet-rahmen"/g).length !== bilder.length) melde(adresse, `Handy-Rahmen: ${bilder.length} erwartet, einer je Bild`);
   const sofort = bilder.filter(([marke]) => !/\bloading="lazy"/.test(marke)).length;
   if (sofort > 2) melde(adresse, `höchstens zwei Bilder laden sofort, gefunden: ${sofort}`);
   const film = html.match(/data-film="([^"]+)"/);
@@ -537,6 +542,7 @@ for (const karte of einblick.karten) {
   if (!startseite.includes(`href="${karte.ziel}"`)) melde('/', `Abschnitt „${einblick.ueberschrift}“: Link fehlt: ${karte.ziel}`);
   if (!startseite.includes(`/bilder/sogehts/${karte.datei.replaceAll('_', '-')}-720.webp`)) melde('/', `Abschnitt „${einblick.ueberschrift}“: Bild fehlt: ${karte.datei}`);
 }
+if (alle(startseite, /<div class="geraet-rahmen"/g).length !== einblick.karten.length) melde('/', `Abschnitt „${einblick.ueberschrift}“: jedes Bild im Handy-Rahmen erwartet`);
 if (kapitel.filter((eintrag) => eintrag.film).length > 3) melde(BEREICH, 'höchstens drei Schleifen (Karte C)');
 const nichtGefunden = seiten.get('/404.html') ?? '';
 if (!/<a class="nf-knopf" href="\/so-gehts\/"/.test(nichtGefunden)) melde('/404.html', "der Knopf „So geht's“ führt nicht zur Anleitung");

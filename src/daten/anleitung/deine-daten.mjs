@@ -5,6 +5,8 @@ import { foto, link } from './hilfen.mjs';
 
 export default {
   slug: 'deine-daten',
+  symbol: 'regler',
+  leitbild: 'einstellungen_oeffnen_01',
   titel: 'Einstellungen und deine Daten',
   kurz: 'Einstellungen, Export und Import, Backup, Löschen und Feedback.',
   vorspann: 'Was in den Einstellungen steht, was auf deinem Handy liegt und wie du deinen Haushalt mitnimmst.',
@@ -12,6 +14,7 @@ export default {
     {
       titel: 'Einstellungen öffnen',
       anker: 'einstellungen-oeffnen',
+      symbol: 'regler',
       funktionen: ['EINST-01'],
       nutzen: 'Das Zahnrad öffnet die Einstellungen mit den Abschnitten „Darstellung“, „Scanner“, „Verlauf und Vorschläge“, „Haushalt“, „Hilfe und Feedback“ und „Über“.',
       wo: 'Zahnrad oben rechts auf Start, Listen, Rezepte und Haushalt',
@@ -20,6 +23,7 @@ export default {
     {
       titel: 'Wo deine Daten liegen',
       anker: 'wo-deine-daten-liegen',
+      symbol: 'handy',
       funktionen: ['EINST-07'],
       nutzen: 'Alles, was du in der App anlegst, liegt auf deinem Handy. Es gibt kein Konto und keinen Server von FoodAsu; der „Datenstand“ zeigt, wie viel gespeichert ist.',
       wo: 'Einstellungen > „Über“ > „Datenstand“',
@@ -27,6 +31,8 @@ export default {
     {
       titel: 'Haushalt exportieren',
       anker: 'haushalt-exportieren',
+      symbol: 'upload',
+      gross: true,
       funktionen: ['HAUSHALT-07'],
       nutzen: 'Du speicherst alle Personen und ihre Einträge in einer Datei, etwa für ein neues Handy. Die Datei enthält, was dein Haushalt meidet: Teile sie nur mit Personen, denen du vertraust.',
       wo: 'Einstellungen > „Haushalt“ > „Haushalt exportieren“',
@@ -35,6 +41,7 @@ export default {
     {
       titel: 'Haushalt importieren',
       anker: 'haushalt-importieren',
+      symbol: 'download',
       funktionen: ['HAUSHALT-08'],
       nutzen: 'Du übernimmst Personen aus einer exportierten Datei und wählst, ob sie deinen Haushalt ergänzen oder ersetzen. „Ersetzen“ löscht alle Personen, die in der App stehen.',
       wo: 'Einstellungen > „Haushalt“ > „Haushalt importieren“',
@@ -43,6 +50,7 @@ export default {
     {
       titel: 'Backup von Android',
       anker: 'backup-von-android',
+      symbol: 'wolke',
       funktionen: ['EINST-10'],
       nutzen: 'Android kann ein Backup deiner App-Daten anlegen, wenn du das auf deinem Handy eingeschaltet hast. Was dein Haushalt meidet, ist nie dabei: Auf ein neues Handy kommt der Haushalt nur mit der Exportdatei.',
       wo: 'Einstellungen deines Handys, nicht in FoodAsu',
@@ -53,6 +61,7 @@ export default {
     {
       titel: 'Löschen',
       anker: 'loeschen',
+      symbol: 'papierkorb',
       funktionen: ['EINST-03', 'EINST-04'],
       nutzen: 'Was FoodAsu speichert, lässt sich in der App wieder löschen: der Verlauf unter „Zuletzt gescannt“ und die Wörter, die sich FoodAsu für die Vorschläge der Listen gemerkt hat. Beides lässt sich nicht rückgängig machen.',
       wo: 'Einstellungen > „Verlauf und Vorschläge“ > „Verlauf löschen“ oder „Vorschläge der Listen löschen“',
@@ -63,6 +72,7 @@ export default {
     {
       titel: 'Feedback geben',
       anker: 'feedback-geben',
+      symbol: 'brief',
       funktionen: ['EINST-05'],
       nutzen: 'Du schreibst FoodAsu aus der App eine E-Mail; Adresse und Betreff sind schon eingetragen. Mit geht die Version der App und von Android, sonst nichts.',
       wo: 'Einstellungen > „Hilfe und Feedback“ > „Feedback geben“',
@@ -70,6 +80,7 @@ export default {
     {
       titel: 'Version und Update',
       anker: 'version-und-update',
+      symbol: 'neu',
       funktionen: ['EINST-06'],
       nutzen: 'Du siehst, welche Version du hast, und fragst selbst über Google Play nach einem Update.',
       wo: 'Einstellungen > „Über“ > „Nach Update suchen“',
@@ -77,6 +88,7 @@ export default {
     {
       titel: 'Fehlt ein Produkt?',
       anker: 'fehlt-ein-produkt',
+      symbol: 'lupe',
       absaetze: [
         'Die Angaben zu Produkten kommen von Open Food Facts, einer offenen Datenbank, die von Freiwilligen gepflegt wird. Ist ein Produkt dort nicht erfasst oder fehlt die Zutatenliste, schreibt FoodAsu das dazu und bittet dich, die Verpackung zu prüfen.',
         'Du kannst das Produkt bei Open Food Facts selbst ergänzen, auf der Website von Open Food Facts oder in deren App. Das geschieht außerhalb von FoodAsu; FoodAsu überträgt dafür nichts. Danach holst du die neuen Angaben mit „Daten neu laden“.',
@@ -86,6 +98,7 @@ export default {
     {
       titel: 'Mehr dazu',
       anker: 'mehr-dazu',
+      symbol: 'info',
       funktionen: ['EINST-08'],
       nutzen: 'Die Kurzfassung der Datenschutzerklärung liest du in der App, auch ohne Internet.',
       wo: 'Einstellungen > „Über“',

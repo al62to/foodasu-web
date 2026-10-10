@@ -6,6 +6,8 @@ import { foto, link } from './hilfen.mjs';
 
 export default {
   slug: 'scannen-und-urteil',
+  symbol: 'scan',
+  leitbild: 'scanner_scannen_02',
   titel: 'Scannen und das Urteil verstehen',
   kurz: 'Strichcode scannen und das Urteil für den Haushalt lesen.',
   vorspann: 'Strichcode scannen und auf der Produktkarte lesen, wen ein Produkt laut Daten betrifft.',
@@ -14,6 +16,8 @@ export default {
     {
       titel: 'Scannen',
       anker: 'scannen',
+      symbol: 'scan',
+      gross: true,
       funktionen: ['SCAN-01'],
       nutzen: 'Du hältst die Kamera auf den Strichcode eines Lebensmittels und bekommst die Produktkarte mit dem Ergebnis für deinen Haushalt. Die Kamera läuft nur im Scanner.',
       wo: 'runder Knopf in der Mitte der Leiste',
@@ -22,6 +26,7 @@ export default {
     {
       titel: 'EAN eintippen',
       anker: 'ean-eintippen',
+      symbol: 'tastatur',
       funktionen: ['SCAN-02'],
       nutzen: 'Ohne Kamera gibst du die Ziffern ein, die unter dem Strichcode stehen, und bekommst dieselbe Produktkarte.',
       wo: 'Scanner > „EAN eintippen“',
@@ -30,6 +35,7 @@ export default {
     {
       titel: 'Taschenlampe',
       anker: 'taschenlampe',
+      symbol: 'lampe',
       funktionen: ['SCAN-03'],
       nutzen: 'Ist es zu dunkel, schaltest du im Scanner das Licht deines Handys ein.',
       wo: 'Scanner > Knopf oben rechts',
@@ -37,6 +43,7 @@ export default {
     {
       titel: 'Mehrere Produkte nacheinander',
       anker: 'mehrere-produkte',
+      symbol: 'stapel',
       funktionen: ['SCAN-05'],
       nutzen: 'Die Produktkarte öffnet auf halber Höhe, und die Kamera läuft dahinter weiter: Das nächste Produkt scannst du einfach. Nach oben gezogen zeigt die Karte alle Angaben.',
       wo: 'Scanner > Produktkarte am Griff ziehen oder nach unten wischen',
@@ -45,6 +52,7 @@ export default {
     {
       titel: 'Zuletzt gescannt',
       anker: 'zuletzt-gescannt',
+      symbol: 'uhr',
       funktionen: ['SCAN-06'],
       nutzen: 'Du öffnest ein schon gescanntes Produkt wieder, ohne es neu zu scannen.',
       wo: 'Start > „Zuletzt gescannt“ > „Alle“; oder Scanner > „Zuletzt gescannt“',
@@ -52,6 +60,7 @@ export default {
     {
       titel: 'Scanner schließen',
       anker: 'scanner-schliessen',
+      symbol: 'kreuz',
       funktionen: ['SCAN-04'],
       nutzen: 'Du verlässt den Scanner mit einem Tipp oder einem Wisch.',
       wo: 'Scanner > Kreuz oben links; oder auf der Kamerafläche nach unten wischen',
@@ -59,6 +68,7 @@ export default {
     {
       titel: 'Vibration bei Treffer',
       anker: 'vibration-bei-treffer',
+      symbol: 'welle',
       funktionen: ['SCAN-07'],
       nutzen: 'Das Handy vibriert kurz, wenn ein Strichcode erkannt wurde; das kannst du abschalten.',
       wo: 'Einstellungen > „Scanner“ > „Vibration bei Treffer“',
@@ -66,6 +76,7 @@ export default {
     {
       titel: 'Im Querformat',
       anker: 'querformat',
+      symbol: 'drehen',
       funktionen: ['SCAN-08'],
       nutzen: 'Hältst du das Handy quer, steht die Produktkarte neben dem Kamerabild.',
       wo: 'Scanner > Handy drehen',
@@ -73,6 +84,8 @@ export default {
     {
       titel: 'Das Urteil für den Haushalt',
       anker: 'das-urteil',
+      symbol: 'schild',
+      gross: true,
       funktionen: ['KARTE-01'],
       nutzen: 'Oben auf der Produktkarte steht, für wen im Haushalt das Produkt laut Daten nicht passt, und darunter das Ergebnis für jede Person einzeln. Maßgeblich ist immer die Verpackung.',
       wo: 'Produktkarte, ganz oben',
@@ -81,6 +94,7 @@ export default {
     {
       titel: 'Was die Ergebnisse bedeuten',
       anker: 'was-die-ergebnisse-bedeuten',
+      symbol: 'info',
       absaetze: [
         'Das Urteil nennt, wen ein Produkt betrifft und was es laut Daten enthält, zum Beispiel „Nicht für Mia: enthält Schalenfrüchte“. Fehlen Angaben, steht dort „Angaben unvollständig, Verpackung prüfen“. Gibt es laut Daten für niemanden einen Konflikt, steht „Kein Konflikt laut Daten“.',
         'Die Namen und Einträge sind Beispiele. Daten können fehlen oder veraltet sein. Maßgeblich ist immer die Verpackung.',
@@ -89,6 +103,7 @@ export default {
     {
       titel: '„Warum?“',
       anker: 'warum',
+      symbol: 'frage',
       funktionen: ['KARTE-02'],
       nutzen: 'Ein Tipp auf „Warum?“ zeigt, worauf ein Ergebnis beruht und wen es betrifft. Die Angaben stammen aus der offenen Datenbank Open Food Facts.',
       wo: 'Produktkarte > „Warum?“ in der Zeile mit dem Urteil',
@@ -97,6 +112,7 @@ export default {
     {
       titel: '„Verpackung gelesen“',
       anker: 'verpackung-gelesen',
+      symbol: 'haken',
       funktionen: ['KARTE-03'],
       nutzen: 'Fehlen Angaben, liest du auf der Verpackung nach und lässt FoodAsu sich merken, dass ihr das Produkt selbst geprüft habt. Das nimmst du auch wieder zurück.',
       wo: 'Produktkarte > „Verpackung gelesen“; zurück über „Weitere Aktionen“ > „Prüfung aufheben“',
@@ -105,6 +121,7 @@ export default {
     {
       titel: 'Mehr auf der Produktkarte',
       anker: 'die-produktkarte',
+      symbol: 'etikett',
       alteAnker: ['daten-neu-laden'],
       absaetze: [
         'Unter dem Urteil folgen die Nährwerte, die Abzeichen und die Zutaten, soweit sie in den Daten stehen. Von der Karte aus setzt du ein Produkt auch auf eine Liste.',
