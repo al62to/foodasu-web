@@ -9,13 +9,6 @@ export const GRENZEN = {
   beschreibung: { von: 120, bis: 155, pixel: 920, schrift: 14 },
 };
 
-// Ausnahme (Nachtrag zu AP-23 Teil A Nr. 4, 11.10.2026): Die Beschreibung von /ueber-foodasu/ ist wörtlich vorgegeben
-// und hat 119 Zeichen, eines unter der Grenze. Nur dieser eine Wortlaut darf kürzer sein; ändert er sich, gilt wieder
-// die Grenze.
-const WOERTLICH_KUERZER = new Set([
-  'Wer FoodAsu entwickelt, warum es die App gibt, für wen sie ist und woher die Angaben kommen. Kein Konto, keine Werbung.',
-]);
-
 export function breite(text, schrift) {
   let summe = 0;
   for (const zeichen of text) {
@@ -34,7 +27,7 @@ export function grenzBefunde(text, art) {
   const grenze = GRENZEN[art];
   const { zeichen, pixel } = masse(text, art);
   const befunde = [];
-  if (zeichen < grenze.von && !WOERTLICH_KUERZER.has(text)) befunde.push(`${zeichen} Zeichen, mindestens ${grenze.von}`);
+  if (zeichen < grenze.von) befunde.push(`${zeichen} Zeichen, mindestens ${grenze.von}`);
   if (zeichen > grenze.bis) befunde.push(`${zeichen} Zeichen, höchstens ${grenze.bis}`);
   if (pixel > grenze.pixel) befunde.push(`${pixel} Pixel, höchstens ${grenze.pixel}`);
   return befunde;

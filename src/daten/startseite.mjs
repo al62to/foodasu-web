@@ -47,12 +47,12 @@ export const wort = {
   // Ali, 11.10.2026): Die beiden sind keine Einträge zum Meiden und passen zum Absatz über die Einkaufsliste. Jedes
   // Wort muss nach "Einkaufen ohne" grammatisch stimmen.
   woerter: ['Nüsse', 'Gluten', 'Eier', 'Alkohol', 'Palmöl', 'Sesam', 'Milch', 'Zettel', 'Rätselraten'],
-  // Absatz mit Alis Unterschrift (Änderung 2 zum Nachtrag zu AP-23, Ali, 11.10.2026; wörtlich): in der Ich-Form, ohne
-  // Doppelpunkt, nur was die App kann (gespeicherte Listen, Zutaten aus dem Rezept auf die Liste, Scannen). Darunter
-  // die Unterschrift und ein Link auf "Warum es FoodAsu gibt".
+  // Absatz mit Alis Unterschrift (Änderung 2 zum Nachtrag zu AP-23, Ali, 11.10.2026; seit Änderung 3 "ohne Abtippen";
+  // wörtlich): in der Ich-Form, ohne Doppelpunkt, nur was die App kann (gespeicherte Listen, Zutaten aus dem Rezept
+  // auf die Liste, Scannen). Darunter die Unterschrift und ein Link auf "Warum es FoodAsu gibt".
   absaetze: [
     'Ehrlich gesagt war mir die Einkaufsliste jede Woche eine Qual. Neu schreiben, etwas vergessen, im Chatverlauf suchen.',
-    'Mit FoodAsu habe ich mir das leichter gemacht. Meine Listen bleiben gespeichert, die Zutaten aus dem Rezept kommen ohne Tippen dazu, und beim Scannen sehe ich, was laut den Angaben im Produkt ist.',
+    'Mit FoodAsu habe ich mir das leichter gemacht. Meine Listen bleiben gespeichert, die Zutaten aus dem Rezept kommen ohne Abtippen dazu, und beim Scannen sehe ich, was laut den Angaben im Produkt ist.',
   ],
   unterschrift: 'Ali Tonc, Entwickler von FoodAsu',
   link: { text: 'Warum es FoodAsu gibt', ziel: '/ueber-foodasu/#warum' },

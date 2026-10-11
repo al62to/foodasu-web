@@ -817,10 +817,10 @@ for (const datei of dateien.filter((pfad) => /\.(?:html|css|js|svg|txt|xml)$/.te
 // Startseite: der Absatz mit Unterschrift im Wortlaut der Projektleitung (ohne Doppelpunkt), darunter die Unterschrift
 // und der Link auf "Über FoodAsu"; die Bänder stehen still (kein laufendes Band); der Tisch und die kleine
 // Einkaufsliste schmücken nur; die Anker #schritte und #fragen bleiben.
-// Wortlaut seit der Änderung 2 zum Nachtrag zu AP-23 (Ali, 11.10.2026).
+// Wortlaut seit der Änderung 2 zum Nachtrag zu AP-23 (Ali, 11.10.2026); seit der Änderung 3 "ohne Abtippen".
 const ABSATZ_START = [
   'Ehrlich gesagt war mir die Einkaufsliste jede Woche eine Qual. Neu schreiben, etwas vergessen, im Chatverlauf suchen.',
-  'Mit FoodAsu habe ich mir das leichter gemacht. Meine Listen bleiben gespeichert, die Zutaten aus dem Rezept kommen ohne Tippen dazu, und beim Scannen sehe ich, was laut den Angaben im Produkt ist.',
+  'Mit FoodAsu habe ich mir das leichter gemacht. Meine Listen bleiben gespeichert, die Zutaten aus dem Rezept kommen ohne Abtippen dazu, und beim Scannen sehe ich, was laut den Angaben im Produkt ist.',
 ];
 // Die wechselnden Wörter nach "Einkaufen ohne", in dieser Reihenfolge; die letzten zwei sind keine Einträge zum Meiden.
 const WORT_MARKEN = ['Nüsse', 'Gluten', 'Eier', 'Alkohol', 'Palmöl', 'Sesam', 'Milch', 'Zettel', 'Rätselraten'];

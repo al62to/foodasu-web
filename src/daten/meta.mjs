@@ -60,7 +60,7 @@ const FEST = [
   {
     pfad: '/ueber-foodasu/',
     titel: 'Über FoodAsu: warum es die App gibt und für wen sie ist',
-    beschreibung: 'Wer FoodAsu entwickelt, warum es die App gibt, für wen sie ist und woher die Angaben kommen. Kein Konto, keine Werbung.',
+    beschreibung: 'Wer FoodAsu entwickelt, warum es die App gibt, für wen sie ist und woher die Angaben kommen. Ohne Konto und ohne Werbung.',
   },
   {
     pfad: '/daten-und-quellen/',
