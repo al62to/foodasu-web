@@ -1,6 +1,7 @@
 ---
 // Kopf mit Logo und Hauptnavigation. Das Mega-Menü unter "Rezepte" folgt Entwurf A (AP-17 Teil E2): links die
-// Gruppen, in der Mitte die Links der gewählten Gruppe, rechts drei Rezepte mit Bild. Am Handy füllt das Menü den
+// Gruppen, in der Mitte die Links der gewählten Gruppe, rechts drei Rezepte mit Bild (auf jeder Seite andere,
+// src/daten/probieren.mjs). Am Handy füllt das Menü den
 // Bildschirm; "Rezepte" klappt auf, jede Gruppe öffnet eine eigene Ebene mit "Zurück".
 // Muster "Disclosure Navigation": echte Links, Knöpfe mit aria-expanded, Esc schließt. Ohne JavaScript bleiben alle
 // Links les- und klickbar (am Laptop öffnet sich das Menü bei Fokus oder Mauszeiger, am Handy steht es ausgeklappt da).
@@ -91,9 +92,50 @@ const aktuell = (ziel) => (ziel === '/' ? pfad === '/' : pfad.startsWith(ziel));
       </div>
     </nav>
   </div>
+  <script type="application/json" data-probe-liste set:html={mega.probieren.daten} />
 </header>
 
 <script>
+  import { seitenPfad, waehle } from '../skripte/probe_wahl.js';
+
+  // "Zum Ausprobieren": Im HTML steht eine feste Auswahl je Seite. Hier wird sie durch eine zufällige nach denselben
+  // Regeln ersetzt, am Laptop und im Handy-Menü dieselbe, bevor das Menü zum ersten Mal aufgehen kann (die Knöpfe
+  // weiter unten hängen erst danach). Die Liste steht in der Seite; nichts wird geladen, nichts gespeichert. Die Bilder
+  // holt der Browser erst, wenn das Menü offen ist.
+  const probe = document.querySelector('[data-probe-liste]');
+  if (probe) {
+    try {
+      const { alt, laender, rezepte } = JSON.parse(probe.textContent);
+      const liste = rezepte.map(([slug, titel, land, sprache]) => ({ slug, titel, sprache, land: laender[land], ziel: `/rezepte/${slug}/` }));
+      const wahl = waehle(liste, seitenPfad(window.location.pathname), Math.random);
+      for (const block of document.querySelectorAll('.mega-probe')) {
+        const punkte = [...block.querySelectorAll('li')];
+        if (punkte.length !== wahl.length) continue;
+        punkte.forEach((punkt, nummer) => {
+          const { slug, titel, sprache, land, ziel } = wahl[nummer];
+          const bild = punkt.querySelector('img');
+          const name = punkt.querySelector('b');
+          punkt.querySelector('a').setAttribute('href', ziel);
+          punkt.querySelector('source').srcset = `/bilder/rezepte/${slug}-karte-360.avif`;
+          bild.src = `/bilder/rezepte/${slug}-karte-360.webp`;
+          bild.alt = `${alt}: ${titel}`;
+          // Sprachangabe wie im HTML des Baus: die Sprache des ganzen Titels oder fertiges HTML aus dem Bau.
+          name.textContent = titel;
+          if (sprache?.startsWith('<')) name.innerHTML = sprache;
+          else if (sprache) {
+            const teil = document.createElement('span');
+            teil.lang = sprache;
+            teil.textContent = titel;
+            name.replaceChildren(teil);
+          }
+          name.nextElementSibling.textContent = land;
+        });
+      }
+    } catch {
+      // Es bleibt die Auswahl aus dem HTML.
+    }
+  }
+
   // Mega-Menü und Menü am Handy. Zustand nur in aria-expanded; nichts wird gespeichert.
   // Laptop: Der Mauszeiger öffnet nach kurzer Verzögerung und schließt erst, wenn er eine Weile außerhalb war; so
   // geht das Menü nicht zu, wenn die Maus auf dem Weg nach unten kurz daneben gerät. Klick, Enter und Leertaste

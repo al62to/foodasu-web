@@ -41,6 +41,10 @@ export function durchlaufe(html, beiText) {
   return teile.join('');
 }
 
+// Kennzeichnet ein Stück HTML wie der Bau. Für Texte, die erst im Browser in die Seite kommen (Rezepte "Zum
+// Ausprobieren" im Menü, src/daten/probieren.mjs).
+export const kennzeichne = (html) => durchlaufe(html, (text) => text.replace(AUSDRUCK, (fund) => `<span lang="${sprache.get(klar(fund))}">${fund}</span>`));
+
 export function setzeSprachen(ordner) {
   let seiten = 0;
   let stellen = 0;

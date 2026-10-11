@@ -185,7 +185,7 @@
 }
 @media (min-width: 64rem) { .r-karten.vier { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 
-/* Übersicht "Rezepte": Suche, Trefferzahl, gewählte Filter als Chips, Karten. Die drei Filtergruppen liegen am Handy
+/* Übersicht "Rezepte": Suche, Trefferzahl, gewählte Filter als Chips, Karten. Die vier Filtergruppen liegen am Handy
    und Tablet in einem Blatt von unten (Knopf "Filter"); ab 64rem stehen sie ständig offen in einer weißen Leiste
    links, die beim Scrollen mitfährt. Ohne JavaScript entfallen Suche und Filter, und alle Rezepte stehen da. */
 .f-seite { scroll-margin-top: 5.5rem; }
@@ -235,7 +235,7 @@ html:not(.js) .f-blatt, html:not(.js) .f-leiste { display: none; }
 .f-blatt-kopf, .f-blatt-fuss, .f-schleier { display: none; }
 .f-leer { margin: 1.5rem 0 0; }
 
-/* Handy und Tablet: Blatt von unten mit den drei Gruppen zum Aufklappen. */
+/* Handy und Tablet: Blatt von unten mit den vier Gruppen zum Aufklappen. */
 @media (max-width: 63.99rem) {
   .f-blatt { display: none; }
   .f-alles { display: none; }
@@ -322,10 +322,6 @@ html:not(.js) .f-blatt, html:not(.js) .f-leiste { display: none; }
 .r-original-links a { display: inline-block; padding: 0.4rem 0; }
 .r-original + .r-passt { margin-top: clamp(2.25rem, 5vw, 3.5rem); }
 .r-alt-link { margin-top: 0.4rem; }
-
-/* Hinweis auf die Rubrik im Kopf der Rezeptübersicht. */
-.r-rubrik { margin: 1rem 0 0; }
-.r-rubrik .chip { background: var(--karte); font-weight: 700; color: var(--deep); }
 
 /* Sammelseite "Aus alten Kochbüchern" (AP-25): Zeitstrahl nach Zeiträumen. Die Linie und die Kreise sind die Stationen
    aus basis.css; im Kreis stehen die ersten zwei Ziffern des Jahrhunderts. */

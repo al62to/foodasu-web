@@ -1,5 +1,5 @@
 // Rezepte, die auf der Website mit vollem Inhalt stehen. Entscheidung Ali, 09.10.2026: höchstens 40, verteilt auf
-// mehrere Länder; alle 306 Rezepte gibt es nur in der App. Die Liste ist vorläufig freigegeben (Ali, 09.10.2026);
+// mehrere Länder; alle Rezepte gibt es nur in der App. Die Liste ist vorläufig freigegeben (Ali, 09.10.2026);
 // die Projektleitung prüft sie nach der Veröffentlichung.
 // Gewählt sind bekannte Gerichte, breit über Länder, Kategorien und Einträge zum Meiden verteilt, mit vollständigen
 // Nährwerten und einem Symbolbild ohne vermerkten Mangel.

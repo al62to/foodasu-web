@@ -26,6 +26,14 @@ const ZUSATZ = new Map(JSON.parse(readFileSync('src/daten/rezepte_zusatz.json', 
 // Überschrift des Kastens am Ende dieser Rezeptseiten, ohne Punkt wie „Dieses Rezept in FoodAsu“ (Ali, 11.10.2026).
 const SPAETER = 'Dieses Rezept kommt später in die App';
 const ALTE = '/alte-rezepte/';
+// Zeiträume der Rezepte aus alten Kochbüchern in der Reihenfolge des Zeitstrahls und des Filters "Zeit".
+const ZEITRAEUME = ['1500er', '1600er und 1700er', '1800er', '1900 bis 1955'];
+// Zahlen der App (Projektleitung, 11.10.2026): Auf der Website steht keine Zahl von Rezepten oder Ländern von Hand.
+// Gelesen wird src/daten/rezepte.json selbst, nicht src/daten/app_zahlen.mjs: Die Prüfung rechnet unabhängig vom Bau.
+// Im Fließtext steht "über N": die Zahl der Rezepte der App, abgerundet auf volle 50 und immer kleiner als die echte
+// Zahl (306 ergibt 300, 376 ergibt 350, 350 ergibt 300).
+const APP = JSON.parse(readFileSync('src/daten/rezepte.json', 'utf8')).zahlen;
+const UEBER = Math.floor((APP.gesamt - 1) / 50) * 50;
 let spaeterSeiten = 0;
 
 const VOR = '(?<![\\p{L}\\p{N}_])(?:';
@@ -317,6 +325,28 @@ for (const [adresse, html] of seiten) {
     const uebersicht = alle(html, /<script type="application\/ld\+json">([\s\S]*?)<\/script>/g).map(([, roh]) => { try { return JSON.parse(roh); } catch { return {}; } }).find((block) => block['@type'] === 'ItemList');
     if (!uebersicht) melde(adresse, 'ItemList fehlt in den strukturierten Daten');
     else listeSichtbar(adresse, html, (uebersicht.itemListElement ?? []).map((punkt) => punkt.url));
+    // Kopf der Übersicht: Vorspann als reiner Text, kein Link zur Rubrik (Ali, 11.10.2026); sie steht am Ende der
+    // Seite unter "Rezepte nach Thema".
+    const kopf = html.slice(html.indexOf('<main'), html.indexOf('<form class="f-seite"'));
+    if (kopf.includes(`href="${ALTE}"`) || /<p\b[^>]*>(?:(?!<\/p>)[\s\S])*Auf der Website stehen(?:(?!<\/p>)[\s\S])*<a\b/.test(kopf)) melde(adresse, 'Kopf der Übersicht: Link im Vorspann oder zur Rubrik „Aus alten Kochbüchern“');
+    if (!(html.match(/<section class="f-themen"[\s\S]*?<\/section>/)?.[0] ?? '').includes(`href="${ALTE}"`)) melde(adresse, `„Rezepte nach Thema“ ohne Link auf ${ALTE}`);
+    // Filter: vier Gruppen in fester Reihenfolge. "Zeit" nennt die Zeiträume der Rezepte aus alten Kochbüchern mit
+    // ihrer Anzahl, gezählt aus src/daten/rezepte_zusatz.json; genau diese Karten tragen ihren Zeitraum.
+    const gruppen = alle(html, /<div class="f-gruppe[^"]*" data-gruppe="([a-z]+)"/g).map((treffer) => treffer[1]);
+    if (gruppen.join() !== 'passt,kategorie,land,zeit') melde(adresse, `Filtergruppen: passt, kategorie, land, zeit erwartet, gefunden: ${gruppen.join(', ')}`);
+    const zeit = html.match(/<div class="f-gruppe[^"]*" data-gruppe="zeit"[\s\S]*?<\/fieldset>/)?.[0] ?? '';
+    if (!zeit.includes('<legend>Zeit<span class="vh">, </span><small>aus alten Kochbüchern</small></legend>')) melde(adresse, 'Filter „Zeit“: Titel oder Unterzeile „aus alten Kochbüchern“ fehlt');
+    const jeZeitraum = new Map(ZEITRAEUME.map((zeitraum) => [zeitraum, 0]));
+    for (const { paket, original } of ZUSATZ.values()) if (paket === 'historisch') jeZeitraum.set(original.zeitraum, (jeZeitraum.get(original.zeitraum) ?? 0) + 1);
+    const erwartet = [...jeZeitraum].filter(([, zahl]) => zahl > 0).map(([zeitraum, zahl]) => `${zeitraum}: ${zahl}`).join(', ');
+    const gefunden = alle(zeit, /<input type="checkbox" name="zeit" value="[^"]+" data-wort="([^"]+)"><span>([^<]+)<\/span><span class="f-anzahl">(\d+)<\/span>/g).map(([, wort, sichtbar, zahl]) => `${wort === sichtbar ? wort : `${wort}/${sichtbar}`}: ${zahl}`).join(', ');
+    if (gefunden !== erwartet) melde(adresse, `Filter „Zeit“: erwartet „${erwartet}“, gefunden „${gefunden}“`);
+    for (const karte of alle(html, /<li class="r-karte"[^>]*\bdata-karte\b[^>]*>[\s\S]*?<\/li>/g).map((treffer) => treffer[0])) {
+      const slug = karte.match(/href="\/rezepte\/([^"/]+)\/"/)?.[1];
+      const soll = ZUSATZ.get(slug)?.original?.zeitraum?.replaceAll(' ', '-') ?? null;
+      const ist = karte.match(/^<li[^>]*\bdata-zeit="([^"]*)"/)?.[1] ?? null;
+      if (soll !== ist) melde(adresse, `Karte ${slug}: Zeitraum „${ist ?? 'keiner'}“, erwartet „${soll ?? 'keiner'}“`);
+    }
   }
 
   // Rezept- und Themenseiten: Pflichtfelder der strukturierten Daten, Bilder in drei Seitenverhältnissen,
@@ -490,6 +520,39 @@ for (const [adresse, html] of seiten) {
   const eintraege = alle(html.match(/<div class="mega-gruppen">[\s\S]*?<div class="mega-gruppe">/)?.[0] ?? '', /<p class="alle"><a href="([^"]*)"[^>]*>\s*([^<]*?)\s*<svg/g).map(([, ziel, name]) => `${entschluesselt(name)} > ${ziel}`);
   if (eintraege.length !== 2 || !/^Alle \d+ Rezepte > \/rezepte\/$/.test(eintraege[0]) || eintraege[1] !== `Aus alten Kochbüchern > ${ALTE}`) melde(adresse, `Menü „Rezepte“: „Alle … Rezepte“ und danach „Aus alten Kochbüchern“ erwartet, gefunden: ${eintraege.join(' | ') || 'nichts'}`);
 }
+// "Zum Ausprobieren" im Menü (Ali, 11.10.2026): Im HTML jeder Seite steht eine eigene feste Auswahl, am Laptop und im
+// Handy-Menü dieselbe: drei Rezepte der Website aus drei Ländern, nie das Rezept der Seite selbst, je mit Bild, das
+// erst beim Öffnen lädt, und dem alt-Text "Symbolbild: Titel". Dazu steht in der Seite die Liste aller Rezeptseiten
+// für die zufällige Auswahl im Browser (Name in der Adresse, Titel, Land), ohne fremde Adressen.
+const probeWahlen = new Set();
+for (const [adresse, html] of seiten) {
+  const bloecke = alle(html, /<div class="mega-probe[^"]*">[\s\S]*?<\/ul>/g).map(([block]) =>
+    alle(block, /<li><a href="([^"]+)"><picture><source type="image\/avif" srcset="([^"]+)"><img src="([^"]+)" alt="([^"]*)" width="360" height="270" loading="lazy" decoding="async"><\/picture><span class="mega-probe-text"><b>([\s\S]*?)<\/b><span>([^<]*)<\/span><\/span><\/a><\/li>/g)
+      .map(([, ziel, avif, webp, alt, titel, land]) => ({ ziel, avif, webp, alt: entschluesselt(alt), titel: entschluesselt(titel.replace(/<[^>]+>/g, '')), land })));
+  const [breit, mobil] = bloecke;
+  if (bloecke.length !== 2 || breit.length !== 3 || mobil.length !== 3) { melde(adresse, '„Zum Ausprobieren“: zwei Blöcke mit je drei Rezepten erwartet'); continue; }
+  if (breit.map((rezept) => rezept.ziel).join() !== mobil.map((rezept) => rezept.ziel).join()) melde(adresse, '„Zum Ausprobieren“: am Laptop und im Handy-Menü stehen verschiedene Rezepte');
+  if (new Set(breit.map((rezept) => rezept.ziel)).size !== 3) melde(adresse, '„Zum Ausprobieren“: ein Rezept steht doppelt da');
+  if (new Set(breit.map((rezept) => rezept.land)).size !== 3) melde(adresse, `„Zum Ausprobieren“: nicht drei verschiedene Länder (${breit.map((rezept) => rezept.land).join(', ')})`);
+  if (breit.some((rezept) => rezept.ziel === adresse)) melde(adresse, '„Zum Ausprobieren“ zeigt das Rezept der Seite selbst');
+  for (const rezept of breit) {
+    const slug = rezept.ziel.match(/^\/rezepte\/([^/]+)\/$/)?.[1];
+    if (!slug || !IST_REZEPT.test(seiten.get(rezept.ziel) ?? '')) melde(adresse, `„Zum Ausprobieren“: ${rezept.ziel} ist keine Rezeptseite`);
+    if (rezept.avif !== `/bilder/rezepte/${slug}-karte-360.avif` || rezept.webp !== `/bilder/rezepte/${slug}-karte-360.webp` || !vorhanden.has(rezept.avif) || !vorhanden.has(rezept.webp)) melde(adresse, `„Zum Ausprobieren“: Bild zu ${rezept.ziel} fehlt oder gehört zu einem anderen Rezept`);
+    if (rezept.alt !== `Symbolbild: ${rezept.titel}` || !rezept.land) melde(adresse, `„Zum Ausprobieren“: alt-Text oder Land fehlt bei ${rezept.ziel}`);
+  }
+  probeWahlen.add(breit.map((rezept) => rezept.ziel).join());
+  const roh = html.match(/<script type="application\/json" data-probe-liste>([\s\S]*?)<\/script>/)?.[1];
+  let liste = null;
+  try { liste = JSON.parse(roh); } catch { /* unten gemeldet */ }
+  if (!liste || liste.alt !== 'Symbolbild' || !Array.isArray(liste.rezepte) || !Array.isArray(liste.laender)) { melde(adresse, '„Zum Ausprobieren“: Liste für den Browser fehlt oder ist nicht lesbar'); continue; }
+  if (liste.rezepte.length !== rezeptSeiten || new Set(liste.rezepte.map(([slug]) => slug)).size !== rezeptSeiten) melde(adresse, `„Zum Ausprobieren“: Die Liste nennt ${liste.rezepte.length} Rezepte, die Website hat ${rezeptSeiten} Rezeptseiten`);
+  for (const [slug, titel, land] of liste.rezepte) {
+    if (!IST_REZEPT.test(seiten.get(`/rezepte/${slug}/`) ?? '') || !vorhanden.has(`/bilder/rezepte/${slug}-karte-360.avif`) || !vorhanden.has(`/bilder/rezepte/${slug}-karte-360.webp`) || !titel || !liste.laender[land]) melde(adresse, `„Zum Ausprobieren“: Eintrag ${slug} der Liste ohne Seite, Bild, Titel oder Land`);
+  }
+  if (/https?:|\/\//.test(roh)) melde(adresse, '„Zum Ausprobieren“: Die Liste nennt eine Adresse außerhalb der Website');
+}
+if (probeWahlen.size <= seiten.size / 2) melde('/', `„Zum Ausprobieren“: nur ${probeWahlen.size} verschiedene Auswahlen auf ${seiten.size} Seiten`);
 if (spaeterSeiten !== ZUSATZ.size) melde('/rezepte/', `der Satz „${SPAETER}“ ist auf ${spaeterSeiten} von ${ZUSATZ.size} Seiten geprüft`);
 const alteSeite = seiten.get(ALTE);
 const alteSlugs = [...ZUSATZ.values()].filter((rezept) => rezept.original).map((rezept) => rezept.slug);
@@ -782,7 +845,7 @@ if (OHNE_INDEX.has('/daten-und-quellen/')) melde('/daten-und-quellen/', 'steht a
 // und WebSite. Die Einkaufswoche behält den Anker #schritte und verlinkt die Seite
 // "Zu Hause schreiben, im Laden abhaken"; beschrieben ist nur, was 0.14.3 kann.
 const KERNSATZ = 'FoodAsu verbindet Lebensmittel-Scanner und Einkaufsliste in einer App für den ganzen Haushalt.';
-const BESCHREIBUNG = `${KERNSATZ} Beim Scannen zeigt die App für jede Person einzeln, ob laut den Angaben zum Produkt etwas drin ist, das sie meidet. Dazu kommen über 300 Rezepte. Ohne Konto, ohne Werbung.`;
+const BESCHREIBUNG = `${KERNSATZ} Beim Scannen zeigt die App für jede Person einzeln, ob laut den Angaben zum Produkt etwas drin ist, das sie meidet. Dazu kommen über ${UEBER} Rezepte. Ohne Konto, ohne Werbung.`;
 for (const adresse of ['/', '/ueber-foodasu/']) {
   if (!seiten.has(adresse)) { melde(adresse, 'Seite fehlt'); continue; }
   if (!textVon(adresse).includes(BESCHREIBUNG)) melde(adresse, 'Satz zur Beschreibung fehlt oder weicht ab');
@@ -1070,12 +1133,12 @@ for (const [adresse, html] of seiten) {
 
 // Zahlen der Website, getrennt von den Zahlen der App (AP-25 Teil F Nr. 2 und 3). Gezählt wird am Bau: jede Seite mit
 // einem Rezept in den strukturierten Daten, davon die Rezepte, die es in der App noch nicht gibt (aus alten Kochbüchern
-// und neue). Jede Stelle, die Rezepte der Website zählt, nennt genau diese Zahlen. Was die App hat (über 300 Rezepte),
-// bleibt für sich; kein Satz schreibt die Rezepte aus alten Kochbüchern oder die neuen der App zu.
+// und neue). Jede Stelle, die Rezepte der Website zählt, nennt genau diese Zahlen. Was die App hat ("über N" Rezepte,
+// weiter unten nachgerechnet), bleibt für sich; kein Satz schreibt die Rezepte aus alten Kochbüchern oder die neuen der App zu.
 const websiteZahlen = { gesamt: rezeptSeiten, alt: alteSlugs.length, neu: ZUSATZ.size - alteSlugs.length, app: rezeptSeiten - ZUSATZ.size };
 const ZAHL_SAETZE = [
   ['/rezepte/', `Auf der Website stehen ${websiteZahlen.gesamt} Rezepte mit Hinweisen zu den Zutaten. ${websiteZahlen.app} davon sind aus der App, ${websiteZahlen.alt} aus alten Kochbüchern und ${websiteZahlen.neu} neue, die später in die App kommen.`],
-  ['/', `Über 300 Rezepte gibt es in der App, ${websiteZahlen.app} davon stehen hier. Dazu kommen ${websiteZahlen.alt} Rezepte aus alten Kochbüchern und ${websiteZahlen.neu} neue, die später in die App kommen.`],
+  ['/', `Über ${UEBER} Rezepte gibt es in der App, ${websiteZahlen.app} davon stehen hier. Dazu kommen ${websiteZahlen.alt} Rezepte aus alten Kochbüchern und ${websiteZahlen.neu} neue, die später in die App kommen.`],
   ['/', `${websiteZahlen.gesamt} Rezepte auf der Website ansehen`],
   [ALTE, `${websiteZahlen.alt} historische Rezepte aus Kochbüchern`],
   ['/fragen/', `Das sind ${websiteZahlen.alt} Rezepte aus gedruckten Kochbüchern`],
@@ -1100,9 +1163,68 @@ for (const [adresse, html] of seiten) {
 // nicht der Verweis auf dieses Rezept in der App.
 for (const slug of ZUSATZ.keys()) {
   const text = fliesstext(`/rezepte/${slug}/`);
-  if (!text.includes('In der App gibt es schon über 300 andere Rezepte.')) melde(`/rezepte/${slug}/`, 'Kasten am Ende: der Satz zu den anderen Rezepten der App fehlt');
-  for (const wendung of ['Dieses Rezept in FoodAsu', 'Dort findest du über 300 Rezepte.']) if (text.includes(wendung)) melde(`/rezepte/${slug}/`, `schreibt das Rezept der App zu: „${wendung}“`);
+  if (!text.includes(`In der App gibt es schon über ${UEBER} andere Rezepte.`)) melde(`/rezepte/${slug}/`, 'Kasten am Ende: der Satz zu den anderen Rezepten der App fehlt');
+  for (const wendung of ['Dieses Rezept in FoodAsu', `Dort findest du über ${UEBER} Rezepte.`]) if (text.includes(wendung)) melde(`/rezepte/${slug}/`, `schreibt das Rezept der App zu: „${wendung}“`);
 }
+// Zahlen der App (Projektleitung, 11.10.2026). Im Bau: Jedes "über N" bei Rezepten nennt die abgerundete Zahl aus den
+// Daten, der Zahlenblock der Startseite die genauen Zahlen der Rezepte und der Länder, "aus N Ländern" nach den
+// Rezepten der App die Zahl der Länder. Gelesen wird die ganze Datei, also auch Beschreibungen im Kopf und
+// strukturierte Daten.
+if (!Number.isInteger(APP.gesamt) || !Number.isInteger(APP.laender) || UEBER < 50) melde('src/daten/rezepte.json', 'Zahlen der App fehlen oder sind zu klein');
+let ueberStellen = 0;
+for (const [name, roh] of [...seiten, ['llms.txt', llms]]) {
+  const ganz = entschluesselt(roh).replace(/\s+/g, ' ');
+  for (const [stelle, zahl] of alle(ganz, /[Üü]ber (\d+)(?= (?:andere )?Rezepte?n?(?![\p{L}])|\.(?=\s|<|"|$))/gu).map((fund) => [fund[0], Number(fund[1])])) {
+    ueberStellen++;
+    if (zahl !== UEBER) melde(name, `Zahlen der App: „${stelle}“ steht da, aus den Daten ergibt sich „über ${UEBER}“ (${APP.gesamt} Rezepte)`);
+  }
+  for (const [stelle, zahl] of alle(ganz, /über \d+ Rezepten? aus (\d+) Ländern/g).map((fund) => [fund[0], Number(fund[1])])) {
+    if (zahl !== APP.laender) melde(name, `Zahlen der App: „${stelle}“, in den Daten stehen ${APP.laender} Länder`);
+  }
+}
+if (ueberStellen === 0) melde('/', 'Zahlen der App: keine Stelle mit „über N Rezepte“ gefunden (die Prüfung liest nichts)');
+{
+  const block = (seiten.get('/') ?? '').match(/<ul class="zaehler">[\s\S]*?<\/ul>/)?.[0] ?? '';
+  const zaehler = new Map(alle(block, /<li><span class="vh">(\d+)<\/span><b[^>]*data-zahl="(\d+)"[^>]*>(\d+)<\/b><span class="wortlaut">([^<]+)<\/span><\/li>/g).map(([, a, b, c, wort]) => [wort, a === b && b === c ? Number(a) : NaN]));
+  if (zaehler.get('Rezepte in der App') !== APP.gesamt) melde('/', `Zahlenblock: „Rezepte in der App“ nennt ${zaehler.get('Rezepte in der App')}, in den Daten stehen ${APP.gesamt}`);
+  if (zaehler.get('Länder') !== APP.laender) melde('/', `Zahlenblock: „Länder“ nennt ${zaehler.get('Länder')}, in den Daten stehen ${APP.laender}`);
+}
+// Im Quelltext: keine Zahl von Rezepten oder Ländern von Hand, weder für die Website noch für die App. Gelesen werden
+// die Texte unter src/ und die festen Seiten unter public/, ohne Kommentare und ohne die zwei Dateien mit den Rezepten
+// selbst. Ausnahmen: die Einzahl "1 Rezept" in den Bausteinen, die eine gezählte Zahl in Worte fassen, und zwei
+// Beschreibungen von Fotos der App, die sagen, was auf dem Bild steht (VON_HAND_ERLAUBT; mit neuen Fotos nachziehen).
+const VON_HAND_ERLAUBT = [
+  ['src/daten/sogehts_fotos.json', 'Filter „Österreich“ gewählt: 37 Rezepte'],
+  ['src/daten/sogehts_fotos.json', '„3 Rezepte ausgeblendet'],
+];
+const ZAHLWORT = 'zwei|drei|vier|fünf|sechs|sieben|acht|neun|zehn|elf|zwölf|zwanzig|dreißig|vierzig|fünfzig|sechzig|siebzig|achtzig|neunzig|hundert|zweihundert|dreihundert|vierhundert|fünfhundert';
+const VON_HAND = new RegExp(`(?<![\\p{L}\\p{N}.,])(?:\\d{1,4}|(?:${ZAHLWORT}))\\s+(?:[\\p{L}-]+\\s+){0,3}(?:Rezepte?n?|Ländern?)(?![\\p{L}])`, 'giu');
+const quelltexte = [];
+const sammle = (ordner, endungen) => {
+  for (const name of readdirSync(ordner)) {
+    const pfad = join(ordner, name);
+    if (statSync(pfad).isDirectory()) sammle(pfad, endungen);
+    else if (endungen.test(name) && !/^rezepte(_zusatz)?\.json$/.test(name)) quelltexte.push(pfad.split(sep).join('/'));
+  }
+};
+sammle('src', /\.(mjs|js|ts|astro|json|md|txt)$/);
+sammle('public', /\.(html|txt|json|webmanifest|xml)$/);
+let vonHandGelesen = 0;
+for (const datei of quelltexte) {
+  const ohneKommentare = readFileSync(datei, 'utf8')
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/<!--[\s\S]*?-->/g, ' ')
+    .replace(/(^|\s)\/\/[^\n]*/g, '$1');
+  vonHandGelesen++;
+  for (const fund of alle(ohneKommentare, VON_HAND)) {
+    const [stelle] = fund;
+    if (/^1\s+Rezept$/.test(stelle)) continue;
+    const umfeld = ohneKommentare.slice(Math.max(0, fund.index - 60), fund.index + stelle.length + 40);
+    if (VON_HAND_ERLAUBT.some(([wo, was]) => wo === datei && umfeld.includes(was))) continue;
+    melde(datei, `Zahl von Hand: „${stelle.replace(/\s+/g, ' ')}“ (Zahlen von Rezepten und Ländern kommen aus den Daten)`);
+  }
+}
+
 // llms.txt nennt die Rubrik in einem eigenen Abschnitt, mit der Zahl aus den Daten.
 if (!llms.includes('## Aus alten Kochbüchern\n') || !llms.includes(`(${websiteZahlen.alt} Rezepte, `)) melde('llms.txt', 'Abschnitt „Aus alten Kochbüchern“ fehlt oder nennt eine andere Zahl');
 
@@ -1136,6 +1258,8 @@ if (metaZiel) {
 
 console.log(`Geprüft: ${seiten.size} Seiten (${[...seiten.keys()].join(', ')}), ${dateien.length} Dateien`);
 console.log(`Knopf „${TEILEN_NAME}“: auf ${teilenKnoepfe} von ${rezeptSeiten} Rezeptseiten, auf keiner anderen Seite`);
+console.log(`„Zum Ausprobieren“ im Menü: ${probeWahlen.size} verschiedene Auswahlen im HTML von ${seiten.size} Seiten, je drei Rezepte aus drei Ländern, nie die Seite selbst`);
+console.log(`Zahlen der App: ${APP.gesamt} Rezepte und ${APP.laender} Länder in den Daten, im Text „über ${UEBER}“ an ${ueberStellen} Stellen; ${vonHandGelesen} Quelltexte ohne Zahl von Hand`);
 console.log(`Themenseiten: ${themenSeiten.imIndex.length} im Index (ab ${INDEX_AB} Rezepten, mit Einleitungstext), ${themenSeiten.ohneIndex.length} mit noindex (${themenSeiten.ohneIndex.join(', ')})`);
 console.log(`Im Index: ${seiten.size - OHNE_INDEX.size} von ${seiten.size} Seiten`);
 console.log(`Farbprüfung: ${stilDateien.length} Stildateien (feste Farbwerte nur in basis.css und geraet.css), ${farbStellen} Stellen im HTML`);

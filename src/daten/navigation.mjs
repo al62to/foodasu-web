@@ -1,8 +1,9 @@
 // Hauptnavigation und Mega-Menü unter "Rezepte" (Entwurf A der Projektleitung, AP-17 Teil E2). Länder und Kategorien
 // heißen wie in der App (strings_rezept_teile.xml). Jeder Eintrag zeigt auf seine Themenseite
 // (src/daten/rezeptseiten.mjs).
-import { rezepte, alteRezepte, themenMitSeite, ziel, LAND, rezeptAdresse } from './rezeptseiten.mjs';
+import { rezepte, alteRezepte, themenMitSeite, ziel } from './rezeptseiten.mjs';
 import { alteSeite } from './alte_rezepte.mjs';
+import { probeFuer, probeDaten, SYMBOLBILD } from './probieren.mjs';
 
 const UEBERSICHT = '/rezepte/';
 
@@ -35,14 +36,6 @@ const kategorien = [
 // Nur Einträge mit eigener Themenseite (OHNE_MIT_SEITE in rezeptseiten.mjs).
 const ohne = ['Nüsse', 'Erdnüsse', 'Gluten', 'Milch', 'Eier', 'Soja', 'Sesam', 'Fisch', 'Schweinefleisch', 'Alkohol', 'Gelatine'];
 
-// Drei Rezepte mit Bild rechts im Menü, aus drei Ländern (Auswahl der Entwicklung nach dem Entwurf).
-const PROBIEREN = ['wiener-schnitzel', 'pizza-margherita', 'bibimbap'];
-const probieren = PROBIEREN.flatMap((slug) => {
-  const rezept = rezepte.find((eintrag) => eintrag.slug === slug);
-  const adresse = rezept && ziel(rezeptAdresse(rezept));
-  return adresse ? [{ slug, titel: rezept.kurztitel, land: LAND[rezept.laender[0]], ziel: adresse }] : [];
-});
-
 export const mega = {
   titel: 'Rezepte finden',
   alle: { titel: `Alle ${rezepte.length} Rezepte`, ziel: UEBERSICHT },
@@ -56,5 +49,7 @@ export const mega = {
     { kennung: 'ohne', titel: 'Ohne …', eintraege: eintraege(ohne, 'Rezepte ohne ', 'ohne') },
     { kennung: 'passt', titel: 'Vegetarisch und vegan', eintraege: eintraege(['Vegetarisch', 'Vegan'], 'Rezepte, passt für: ', 'passt') },
   ].filter((gruppe) => gruppe.eintraege.length > 0),
-  probieren: { titel: 'Zum Ausprobieren', symbolbild: 'Symbolbild', rezepte: probieren },
+  // Drei Rezepte mit Bild rechts im Menü, aus drei Ländern, auf jeder Seite andere und nie das der Seite selbst
+  // (src/daten/probieren.mjs): "fuer" gibt die feste Auswahl im HTML einer Seite, "daten" die Liste für den Browser.
+  probieren: { titel: 'Zum Ausprobieren', symbolbild: SYMBOLBILD, fuer: probeFuer, daten: probeDaten },
 };

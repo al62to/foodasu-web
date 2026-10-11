@@ -3,6 +3,7 @@
 // Texten der App (strings_rezept_teile.xml, strings_rezept_seite.xml, strings_urteil.xml, strings_karte.xml).
 import daten from './rezepte.json' with { type: 'json' };
 import zusatz from './rezepte_zusatz.json' with { type: 'json' };
+import { appZahlen } from './app_zahlen.mjs';
 import { auswahl, muster, HOECHSTENS } from './auswahl.mjs';
 import { THEMEN_TEXTE } from './themen_texte.mjs';
 
@@ -223,7 +224,7 @@ export const texte = {
   app: {
     titel: 'Dieses Rezept in FoodAsu',
     text: 'In der App rechnest du die Mengen auf deine Portionen um und setzt die fehlenden Zutaten auf deine Einkaufsliste. Die Hinweise richten sich nach deinem Haushalt.',
-    mehr: 'Dort findest du über 300 Rezepte.',
+    mehr: `Dort findest du über ${appZahlen.ueber} Rezepte.`,
     soGehts: "So geht's: Anleitung zu FoodAsu",
   },
   // Knopf "Rezept teilen" im Kopf der Rezeptseite (AP-18 Nacharbeiten Teil J): Am Handy öffnet er das Teilen-Menü des
@@ -239,7 +240,7 @@ export const texte = {
   // Überschrift steht sie ohne Punkt (Ali, 11.10.2026).
   spaeter: {
     titel: 'Dieses Rezept kommt später in die App',
-    appText: 'In der App gibt es schon über 300 andere Rezepte. Dort rechnest du die Mengen auf deine Portionen um und setzt die fehlenden Zutaten auf deine Einkaufsliste.',
+    appText: `In der App gibt es schon über ${appZahlen.ueber} andere Rezepte. Dort rechnest du die Mengen auf deine Portionen um und setzt die fehlenden Zutaten auf deine Einkaufsliste.`,
   },
   // Block "Aus dem Original" auf den Seiten der Rezepte aus alten Kochbüchern (AP-25 Teil C Nr. 2).
   original: {
@@ -265,15 +266,16 @@ export const texte = {
     titel: 'Rezepte',
     seitentitel: 'Rezepte mit Hinweisen zu den Zutaten',
     // Zahlen der Website, getrennt von den Zahlen der App (AP-25 Teil F Nr. 3): Kein Satz schreibt die Rezepte aus
-    // alten Kochbüchern oder die neuen Rezepte der App zu. "zahlen" ist websiteZahlen (unten).
-    text: (zahlen) => `Auf der Website stehen ${zahlen.gesamt} Rezepte mit Hinweisen zu den Zutaten. ${zahlen.app} davon sind aus der App, ${zahlen.alt} aus alten Kochbüchern und ${zahlen.neu} neue, die später in die App kommen. In der App sind es über 300.`,
-    // Hinweis auf die Rubrik "Aus alten Kochbüchern" im Kopf der Übersicht (AP-25).
-    rubrik: (zahl, von, bis) => `Aus alten Kochbüchern: ${zahl} Rezepte von ${von} bis ${bis}`,
+    // alten Kochbüchern oder die neuen Rezepte der App zu. "zahlen" ist websiteZahlen (unten); die Zahl der App
+    // steht als "über N" aus src/daten/app_zahlen.mjs da.
+    text: (zahlen) => `Auf der Website stehen ${zahlen.gesamt} Rezepte mit Hinweisen zu den Zutaten. ${zahlen.app} davon sind aus der App, ${zahlen.alt} aus alten Kochbüchern und ${zahlen.neu} neue, die später in die App kommen. In der App sind es über ${appZahlen.ueber}.`,
     grundlage: 'Grundlage ist die Zutatenliste des Rezepts. Was in einem Produkt aus dem Laden steckt, steht auf der Packung. Maßgeblich ist die Verpackung.',
     suche: 'Rezept oder Zutat suchen',
-    gruppen: { kategorie: 'Kategorie', land: 'Land', passt: 'Passt für' },
+    gruppen: { kategorie: 'Kategorie', land: 'Land', passt: 'Passt für', zeit: 'Zeit' },
     // Zusatz in der Liste "Passt für": Die Auswahl richtet sich nach der Zutatenliste des Rezepts.
     passtZusatz: 'laut Zutatenliste',
+    // Zusatz in der Liste "Zeit": Einen Zeitraum haben nur die Rezepte aus alten Kochbüchern.
+    zeitZusatz: 'aus alten Kochbüchern',
     ohne: (wort) => `Ohne ${wort}`,
     weitere: { land: 'Weitere Länder anzeigen', passt: 'Weitere anzeigen' },
     zuruecksetzen: 'Zurücksetzen',
@@ -290,11 +292,11 @@ export const texte = {
     // Am Ende der Seite stehen seit AP-23 alle Themenseiten als Chips in vier Zeilen (AP-23 Teil C Nr. 3). Die Namen
     // der Zeilen sind die der Gruppen im Menü und im Filter.
     themen: 'Rezepte nach Thema',
-    themenZeilen: { ohne: 'Ohne …', passt: 'Passt für', land: 'Nach Land', kategorie: 'Nach Kategorie' },
+    themenZeilen: { ohne: 'Ohne …', passt: 'Passt für', land: 'Nach Land', kategorie: 'Nach Kategorie', zeit: 'Nach Zeit' },
   },
   thema: {
     grundlage: 'Grundlage ist die Zutatenliste des Rezepts. Was in einem Produkt aus dem Laden steckt, steht auf der Packung. Maßgeblich ist die Verpackung.',
-    inDerApp: (zahl) => `In der App FoodAsu gibt es über 300 Rezepte, davon ${zahl} zu diesem Thema.`,
+    inDerApp: (zahl) => `In der App FoodAsu gibt es über ${appZahlen.ueber} Rezepte, davon ${zahl} zu diesem Thema.`,
     jeNachTitel: 'Je nach Produkt',
     verwandt: 'Verwandte Themen',
   },
@@ -495,7 +497,8 @@ export function aehnliche(rezept) {
 }
 
 // Angaben einer Karte für Suche und Filter der Übersicht: Kategorie, Länder, die Einträge ohne jeden Hinweis (nur die
-// mit eigener Themenseite, dazu vegetarisch und vegan) und der Suchtext aus Titel und Zutaten.
+// mit eigener Themenseite, dazu vegetarisch und vegan), bei Rezepten aus alten Kochbüchern der Zeitraum (als
+// Sprungmarke, ohne Leerzeichen) und der Suchtext aus Titel und Zutaten.
 // Reihenfolge in der Liste "Passt für": zuerst die am häufigsten gesuchten.
 export const FILTER_PASST = [
   'en:vegetarian', 'en:vegan', 'en:nuts', 'en:gluten', 'en:milk', 'en:eggs',
@@ -509,6 +512,7 @@ export function filterAngaben(rezept) {
     kategorie: rezept.kategorie,
     land: rezept.laender.join(' '),
     passt: FILTER_PASST.filter((schluessel) => !(schluessel in rezept.hinweise)).join(' '),
+    zeit: rezept.original?.zeitraum?.replaceAll(' ', '-') ?? '',
     text: worte.join(' ').toLocaleLowerCase('de'),
   };
 }

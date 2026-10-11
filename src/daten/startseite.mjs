@@ -4,6 +4,7 @@
 // Titel seit dem Nachtrag zu AP-23 (Änderung Ali vom 11.10.2026): Scanner und Einkaufsliste zusammen. Die längere
 // Fassung "FoodAsu: Lebensmittel-Scanner und Einkaufsliste für den Haushalt" ist in der Vorschau der Suche 595 Pixel
 // breit (Grenze 580) und hat 64 Zeichen (Grenze 60); deshalb gilt die kurze.
+import { appZahlen } from './app_zahlen.mjs';
 import { lizenzen } from './lizenzen.mjs';
 
 export const kopfdaten = {
@@ -67,7 +68,7 @@ export const schritte = {
   liste: [
     {
       titel: 'Rezept aussuchen',
-      text: 'Such dir in der App aus über 300 Rezepten aus, was es geben soll. Die fehlenden Zutaten setzt du aus dem Rezept auf eine Einkaufsliste.',
+      text: `Such dir in der App aus über ${appZahlen.ueber} Rezepten aus, was es geben soll. Die fehlenden Zutaten setzt du aus dem Rezept auf eine Einkaufsliste.`,
     },
     {
       titel: 'Zu Hause schreiben',
@@ -153,7 +154,7 @@ export const funktionen = {
     {
       kennung: 'rezepte',
       symbol: 'buch',
-      titel: 'In der App: über 300 Rezepte aus 25 Ländern',
+      titel: `In der App: über ${appZahlen.ueber} Rezepte aus ${appZahlen.laender} Ländern`,
       text: 'Jedes mit einem Symbolbild. Bei den Zutaten steht, wen sie betreffen.',
     },
     {
@@ -231,9 +232,10 @@ export const zahlen = {
     'Wiener Schnitzel', 'Pizza Margherita', 'Ratatouille', 'Baklava', 'Bibimbap', 'Massaman-Curry',
     'Mercimek çorbası',
   ],
+  // Die ersten zwei Zahlen sind die der App aus den Daten (src/daten/app_zahlen.mjs), nie von Hand.
   zaehler: [
-    { zahl: 306, wort: 'Rezepte in der App' },
-    { zahl: 25, wort: 'Länder' },
+    { zahl: appZahlen.rezepte, wort: 'Rezepte in der App' },
+    { zahl: appZahlen.laender, wort: 'Länder' },
     { zahl: 20, wort: 'Einträge zum Meiden' },
     { zahl: 0, wort: 'Werbung' },
   ],
@@ -250,11 +252,11 @@ export const vorschau = {
     { titel: 'Baklava', datei: 'baklava' },
   ],
   kennzeichnung: 'Symbolbild',
-  // Auf der Website steht nur eine Auswahl aus der App, alle über 300 gibt es nur in der App (Ali, 09.10.2026). Seit
+  // Auf der Website steht nur eine Auswahl aus der App, alle anderen gibt es nur in der App (Ali, 09.10.2026). Seit
   // AP-25 kommen Rezepte dazu, die es in der App noch nicht gibt; die Zahlen kommen aus den Daten
   // (websiteZahlen in src/daten/rezeptseiten.mjs).
-  // Seit AP-25 stehen dazu 25 Rezepte hier, die später in die App kommen (20 aus alten Kochbüchern, 5 weitere).
-  hinweis: (zahlen) => `Über 300 Rezepte gibt es in der App, ${zahlen.app} davon stehen hier. Dazu kommen ${zahlen.alt} Rezepte aus alten Kochbüchern und ${zahlen.neu} neue, die später in die App kommen.`,
+  // Seit AP-25 stehen dazu Rezepte hier, die später in die App kommen (aus alten Kochbüchern und weitere).
+  hinweis: (zahlen) => `Über ${appZahlen.ueber} Rezepte gibt es in der App, ${zahlen.app} davon stehen hier. Dazu kommen ${zahlen.alt} Rezepte aus alten Kochbüchern und ${zahlen.neu} neue, die später in die App kommen.`,
   link: (zahlen) => `${zahlen.gesamt} Rezepte auf der Website ansehen`,
   // Kleine Karte, die zur Rubrik "Aus alten Kochbüchern" führt (AP-25 Teil C Nr. 5). Die Zahlen kommen aus den Daten.
   alt: {

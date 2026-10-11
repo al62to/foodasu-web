@@ -1,6 +1,6 @@
 ---
 // Übersicht "Rezepte" (AP-17 Teil E3; Aufbau seit AP-23 nach Entwurf "Filter in der Seitenleiste"): Ab 64rem Breite
-// stehen die drei Filtergruppen (Passt für, Kategorie, Land) ständig offen in einer weißen Leiste links, die beim
+// stehen die vier Filtergruppen (Passt für, Kategorie, Land, Zeit) ständig offen in einer weißen Leiste links, die beim
 // Scrollen mitfährt; rechts Suchfeld, Trefferzahl, die gewählten Filter als Chips und die Karten in drei Spalten. Am
 // Handy und Tablet öffnet der Knopf "Filter" wie bisher ein Blatt von unten. Darunter alle Themenseiten als Chips.
 // Gefiltert wird im Browser über Angaben an den Karten: keine neuen Adressen, nichts wird gespeichert oder geladen.
@@ -10,7 +10,7 @@ import Basis from '../../layouts/Basis.astro';
 import Seitenkopf from '../../components/Seitenkopf.astro';
 import Rezeptkarte from '../../components/Rezeptkarte.astro';
 import '../../styles/rezepte.css';
-import { alteSeite, jahreVonBis } from '../../daten/alte_rezepte.mjs';
+import { alteSeite, zeitraeume } from '../../daten/alte_rezepte.mjs';
 import { seite } from '../../daten/seite.mjs';
 import {
   rezepte, alteRezepte, texte, KATEGORIE, LAND, LAND_REIHENFOLGE, EINTRAEGE, FILTER_PASST, FILTER_ZUERST,
@@ -33,13 +33,21 @@ const passt = FILTER_PASST
     const eintrag = eintragVon.get(schluessel);
     return { wert: schluessel, wort: eintrag.adresse ? t.ohne(eintrag.ohne) : eintrag.name, zahl: anzahl((a) => a.passt.split(' ').includes(schluessel)) };
   });
-// In der Leiste am Laptop zeigt "Land" zuerst so viele Länder; "Passt für" und "Kategorie" stehen dort ganz da.
+// "Zeit": die Zeiträume der Rezepte aus alten Kochbüchern. Der Wert an der Karte ist die Sprungmarke des Zeitraums;
+// die Anzahl muss die des Zeitstrahls auf der Sammelseite sein.
+const zeiten = zeitraeume.map((zeitraum) => ({ wert: zeitraum.anker, wort: zeitraum.kennung, zahl: anzahl((a) => a.zeit === zeitraum.anker) }));
+{
+  const falsch = zeitraeume.filter((zeitraum, nummer) => zeiten[nummer].zahl !== zeitraum.rezepte.length);
+  if (falsch.length) throw new Error(`Filter "Zeit": Anzahl weicht vom Zeitstrahl ab: ${falsch.map((zeitraum) => zeitraum.kennung).join(', ')}`);
+}
+// In der Leiste am Laptop zeigt "Land" zuerst so viele Länder; die anderen Gruppen stehen dort ganz da.
 const LEISTE_ZUERST = 8;
 const gruppen = [
   { kennung: 'passt', titel: t.gruppen.passt, zusatz: t.passtZusatz, wahl: passt, mehr: t.weitere.passt, breitGanz: true },
   { kennung: 'kategorie', titel: t.gruppen.kategorie, wahl: kategorien },
   { kennung: 'land', titel: t.gruppen.land, wahl: laender, mehr: t.weitere.land },
-].map((gruppe) => {
+  { kennung: 'zeit', titel: t.gruppen.zeit, zusatz: t.zeitZusatz, wahl: zeiten },
+].filter((gruppe) => gruppe.wahl.length > 0).map((gruppe) => {
   const wahl = gruppe.wahl.filter((eintrag) => eintrag.zahl > 0);
   // Lange Listen zeigen zuerst nur den Anfang; der Rest folgt hinter "Weitere ... anzeigen". "spaeter" gilt im Blatt
   // am Handy und Tablet, "spaeterBreit" in der Leiste am Laptop.
@@ -52,7 +60,7 @@ const gruppen = [
     geteiltBreit: vornBreit < wahl.length,
   };
 });
-// Alle Themenseiten als Chips in vier Zeilen; der Name eines Chips ist der des Eintrags im Menü.
+// Alle Themenseiten als Chips, eine Zeile je Gruppe; der Name eines Chips ist der des Eintrags im Menü.
 const themenZeilen = ['ohne', 'passt', 'land', 'kategorie'].map((art) => ({
   art,
   titel: t.themenZeilen[art],
@@ -62,8 +70,9 @@ const themenZeilen = ['ohne', 'passt', 'land', 'kategorie'].map((art) => ({
     .map((thema) => ({ name: art === 'ohne' ? t.ohne(thema.menue) : thema.menue, ziel: thema.adresse, titel: thema.titel }))
     .sort((a, b) => a.name.localeCompare(b.name, 'de')),
 })).filter((zeile) => zeile.themen.length > 0);
+// Dazu die Rubrik "Aus alten Kochbüchern" als eigene Zeile: keine Themenseite, sondern die Sammelseite.
+if (alteRezepte.length > 0) themenZeilen.push({ art: 'zeit', titel: t.themenZeilen.zeit, zusatz: null, themen: [{ name: alteSeite.name, ziel: alteSeite.adresse, titel: alteSeite.name }] });
 const text = t.text(websiteZahlen);
-const [altVon, altBis] = alteRezepte.length ? jahreVonBis() : [];
 const daten = [{
   '@context': 'https://schema.org',
   '@type': 'ItemList',
@@ -84,7 +93,6 @@ const daten = [{
     ]}
   >
     <p class="klein">{t.grundlage}</p>
-    {alteRezepte.length > 0 && <p class="r-rubrik"><a class="chip" href={alteSeite.adresse}><i aria-hidden="true"></i>{t.rubrik(alteRezepte.length, altVon, altBis)}</a></p>}
   </Seitenkopf>
 
   <div class="s-inhalt innen">
@@ -183,8 +191,8 @@ const daten = [{
 
 <script>
   // Suche und Filter ohne Server: Jede Karte trägt ihre Angaben als Attribute. Nichts wird gespeichert, nichts geladen.
-  // Verknüpfung: innerhalb von Kategorie und innerhalb von Land "oder", innerhalb von "Passt für" "und" (ohne Nüsse
-  // und vegan heißt beides), zwischen den Gruppen "und".
+  // Verknüpfung: innerhalb von Kategorie, von Land und von Zeit "oder", innerhalb von "Passt für" "und" (ohne Nüsse
+  // und vegan heißt beides), zwischen den Gruppen "und". Einen Zeitraum tragen nur die Rezepte aus alten Kochbüchern.
   const form = document.querySelector('[data-filter]');
   if (form) {
     const karten = [...document.querySelectorAll('[data-karte]')];
@@ -216,7 +224,7 @@ const daten = [{
         const passt =
           Object.entries(wahl).every(([art, werte]) => {
             if (werte.length === 0) return true;
-            const hat = karte.dataset[art].split(' ');
+            const hat = (karte.dataset[art] ?? '').split(' ');
             return UND.has(art) ? werte.every((wert) => hat.includes(wert)) : werte.some((wert) => hat.includes(wert));
           }) && worte.every((wort) => karte.dataset.text.includes(wort));
         karte.hidden = !passt;

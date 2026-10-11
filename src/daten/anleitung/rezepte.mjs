@@ -1,6 +1,7 @@
 // "So geht's", Kapitel "Rezepte": Bereich "Rezepte" der App (Stand 0.14.3). Ein ganzes Rezept mit Zutaten oder
 // Schritten zeigen die Bilder nur von "Pizza Margherita", einem der Rezepte aus der App, die auch auf dieser
 // Website stehen.
+import { appZahlen } from '../app_zahlen.mjs';
 import { foto, link } from './hilfen.mjs';
 
 export default {
@@ -17,7 +18,7 @@ export default {
       anker: 'rezepte-finden',
       symbol: 'topf',
       funktionen: ['REZEPT-01'],
-      nutzen: 'Du blätterst durch über 300 Rezepte aus 25 Ländern. Die Rezepte liegen in der App; Internet brauchst du dafür nicht.',
+      nutzen: `Du blätterst durch über ${appZahlen.ueber} Rezepte aus ${appZahlen.laender} Ländern. Die Rezepte liegen in der App; Internet brauchst du dafür nicht.`,
       wo: 'Reiter Rezepte > Karte antippen',
       fotos: [foto('rezepte_ansehen_01', 'Der Reiter Rezepte')],
       absaetze: [

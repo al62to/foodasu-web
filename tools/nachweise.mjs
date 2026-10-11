@@ -10,6 +10,8 @@
 //       Eintrag im Speicher des Browsers aus; ohne JavaScript nicht zu sehen; dazu ein Blatt mit Bildschirmfotos
 //   3. kein waagrechtes Scrollen bei 360, 390, 768, 1024 und 1440 Pixel
 //   4. Mega-Menü mit Tastatur, ohne JavaScript und so, wie es ein Bildschirmleser gemeldet bekommt
+//   4a. "Zum Ausprobieren" im Menü: je Seite eine eigene Auswahl im HTML, beim Besuch eine zufällige
+//   4b. Rezeptübersicht: Suche und Filter
 //   5. Bildschirmfotos (Handy und Laptop, hell und dunkel) auf einem Blatt
 // Aufruf: node tools/nachweise.mjs [Adresse der Vorschau] [Zielordner] [--ohne-bilder]
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -19,6 +21,7 @@ import puppeteer from 'puppeteer-core';
 import { chromePfad } from './chrome.mjs';
 import { alleMeta } from '../src/daten/meta.mjs';
 import { rezepte, rezeptAdresse, themen } from '../src/daten/rezeptseiten.mjs';
+import { zeitraeume } from '../src/daten/alte_rezepte.mjs';
 
 const werte = process.argv.slice(2).filter((wert) => !wert.startsWith('--'));
 const BASIS = (werte[0] ?? 'http://localhost:4321').replace(/\/$/, '');
@@ -1105,8 +1108,86 @@ for (const [name, ansicht] of [['Handy', HANDY], ['Laptop', LAPTOP]]) {
   await umgebung.close();
 }
 
+// 4a "Zum Ausprobieren" im Menü (Ali, 11.10.2026): Im HTML steht je Seite eine feste Auswahl; beim Besuch ersetzt das
+// Skript im Kopf sie durch eine zufällige nach denselben Regeln (drei Rezepte, drei Länder, nie die Seite selbst), am
+// Laptop und im Handy-Menü dieselbe, bevor das Menü aufgeht. Die Bilder des Menüs laden erst beim Öffnen; gespeichert
+// wird nichts. Ohne JavaScript bleibt die Auswahl aus dem HTML.
+sage();
+sage('## 4a Menü: „Zum Ausprobieren“');
+{
+  const liesProbe = (seite) => seite.evaluate(() => [...document.querySelectorAll('.mega-probe')].map((block) => ({
+    sichtbar: block.getClientRects().length > 0,
+    rezepte: [...block.querySelectorAll('li')].map((punkt) => {
+      const bild = punkt.querySelector('img');
+      return {
+        ziel: punkt.querySelector('a').getAttribute('href'),
+        titel: punkt.querySelector('b').textContent,
+        land: punkt.querySelector('.mega-probe-text > span').textContent,
+        alt: bild.alt,
+        geladen: bild.complete && bild.naturalWidth > 0,
+        gross: Math.round(bild.getBoundingClientRect().width),
+      };
+    }),
+  })));
+  // Auswahl im HTML, wie es der Server liefert (ohne Skript gelesen).
+  const imHtml = async (pfad) => {
+    const html = await (await fetch(BASIS + pfad)).text();
+    return [...(html.match(/<div class="mega-probe">[\s\S]*?<\/ul>/)?.[0] ?? '').matchAll(/<li><a href="([^"]+)"/g)].map((fund) => fund[1]);
+  };
+  const PROBE_SEITEN = ['/', '/rezepte/bibimbap/', '/rezepte/linzer-torte-1849/'];
+  const BESUCHE = 5;
+  const festJe = new Map();
+  for (const pfad of PROBE_SEITEN) festJe.set(pfad, await imHtml(pfad));
+  pruefe(new Set([...festJe.values()].map((ziele) => ziele.join())).size === PROBE_SEITEN.length && [...festJe].every(([pfad, ziele]) => ziele.length === 3 && !ziele.includes(pfad)), `Im HTML hat jede Seite ihre eigene Auswahl (${[...festJe].map(([pfad, ziele]) => `${pfad}: ${ziele.map((ziel) => ziel.split('/')[2]).join(', ')}`).join('; ')})`);
+  for (const [name, ansicht] of [['Laptop', LAPTOP], ['Handy', HANDY]]) {
+    for (const pfad of PROBE_SEITEN) {
+      const wahlen = [];
+      let gut = true;
+      let zuletzt = '';
+      for (let besuch = 0; besuch < BESUCHE; besuch++) {
+        const { umgebung, seite } = await neueSeite({ ansicht, ruhig: true });
+        const bilder = [];
+        seite.on('request', (anfrage) => { const fund = anfrage.url().match(/\/bilder\/rezepte\/(.+)-karte-360\./); if (fund) bilder.push(`/rezepte/${fund[1]}/`); });
+        await seite.goto(BASIS + pfad, { waitUntil: 'networkidle0' });
+        const [breit, mobil] = await liesProbe(seite);
+        const ziele = breit.rezepte.map((rezept) => rezept.ziel);
+        wahlen.push(ziele.join());
+        const imInhalt = new Set(await seite.evaluate(() => [...document.querySelectorAll('main img')].map((bild) => bild.getAttribute('src').match(/\/bilder\/rezepte\/(.+)-karte-360\./)?.[1]).filter(Boolean).map((slug) => `/rezepte/${slug}/`)));
+        const regeln = ziele.length === 3 && new Set(ziele).size === 3 && new Set(breit.rezepte.map((rezept) => rezept.land)).size === 3 && !ziele.includes(pfad)
+          && mobil.rezepte.map((rezept) => rezept.ziel).join() === ziele.join() && breit.rezepte.every((rezept) => rezept.alt === `Symbolbild: ${rezept.titel}`);
+        const zu = !breit.sichtbar && !mobil.sichtbar && bilder.every((ziel) => imInhalt.has(ziel));
+        const davor = bilder.length;
+        if (name === 'Handy') await seite.tap('[data-menue]');
+        else await seite.click('[data-mega-knopf]');
+        await warte(900);
+        const offen = (await liesProbe(seite))[name === 'Handy' ? 1 : 0];
+        const danach = bilder.slice(davor);
+        const auf = offen.sichtbar && offen.rezepte.map((rezept) => rezept.ziel).join() === ziele.join() && offen.rezepte.every((rezept) => rezept.geladen && rezept.gross > 0)
+          && danach.every((ziel) => ziele.includes(ziel)) && ziele.every((ziel) => bilder.includes(ziel));
+        const speicher = await seite.evaluate(() => localStorage.length + sessionStorage.length + document.cookie.length);
+        if (!(regeln && zu && auf && speicher === 0)) { gut = false; sage(`       ${name}, ${pfad}, Besuch ${besuch + 1}: Regeln ${regeln}, vor dem Öffnen zu und ohne Bild des Menüs ${zu}, offen mit denselben drei und geladenen Bildern ${auf}, gespeichert ${speicher}`); }
+        zuletzt = offen.rezepte.map((rezept) => `${rezept.titel} (${rezept.land})`).join(', ');
+        await umgebung.close();
+      }
+      pruefe(gut, `${name}, ${pfad}: ${BESUCHE} Besuche: drei verschiedene Rezepte aus drei Ländern, nicht die Seite selbst, am Laptop und im Handy-Menü dieselben, alt-Text „Symbolbild: Titel“; Bilder des Menüs erst beim Öffnen; nichts gespeichert (zuletzt: ${zuletzt})`);
+      pruefe(new Set(wahlen).size >= 3, `${name}, ${pfad}: ${new Set(wahlen).size} verschiedene Auswahlen bei ${BESUCHE} Besuchen`);
+    }
+    for (const pfad of PROBE_SEITEN.slice(0, 2)) {
+      const { umgebung, seite } = await neueSeite({ ansicht, skript: false });
+      await seite.goto(BASIS + pfad, { waitUntil: 'load' });
+      if (name === 'Laptop') await seite.hover('.mit-menue');
+      await warte(400);
+      const bloecke = await liesProbe(seite);
+      const block = bloecke[name === 'Handy' ? 1 : 0];
+      pruefe(block.sichtbar && bloecke.every((einer) => einer.rezepte.map((rezept) => rezept.ziel).join() === festJe.get(pfad).join()), `${name}, ${pfad}, ohne JavaScript: Es steht die Auswahl aus dem HTML da (${block.rezepte.map((rezept) => rezept.titel).join(', ')})`);
+      await umgebung.close();
+    }
+  }
+}
+
 // 4b Rezeptübersicht: Suche und Filter (AP-17 Teil E3; seit AP-23 nach Entwurf "Filter in der Seitenleiste"). Am
-// Laptop stehen die drei Gruppen ständig offen in einer Leiste links; am Handy und Tablet liegen sie im Blatt.
+// Laptop stehen die vier Gruppen ständig offen in einer Leiste links; am Handy und Tablet liegen sie im Blatt. Die
+// Gruppe "Zeit" (Ali, 11.10.2026) nennt die Zeiträume der Rezepte aus alten Kochbüchern.
 sage();
 sage('## 4b Rezeptübersicht: Suche und Filter');
 const treffer = (seite) => seite.evaluate(() => ({
@@ -1128,7 +1209,7 @@ const waehle = (seite, gruppe, wert) => seite.evaluate((art, was) => {
   pruefe(alle === rezepte.length && stand.stand === `${alle} Rezepte` && stand.aktiv.length === 0, `Laptop: am Anfang alle ${alle} Rezepte, kein Filter gewählt`);
   const ohneAlle = await seite.evaluate(() => [...document.querySelectorAll('[data-filter] button, [data-filter] label')].every((el) => el.textContent.trim() !== 'Alle'));
   pruefe(ohneAlle, 'Laptop: kein Knopf "Alle"');
-  // Leiste links: drei Gruppen, ständig offen, jede Möglichkeit mit Anzahl; "Land" zeigt zuerst acht Länder.
+  // Leiste links: vier Gruppen, ständig offen, jede Möglichkeit mit Anzahl; "Land" zeigt zuerst acht Länder.
   const lese = () => seite.evaluate(() => {
     const sichtbar = (el) => !!el && el.getClientRects().length > 0;
     const blatt = document.querySelector('[data-blatt]');
@@ -1140,6 +1221,9 @@ const waehle = (seite, gruppe, wert) => seite.evaluate((art, was) => {
       lage: getComputedStyle(blatt).position,
       links: blatt.getBoundingClientRect().right <= karten.getBoundingClientRect().left,
       titel: gruppen.map((gruppe) => gruppe.querySelector('legend').childNodes[0].textContent.trim()),
+      zusatz: Object.fromEntries(gruppen.map((gruppe) => [gruppe.dataset.gruppe, gruppe.querySelector('legend small')?.textContent.trim() ?? ''])),
+      zeit: [...blatt.querySelectorAll('[data-gruppe="zeit"] li')].map((punkt) => `${punkt.querySelector('label span').textContent.trim()}: ${punkt.querySelector('.f-anzahl').textContent.trim()}`),
+      kopfLinks: [...document.querySelectorAll('main a')].filter((link) => !link.closest('nav') && link.compareDocumentPosition(document.querySelector('[data-filter]')) & Node.DOCUMENT_POSITION_FOLLOWING).length,
       offen: gruppen.every((gruppe) => sichtbar(gruppe.querySelector('fieldset'))),
       knoepfe: gruppen.filter((gruppe) => sichtbar(gruppe.querySelector('[data-knopf]'))).length + [...blatt.querySelectorAll('[data-fertig], [data-leeren], [data-blatt-zu]')].filter(sichtbar).length,
       filterKnopf: sichtbar(document.querySelector('[data-blatt-auf]')),
@@ -1156,7 +1240,10 @@ const waehle = (seite, gruppe, wert) => seite.evaluate((art, was) => {
   });
   const leiste = await lese();
   pruefe(leiste.zusehen && leiste.lage === 'sticky' && leiste.links, 'Laptop: Die Filter stehen in einer Leiste links neben den Karten, die beim Scrollen mitfährt');
-  pruefe(leiste.titel.join() === 'Passt für,Kategorie,Land' && leiste.offen && leiste.knoepfe === 0 && !leiste.filterKnopf, `Laptop: drei Gruppen ständig offen (${leiste.titel.join(', ')}), ohne Knöpfe zum Aufklappen`);
+  pruefe(leiste.titel.join() === 'Passt für,Kategorie,Land,Zeit' && leiste.offen && leiste.knoepfe === 0 && !leiste.filterKnopf, `Laptop: vier Gruppen ständig offen (${leiste.titel.join(', ')}), ohne Knöpfe zum Aufklappen`);
+  pruefe(leiste.zusatz.passt === 'laut Zutatenliste' && leiste.zusatz.zeit === 'aus alten Kochbüchern' && !leiste.zusatz.kategorie && !leiste.zusatz.land, `Laptop: Unterzeilen: "Passt für" mit "${leiste.zusatz.passt}", "Zeit" mit "${leiste.zusatz.zeit}"`);
+  const zeitSoll = zeitraeume.map((zeitraum) => `${zeitraum.kennung}: ${zeitraum.rezepte.length}`);
+  pruefe(leiste.zeit.join() === zeitSoll.join() && leiste.je.zeit.sichtbar === leiste.je.zeit.alle && leiste.je.zeit.mehr.length === 0, `Laptop: "Zeit" steht ganz da, mit der Anzahl aus den Daten (${leiste.zeit.join(', ')})`);
   pruefe(leiste.zahlen, 'Laptop: Jede Möglichkeit hat Rezepte und nennt ihre Anzahl');
   pruefe(leiste.je.passt.sichtbar === leiste.je.passt.alle && leiste.je.kategorie.sichtbar === leiste.je.kategorie.alle && leiste.je.passt.mehr.length === 0, `Laptop: "Passt für" (${leiste.je.passt.sichtbar}) und "Kategorie" (${leiste.je.kategorie.sichtbar}) stehen ganz da`);
   pruefe(leiste.je.land.sichtbar === 8 && leiste.je.land.alle > 8 && leiste.je.land.mehr.join() === 'Weitere Länder anzeigen', `Laptop: "Land" zeigt zuerst ${leiste.je.land.sichtbar} von ${leiste.je.land.alle} Ländern und den Knopf "${leiste.je.land.mehr.join()}"`);
@@ -1168,7 +1255,7 @@ const waehle = (seite, gruppe, wert) => seite.evaluate((art, was) => {
   // Verknüpfung: oder innerhalb von Land und Kategorie, und innerhalb von "Passt für", und zwischen den Gruppen.
   const zaehle = (probe) => seite.evaluate((quelle) => {
     const pruefung = new Function('k', `return ${quelle}`);
-    return [...document.querySelectorAll('[data-karte]')].filter((karte) => pruefung({ kategorie: karte.dataset.kategorie, land: karte.dataset.land.split(' '), passt: karte.dataset.passt.split(' ') })).length;
+    return [...document.querySelectorAll('[data-karte]')].filter((karte) => pruefung({ kategorie: karte.dataset.kategorie, land: karte.dataset.land.split(' '), passt: karte.dataset.passt.split(' '), zeit: karte.dataset.zeit ?? '' })).length;
   }, probe);
   await waehle(seite, 'land', 'IT');
   stand = await treffer(seite);
@@ -1183,6 +1270,29 @@ const waehle = (seite, gruppe, wert) => seite.evaluate((art, was) => {
   await seite.click('[data-blatt] .f-blatt-kopf [data-alle-leeren]');
   stand = await treffer(seite);
   pruefe(stand.karten === alle && stand.aktiv.length === 0, 'Laptop: "Zurücksetzen" oben in der Leiste zeigt wieder alle Rezepte');
+  // Zeit: einzeln, zwei Zeiträume (oder), mit Land, Kategorie und "Passt für" (und); "Zurücksetzen" setzt mit zurück.
+  const [zeitA, zeitB] = [zeitraeume.at(-2), zeitraeume.at(-1)];
+  await waehle(seite, 'zeit', zeitA.anker);
+  stand = await treffer(seite);
+  pruefe(stand.karten === zeitA.rezepte.length && stand.karten === (await zaehle(`k.zeit === '${zeitA.anker}'`)) && stand.aktiv.join() === zeitA.kennung, `Laptop: Zeit ${zeitA.kennung}: ${stand.stand}, Chip "${stand.aktiv.join()}"`);
+  await waehle(seite, 'zeit', zeitB.anker);
+  stand = await treffer(seite);
+  pruefe(stand.karten === zeitA.rezepte.length + zeitB.rezepte.length, `Laptop: ${zeitA.kennung} oder ${zeitB.kennung}: ${stand.stand} (oder innerhalb von Zeit)`);
+  await waehle(seite, 'land', 'DE');
+  stand = await treffer(seite);
+  const mitLand = stand.karten;
+  pruefe(mitLand === (await zaehle(`['${zeitA.anker}', '${zeitB.anker}'].includes(k.zeit) && k.land.includes('DE')`)) && mitLand > 0, `Laptop: dazu Land Deutschland: ${stand.stand} (und zwischen den Gruppen)`);
+  await waehle(seite, 'kategorie', 'HAUPTGERICHT');
+  await waehle(seite, 'passt', 'en:vegetarian');
+  stand = await treffer(seite);
+  pruefe(stand.karten === (await zaehle(`['${zeitA.anker}', '${zeitB.anker}'].includes(k.zeit) && k.land.includes('DE') && k.kategorie === 'HAUPTGERICHT' && k.passt.includes('en:vegetarian')`)) && stand.karten > 0 && stand.karten < mitLand && stand.aktiv.length === 5, `Laptop: dazu Kategorie Hauptgericht und Vegetarisch: ${stand.stand} (${stand.aktiv.join(', ')})`);
+  await seite.type('[data-suche]', 'kartoffel');
+  const mitSuche = await treffer(seite);
+  pruefe(mitSuche.karten > 0 && mitSuche.karten <= stand.karten && mitSuche.adresse === '/rezepte/', `Laptop: dazu die Suche nach "kartoffel": ${mitSuche.stand}, die Adresse bleibt ${mitSuche.adresse}`);
+  await seite.click('[data-blatt] .f-blatt-kopf [data-alle-leeren]');
+  stand = await treffer(seite);
+  const zeitLeer = await seite.evaluate(() => document.querySelectorAll('[data-gruppe="zeit"] input:checked').length === 0);
+  pruefe(stand.karten === alle && stand.aktiv.length === 0 && zeitLeer, 'Laptop: "Zurücksetzen" setzt auch "Zeit" zurück, alle Rezepte stehen wieder da');
   await waehle(seite, 'passt', 'en:nuts');
   const ohneNuesse = (await treffer(seite)).karten;
   await waehle(seite, 'passt', 'en:vegan');
@@ -1216,8 +1326,10 @@ const waehle = (seite, gruppe, wert) => seite.evaluate((art, was) => {
     titel: document.querySelector('#themen')?.textContent.trim(),
     links: document.querySelectorAll('.f-themen a').length,
     zeilen: [...document.querySelectorAll('.f-themen dt')].map((zeile) => zeile.childNodes[0].textContent.trim()),
+    rubrik: [...document.querySelectorAll('.f-themen dl > div:last-child a')].map((link) => `${link.textContent.trim()} > ${link.getAttribute('href')}`),
   }));
-  pruefe(themenTeil.titel === 'Rezepte nach Thema' && themenTeil.links === themen.length && themenTeil.zeilen.join() === 'Ohne …,Passt für,Nach Land,Nach Kategorie', `Laptop: am Ende "${themenTeil.titel}" mit ${themenTeil.links} Themenseiten als Chips in ${themenTeil.zeilen.length} Zeilen`);
+  pruefe(themenTeil.titel === 'Rezepte nach Thema' && themenTeil.links === themen.length + 1 && themenTeil.zeilen.join() === 'Ohne …,Passt für,Nach Land,Nach Kategorie,Nach Zeit', `Laptop: am Ende "${themenTeil.titel}" mit ${themen.length} Themenseiten und der Rubrik als Chips in ${themenTeil.zeilen.length} Zeilen`);
+  pruefe(themenTeil.rubrik.join() === 'Aus alten Kochbüchern > /alte-rezepte/' && leiste.kopfLinks === 0, `Laptop: Zeile "Nach Zeit" führt zur Rubrik (${themenTeil.rubrik.join()}); im Kopf der Seite steht kein Link`);
   await umgebung.close();
 }
 {
@@ -1259,8 +1371,29 @@ const waehle = (seite, gruppe, wert) => seite.evaluate((art, was) => {
     };
   });
   pruefe(blatt.rolle === 'dialog' && blatt.modal === 'true' && blatt.unten === HANDY.height && blatt.breite === HANDY.width, 'Handy: "Filter" öffnet ein Blatt von unten (Dialog über die ganze Breite)');
-  pruefe(blatt.gruppen.join() === 'Passt für,Kategorie,Land' && blatt.fokus, `Handy: im Blatt die drei Gruppen zum Aufklappen (${blatt.gruppen.join(', ')}), der Fokus steht im Blatt`);
+  pruefe(blatt.gruppen.join() === 'Passt für,Kategorie,Land,Zeit' && blatt.fokus, `Handy: im Blatt die vier Gruppen zum Aufklappen (${blatt.gruppen.join(', ')}), der Fokus steht im Blatt`);
   pruefe(blatt.zeigen === `${alle} Rezepte anzeigen`, `Handy: Knopf "${blatt.zeigen}"`);
+  // Zeit im Blatt: aufklappen, einen Zeitraum antippen, der Knopf zählt mit; dann mit Land kombinieren und zurücksetzen.
+  await seite.tap('[data-gruppe="zeit"] [data-knopf]');
+  const ersteZeit = zeitraeume[0];
+  const zeitFeld = await seite.evaluate(() => {
+    const gruppe = document.querySelector('[data-gruppe="zeit"]');
+    const punkte = [...gruppe.querySelectorAll('li')].filter((punkt) => punkt.getClientRects().length > 0);
+    return { offen: gruppe.querySelector('[data-knopf]').getAttribute('aria-expanded'), punkte: punkte.map((punkt) => punkt.querySelector('label span').textContent.trim()), hoehe: Math.min(...punkte.map((punkt) => Math.round(punkt.querySelector('label').getBoundingClientRect().height))) };
+  });
+  pruefe(zeitFeld.offen === 'true' && zeitFeld.punkte.join() === zeitraeume.map((zeitraum) => zeitraum.kennung).join() && zeitFeld.hoehe >= 44, `Handy: "Zeit" klappt auf (${zeitFeld.punkte.join(', ')}), jede Zeile mindestens ${zeitFeld.hoehe} px hoch`);
+  await waehle(seite, 'zeit', ersteZeit.anker);
+  let mitZeit = await seite.evaluate(() => ({ zeigen: document.querySelector('[data-zeigen]').textContent.trim(), knopf: document.querySelector('[data-gruppe="zeit"] [data-knopf-text]').textContent.trim(), karten: [...document.querySelectorAll('[data-karte]')].filter((karte) => !karte.hidden).length }));
+  pruefe(mitZeit.karten === ersteZeit.rezepte.length && mitZeit.zeigen === (mitZeit.karten === 1 ? '1 Rezept anzeigen' : `${mitZeit.karten} Rezepte anzeigen`) && mitZeit.knopf === `Zeit: ${ersteZeit.kennung}`, `Handy: Zeit ${ersteZeit.kennung}: "${mitZeit.zeigen}", der Knopf der Gruppe nennt die Auswahl ("${mitZeit.knopf}")`);
+  await waehle(seite, 'land', 'IT');
+  mitZeit = await seite.evaluate((wert) => ({
+    karten: [...document.querySelectorAll('[data-karte]')].filter((karte) => !karte.hidden).length,
+    soll: [...document.querySelectorAll('[data-karte]')].filter((karte) => karte.dataset.zeit === wert && karte.dataset.land.split(' ').includes('IT')).length,
+  }), ersteZeit.anker);
+  pruefe(mitZeit.karten === mitZeit.soll && mitZeit.karten < ersteZeit.rezepte.length, `Handy: dazu Land Italien: ${mitZeit.karten === 1 ? '1 Rezept' : `${mitZeit.karten} Rezepte`} (und zwischen den Gruppen)`);
+  await seite.evaluate(() => document.querySelector('[data-gruppe="zeit"] [data-leeren]').click());
+  await waehle(seite, 'land', 'IT');
+  pruefe((await treffer(seite)).karten === alle, 'Handy: "Zurücksetzen" in der Gruppe "Zeit" nimmt die Auswahl weg');
   await waehle(seite, 'land', 'IT');
   await waehle(seite, 'passt', 'en:vegetarian');
   const gefiltert = await treffer(seite);
