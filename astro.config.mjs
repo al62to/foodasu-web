@@ -2,6 +2,7 @@ import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'astro/config';
 import { setzeSprachen } from './tools/sprache_setzen.mjs';
 import { pruefeSogehtsLinks } from './tools/sogehts_links.mjs';
+import { pruefePreisaussagen } from './tools/preisaussagen.mjs';
 
 // Setzt nach dem Bau das lang-Attribut um fremdsprachige Wörter und Namen (src/daten/sprachen.mjs).
 const sprache = {
@@ -26,11 +27,24 @@ const sogehtsOhneAussen = {
   },
 };
 
+// Sperre gegen Preisaussagen (AP-29): Der Bau endet mit Fehler, sobald eine Datei des fertigen Baus eine Aussage zum
+// Preis von FoodAsu enthält (tools/preisaussagen.mjs: Wörter, Wendungen, der Betrag null, strukturierte Angaben). Die
+// Meldung nennt Datei, Fund und Umgebung. Läuft nach "sprache", also über die Seiten, wie sie veröffentlicht werden.
+const ohnePreisaussage = {
+  name: 'ohne-preisaussage',
+  hooks: {
+    'astro:build:done': ({ dir, logger }) => {
+      const { dateien } = pruefePreisaussagen(fileURLToPath(dir));
+      logger.info(`Preisaussagen: ${dateien} Dateien durchsucht, kein Fund`);
+    },
+  },
+};
+
 // "preserve" hält die bestehende Adresse /datenschutz.html (die App verlinkt sie) und gibt Ordnerseiten als
 // /ordner/ aus.
 export default defineConfig({
   site: 'https://foodasu.com',
   build: { format: 'preserve' },
   devToolbar: { enabled: false },
-  integrations: [sprache, sogehtsOhneAussen],
+  integrations: [sprache, sogehtsOhneAussen, ohnePreisaussage],
 });

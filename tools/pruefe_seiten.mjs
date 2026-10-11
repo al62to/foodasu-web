@@ -12,6 +12,7 @@ import { einblick } from '../src/daten/startseite.mjs';
 import { GRENZEN, grenzBefunde, masse } from '../src/daten/breite.mjs';
 import { alleRezepte, zutatenBefunde } from './zutaten_pruefen.mjs';
 import { sogehtsLinks } from './sogehts_links.mjs';
+import { preisaussagen } from './preisaussagen.mjs';
 
 // Der Ordner der gebauten Website; mit der Umgebungsvariable DIST prüft der Lauf einen anderen Ordner (Vorschau).
 const DIST = process.env.DIST ?? 'dist';
@@ -789,6 +790,12 @@ if (kapitel.filter((eintrag) => eintrag.film).length > 3) melde(BEREICH, 'höchs
   if (sperre.seiten !== kapitel.length + 1) melde(BEREICH, `Sperre gegen Links nach außen: ${sperre.seiten} Seiten geprüft, erwartet ${kapitel.length + 1}`);
   for (const fund of sperre.funde) melde(fund.seite, `Link nach außen in „So geht's“${fund.ort === 'Fußzeile' ? ' (Fußzeile)' : ''}: ${fund.link}`);
 }
+// Keine Preisaussage (Ali und Projektleitung, 11.10.2026; AP-29): dieselbe Sperre wie am Ende des Baus
+// (tools/preisaussagen.mjs), über jede Datei des Baus. Auf der Website steht keine Aussage zum Preis von FoodAsu,
+// auch nicht über Code oder Metadaten; die Bezahl-Liste oben prüft daneben wie bisher den sichtbaren Text der Seiten.
+const preisSperre = preisaussagen(DIST);
+if (preisSperre.dateien !== dateien.length) melde('/', `Sperre gegen Preisaussagen: ${preisSperre.dateien} Dateien durchsucht, im Bau liegen ${dateien.length}`);
+for (const fund of preisSperre.funde) melde(fund.datei, `Preisaussage: „${fund.wort}“ steht im Bau („… ${fund.umgebung} …“)`);
 const nichtGefunden = seiten.get('/404.html') ?? '';
 if (!/<a class="knopf hell" href="\/so-gehts\/"/.test(nichtGefunden)) melde('/404.html', "der Knopf „So geht's“ führt nicht zur Anleitung");
 const llms = existsSync(join(DIST, 'llms.txt')) ? readFileSync(join(DIST, 'llms.txt'), 'utf8') : '';
@@ -1290,6 +1297,7 @@ console.log(`Themenseiten: ${themenSeiten.imIndex.length} im Index (ab ${INDEX_A
 console.log(`Im Index: ${seiten.size - OHNE_INDEX.size} von ${seiten.size} Seiten`);
 console.log(`Farbprüfung: ${stilDateien.length} Stildateien (feste Farbwerte nur in basis.css und geraet.css), ${farbStellen} Stellen im HTML`);
 console.log(`Herkunft und Plattform: ${herkunftDateien} Dateien des Baus durchsucht (HTML, TXT, XML, JSON; Skripte, Stile und Vektorbilder auf die Herkunft)`);
+console.log(`Preisaussagen: ${preisSperre.dateien} Dateien des Baus durchsucht (${preisSperre.texte} Textdateien ganz, ${preisSperre.dateien - preisSperre.texte} weitere auf lesbare Zeichenfolgen), ${preisSperre.funde.length} Funde`);
 // Zutaten und Zubereitung (AP-25 Nachbesserung, 11.10.2026): Warnung ohne Abbruch, wenn eine Zutat in keinem Schritt
 // vorkommt oder mehrmals in der Liste steht, ohne dass ein Schritt sagt, welcher Eintrag gemeint ist
 // (tools/zutaten_pruefen.mjs). Einzeln gemeldet werden die Rezepte, die es in der App noch nicht gibt: Ihren Wortlaut
