@@ -43,13 +43,16 @@ export const kopf = {
 export const wort = {
   vorsatz: 'Einkaufen ohne',
   // "Eier" statt "Schweinefleisch" (Projektleitung, 11.10.2026, Nachtrag zu AP-23 Teil B Nr. 6): Die Wörter stehen
-  // als Chips neben dem Absatz mit Alis Unterschrift.
-  woerter: ['Nüsse', 'Gluten', 'Eier', 'Alkohol', 'Palmöl', 'Sesam', 'Milch'],
-  // Alis Wortlaut von "Über FoodAsu", gekürzt auf zwei Absätze und ohne Doppelpunkt (Projektleitung, 11.10.2026,
-  // AP-23 Teil A Nr. 2; wörtlich). Darunter die Unterschrift und ein Link auf den ganzen Text.
+  // als Chips neben dem Absatz mit Alis Unterschrift. Am Ende "Zettel" und "Rätselraten" (Änderung 2 zum Nachtrag,
+  // Ali, 11.10.2026): Die beiden sind keine Einträge zum Meiden und passen zum Absatz über die Einkaufsliste. Jedes
+  // Wort muss nach "Einkaufen ohne" grammatisch stimmen.
+  woerter: ['Nüsse', 'Gluten', 'Eier', 'Alkohol', 'Palmöl', 'Sesam', 'Milch', 'Zettel', 'Rätselraten'],
+  // Absatz mit Alis Unterschrift (Änderung 2 zum Nachtrag zu AP-23, Ali, 11.10.2026; wörtlich): in der Ich-Form, ohne
+  // Doppelpunkt, nur was die App kann (gespeicherte Listen, Zutaten aus dem Rezept auf die Liste, Scannen). Darunter
+  // die Unterschrift und ein Link auf "Warum es FoodAsu gibt".
   absaetze: [
-    'In vielen Haushalten isst nicht jeder alles. Der eine isst kein Gluten, die andere keine Nüsse, das Kind trinkt keine Milch. Im Laden heißt das Packung umdrehen, Kleingedrucktes lesen, und beim nächsten Produkt wieder von vorn.',
-    'Deshalb habe ich FoodAsu gebaut. Du legst einmal fest, was jede Person bei dir zu Hause meidet. Danach reicht ein Scan.',
+    'Ehrlich gesagt war mir die Einkaufsliste jede Woche eine Qual. Neu schreiben, etwas vergessen, im Chatverlauf suchen.',
+    'Mit FoodAsu habe ich mir das leichter gemacht. Meine Listen bleiben gespeichert, die Zutaten aus dem Rezept kommen ohne Tippen dazu, und beim Scannen sehe ich, was laut den Angaben im Produkt ist.',
   ],
   unterschrift: 'Ali Tonc, Entwickler von FoodAsu',
   link: { text: 'Warum es FoodAsu gibt', ziel: '/ueber-foodasu/#warum' },

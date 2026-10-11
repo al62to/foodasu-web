@@ -817,10 +817,13 @@ for (const datei of dateien.filter((pfad) => /\.(?:html|css|js|svg|txt|xml)$/.te
 // Startseite: der Absatz mit Unterschrift im Wortlaut der Projektleitung (ohne Doppelpunkt), darunter die Unterschrift
 // und der Link auf "Über FoodAsu"; die Bänder stehen still (kein laufendes Band); der Tisch und die kleine
 // Einkaufsliste schmücken nur; die Anker #schritte und #fragen bleiben.
+// Wortlaut seit der Änderung 2 zum Nachtrag zu AP-23 (Ali, 11.10.2026).
 const ABSATZ_START = [
-  'In vielen Haushalten isst nicht jeder alles. Der eine isst kein Gluten, die andere keine Nüsse, das Kind trinkt keine Milch. Im Laden heißt das Packung umdrehen, Kleingedrucktes lesen, und beim nächsten Produkt wieder von vorn.',
-  'Deshalb habe ich FoodAsu gebaut. Du legst einmal fest, was jede Person bei dir zu Hause meidet. Danach reicht ein Scan.',
+  'Ehrlich gesagt war mir die Einkaufsliste jede Woche eine Qual. Neu schreiben, etwas vergessen, im Chatverlauf suchen.',
+  'Mit FoodAsu habe ich mir das leichter gemacht. Meine Listen bleiben gespeichert, die Zutaten aus dem Rezept kommen ohne Tippen dazu, und beim Scannen sehe ich, was laut den Angaben im Produkt ist.',
 ];
+// Die wechselnden Wörter nach "Einkaufen ohne", in dieser Reihenfolge; die letzten zwei sind keine Einträge zum Meiden.
+const WORT_MARKEN = ['Nüsse', 'Gluten', 'Eier', 'Alkohol', 'Palmöl', 'Sesam', 'Milch', 'Zettel', 'Rätselraten'];
 const wortTeil = startseite.match(/<section class="wort" id="ohne">[\s\S]*?<\/section>/)?.[0] ?? '';
 if (!wortTeil) melde('/', 'Abschnitt „Einkaufen ohne …“ fehlt');
 else {
@@ -830,8 +833,12 @@ else {
   if (!/<a\b[^>]*href="\/ueber-foodasu\/#warum"[^>]*>\s*Warum es FoodAsu gibt/.test(wortTeil)) melde('/', 'Link „Warum es FoodAsu gibt“ auf /ueber-foodasu/#warum fehlt');
   // Nachtrag zu AP-23 Teil B Nr. 6: Die Wörter stehen als Chips neben der Unterschrift; "Eier" statt "Schweinefleisch".
   if (/Schweinefleisch/.test(entschluesselt(wortTeil))) melde('/', 'im Abschnitt mit Alis Unterschrift steht „Schweinefleisch“ (Chips und Absatz; seit dem Nachtrag zu AP-23 „Eier“)');
-  if (!/<li[^>]*\bdata-wortmarke\b[^>]*>Eier<\/li>/.test(wortTeil)) melde('/', 'der Chip „Eier“ im Abschnitt „Einkaufen ohne …“ fehlt');
-  if (/:/.test(ABSATZ_START.map((absatz) => wortText.includes(absatz) ? '' : ':').join(''))) melde('/', 'der Absatz mit Unterschrift enthält einen Doppelpunkt');
+  const wortMarken = alle(wortTeil, /<li[^>]*\bdata-wortmarke\b[^>]*>([^<]*)<\/li>/g).map(([, marke]) => entschluesselt(marke));
+  if (wortMarken.join(' | ') !== WORT_MARKEN.join(' | ')) melde('/', `„Einkaufen ohne …“: Wörter „${WORT_MARKEN.join(', ')}“ erwartet, gefunden „${wortMarken.join(', ')}“`);
+  // Der Absatz selbst (die Absätze vor der Unterschrift): genau der Wortlaut, kein Doppelpunkt, kein Strichpunkt.
+  const wortAbsaetze = alle(wortTeil, /<p>([\s\S]*?)<\/p>/g).map(([, absatz]) => entschluesselt(absatz.replace(/<[^>]+>/g, '')).replace(/\s+/g, ' ').trim());
+  if (wortAbsaetze.join(' | ') !== ABSATZ_START.join(' | ')) melde('/', 'neben der Unterschrift stehen nicht genau die zwei Absätze des Wortlauts');
+  if (wortAbsaetze.some((absatz) => /[:;]/.test(absatz))) melde('/', 'der Absatz mit Unterschrift enthält einen Doppelpunkt oder Strichpunkt');
 }
 if (/data-band\b|band-spur/.test(startseite)) melde('/', 'die Bänder der Startseite laufen noch (sie stehen seit AP-23 still, als Chips in Reihen)');
 if (!/id="fragen"/.test(startseite)) melde('/', 'Abschnitt mit dem Anker #fragen fehlt');
