@@ -129,7 +129,6 @@ const daten = [{
                     )}
                     {(teil.absaetze ?? []).map((absatz) => <p>{absatz}</p>)}
                     {teil.verweis && <p>{teil.verweis.vor}<a href={teil.verweis.ziel}>{teil.verweis.text}</a>{teil.verweis.nach}</p>}
-                    {teil.extern && <p><a href={teil.extern.ziel} rel="noopener">{teil.extern.text}</a></p>}
                   </div>
                   {foto && (
                     <figure class="g-foto">

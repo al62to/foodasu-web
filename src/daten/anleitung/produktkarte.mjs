@@ -59,7 +59,7 @@ export default {
       anker: 'daten-neu-laden',
       symbol: 'neu',
       funktionen: ['KARTE-08'],
-      nutzen: 'Du holst die Angaben zu einem Produkt noch einmal frisch von Open Food Facts, etwa wenn dort etwas ergänzt wurde.',
+      nutzen: 'Du holst die Angaben zu einem Produkt noch einmal frisch von Open Food Facts, etwa wenn sich dort etwas geändert hat.',
       wo: 'Produktkarte > „Weitere Aktionen“ (drei Punkte) > „Daten neu laden“',
     },
     {

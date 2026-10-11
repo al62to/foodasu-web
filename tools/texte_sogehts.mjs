@@ -46,7 +46,6 @@ for (const eintrag of kapitel) {
     if (teil.liste) { teil.liste.forEach((eintragListe) => zeile(`- **${eintragListe.name}:** ${eintragListe.text}`)); zeile(); }
     for (const absatz of teil.absaetze ?? []) { zeile(absatz); zeile(); }
     if (teil.verweis) { zeile(`${teil.verweis.vor}[${teil.verweis.text}](${teil.verweis.ziel})${teil.verweis.nach}`); zeile(); }
-    if (teil.extern) { zeile(`Link nach außen: „${teil.extern.text}“ (${teil.extern.ziel})`); zeile(); }
   }
   if (eintrag.film) punkt('Schleife (ohne Ton, nur mit Bewegung)', `${eintrag.film.unterschrift}. Bildbeschreibung: ${eintrag.film.alt}`);
   if (eintrag.verweise) punkt(`„${rahmen.mehr}“`, eintrag.verweise.map((verweis) => `${verweis.text} (${verweis.ziel})`).join(', '));

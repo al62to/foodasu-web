@@ -9,8 +9,11 @@
 //
 // Die Kapitel stehen je in einer Datei unter src/daten/anleitung/. Ein Abschnitt ("teile") gehört zu einer Funktion
 // der App und hat der Reihe nach: "nutzen" (ein bis zwei Sätze), "wo" (der kurze Weg in der App), "fotos" (höchstens
-// ein Bildschirmfoto mit Unterschrift), "liste" (Begriff und Erklärung), "absaetze", "verweis" (ein Link auf eine
-// andere Stelle der Anleitung) und "extern" (ein Link nach außen). Alles außer Titel und Anker kann fehlen.
+// ein Bildschirmfoto mit Unterschrift), "liste" (Begriff und Erklärung), "absaetze" und "verweis" (ein Link auf eine
+// andere Stelle der Anleitung). Alles außer Titel und Anker kann fehlen.
+// Kein Link nach außen (Ali, 11.10.2026): Das Feld "extern" gibt es nicht mehr, und der Bau bricht ab, sobald eine
+// Seite des Bereichs auf eine andere Domain als foodasu.com führt (tools/sogehts_links.mjs). Geht es um eine Quelle,
+// steht ihr Name als Text da, und der Link zeigt auf /lizenzen/.
 // Zuschnitt (Entscheidung vom 10.10.2026): Die Anleitung zeigt, was die App kann und wo man es findet. Sie nennt
 // keine nummerierten Schrittfolgen und keine Regeln, nach denen Urteil, Hinweise oder Sortierung entstehen. Bilder
 // gibt es nur bei den wichtigen Funktionen, höchstens eines je Abschnitt und höchstens 45 im ganzen Bereich.
@@ -126,6 +129,7 @@ for (const eintrag of kapitel) {
     if (teil.funktionen && !(teil.nutzen && teil.wo)) fehler.push(`${eintrag.slug}#${teil.anker}: Eine Funktion braucht „nutzen“ und „wo“`);
     if ((teil.fotos ?? []).length > 1) fehler.push(`${eintrag.slug}#${teil.anker}: höchstens ein Bild je Abschnitt`);
     for (const feld of ['schritte', 'tipp', 'einleitung']) if (teil[feld]) fehler.push(`${eintrag.slug}#${teil.anker}: Feld „${feld}“ gibt es nicht mehr`);
+    if (teil.extern) fehler.push(`${eintrag.slug}#${teil.anker}: Feld „extern“ gibt es nicht mehr, kein Link nach außen in „So geht's“ (${teil.extern.ziel ?? teil.extern})`);
     if (!zeichen[teil.symbol]) fehler.push(`${eintrag.slug}#${teil.anker}: Symbol „${teil.symbol}“ gibt es nicht (src/daten/zeichen.mjs)`);
     if (teil.gross && !(teil.fotos ?? []).length) fehler.push(`${eintrag.slug}#${teil.anker}: Eine große Karte braucht ein Bild`);
   }

@@ -11,6 +11,7 @@ import { BEREICH, adresse as kapitelAdresse, fotosVon, kapitel } from '../src/da
 import { einblick } from '../src/daten/startseite.mjs';
 import { GRENZEN, grenzBefunde, masse } from '../src/daten/breite.mjs';
 import { alleRezepte, zutatenBefunde } from './zutaten_pruefen.mjs';
+import { sogehtsLinks } from './sogehts_links.mjs';
 
 // Der Ordner der gebauten Website; mit der Umgebungsvariable DIST prüft der Lauf einen anderen Ordner (Vorschau).
 const DIST = process.env.DIST ?? 'dist';
@@ -781,6 +782,13 @@ for (const karte of einblick.karten) {
 }
 if (alle(startseite, /<div class="geraet-rahmen"/g).length !== einblick.karten.length) melde('/', `Abschnitt „${einblick.ueberschrift}“: jedes Bild im Handy-Rahmen erwartet`);
 if (kapitel.filter((eintrag) => eintrag.film).length > 3) melde(BEREICH, 'höchstens drei Schleifen (Karte C)');
+// Kein Link nach außen in "So geht's" (Ali, 11.10.2026; AP-27 Teil B): dieselbe Sperre wie am Ende des Baus
+// (tools/sogehts_links.mjs). Erlaubt sind relative Links, Anker und Links auf https://foodasu.com/.
+{
+  const sperre = sogehtsLinks(DIST);
+  if (sperre.seiten !== kapitel.length + 1) melde(BEREICH, `Sperre gegen Links nach außen: ${sperre.seiten} Seiten geprüft, erwartet ${kapitel.length + 1}`);
+  for (const fund of sperre.funde) melde(fund.seite, `Link nach außen in „So geht's“${fund.ort === 'Fußzeile' ? ' (Fußzeile)' : ''}: ${fund.link}`);
+}
 const nichtGefunden = seiten.get('/404.html') ?? '';
 if (!/<a class="knopf hell" href="\/so-gehts\/"/.test(nichtGefunden)) melde('/404.html', "der Knopf „So geht's“ führt nicht zur Anleitung");
 const llms = existsSync(join(DIST, 'llms.txt')) ? readFileSync(join(DIST, 'llms.txt'), 'utf8') : '';

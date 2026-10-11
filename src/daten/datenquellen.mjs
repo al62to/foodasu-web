@@ -47,7 +47,7 @@ export const datenquellen = {
       titel: 'Warum Angaben fehlen oder veraltet sein können',
       absaetze: [
         'Die Datenbank lebt von Menschen, die Produkte eintragen. Manche Produkte fehlen ganz. Bei anderen fehlt die Zutatenliste, oder sie ist nicht vollständig erfasst. Ändert ein Hersteller die Zusammensetzung, kann in der Datenbank noch die alte stehen.',
-        'Fehlt die Zutatenliste, schreibt FoodAsu „Angaben unvollständig, Verpackung prüfen“ und nicht „Kein Konflikt laut Daten“. Mit „Daten neu laden“ holst du die Angaben zu einem Produkt noch einmal frisch.',
+        'Fehlt die Zutatenliste, schreibt FoodAsu „Angaben unvollständig, Verpackung prüfen“ und nicht „Kein Konflikt laut Daten“. Mit „Daten neu laden“ holst du die Angaben zu einem Produkt noch einmal frisch von Open Food Facts, etwa wenn sich dort etwas geändert hat.',
       ],
     },
     {
