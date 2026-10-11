@@ -1,10 +1,10 @@
 ---
 // Offenlegung nach § 25 Mediengesetz als eigene, schlichte Seite (AP-17 Teil E1): nicht im Index der Suchmaschinen
 // und nicht in der Sitemap. Der Wortlaut kommt unverändert aus dem Baustein src/inhalte/offenlegung.html
-// (tools/rechtstexte_uebernehmen.mjs); hier entsteht nur die Gestaltung. Die Überschrift des Bausteins wird zur
-// Überschrift der Seite.
-import Basis from '../../layouts/Basis.astro';
-import Seitenkopf from '../../components/Seitenkopf.astro';
+// (tools/rechtstexte_uebernehmen.mjs); hier entsteht nur die Gestaltung (src/components/Rechtsseite.astro, ohne
+// Inhaltsverzeichnis, weil die Seite keine Abschnitte hat). Die Überschrift des Bausteins wird zur Überschrift der
+// Seite.
+import Rechtsseite from '../../components/Rechtsseite.astro';
 import offenlegung from '../../inhalte/offenlegung.html?raw';
 import { geruest } from '../../daten/startseite.mjs';
 
@@ -12,9 +12,6 @@ const texte = geruest.offenlegung;
 const ueberschrift = offenlegung.match(/<h2[^>]*>([^<]*)<\/h2>/)?.[1] ?? texte.titel;
 const rumpf = offenlegung.replace(/<h2[^>]*>[^<]*<\/h2>\s*/, '');
 ---
-<Basis>
-  <Seitenkopf krumen={[{ titel: texte.titel, ziel: '/offenlegung/' }]} titel={ueberschrift} still />
-  <div class="s-inhalt innen">
-    <div class="text schmal" set:html={rumpf} />
-  </div>
-</Basis>
+<Rechtsseite krumen={[{ titel: texte.titel, ziel: '/offenlegung/' }]} titel={ueberschrift}>
+  <div class="text" set:html={rumpf} />
+</Rechtsseite>

@@ -1,9 +1,13 @@
 ---
 // Themenseite: alle Rezepte der Website zu einem Eintrag, Land oder einer Kategorie, mit ItemList. Seiten ab sechs
 // Rezepten zeigen über den Karten ihren eigenen Einleitungstext (src/daten/themen_texte.mjs, AP-22).
+// Aufbau seit AP-23 wie die Übersicht, ohne Seitenleiste: kleiner Kopf auf der Lavendel-Fläche, alle Rezepte des
+// Themas als Karten in voller Breite (vier Spalten am Laptop), "Je nach Produkt" als Lavendel-Kasten, "Verwandte
+// Themen" als Chips. Alle Rezepte stehen sichtbar im HTML; nichts wird nachgeladen.
 import Basis from '../layouts/Basis.astro';
 import Seitenkopf from './Seitenkopf.astro';
 import Rezeptkarte from './Rezeptkarte.astro';
+import '../styles/rezepte.css';
 import { seite } from '../daten/seite.mjs';
 import { alleThemen, texte, verwandte, ziel, rezeptAdresse } from '../daten/rezeptseiten.mjs';
 
@@ -24,16 +28,25 @@ const daten = [{
 }];
 ---
 <Basis daten={daten}>
-  <Seitenkopf krumen={[{ titel: texte.uebersicht, ziel: '/rezepte/' }, { titel: thema.titel, ziel: adresse }]} titel={thema.titel} vorspann={`${text} ${texte.thema.inDerApp(thema.inDerApp)}`}>
+  <Seitenkopf
+    krumen={[{ titel: texte.uebersicht, ziel: '/rezepte/' }, { titel: thema.titel, ziel: adresse }]}
+    titel={thema.titel}
+    vorspann={`${text} ${texte.thema.inDerApp(thema.inDerApp)}`}
+    klein
+    motive={[
+      { art: 'aehre', breite: 120, lage: 'top: 10px; right: 120px', nurBreit: true },
+      { art: 'zitrone', breite: 130, lage: 'bottom: -50px; right: 360px', ecke: true },
+    ]}
+  >
     {zeigtZutaten && <p class="klein">{texte.thema.grundlage}</p>}
   </Seitenkopf>
 
   <div class="s-inhalt innen">
     {thema.einleitung && <p class="s-teil t-einleitung">{thema.einleitung}</p>}
-    <ul class="r-karten s-teil">{thema.rezepte.map((rezept, nummer) => <Rezeptkarte rezept={rezept} vorn={nummer < 4} />)}</ul>
+    <ul class="r-karten flach vier s-teil">{thema.rezepte.map((rezept, nummer) => <Rezeptkarte rezept={rezept} vorn={nummer < 4} />)}</ul>
 
     {jeNach.length > 0 && (
-      <section class="s-teil s-karte" aria-labelledby="je-nach">
+      <section class="s-teil t-je-nach" aria-labelledby="je-nach">
         <h2 id="je-nach">{texte.thema.jeNachTitel}</h2>
         <p>{thema.jeNachText}</p>
         <ul class="chips">
@@ -43,7 +56,7 @@ const daten = [{
     )}
 
     {nah.length > 0 && (
-      <section class="s-teil" aria-labelledby="verwandt">
+      <section class="s-teil t-verwandt" aria-labelledby="verwandt">
         <h2 id="verwandt">{texte.thema.verwandt}</h2>
         <ul class="chips">
           {nah.map((anderes) => <li><a class="chip" href={anderes.adresse}>{anderes.titel}</a></li>)}

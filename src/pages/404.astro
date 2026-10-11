@@ -1,9 +1,9 @@
 ---
-// Eigene 404-Seite (AP-16 Nachtrag Website, Punkt 2): Der Bau erzeugt 404.html, GitHub Pages liefert sie bei
-// unbekannten Adressen mit Status 404 aus. Nicht in der Sitemap und mit noindex (src/daten/meta.mjs).
-// Wortlaut in src/daten/startseite.mjs. Die Bilder in den Handys sind echte Aufnahmen aus der App 0.14.1 (Emulator,
-// hell, Deutsch, Testhaushalt).
+// Eigene 404-Seite (AP-16 Nachtrag Website, Punkt 2; Aufbau seit AP-23 nach Entwurf "Zentriert, die Null als
+// Zitronenscheibe"): Der Bau erzeugt 404.html, GitHub Pages liefert sie bei unbekannten Adressen mit Status 404 aus.
+// Nicht in der Sitemap und mit noindex (src/daten/meta.mjs). Wortlaut in src/daten/startseite.mjs.
 import Basis from '../layouts/Basis.astro';
+import Motive from '../components/Motive.astro';
 import '../styles/nichtgefunden.css';
 import { geruest } from '../daten/startseite.mjs';
 import { ziel } from '../daten/rezeptseiten.mjs';
@@ -11,66 +11,58 @@ import { ziel } from '../daten/rezeptseiten.mjs';
 const texte = geruest.nichtGefunden;
 // Keine toten Links: Ein Chip erscheint nur, wenn es seine Themenseite gibt.
 const themen = texte.themen.filter((thema) => ziel(thema.ziel));
-const bild = (name, breite) => `/bilder/app/${name}-${breite}.webp`;
-const quellen = (name) => [240, 480].map((breite) => `${bild(name, breite)} ${breite}w`).join(', ');
-const groessen = '(min-width: 30rem) 15rem, 50vw';
+// Die Zahl steht als "4", Zitronenscheibe, "4" da: Die Scheibe ersetzt die mittlere Ziffer.
+const [vorn, hinten] = [texte.zahl.at(0), texte.zahl.at(-1)];
 ---
 <Basis adresse="/404.html">
-  <div class="nf">
-    <div class="nf-fleck" aria-hidden="true"></div>
-    <div class="nf-kreis" aria-hidden="true"></div>
-    <div class="innen nf-raster">
-      <div class="nf-text">
-        <div class="nf-kopf">
-          <p class="nf-etikett">{texte.etikett}</p>
-          <div class="nf-zahl" aria-hidden="true">{texte.zahl}</div>
-          <h1>{texte.titel[0]}<em>{texte.titel[1]}</em></h1>
-          <p>{texte.text}</p>
+  <section class="nf muster">
+    <Motive liste={[
+      { art: 'aehre', breite: 110, lage: 'top: 40px; left: 8%', nurBreit: true },
+      { art: 'blatt', breite: 150, lage: 'bottom: 30px; right: 7%', nurBreit: true },
+    ]} />
+    <div class="innen">
+      <div class="nf-spalte">
+        <p class="ueberzeile">{texte.etikett}</p>
+        <div class="nf-zahl" aria-hidden="true">
+          {vorn}
+          <svg viewBox="0 0 100 100" focusable="false">
+            <path class="nf-kerne" d="M85 50a35 35 0 1 1-70 0 35 35 0 0 1 70 0zM50 15v70M15 50h70M25.3 25.3l49.4 49.4M74.7 25.3L25.3 74.7" />
+            <circle class="nf-schale" cx="50" cy="50" r="44" />
+          </svg>
+          {hinten}
         </div>
+        <h1>{texte.titel[0]}<em>{texte.titel[1]}</em></h1>
+        <p class="nf-text">{texte.text}</p>
 
         <div class="nf-knoepfe">
-          <a class="nf-knopf voll" href="/">
-            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 11l9-7 9 7" /><path d="M5 10v10h14V10" /></svg>
+          <a class="knopf voll" href="/">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 11l9-7 9 7M5 10v10h14V10" /></svg>
             {texte.start}
           </a>
-          <a class="nf-knopf hell" href="/rezepte/">
+          <a class="knopf rand" href="/rezepte/">
             {texte.rezepte}
-            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12h14" /><path d="M13 6l6 6-6 6" /></svg>
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
           </a>
         </div>
 
         {themen.length > 0 && (
           <div class="nf-themen">
             <h2>{texte.themenTitel}</h2>
-            <ul>{themen.map((thema) => <li><a href={thema.ziel}>{thema.titel}</a></li>)}</ul>
+            <ul class="chips">{themen.map((thema) => <li><a class="chip" href={thema.ziel}>{thema.titel}</a></li>)}</ul>
           </div>
         )}
 
-        <div class="nf-karte">
+        <div class="nf-karte blatt-karte">
           <div>
             <h2>{texte.karte.titel}</h2>
             <p>{texte.karte.text}</p>
           </div>
-          <a class="nf-knopf" href={texte.karte.ziel}>
+          <a class="knopf hell" href={texte.karte.ziel}>
             {texte.karte.knopf}
-            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12h14" /><path d="M13 6l6 6-6 6" /></svg>
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
           </a>
         </div>
       </div>
-
-      <div class="nf-handys">
-        <div class="nf-buehne">
-          <i class="kreis" aria-hidden="true"></i>
-          <i class="ring" aria-hidden="true"></i>
-          <i class="punkt" aria-hidden="true"></i>
-          <div class="nf-handy hinten">
-            <img src={bild('startbildschirm', 480)} srcset={quellen('startbildschirm')} sizes={groessen} alt={texte.bilder.start} width="480" height="1080" decoding="async" />
-          </div>
-          <div class="nf-handy vorne">
-            <img src={bild('produktkarte', 480)} srcset={quellen('produktkarte')} sizes={groessen} alt={texte.bilder.karte} width="480" height="1080" decoding="async" />
-          </div>
-        </div>
-      </div>
     </div>
-  </div>
+  </section>
 </Basis>

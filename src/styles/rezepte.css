@@ -1,0 +1,305 @@
+/* Rezeptseiten (Entwurf "Schritt für Schritt"), Übersicht "Rezepte" (Entwurf "Filter in der Seitenleiste") und
+   Themenseiten (AP-23 Teil C Nr. 2 und 3). Alle Farben kommen aus den Variablen in basis.css. Hinweise bleiben neutral
+   gestaltet (nie Rot oder Grün als Urteil). Jede Bewegung liegt am Ende der Datei in der Abfrage
+   "prefers-reduced-motion: no-preference". */
+
+/* Rezeptseite, Kopfbereich: drei große Angaben in weißen Kästchen, die übrigen in einer Zeile, darunter der Knopf
+   "Rezept teilen"; rechts das Symbolbild in einem weißen Rahmen. */
+.r-angaben { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.6rem; max-width: 32.5rem; margin: 1.75rem 0 0; }
+.r-angaben div { padding: 0.9rem 1rem; border-radius: 1.25rem; background: var(--karte); box-shadow: 0 1px 2px rgb(var(--schatten) / 0.06); }
+.r-angaben dt { font-size: 0.82rem; color: var(--muted); }
+.r-angaben dd { margin: 0.2rem 0 0; font-size: clamp(1.15rem, 2.6vw, 1.75rem); font-weight: 800; line-height: 1.15; letter-spacing: -0.01em; color: var(--main); hyphens: manual; }
+.r-zeile { display: flex; flex-wrap: wrap; gap: 0 0.6rem; margin: 1.1rem 0 0; font-size: 0.95rem; color: var(--muted); }
+.r-zeile div { display: flex; align-items: baseline; gap: 0.35rem; }
+.r-zeile div:not(:last-child)::after { content: "·"; margin-left: 0.25rem; }
+.r-zeile dd { margin: 0; }
+.r-zeile a { display: inline-block; padding: 0.3rem 0; color: inherit; }
+/* Knopf "Rezept teilen" (AP-18 Nacharbeiten Teil J). Zu sehen ist er nur mit JavaScript; die Klasse "js" steht schon
+   vor dem ersten Zeichnen am html-Element, deshalb verschiebt sich beim Laden nichts. */
+.r-teilen { display: none; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; margin: 1.4rem 0 0; }
+.js .r-teilen { display: flex; }
+.js .r-teilen[hidden] { display: none; }
+.r-teilen-knopf svg { width: 1.15rem; height: 1.15rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.r-teilen-status { font-weight: 700; color: var(--deep); }
+.r-bild { position: relative; margin: 0; }
+.r-bild img { display: block; width: 100%; height: auto; border: 0.5rem solid var(--karte); border-radius: 2rem; background: var(--tone-deep); box-shadow: 0 12px 32px rgb(var(--schatten) / 0.1); }
+.r-symbol { position: absolute; left: 1.5rem; top: 1.5rem; padding: 0.3rem 0.75rem; border-radius: 999px; background: var(--tone); color: var(--deep); font-size: 0.75rem; font-weight: 700; }
+
+/* Sprungleiste unter dem Kopf: die fünf Abschnitte der Seite. Am Laptop bleibt sie beim Scrollen unter der Kopfzeile
+   stehen; der Abschnitt, der gerade gelesen wird, ist gewählt (Indigo). */
+.r-sprung { border-bottom: 1px solid var(--fuss-linie); background: var(--bg); }
+.r-sprung ul { display: flex; gap: 0.6rem; margin: 0 auto; padding-block: 0.8rem; list-style: none; overflow-x: auto; scrollbar-width: none; }
+.r-sprung ul::-webkit-scrollbar { display: none; }
+.r-sprung li { flex: none; }
+.r-sprung a { display: inline-flex; align-items: center; min-height: 2.75rem; padding: 0 1.1rem; border-radius: 999px; background: var(--tone); color: var(--deep); font-size: 0.9rem; font-weight: 600; text-decoration: none; white-space: nowrap; }
+.r-sprung a:hover { background: var(--tone-deep); }
+.r-sprung a[aria-current] { background: var(--main); color: var(--on-main); font-weight: 700; }
+@media (min-width: 56rem) {
+  .r-sprung { position: sticky; top: calc(4rem + 1px); z-index: 30; }
+  /* Sprungziele landen unter Kopfzeile und Sprungleiste. */
+  .rezept h2[id], .rezept .r-schritte li { scroll-margin-top: 4.75rem; }
+}
+
+/* Rezeptseite, Inhalt */
+.r-teil { margin-top: clamp(3rem, 7vw, 5.5rem); }
+.r-teil > h2, .r-kopfzeile h2 { margin: 0 0 1.5rem; font-size: clamp(1.5rem, 3.2vw, 2rem); letter-spacing: -0.02em; }
+.r-passt h2 { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.3rem 1rem; margin: 0; font-size: 1.375rem; letter-spacing: -0.01em; }
+.r-zusatz { font-size: 0.95rem; font-weight: 400; letter-spacing: 0; color: var(--muted); }
+.r-marken { list-style: none; display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 1.25rem 0 1rem; padding: 0; }
+.r-marken li { display: inline-flex; align-items: center; gap: 0.5rem; min-height: 2.75rem; padding: 0 1rem; border: 1px solid var(--tone-deep); border-radius: 999px; background: var(--karte); color: var(--deep); font-size: 0.95rem; font-weight: 600; }
+.r-marken svg { flex: none; width: 1rem; height: 1rem; color: var(--main); }
+.r-marken li.umriss { border-style: dashed; border-color: var(--line); }
+.r-marken a { display: inline-flex; align-items: center; min-height: 2.75rem; color: inherit; }
+.r-passt .klein { max-width: 46rem; margin: 0.5rem 0 0; font-size: 0.9rem; }
+
+/* Zutaten in zwei Spalten in einer weißen Karte; die Hinweise je Zutat stehen zusammengefasst zum Aufklappen darunter. */
+.r-zutaten-karte { padding: clamp(1.4rem, 4vw, 3rem); border-radius: clamp(1.75rem, 3vw, 2rem); background: var(--karte); }
+.r-kopfzeile { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.3rem 1rem; margin-bottom: 1rem; }
+.r-kopfzeile h2 { margin: 0; }
+.r-fuer { margin: 0; color: var(--muted); }
+.r-zutaten-karte h3 { margin: 1.75rem 0 0.25rem; font-size: 1.1rem; }
+.r-zutaten { list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr)); gap: 0 3rem; margin: 0; padding: 0; }
+.r-zutaten li { padding: 1rem 0; border-bottom: 1px solid var(--fuss-linie); }
+.r-zutat { position: relative; display: block; padding-left: 1.5rem; font-size: 1.06rem; }
+.r-zutat::before { content: ""; position: absolute; left: 0; top: 0.55em; width: 0.6rem; height: 0.6rem; border-radius: 50%; background: var(--motiv); }
+.r-zutat b { font-weight: 800; }
+.r-hinweis { margin: 0.35rem 0 0 1.5rem; font-size: 0.85rem; color: var(--muted); }
+.r-hinweis summary { width: fit-content; padding: 0.25rem 0; color: var(--main); font-weight: 600; cursor: pointer; }
+.r-hinweis p { margin: 0.25rem 0 0; }
+.r-hinweis p b { color: var(--deep); }
+
+/* Zubereitung: ein Schritt je Karte, die Nummer im Lavendel-Kreis. */
+.r-schritte { display: grid; gap: 1.1rem; margin: 0; padding: 0; list-style: none; }
+.r-schritte li { display: flex; align-items: flex-start; gap: clamp(0.9rem, 2.4vw, 1.75rem); padding: clamp(1.25rem, 3vw, 2rem) clamp(1.25rem, 3.4vw, 2.25rem); border-radius: 1.75rem; background: var(--karte); box-shadow: 0 1px 2px rgb(var(--schatten) / 0.06), 0 8px 24px rgb(var(--schatten) / 0.05); }
+.r-nr { flex: none; display: grid; place-items: center; width: clamp(2.5rem, 6vw, 3.5rem); aspect-ratio: 1; border: 1px solid var(--tone-deep); border-radius: 50%; background: var(--tone); color: var(--main); font-size: clamp(1.05rem, 2.4vw, 1.375rem); font-weight: 800; }
+.r-marke { display: block; font-size: 0.95rem; font-weight: 700; letter-spacing: 0.08em; font-variant-caps: all-small-caps; color: var(--main); }
+.r-schritte p { max-width: 62ch; margin: 0.2rem 0 0; font-size: clamp(1.02rem, 1.5vw, 1.19rem); line-height: 1.75; }
+
+/* Hinweise zu den Zutaten: nach Stufe gruppiert in drei weißen Karten. Die Tabelle mit denselben Angaben bleibt als
+   Umschalter: Ist sie aufgeklappt, steht sie anstelle der Karten da. */
+.r-hinweise { position: relative; }
+.r-hinweise > h2 { margin-bottom: 0.5rem; }
+.r-einleitung { max-width: 44rem; margin: 0; color: var(--muted); }
+.r-umschalter { margin-top: 1.25rem; }
+.r-umschalter summary { display: inline-flex; align-items: center; min-height: 2.75rem; padding: 0 1.1rem; border: 1px solid var(--line); border-radius: 999px; background: var(--karte); color: var(--deep); font-size: 0.9rem; font-weight: 600; list-style: none; cursor: pointer; }
+.r-umschalter summary::-webkit-details-marker { display: none; }
+.r-umschalter[open] summary { border-color: var(--main); background: var(--main); color: var(--on-main); }
+.r-umschalter .r-tabelle { margin-top: 1.25rem; padding: clamp(1rem, 3vw, 1.75rem); border-radius: 1.75rem; background: var(--karte); }
+.r-hinweise:has(.r-umschalter[open]) .r-stufenkarten { display: none; }
+.r-stufenkarten { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18.75rem), 1fr)); align-items: start; gap: 1.25rem; margin-top: 1.5rem; }
+.r-stufe { padding: clamp(1.4rem, 3vw, 2rem); border-radius: 1.75rem; background: var(--karte); }
+.r-stufe h3 { display: flex; align-items: center; gap: 0.6rem; margin: 0; font-size: 1.25rem; }
+/* Drei Punkte für die drei Stufen: voll, mittel, offen. */
+.r-stufe h3 i { flex: none; width: 0.75rem; height: 0.75rem; border: 2px solid var(--main); border-radius: 50%; }
+.r-stufe h3 i.voll { border-color: var(--deep); background: var(--deep); }
+.r-stufe h3 i.halb { background: var(--main); }
+.r-stufe-text { margin: 0.4rem 0 1rem; font-size: 0.9rem; color: var(--muted); }
+.r-stufe dl { margin: 0; }
+.r-stufe dl div { padding: 0.75rem 0; border-top: 1px solid var(--fuss-linie); }
+.r-stufe dl div:last-child { padding-bottom: 0; }
+.r-stufe dt { font-weight: 700; }
+.r-stufe dd { margin: 0.1rem 0 0; font-size: 0.9rem; color: var(--muted); }
+.r-stufe-leer { margin: 0; padding: 0.75rem 0 0; border-top: 1px solid var(--fuss-linie); font-size: 0.95rem; color: var(--muted); }
+.r-hinweise > .klein { margin: 1.25rem 0 0; }
+@media (min-width: 56rem) {
+  .r-hinweise > h2, .r-einleitung { max-width: calc(100% - 14rem); }
+  .r-umschalter { margin-top: 0; }
+  .r-umschalter summary { position: absolute; right: 0; top: 0.25rem; }
+}
+.r-tabelle { overflow-x: auto; }
+.r-tabelle table { border-collapse: collapse; width: 100%; font-size: 0.97rem; }
+.r-tabelle th, .r-tabelle td { border-bottom: 1px solid var(--line); padding: 0.55rem 0.75rem 0.55rem 0; text-align: left; vertical-align: top; }
+.r-tabelle thead th { font-size: 0.85rem; color: var(--muted); }
+.r-zahlen { max-width: 34rem; }
+.r-zahlen td { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* Nährwerte: Kalorien groß mit der Energiedichte in einer Lavendel-Karte, die übrigen Werte als Kacheln. */
+.r-nw-raster { display: grid; gap: 1.25rem; }
+.r-kcal { display: flex; flex-direction: column; justify-content: space-between; gap: 1.5rem; padding: clamp(1.5rem, 3vw, 2.25rem); border-radius: 1.75rem; }
+.r-kcal dl { margin: 0; }
+.r-kcal dt { font-size: 0.95rem; color: var(--muted); }
+.r-kcal dd { margin: 0; font-size: clamp(2.25rem, 5vw, 3.25rem); font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; color: var(--main); }
+.r-kcal dd small { display: block; margin-top: 0.25rem; font-size: 0.9rem; font-weight: 400; letter-spacing: 0; color: var(--muted); }
+.r-energie h3 { margin: 0 0 0.6rem; font-size: 0.95rem; }
+/* Skala der Energiedichte: vier Balken, gefüllt bis zur Stufe des Rezepts, darunter Wort und Bereich jeder Stufe. */
+.r-skala { list-style: none; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.4rem; margin: 0 0 0.75rem; padding: 0; }
+.r-skala li { position: relative; padding-top: 0.9rem; font-size: 0.78rem; line-height: 1.3; color: var(--muted); }
+.r-skala li::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 0.5rem; border-radius: 999px; background: var(--karte); }
+.r-skala li.voll::before { background: var(--main); }
+.r-skala li b { display: block; font-size: 0.82rem; color: var(--text); }
+.r-energie .klein { margin: 0.4rem 0 0; font-size: 0.85rem; }
+.r-nw { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 9.5rem), 1fr)); align-content: start; gap: 1rem; margin: 0; }
+.r-nw div { padding: 1.2rem 1.3rem; border-radius: 1.4rem; background: var(--karte); }
+.r-nw dt { font-size: 0.9rem; color: var(--muted); }
+.r-nw dd { margin: 0.1rem 0 0; font-size: 1.6rem; font-weight: 800; line-height: 1.2; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.r-nw dd small { display: block; font-size: 0.82rem; font-weight: 400; letter-spacing: 0; color: var(--muted); }
+.r-nw-raster + .s-klapp { margin-top: 1.25rem; background: var(--karte); }
+.r-nw-raster ~ .klein { margin: 1rem 0 0; }
+@media (min-width: 52rem) { .r-nw-raster { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); } }
+
+/* Hinweis auf die App: Lavendel-Fläche mit Muster und einer Zitronenscheibe in der Ecke. */
+.r-app { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1.75rem 3.5rem; padding: clamp(1.75rem, 5vw, 3.5rem); border-radius: clamp(1.75rem, 3vw, 2.25rem); }
+.r-app-text, .r-app-zeile { position: relative; z-index: 1; }
+.r-app-text { flex: 1 1 28rem; min-width: 0; }
+.r-app h2 { margin: 0; font-size: clamp(1.4rem, 3vw, 1.875rem); letter-spacing: -0.02em; color: var(--deep); }
+.r-app-text p { max-width: 58ch; margin: 0.9rem 0 0; line-height: 1.75; }
+.r-app-zeile { display: flex; flex-direction: column; align-items: flex-start; gap: 0.75rem; margin: 0; }
+.r-bald { display: inline-flex; align-items: center; min-height: 3.125rem; padding: 0 1.5rem; border: 1px solid var(--motiv); border-radius: 999px; background: var(--karte); color: var(--deep); font-size: 0.95rem; font-weight: 600; }
+
+/* Quelle und Lizenz: unter dem Rezept nur ein kleiner Link in gedämpfter Schrift (mindestens 14 px, Kontrast über
+   4,5:1 in beiden Farbschemata); die Angaben stehen auf der Seite "Quellen und Lizenzen". */
+.r-quelle-link { margin: 1rem 0 0; font-size: 0.9rem; }
+.r-quelle-link a { display: inline-flex; align-items: center; min-height: 2.75rem; color: var(--muted); }
+.r-mehr { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; margin-top: 2rem; }
+.r-mehr h3 { margin: 0 0.5rem 0 0; font-size: 1rem; }
+
+/* Rezeptkarten: Symbolbild mit runden Ecken, darunter Name, Zusatz, Kategorie und Zeit. Die ganze Karte ist das Ziel
+   des Links. "flach" (Übersicht und Themenseiten): Bild 16:10. "gefasst" (ähnliche Rezepte): weiße Karte. */
+.r-karten { list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(13.75rem, 1fr)); gap: 1.75rem 1.25rem; margin: 0; padding: 0; }
+.r-karte { position: relative; min-width: 0; transform: perspective(60rem) rotateX(var(--nx, 0deg)) rotateY(var(--ny, 0deg)); }
+.r-karte[hidden] { display: none; }
+.r-karte-bild { position: relative; overflow: hidden; aspect-ratio: 4 / 3; border-radius: 1.5rem; background: var(--tone); }
+.r-karte-bild img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.r-karte .r-symbol { left: 0.75rem; top: auto; bottom: 0.75rem; padding: 0.2rem 0.65rem; background: var(--karte); font-size: 0.72rem; }
+.r-karte-titel { margin: 0.85rem 0 0; font-size: 1.06rem; font-weight: 800; line-height: 1.3; }
+.r-karte-titel a { color: var(--text); text-decoration: none; }
+.r-karte-titel a::after { content: ""; position: absolute; inset: 0; border-radius: 1.5rem; }
+.r-karte-titel a:hover { text-decoration: underline; }
+.r-karte-unter { margin: 0.15rem 0 0; font-size: 0.85rem; line-height: 1.4; color: var(--muted); }
+.r-karte-zeile { margin: 0.3rem 0 0; font-size: 0.85rem; font-weight: 600; color: var(--main); }
+.r-karten.flach .r-karte-bild { aspect-ratio: 16 / 10; }
+.r-karten.gefasst { gap: 1.25rem; }
+.r-karten.gefasst .r-karte { overflow: hidden; border-radius: 1.5rem; background: var(--karte); }
+.r-karten.gefasst .r-karte-bild { border-radius: 0; }
+.r-karten.gefasst .r-symbol { top: 0.75rem; bottom: auto; }
+.r-karten.gefasst .r-karte-text { padding: 0 1.25rem 1.3rem; }
+.r-karten.gefasst .r-karte-zeile { font-weight: 400; color: var(--muted); }
+/* Am Handy zwei Karten nebeneinander, damit die Listen nicht endlos werden. */
+@media (max-width: 30rem) {
+  .r-karten { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem 0.75rem; }
+  .r-karte-bild { border-radius: 1.1rem; }
+  .r-karte-titel { font-size: 0.95rem; }
+  .r-karte .r-symbol { left: 0.5rem; bottom: 0.5rem; font-size: 0.68rem; }
+  .r-karten.gefasst .r-karte-text { padding: 0 0.8rem 0.9rem; }
+  .r-karten.gefasst .r-symbol { top: 0.5rem; }
+}
+@media (min-width: 64rem) { .r-karten.vier { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+/* Übersicht "Rezepte": Suche, Trefferzahl, gewählte Filter als Chips, Karten. Die drei Filtergruppen liegen am Handy
+   und Tablet in einem Blatt von unten (Knopf "Filter"); ab 64rem stehen sie ständig offen in einer weißen Leiste
+   links, die beim Scrollen mitfährt. Ohne JavaScript entfallen Suche und Filter, und alle Rezepte stehen da. */
+.f-seite { scroll-margin-top: 5.5rem; }
+html:not(.js) .f-blatt, html:not(.js) .f-leiste { display: none; }
+.f-seite svg { flex: none; width: 1.15rem; height: 1.15rem; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.f-leiste { display: grid; gap: 0.9rem; margin-bottom: 1.5rem; }
+.f-suche-titel { font-size: 0.9rem; font-weight: 700; }
+.f-suche { display: flex; align-items: center; gap: 0.75rem; min-height: 3.5rem; margin-top: -0.4rem; padding: 0 1.25rem; border: 1px solid var(--tone-deep); border-radius: 999px; background: var(--karte); }
+.f-suche svg { width: 1.3rem; height: 1.3rem; color: var(--main); }
+.f-suche input { flex: 1 1 auto; min-width: 0; min-height: 3.3rem; border: 0; background: transparent; color: var(--text); font: inherit; outline: none; }
+.f-suche:focus-within { outline: 3px solid var(--main); outline-offset: 3px; }
+.f-zeile { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem; }
+.f-knopf { display: inline-flex; align-items: center; gap: 0.5rem; min-height: 3rem; padding: 0 1.1rem; border: 1px solid var(--tone-deep); border-radius: 999px; background: var(--karte); color: var(--text); font: inherit; font-weight: 600; cursor: pointer; }
+.f-knopf:hover { border-color: var(--main); }
+.f-knopf.gewaehlt, .f-knopf[aria-expanded="true"] { border-color: var(--main); background: var(--tone); color: var(--deep); font-weight: 700; }
+.f-knopf[aria-expanded="true"] .pfeil { transform: rotate(180deg); }
+.f-marke { display: inline-flex; align-items: center; justify-content: center; min-width: 1.6rem; height: 1.6rem; padding: 0 0.4rem; border-radius: 999px; background: var(--main); color: var(--on-main); font-size: 0.85rem; font-weight: 800; }
+.f-marke[hidden] { display: none; }
+.f-stand { margin: 0; font-weight: 800; }
+.f-feld { display: none; }
+.f-knopf[aria-expanded="true"] + .f-feld { display: grid; }
+.f-feld fieldset { margin: 0; padding: 0; border: 0; min-width: 0; }
+.f-feld legend { padding: 0 0.6rem 0.4rem; font-size: 0.95rem; font-weight: 800; color: var(--deep); }
+.f-feld legend small { display: block; font-size: 0.8rem; font-weight: 400; color: var(--muted); }
+.f-feld ul { list-style: none; display: grid; gap: 0.1rem; margin: 0; padding: 0; }
+.f-feld li[data-spaeter] { display: none; }
+.f-gruppe.ganz li[data-spaeter] { display: block; }
+.f-feld label { display: flex; align-items: center; gap: 0.75rem; min-height: 2.75rem; padding: 0 0.6rem; border-radius: 0.65rem; cursor: pointer; }
+.f-feld label:hover { background: var(--flaeche); }
+.f-feld label:has(input:checked) { background: var(--tone); color: var(--deep); font-weight: 700; }
+.f-feld input { flex: none; width: 1.2rem; height: 1.2rem; margin: 0; accent-color: var(--main); }
+.f-anzahl { min-width: 1.75rem; margin-left: auto; padding: 0.1rem 0.4rem; border-radius: 999px; background: var(--flaeche); font-size: 0.8rem; font-weight: 600; text-align: center; color: var(--muted); font-variant-numeric: tabular-nums; }
+.f-feld-fuss { display: flex; justify-content: space-between; gap: 0.6rem; margin-top: 0.3rem; padding-top: 0.6rem; border-top: 1px solid var(--tone-deep); }
+.f-schlicht { align-self: flex-start; min-height: 2.75rem; padding: 0 0.6rem; border: 0; border-radius: 0.65rem; background: transparent; color: var(--main); font: inherit; font-size: 0.9rem; font-weight: 700; cursor: pointer; }
+.f-schlicht:hover { background: var(--tone); }
+.f-schlicht.grau { color: var(--muted); }
+.f-schlicht[hidden] { display: none; }
+.f-voll { min-height: 2.75rem; padding: 0 1.4rem; border: 0; border-radius: 999px; background: var(--main); color: var(--on-main); font: inherit; font-size: 0.95rem; font-weight: 700; cursor: pointer; }
+.f-rund { display: inline-flex; align-items: center; justify-content: center; width: 3rem; height: 3rem; border: 0; border-radius: 50%; background: var(--tone); color: var(--deep); cursor: pointer; }
+/* Gewählte Filter: Chips in Indigo mit einem Kreuz zum Entfernen. */
+.f-aktiv { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }
+.f-aktiv[hidden] { display: none; }
+.f-aktiv-liste { list-style: none; display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 0; padding: 0; }
+.f-karte { display: inline-flex; align-items: center; gap: 0.5rem; min-height: 2.75rem; padding: 0 0.8rem 0 1rem; border: 0; border-radius: 999px; background: var(--main); color: var(--on-main); font: inherit; font-size: 0.9rem; font-weight: 600; cursor: pointer; }
+.f-karte svg { width: 0.95rem; height: 0.95rem; stroke-width: 2.6; }
+.f-aktiv .f-schlicht { text-decoration: underline; text-underline-offset: 0.18em; }
+.f-blatt-kopf, .f-blatt-fuss, .f-schleier { display: none; }
+.f-leer { margin: 1.5rem 0 0; }
+
+/* Handy und Tablet: Blatt von unten mit den drei Gruppen zum Aufklappen. */
+@media (max-width: 63.99rem) {
+  .f-blatt { display: none; }
+  .f-alles { display: none; }
+  .blatt-offen .f-blatt { display: flex; flex-direction: column; position: fixed; left: 0; right: 0; bottom: 0; z-index: 61; max-width: 40rem; max-height: 88dvh; margin: 0 auto; border-radius: 1.5rem 1.5rem 0 0; background: var(--karte); box-shadow: 0 -20px 50px rgb(var(--schatten) / 0.25); }
+  .blatt-offen .f-schleier { display: block; position: fixed; inset: 0; z-index: 60; background: rgb(var(--schleier) / 0.5); }
+  .blatt-offen .f-schleier[hidden] { display: none; }
+  .blatt-offen { overflow: hidden; }
+  .f-blatt-kopf { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.9rem 1rem 0.6rem 1.25rem; }
+  .f-blatt-kopf p { margin: 0; font-size: 1.25rem; font-weight: 800; letter-spacing: -0.02em; }
+  .f-gruppen { display: grid; gap: 0.5rem; overflow-y: auto; padding: 0.25rem 1rem 1rem; }
+  .f-gruppe { border: 1px solid var(--tone-deep); border-radius: 1.1rem; }
+  .f-gruppe .f-knopf { width: 100%; justify-content: space-between; min-height: 3.25rem; border: 0; border-radius: 1.1rem; background: transparent; }
+  .f-knopf[aria-expanded="true"] + .f-feld { gap: 0.15rem; padding: 0 0.5rem 0.6rem; }
+  .f-feld legend { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .f-feld-fuss { justify-content: flex-start; border-top: 0; margin-top: 0; padding-top: 0; }
+  .f-feld-fuss .f-voll { display: none; }
+  .f-blatt-fuss { display: block; padding: 0.75rem 1rem calc(0.9rem + env(safe-area-inset-bottom)); border-top: 1px solid var(--tone-deep); }
+  .f-blatt-fuss .f-voll { width: 100%; min-height: 3.25rem; font-size: 1rem; }
+}
+/* Laptop: zwei Spalten. Links die Leiste mit allen Gruppen, ständig offen; rechts Suche, Treffer und Karten. */
+@media (min-width: 64rem) {
+  .js .f-seite { display: grid; grid-template-columns: 17.5rem minmax(0, 1fr); align-items: start; gap: 2.5rem; }
+  .f-blatt { position: sticky; top: 5.25rem; max-height: calc(100vh - 6.5rem); overflow-y: auto; padding: 1.25rem 1rem; border-radius: 1.75rem; background: var(--karte); box-shadow: 0 1px 2px rgb(var(--schatten) / 0.06); }
+  .f-blatt-kopf { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0 0 0.5rem 0.6rem; }
+  .f-blatt-kopf p { margin: 0; font-size: 1.25rem; font-weight: 800; letter-spacing: -0.02em; }
+  .f-blatt-kopf .f-rund, .f-gruppe .f-knopf, .f-feld-fuss, .f-mobil { display: none; }
+  .f-feld, .f-knopf[aria-expanded="true"] + .f-feld { display: block; }
+  .f-gruppe + .f-gruppe { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--fuss-linie); }
+  .f-feld label { min-height: 2.25rem; font-size: 0.92rem; }
+  /* In der Leiste zeigt nur "Land" zuerst einen Teil; "Passt für" und "Kategorie" stehen ganz da. */
+  .f-feld li[data-spaeter] { display: block; }
+  .f-feld li[data-spaeter-breit] { display: none; }
+  .f-gruppe.ganz li[data-spaeter-breit] { display: block; }
+  .f-gruppe.breit-ganz [data-mehr] { display: none; }
+  .f-zeile { justify-content: flex-start; }
+  .f-stand { font-size: 1rem; }
+  .r-karten.flach:not(.vier) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* "Rezepte nach Thema": alle Themenseiten als Chips, eine Zeile je Gruppe. */
+.f-themen { margin-top: clamp(3rem, 7vw, 5rem); padding-top: clamp(2rem, 5vw, 3rem); border-top: 1px solid var(--tone-deep); }
+.f-themen h2 { margin: 0 0 1.25rem; font-size: clamp(1.4rem, 3vw, 1.75rem); letter-spacing: -0.02em; }
+.f-themen dl { display: grid; gap: 1.1rem; margin: 0; }
+.f-themen dt { font-weight: 700; color: var(--deep); }
+.f-themen dt small { display: block; font-size: 0.8rem; font-weight: 400; color: var(--muted); }
+.f-themen dd { margin: 0.5rem 0 0; }
+@media (min-width: 48rem) {
+  .f-themen dl div { display: grid; grid-template-columns: 10.5rem minmax(0, 1fr); align-items: start; gap: 1.5rem; }
+  .f-themen dt { padding-top: 0.6rem; }
+  .f-themen dd { margin: 0; }
+}
+
+/* Themenseite: Einleitung über den Karten, "Je nach Produkt" als Lavendel-Kasten, "Verwandte Themen" als Chips. */
+.t-einleitung { max-width: 46rem; margin-bottom: 0; font-size: 1.06rem; line-height: 1.7; }
+.t-einleitung + .r-karten { margin-top: 2rem; }
+.t-je-nach { padding: clamp(1.4rem, 3.4vw, 2.25rem); border-radius: 1.75rem; background: var(--kasten); }
+.t-je-nach h2, .t-verwandt h2 { margin: 0 0 0.6rem; font-size: clamp(1.25rem, 2.6vw, 1.5rem); letter-spacing: -0.01em; }
+.t-je-nach h2 { color: var(--deep); }
+.t-je-nach p { max-width: 46rem; margin: 0 0 1.1rem; }
+.t-verwandt h2 { margin-bottom: 1rem; }
+
+/* Bewegung */
+@media (prefers-reduced-motion: no-preference) {
+  .r-karte { transition: transform 0.25s ease; }
+  .blatt-offen .f-blatt { transition: translate 0.22s cubic-bezier(0.22, 1, 0.36, 1); }
+  @starting-style { .blatt-offen .f-blatt { translate: 0 2rem; } }
+}

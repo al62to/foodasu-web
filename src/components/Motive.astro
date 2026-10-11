@@ -1,0 +1,42 @@
+---
+// Blasse Linienmotive auf einer Lavendel-Fläche (AP-23 Teil B Nr. 5): Zitronenscheibe, Blatt und Ähre. Sie schmücken
+// nur und sind für Bildschirmleser ausgeblendet. Je Abschnitt höchstens drei; mehr bricht den Bau ab.
+// "liste" nennt je Motiv: "art" (zitrone, blatt, aehre), "breite" in Pixeln (wie im Entwurf für 1280 Pixel gezeichnet)
+// und "lage" (Abstände zum Rand der Fläche, zum Beispiel "top: -60px; right: 40px"). "nurBreit" blendet ein Motiv am
+// Handy aus, wo es hinter dem Text läge; "ecke" rückt es am Handy stattdessen in die rechte obere Ecke der Fläche. Mit
+// "klasse" statt "lage" bestimmt die Stildatei der Seite die Lage. Die Farbe kommt aus --motiv (src/styles/basis.css).
+const { liste = [] } = Astro.props;
+if (liste.length > 3) throw new Error(`Höchstens drei Linienmotive je Abschnitt, hier sind es ${liste.length}.`);
+
+const FORMEN = {
+  zitrone: { feld: '0 0 100 100', hoehe: 1 },
+  blatt: { feld: '0 0 100 100', hoehe: 1 },
+  aehre: { feld: '0 0 60 100', hoehe: 100 / 60 },
+};
+for (const motiv of liste) {
+  if (!FORMEN[motiv.art]) throw new Error(`Linienmotiv „${motiv.art}“ gibt es nicht (zitrone, blatt, aehre).`);
+}
+---
+{liste.map((motiv) => (
+  <svg
+    class:list={['motiv', motiv.klasse, { 'nur-breit': motiv.nurBreit, 'm-ecke': motiv.ecke }]}
+    viewBox={FORMEN[motiv.art].feld}
+    width={motiv.breite}
+    height={Math.round(motiv.breite * FORMEN[motiv.art].hoehe)}
+    style={`width: ${motiv.breite / 16}rem; ${motiv.lage ?? ''}`}
+    aria-hidden="true"
+    focusable="false"
+  >
+    {motiv.art === 'zitrone' && (
+      <>
+        <circle cx="50" cy="50" r="44" />
+        <circle cx="50" cy="50" r="36" />
+        <path d="M50 14v72M14 50h72M24.5 24.5l51 51M75.5 24.5l-51 51" />
+      </>
+    )}
+    {motiv.art === 'blatt' && <path d="M20 80C20 40 50 15 85 15c0 35-25 65-65 65zM20 80l50-50" />}
+    {motiv.art === 'aehre' && (
+      <path d="M30 98V10M30 30c-12-4-16-12-14-20 10 2 14 10 14 20zM30 30c12-4 16-12 14-20-10 2-14 10-14 20zM30 50c-12-4-16-12-14-20 10 2 14 10 14 20zM30 50c12-4 16-12 14-20-10 2-14 10-14 20zM30 70c-12-4-16-12-14-20 10 2 14 10 14 20zM30 70c12-4 16-12 14-20-10 2-14 10-14 20z" />
+    )}
+  </svg>
+))}

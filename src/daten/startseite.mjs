@@ -37,39 +37,37 @@ export const kopf = {
 export const wort = {
   vorsatz: 'Einkaufen ohne',
   woerter: ['Nüsse', 'Gluten', 'Schweinefleisch', 'Alkohol', 'Palmöl', 'Sesam', 'Milch'],
-  // Erster Absatz: Beispiel geändert auf Alis Wort vom 10.10.2026 (Gluten statt des früheren ersten Beispiels).
+  // Alis Wortlaut von "Über FoodAsu", gekürzt auf zwei Absätze und ohne Doppelpunkt (Projektleitung, 11.10.2026,
+  // AP-23 Teil A Nr. 2; wörtlich). Darunter die Unterschrift und ein Link auf den ganzen Text.
   absaetze: [
-    'In vielen Haushalten isst nicht jeder alles: kein Gluten für den einen, keine Nüsse für die andere, keine Milch fürs Kind. Im Laden heißt das: Packung umdrehen, Kleingedrucktes lesen, bei jedem Produkt von vorn.',
+    'In vielen Haushalten isst nicht jeder alles. Der eine isst kein Gluten, die andere keine Nüsse, das Kind trinkt keine Milch. Im Laden heißt das Packung umdrehen, Kleingedrucktes lesen, und beim nächsten Produkt wieder von vorn.',
     'Deshalb habe ich FoodAsu gebaut. Du legst einmal fest, was jede Person bei dir zu Hause meidet. Danach reicht ein Scan.',
   ],
   unterschrift: 'Ali Tonc, Entwickler von FoodAsu',
+  link: { text: 'Warum es FoodAsu gibt', ziel: '/ueber-foodasu/#warum' },
 };
 
 // Der Ablauf einer Einkaufswoche (AP-22 Teil 2 Nr. 2, von Ali am 10.10.2026 freigegeben): vier Schritte statt
 // "FoodAsu in drei Schritten" (Scannen, Warum?, Kochen; freigegeben am 09.10.2026). Der Anker #schritte bleibt.
 // Beschrieben ist nur, was 0.14.3 kann: Abgehakt wird mit dem Finger, nicht beim Scannen. Schritt 3 nennt "Warum?"
-// (Entscheidung 5). "symbol" nennt das Zeichen in index.astro.
+// (Entscheidung 5). Seit AP-23 stehen die Schritte als Nummern im Kreis an einer feinen Linie, ohne Zeichen.
 export const schritte = {
   ueberschrift: 'Eine Einkaufswoche mit FoodAsu',
   liste: [
     {
       titel: 'Rezept aussuchen',
-      symbol: 'rezept',
       text: 'Such dir in der App aus über 300 Rezepten aus, was es geben soll. Die fehlenden Zutaten setzt du aus dem Rezept auf eine Einkaufsliste.',
     },
     {
       titel: 'Zu Hause schreiben',
-      symbol: 'stift',
       text: 'Schreib dazu, was sonst noch fehlt, zum Beispiel „2 Zwiebeln“. FoodAsu ordnet die Liste nach Warengruppen.',
     },
     {
       titel: 'Im Laden abhaken und scannen',
-      symbol: 'scan',
       text: 'Ein Tipp mit dem Finger hakt ab, was im Wagen liegt. Bei einem Produkt scannst du den Strichcode und siehst für jede Person einzeln, was die Daten zum Produkt sagen. Ein Tipp auf „Warum?“ zeigt, welche Zutat oder Spurenangabe dahintersteckt.',
     },
     {
       titel: 'Kochen',
-      symbol: 'topf',
       text: 'Gekocht wird für alle am Tisch: Im Rezept steht bei den Zutaten, wen in deinem Haushalt etwas betrifft.',
     },
   ],
@@ -80,24 +78,30 @@ export const schritte = {
 // FoodAsu dann zeigt. Die Einträge heißen wie in der App; keine Namen, keine Aussagen zur Gesundheit. Dazu nach
 // Entscheidung 9 der Satz, für wen FoodAsu ist, und als fünfte Lage der Wocheneinkauf ("breit": Karte über die ganze
 // Zeile): Listen bleiben gespeichert, Erledigtes lässt sich zurückholen (LISTE-04), Vorschläge beim Tippen (LISTE-03).
+// Seit AP-23 stehen die ersten vier Lagen um einen runden Tisch: "schild" ist das Schildchen am Teller (schmückt nur,
+// für Bildschirmleser ausgeblendet). "liste" ist die kleine Einkaufsliste neben dem Wocheneinkauf (ebenso).
 export const lagen = {
   ueberschrift: 'Wenn nicht alle dasselbe essen',
   text: 'FoodAsu ist für alle, die wissen wollen, was sie einkaufen, statt blind zuzugreifen.',
   karten: [
     {
       titel: 'Das Kind trinkt keine Milch',
+      schild: 'Kind · Milch',
       text: 'Du trägst beim Kind „Milch“ ein. Beim Scannen steht dann oben auf der Karte, wenn laut den Angaben Milch im Produkt ist.',
     },
     {
       titel: 'Der Partner isst vegetarisch',
+      schild: 'Partner · Vegetarisch',
       text: 'Mit „Vegetarisch“ weist FoodAsu auf Zutaten hin, die laut den Angaben nicht vegetarisch sind: beim Produkt und bei den Zutaten der Rezepte.',
     },
     {
       titel: 'Gäste essen kein Schweinefleisch',
+      schild: 'Gäste · Schweinefleisch',
       text: 'Leg für den Besuch eine Person an und wähl „Schweinefleisch“ mit der Stufe „Auf keinen Fall“. Rezepte mit Schweinefleisch blendet FoodAsu dann aus und nennt ihre Zahl.',
     },
     {
       titel: 'Die Oma meidet Gluten',
+      schild: 'Oma · Gluten',
       text: 'Steht „Gluten“ bei ihr, siehst du es schon auf der Einkaufsliste: Betrifft ein Eintrag jemanden im Haushalt, steht ein Hinweis dabei.',
     },
     {
@@ -106,44 +110,50 @@ export const lagen = {
       breit: true,
     },
   ],
+  liste: { titel: 'Wocheneinkauf', offen: ['2 Zwiebeln', 'Brot', 'Tomaten'], erledigtTitel: 'Erledigt', erledigt: ['Mozzarella', 'Basilikum'] },
   hinweis: 'FoodAsu zeigt, was laut Daten im Produkt ist. Daten können fehlen oder veraltet sein. Maßgeblich ist immer die Verpackung.',
 };
 
+// Sechs Funktionen (seit AP-23 ohne Kästen: je ein Zeichen im Lavendel-Quadrat, Titel und Text). "symbol" nennt das
+// Zeichen in index.astro.
 export const funktionen = {
   ueberschrift: 'Scanner, Einkaufsliste und Rezepte in einer App',
   karten: [
     {
       kennung: 'scanner',
+      symbol: 'scan',
       titel: 'Scannen und sofort sehen',
       text: 'FoodAsu prüft Zutaten und Spurenangaben für jede Person einzeln. Das Ergebnis heißt „enthält“, „Spuren“, „Angaben unvollständig“ oder „Kein Konflikt laut Daten“.',
     },
     {
       kennung: 'haushalt',
+      symbol: 'haushalt',
       titel: 'Dein Haushalt',
       text: 'Für jede Person eigene Einträge. Drei Stufen von „Lieber nicht“ bis „Auf keinen Fall“; die strengste warnt auch bei Spuren.',
     },
     {
-      kennung: 'rezepte',
-      titel: 'In der App: über 300 Rezepte aus 25 Ländern',
-      text: 'Jedes mit einem Symbolbild. Bei den Zutaten steht, wen sie betreffen.',
-      bild: 'Symbolbild: Pizza Margherita',
-      datei: 'pizza-margherita',
-    },
-    {
       kennung: 'liste',
+      symbol: 'liste',
       titel: 'Einkaufsliste, sortiert wie im Supermarkt',
       // AP-22 Teil 2 Nr. 4 und Entscheidung 9: Neu sind der zweite Satz (Listen bleiben gespeichert, Vorschläge) und der
       // letzte ("als Text teilen").
       text: 'Schreib auf, was du brauchst, oder setz die fehlenden Zutaten eines Rezepts auf die Liste. Deine Listen bleiben gespeichert, und beim Schreiben schlägt FoodAsu vor, was du schon einmal aufgeschrieben hast. Betrifft ein Eintrag jemanden im Haushalt, steht ein Hinweis dabei. Die Liste kannst du als Text teilen, zum Beispiel mit jemandem, der einkaufen geht.',
-      beispiel: ['Tomaten', 'Mozzarella', 'Basilikum'],
+    },
+    {
+      kennung: 'rezepte',
+      symbol: 'buch',
+      titel: 'In der App: über 300 Rezepte aus 25 Ländern',
+      text: 'Jedes mit einem Symbolbild. Bei den Zutaten steht, wen sie betreffen.',
     },
     {
       kennung: 'kochen',
+      symbol: 'topf',
       titel: 'Was kann ich damit kochen?',
       text: 'Rezepte zu deiner Einkaufsliste: FoodAsu zeigt Gerichte, für die schon Zutaten auf der Liste stehen, und was noch fehlt.',
     },
     {
       kennung: 'daten',
+      symbol: 'handy',
       titel: 'Kein Konto, keine Werbung, kein Verkauf von Daten.',
       text: 'Was dein Haushalt meidet, bleibt nur auf deinem Handy, außer du exportierst es selbst.',
     },
@@ -284,8 +294,9 @@ export const geruest = {
   },
   // Knopf der Startseite, der die Bewegung anhält (WCAG 2.2.2). Der Zustand gilt nur für den Besuch.
   bewegung: { anhalten: 'Bewegung anhalten', fortsetzen: 'Bewegung fortsetzen' },
-  // 404-Seite: Wortlaut und Aufbau nach dem Entwurf der Projektleitung (AP-16 Nachtrag Website, Punkt 2), von Ali
-  // freigegeben. "themen" nennt die Adressen der sechs Themen; gibt es eine Seite beim Bauen nicht, fällt ihr Chip weg.
+  // 404-Seite: Wortlaut nach dem Entwurf der Projektleitung (AP-16 Nachtrag Website, Punkt 2), von Ali freigegeben;
+  // Aufbau seit AP-23 mittig auf der Lavendel-Fläche, die Null der Zahl ist eine Zitronenscheibe. "themen" nennt die
+  // Adressen der sechs Themen; gibt es eine Seite beim Bauen nicht, fällt ihr Chip weg.
   nichtGefunden: {
     etikett: 'Fehler 404',
     zahl: '404',
@@ -304,12 +315,12 @@ export const geruest = {
     ],
     karte: {
       titel: 'Was ist FoodAsu?',
-      text: 'Eine App für Android: Du scannst Lebensmittel beim Einkauf und siehst sofort, ob etwas drin ist, das du meidest.',
+      // Wortlaut der Projektleitung vom 11.10.2026 (AP-23 Teil D Nr. 3), mit "laut den Angaben".
+      text: 'Eine App für Android: Du scannst Lebensmittel beim Einkauf und siehst sofort, ob laut den Angaben etwas drin ist, das du meidest.',
       // Der Knopf führt zur Anleitung (bis AP-18 zu den drei Schritten der Startseite).
       knopf: "So geht's",
       ziel: '/so-gehts/',
     },
-    bilder: { karte: 'FoodAsu-App: Produktkarte nach dem Scan mit Urteil', start: 'FoodAsu-App: Startbildschirm' },
   },
   // Seite /lizenzen/: Die Texte stehen seit AP-22 in src/daten/lizenzen.mjs.
   lizenzen,

@@ -1,0 +1,63 @@
+---
+// Gerüst der Rechtstexte (AP-23 Teil C Nr. 9, Entwurf "Ruhiges Dokument mit Seitenleiste"): Datenschutz, Offenlegung,
+// Lizenzen, Quellen und Lizenzen. Kleiner Kopf auf der Lavendel-Fläche, darunter links ein weißes Inhaltsverzeichnis,
+// das am Laptop mitfährt, rechts die Lesespalte (höchstens 720 Pixel). Am Handy steht das Verzeichnis oben und lässt
+// sich aufklappen; ohne JavaScript steht es offen da. Eine Seite ohne Abschnitte ("inhalt" leer) hat keine Leiste.
+// Am Wortlaut ändert dieses Gerüst nichts: Der Text kommt unverändert in die Lesespalte.
+// "inhalt": Liste aus { kennung, text, teil } ("teil": Überschrift einer Gruppe, zum Beispiel "Teil A: Die App").
+// "stand": Zeile unter der Überschrift in Grau (Version und Datum), "leistenTitel": Überschrift des Verzeichnisses.
+import Basis from '../layouts/Basis.astro';
+import Seitenkopf from './Seitenkopf.astro';
+import { geruest } from '../daten/startseite.mjs';
+
+const { adresse, krumen, titel, vorspann, stand, inhalt = [], leistenTitel = geruest.recht.inhalt } = Astro.props;
+const mitLeiste = inhalt.length > 0;
+---
+<Basis adresse={adresse}>
+  <Seitenkopf
+    krumen={krumen}
+    titel={titel}
+    vorspann={vorspann}
+    klein
+    motive={[
+      { art: 'zitrone', breite: 150, lage: 'top: -40px; right: 90px', ecke: true },
+      { art: 'blatt', breite: 110, lage: 'bottom: -20px; right: 30%', nurBreit: true },
+    ]}
+  >
+    {stand && <p class="s-stand">{stand}</p>}
+  </Seitenkopf>
+  <div class:list={['s-inhalt', 'innen', 's-recht', { 'mit-leiste': mitLeiste }]}>
+    {mitLeiste && (
+      <nav class="s-toc" aria-label={leistenTitel}>
+        <button type="button" class="s-toc-knopf" aria-expanded="false" aria-controls="s-toc-liste" data-toc>
+          {leistenTitel}
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 9l6 6 6-6" /></svg>
+        </button>
+        <p class="s-leiste-titel">{leistenTitel}</p>
+        <ol id="s-toc-liste">
+          {inhalt.map((eintrag) => (
+            <li class:list={{ teil: eintrag.teil }}><a href={`#${eintrag.kennung}`}>{eintrag.text}</a></li>
+          ))}
+        </ol>
+      </nav>
+    )}
+    <div class="s-lesen">
+      <slot />
+    </div>
+  </div>
+</Basis>
+
+{mitLeiste && (
+  <script>
+    // Inhaltsverzeichnis am Handy auf- und zuklappen. Am Laptop steht es immer offen (der Knopf ist dort nicht zu sehen).
+    const knopf = document.querySelector('[data-toc]');
+    const liste = document.getElementById('s-toc-liste');
+    if (knopf && liste) {
+      const setze = (offen) => knopf.setAttribute('aria-expanded', String(offen));
+      knopf.addEventListener('click', () => setze(knopf.getAttribute('aria-expanded') !== 'true'));
+      liste.addEventListener('click', (ereignis) => {
+        if (ereignis.target.closest('a')) setze(false);
+      });
+    }
+  </script>
+)}

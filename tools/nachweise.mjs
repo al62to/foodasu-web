@@ -18,7 +18,7 @@ import { pathToFileURL } from 'node:url';
 import puppeteer from 'puppeteer-core';
 import { chromePfad } from './chrome.mjs';
 import { alleMeta } from '../src/daten/meta.mjs';
-import { rezepte, rezeptAdresse } from '../src/daten/rezeptseiten.mjs';
+import { rezepte, rezeptAdresse, themen } from '../src/daten/rezeptseiten.mjs';
 
 const werte = process.argv.slice(2).filter((wert) => !wert.startsWith('--'));
 const BASIS = (werte[0] ?? 'http://localhost:4321').replace(/\/$/, '');
@@ -30,6 +30,7 @@ const FEST = alleMeta.map((eintrag) => eintrag.pfad).filter((pfad) => pfad === '
 const SEITEN = [...FEST, '/rezepte/bibimbap/', '/rezepte/ohne-nuesse/'];
 const BREITEN = [360, 390, 768, 1024, 1440];
 const HANDY = { width: 390, height: 844, deviceScaleFactor: 1, isMobile: true, hasTouch: true };
+const TABLET = { width: 768, height: 1024, deviceScaleFactor: 1, isMobile: true, hasTouch: true };
 const LAPTOP = { width: 1440, height: 900, deviceScaleFactor: 1 };
 
 mkdirSync(ZIEL, { recursive: true });
@@ -125,19 +126,21 @@ sage('## 2 "Bewegung reduzieren"');
     });
     return {
       laufend: document.getAnimations().filter((bewegung) => bewegung.playState === 'running').length,
-      sichtbar: sichtbar('.held h1, .held-vorspann, .handy-rahmen, [data-urteil], [data-person], .schwebt, .schritt, .glaskarte, .zaehler li, .rezeptkarte, .faq details, .wort-text'),
+      sichtbar: sichtbar('.held h1, .held-vorspann, .handy-rahmen, [data-urteil], [data-person], .schwebt, .lage, .schritt, .funktion, .zaehler li, .band-liste li, .rezeptkarte, .faq details, .wort-text'),
       zahlen: [...document.querySelectorAll('[data-zahl]')].map((element) => element.textContent === element.dataset.zahl),
-      kopien: document.querySelectorAll('.band-liste[aria-hidden="true"]').length,
+      // Seit AP-23 stehen die Einträge und Rezepte still, als Chips in Reihen: kein Laufband, keine Kopien.
+      baender: document.querySelectorAll('[data-band], .band-spur, .band-liste[aria-hidden="true"]').length,
+      chips: document.querySelectorAll('.band-liste li').length,
       linie: getComputedStyle(document.querySelector('[data-linie]')).transform,
       wort: document.querySelector('[data-wort]').textContent,
     };
   });
   pruefe(!anfragen.some((adresse) => /bewegung/.test(adresse)), 'GSAP wird nicht geladen');
   pruefe(stand.laufend === 0, `laufende Animationen: ${stand.laufend}`);
-  pruefe(stand.sichtbar, 'alle Inhalte sofort sichtbar (Kopf, Handy, Schritte, Karten, Zähler, Rezepte, Fragen)');
+  pruefe(stand.sichtbar, 'alle Inhalte sofort sichtbar (Kopf, Handy, Lagen am Tisch, Schritte, Funktionen, Zähler, Chips, Rezepte, Fragen)');
   pruefe(stand.zahlen.every(Boolean), 'Zähler zeigen die Endzahl');
-  pruefe(stand.kopien === 0, 'Laufbänder stehen als Liste, ohne Kopien');
-  pruefe(stand.linie === 'none' || stand.linie === 'matrix(1, 0, 0, 1, 0, 0)', 'Linie der drei Schritte ist ganz gezeichnet');
+  pruefe(stand.baender === 0 && stand.chips === 27, `Einträge und Rezepte stehen als ruhende Chips, ohne Laufband (${stand.chips} Chips)`);
+  pruefe(stand.linie === 'none' || stand.linie === 'matrix(1, 0, 0, 1, 0, 0)', 'Linie der Einkaufswoche ist ganz gezeichnet');
   pruefe(await seite.evaluate(() => document.querySelector('[data-bewegung]').hidden), 'Knopf "Bewegung anhalten" bleibt ausgeblendet');
   await umgebung.close();
 }
@@ -160,28 +163,23 @@ sage('## 2b Bewegung läuft (ohne "Bewegung reduzieren", Laptop)');
   await seite.evaluate(() => { const ziel = document.querySelector('#schritte'); window.scrollTo({ top: ziel.offsetTop - window.innerHeight * 0.45, behavior: 'instant' }); });
   await warte(600);
   const linie = await seite.evaluate(() => new DOMMatrixReadOnly(getComputedStyle(document.querySelector('[data-linie]')).transform).a);
-  pruefe(linie > 0.05 && linie < 0.95, `Drei Schritte: Linie wächst mit dem Scrollen (Stand ${linie.toFixed(2)})`);
+  pruefe(linie > 0.05 && linie < 0.95, `Einkaufswoche: Linie wächst mit dem Scrollen (Stand ${linie.toFixed(2)})`);
   await seite.evaluate(() => document.querySelector('#funktionen').scrollIntoView({ behavior: 'instant' }));
   await warte(1600);
-  const flaeche = await lage('.glas-flaechen .a');
-  const karte = await (await seite.$('.k-scanner')).boundingBox();
-  await seite.mouse.move(karte.x + karte.width * 0.85, karte.y + karte.height * 0.2);
-  await seite.mouse.move(karte.x + karte.width * 0.9, karte.y + karte.height * 0.15);
-  await warte(600);
-  pruefe((await lage('.k-scanner')).startsWith('matrix3d'), 'Glas-Raster: Karte neigt sich zur Maus');
-  pruefe((await lage('.glas-flaechen .a')) !== flaeche, 'Glas-Raster: Farbflächen bewegen sich');
-  const haken = new Set();
-  await seite.evaluate(() => document.querySelector('.k-liste').scrollIntoView({ behavior: 'instant', block: 'center' }));
-  for (let nummer = 0; nummer < 5; nummer++) { haken.add(await seite.evaluate(() => document.querySelectorAll('[data-haken] li.erledigt').length)); await warte(900); }
-  pruefe(haken.size >= 3, `Einkaufsliste hakt sich ab (Stände ${[...haken].sort().join(', ')})`);
+  pruefe(await seite.evaluate(() => [...document.querySelectorAll('.funktion')].every((element) => getComputedStyle(element).opacity === '1')), 'Funktionen: alle sechs sind nach dem Einblenden sichtbar');
   await seite.evaluate(() => document.querySelector('#zahlen').scrollIntoView({ behavior: 'instant' }));
   await warte(300);
   const unterwegs = await seite.evaluate(() => [...document.querySelectorAll('[data-zahl]')].map((element) => element.textContent).join(' '));
-  const band = await seite.evaluate(() => [...document.querySelectorAll('[data-band]')].map((spur) => ({ kopien: spur.children.length, lauf: getComputedStyle(spur).animationName, richtung: getComputedStyle(spur).animationDirection })));
+  // Seit AP-23 stehen die beiden Bänder still: Chips in Reihen, ohne Schleife.
+  const chips = await seite.evaluate(() => ({
+    zahl: document.querySelectorAll('.band-liste li').length,
+    baender: document.querySelectorAll('[data-band], .band-spur').length,
+    schleifen: document.querySelector('#zahlen').getAnimations({ subtree: true }).filter((lauf) => lauf.effect.getComputedTiming().iterations === Infinity).length,
+  }));
   await warte(2300);
   const amEnde = await seite.evaluate(() => [...document.querySelectorAll('[data-zahl]')].every((element) => element.textContent === element.dataset.zahl));
   pruefe(amEnde, `Zähler laufen hoch (unterwegs ${unterwegs}, am Ende die Endzahlen)`);
-  pruefe(band.every((spur) => spur.kopien >= 2 && spur.lauf === 'band') && band[0].richtung !== band[1].richtung, `Laufbänder laufen gegeneinander (${band.map((spur) => `${spur.kopien} Kopien, ${spur.richtung}`).join('; ')})`);
+  pruefe(chips.zahl === 27 && chips.baender === 0 && chips.schleifen === 0, `Einträge und Rezepte stehen still, als ${chips.zahl} Chips in Reihen (Laufbänder: ${chips.baender}, Schleifen im Abschnitt: ${chips.schleifen})`);
   await seite.evaluate(() => document.querySelector('#rezepte').scrollIntoView({ behavior: 'instant' }));
   await warte(1500);
   pruefe(await seite.evaluate(() => [...document.querySelectorAll('.rezeptkarte img')].every((bild) => bild.complete && bild.naturalWidth > 0 && /\.avif$/.test(bild.currentSrc))), 'Rezepte-Vorschau: vier Bilder geladen (AVIF)');
@@ -208,10 +206,7 @@ sage('## 2c Knopf "Bewegung anhalten" (ohne "Bewegung reduzieren")');
   const bild = () => seite.evaluate(() => ({
     blatt: getComputedStyle(document.querySelector('[data-blatt]')).transform,
     marke: getComputedStyle(document.querySelector('.schwebt')).translate,
-    flaeche: getComputedStyle(document.querySelector('.glas-flaechen .a')).transform,
-    band: getComputedStyle(document.querySelector('[data-band]')).transform,
     wort: document.querySelector('[data-wort]').textContent,
-    haken: document.querySelectorAll('[data-haken] li.erledigt').length,
     schleifen: document.getAnimations().filter((lauf) => lauf.playState === 'running' && lauf.effect.getComputedTiming().iterations === Infinity).length,
   }));
   let stand = await knopf();
@@ -233,7 +228,7 @@ sage('## 2c Knopf "Bewegung anhalten" (ohne "Bewegung reduzieren")');
   await warte(3200);
   const b = await bild();
   pruefe(a.schleifen === 0 && b.schleifen === 0, `angehalten: laufende Schleifen ${b.schleifen}`);
-  pruefe(a.blatt === b.blatt && a.marke === b.marke && a.flaeche === b.flaeche && a.band === b.band && a.wort === b.wort && a.haken === b.haken, 'angehalten: Scan, Begriffe, Wort, Farbflächen, Bänder und Einkaufsliste stehen still (zwei Messungen im Abstand von 3,2 s)');
+  pruefe(a.blatt === b.blatt && a.marke === b.marke && a.wort === b.wort, 'angehalten: Scan, Begriffe und Wort stehen still (zwei Messungen im Abstand von 3,2 s)');
   await durchscrollen(seite);
   const ruhe = await seite.evaluate(() => {
     const sichtbar = (auswahl) => [...document.querySelectorAll(auswahl)].every((element) => {
@@ -241,7 +236,7 @@ sage('## 2c Knopf "Bewegung anhalten" (ohne "Bewegung reduzieren")');
       return stil.opacity === '1' && stil.visibility === 'visible' && stil.display !== 'none';
     });
     return {
-      sichtbar: sichtbar('.held h1, .held-vorspann, .handy-rahmen, [data-urteil], [data-person], .schwebt, .schritt, .glaskarte, .zaehler li, .rezeptkarte, .faq details, .wort-text'),
+      sichtbar: sichtbar('.held h1, .held-vorspann, .handy-rahmen, [data-urteil], [data-person], .schwebt, .lage, .schritt, .funktion, .zaehler li, .band-liste li, .rezeptkarte, .faq details, .wort-text'),
       zahlen: [...document.querySelectorAll('[data-zahl]')].every((element) => element.textContent === element.dataset.zahl),
       linie: getComputedStyle(document.querySelector('[data-linie]')).transform,
       speicher: document.cookie.length + localStorage.length + sessionStorage.length,
@@ -300,20 +295,24 @@ sage('## 2c Knopf "Bewegung anhalten" (ohne "Bewegung reduzieren")');
   await ohne.umgebung.close();
 }
 
-// 2d Unterseiten: Farbflächen im Kopfbereich mit dem Knopf "Bewegung anhalten", Einblenden beim Scrollen
+// 2d Unterseiten (seit AP-23): Im Kopfbereich läuft keine Schleife mehr, er ist eine ruhige Lavendel-Fläche mit
+// Punktmuster. Den Knopf "Bewegung anhalten" gibt es nur auf Seiten mit einer Schleife: auf den Kapiteln von "So
+// geht's", die eine kurze Schleife im Handy zeigen. Das Einblenden beim Scrollen bleibt.
 sage();
-sage('## 2d Unterseiten: Knopf "Bewegung anhalten", Einblenden, "Bewegung reduzieren"');
+sage('## 2d Unterseiten: ruhiger Kopfbereich, Einblenden, Knopf "Bewegung anhalten" bei der Schleife');
 {
   const pfad = '/rezepte/bibimbap/';
   const lese = (seite) => seite.evaluate(() => {
     const knopf = document.querySelector('[data-bewegung-seite]');
-    const stil = getComputedStyle(document.querySelector('.s-flaechen i'));
+    const kopf = document.querySelector('.s-kopf');
     const teile = [...document.querySelectorAll('[data-ein]')];
+    const film = document.querySelector('[data-schleife] video');
     return {
       knopf: knopf ? (knopf.hidden ? 'verborgen' : knopf.textContent.trim()) : 'fehlt',
       hoehe: knopf ? Math.round(knopf.getBoundingClientRect().height) : 0,
-      name: stil.animationName,
-      laeuft: stil.animationName !== 'none' && stil.animationPlayState === 'running',
+      muster: getComputedStyle(kopf).backgroundImage.includes('radial-gradient'),
+      schleifen: document.getAnimations().filter((lauf) => lauf.playState === 'running' && lauf.effect.getComputedTiming().iterations === Infinity).length,
+      film: film ? (film.paused ? 'steht' : 'läuft') : 'kein Film',
       verborgen: teile.filter((teil) => getComputedStyle(teil).opacity !== '1').length,
       teile: teile.length,
       speicher: localStorage.length + sessionStorage.length + document.cookie.length,
@@ -322,36 +321,60 @@ sage('## 2d Unterseiten: Knopf "Bewegung anhalten", Einblenden, "Bewegung reduzi
   const { umgebung, seite } = await neueSeite({ ansicht: LAPTOP });
   await seite.goto(BASIS + pfad, { waitUntil: 'networkidle0' });
   let stand = await lese(seite);
-  pruefe(stand.knopf === 'Bewegung anhalten' && stand.laeuft, `${pfad}: Farbflächen laufen, Knopf "${stand.knopf}" ist da`);
+  pruefe(stand.muster && stand.schleifen === 0 && stand.knopf === 'verborgen', `${pfad}: Kopfbereich mit Punktmuster, keine Schleife, kein Knopf (Schleifen ${stand.schleifen}, Knopf ${stand.knopf})`);
   pruefe(stand.teile > 0 && stand.verborgen > 0, `${pfad}: ${stand.verborgen} von ${stand.teile} Teilen warten unter dem Fenster auf das Einblenden`);
-  await seite.focus('[data-bewegung-seite]');
-  await seite.keyboard.press('Enter');
-  await warte(900);
+  await durchscrollen(seite);
   stand = await lese(seite);
-  pruefe(stand.knopf === 'Bewegung fortsetzen' && !stand.laeuft && stand.verborgen === 0, `${pfad}: Enter hält an (Knopf "${stand.knopf}", Farbflächen stehen, alle Teile sichtbar)`);
+  pruefe(stand.verborgen === 0, `${pfad}: nach dem Durchscrollen sind alle Teile sichtbar`);
   pruefe(stand.speicher === 0, `${pfad}: nichts gespeichert (Cookies, localStorage, sessionStorage)`);
-  await seite.keyboard.press('Space');
-  await warte(300);
-  stand = await lese(seite);
-  pruefe(stand.knopf === 'Bewegung anhalten' && stand.laeuft, `${pfad}: Leertaste setzt fort`);
   await umgebung.close();
 
   const ruhe = await neueSeite({ ansicht: LAPTOP, ruhig: true });
   await ruhe.seite.goto(BASIS + pfad, { waitUntil: 'networkidle0' });
   stand = await lese(ruhe.seite);
-  pruefe(stand.knopf === 'verborgen' && stand.name === 'none' && stand.verborgen === 0, `${pfad}, "Bewegung reduzieren": kein Knopf, keine Schleife, alles sichtbar`);
+  pruefe(stand.knopf === 'verborgen' && stand.schleifen === 0 && stand.verborgen === 0, `${pfad}, "Bewegung reduzieren": kein Knopf, keine Schleife, alles sichtbar`);
   await ruhe.umgebung.close();
 
+  // Kapitel mit Schleife: Der Knopf hält sie an und setzt sie fort.
+  const kapitel = '/so-gehts/scannen-und-urteil/';
+  const mitFilm = await neueSeite({ ansicht: LAPTOP });
+  await mitFilm.seite.goto(BASIS + kapitel, { waitUntil: 'networkidle0' });
+  await mitFilm.seite.waitForSelector('[data-schleife] video', { timeout: 15000 }).catch(() => {});
+  await warte(1200);
+  stand = await lese(mitFilm.seite);
+  pruefe(stand.knopf === 'Bewegung anhalten' && stand.film === 'läuft', `${kapitel}: Die Schleife im Handy läuft, Knopf "${stand.knopf}" ist da (Film: ${stand.film})`);
+  await mitFilm.seite.focus('[data-bewegung-seite]');
+  await mitFilm.seite.keyboard.press('Enter');
+  await warte(900);
+  stand = await lese(mitFilm.seite);
+  pruefe(stand.knopf === 'Bewegung fortsetzen' && stand.film === 'steht' && stand.verborgen === 0, `${kapitel}: Enter hält an (Knopf "${stand.knopf}", Film ${stand.film}, alle Teile sichtbar)`);
+  pruefe(stand.speicher === 0, `${kapitel}: nichts gespeichert (Cookies, localStorage, sessionStorage)`);
+  await mitFilm.seite.keyboard.press('Space');
+  await warte(900);
+  stand = await lese(mitFilm.seite);
+  pruefe(stand.knopf === 'Bewegung anhalten' && stand.film === 'läuft', `${kapitel}: Leertaste setzt fort (Film ${stand.film})`);
+  await mitFilm.umgebung.close();
+
+  const filmRuhe = await neueSeite({ ansicht: LAPTOP, ruhig: true });
+  await filmRuhe.seite.goto(BASIS + kapitel, { waitUntil: 'networkidle0' });
+  await warte(1200);
+  stand = await lese(filmRuhe.seite);
+  const standbild = await filmRuhe.seite.evaluate(() => !!document.querySelector('[data-schleife] img'));
+  pruefe(stand.knopf === 'verborgen' && stand.film === 'kein Film' && standbild, `${kapitel}, "Bewegung reduzieren": kein Knopf, statt der Schleife steht das Standbild`);
+  await filmRuhe.umgebung.close();
+
   const handy = await neueSeite({ ansicht: HANDY });
-  await handy.seite.goto(BASIS + pfad, { waitUntil: 'networkidle0' });
+  await handy.seite.goto(BASIS + kapitel, { waitUntil: 'networkidle0' });
+  await handy.seite.waitForSelector('[data-schleife] video', { timeout: 15000 }).catch(() => {});
+  await warte(600);
   stand = await lese(handy.seite);
-  pruefe(stand.hoehe >= 44, `${pfad}, Handy: Knopf ${stand.hoehe} px hoch`);
+  pruefe(stand.knopf === 'Bewegung anhalten' && stand.hoehe >= 44, `${kapitel}, Handy: Knopf ${stand.hoehe} px hoch`);
   await handy.umgebung.close();
 
   const recht = await neueSeite({ ansicht: LAPTOP });
   await recht.seite.goto(BASIS + '/datenschutz.html', { waitUntil: 'networkidle0' });
-  const ruhig = await recht.seite.evaluate(() => ({ knopf: !!document.querySelector('[data-bewegung-seite]'), name: getComputedStyle(document.querySelector('.s-flaechen i')).animationName }));
-  pruefe(!ruhig.knopf && ruhig.name === 'none', '/datenschutz.html: ruhiger Kopfbereich ohne Schleife und ohne Knopf');
+  stand = await lese(recht.seite);
+  pruefe(stand.knopf === 'verborgen' && stand.schleifen === 0 && stand.muster, '/datenschutz.html: ruhiger Kopfbereich ohne Schleife und ohne Knopf');
   await recht.umgebung.close();
 }
 
@@ -494,20 +517,30 @@ sage('## 2f Kontrast der Texte (mindestens 4,5:1), hell und dunkel');
       const kanal = (wert) => { const anteil = wert / 255; return anteil <= 0.03928 ? anteil / 12.92 : ((anteil + 0.055) / 1.055) ** 2.4; };
       return 0.2126 * kanal(r) + 0.7152 * kanal(g) + 0.0722 * kanal(b);
     };
-    // Hintergrund eines Elements: alle Flächen der Vorfahren von unten nach oben übereinandergelegt. Liegt ein Bild
-    // oder ein Verlauf dazwischen, lässt sich die Farbe nicht bestimmen; solche Stellen werden gezählt, nicht gewertet.
+    // Hintergrund eines Elements: alle Flächen der Vorfahren von unten nach oben übereinandergelegt. Das Ergebnis ist
+    // eine Liste möglicher Flächen hinter dem Text. Liegt ein Punktmuster oder ein Verlauf aus festen Farben
+    // dazwischen (seit AP-23 die Lavendel-Fläche mit Muster), kann jede seiner Farben hinter dem Text liegen: Dann
+    // zählt jede, und gewertet wird der schwächste Kontrast. Liegt ein Bild dazwischen, lässt sich die Farbe nicht
+    // bestimmen; solche Stellen werden gezählt, nicht gewertet.
     const grund = (element) => {
       const kette = [];
+      let basen = [{ r: 255, g: 255, b: 255, a: 1 }];
       for (let teil = element; teil; teil = teil.parentElement) {
         const stil = getComputedStyle(teil);
-        if (stil.backgroundImage !== 'none') return null;
         const farbe = zahlen(stil.backgroundColor);
+        if (stil.backgroundImage !== 'none') {
+          if (/url\(/.test(stil.backgroundImage)) return null;
+          const imMuster = [...stil.backgroundImage.matchAll(/rgba?\([^)]*\)/g)].map((fund) => zahlen(fund[0])).filter((eine) => eine.a >= 0.99);
+          if (farbe.a === 1) imMuster.push(farbe);
+          if (imMuster.length === 0) return null;
+          basen = imMuster;
+          break;
+        }
         if (farbe.a > 0) kette.push(farbe);
         if (farbe.a === 1) break;
       }
-      let flaeche = { r: 255, g: 255, b: 255, a: 1 };
-      for (const farbe of kette.reverse()) flaeche = ueber(farbe, flaeche);
-      return flaeche;
+      kette.reverse();
+      return basen.map((basis) => kette.reduce((flaeche, farbe) => ueber(farbe, flaeche), basis));
     };
     const funde = [];
     let geprueft = 0;
@@ -525,13 +558,19 @@ sage('## 2f Kontrast der Texte (mindestens 4,5:1), hell und dunkel');
       const kasten = element.getBoundingClientRect();
       if (kasten.width < 2 || kasten.height < 2) continue;
       // Texte auf einem Bildschirmfoto der App oder im gezeichneten Handy haben feste Farben und gehören zum Bild.
-      if (element.closest('.schirm, .nf-handy')) continue;
+      if (element.closest('.schirm')) continue;
       const stil = getComputedStyle(element);
-      const flaeche = grund(element);
-      if (!flaeche) { offen++; continue; }
-      const schrift = ueber(zahlen(stil.color), flaeche);
-      const [heller, dunkler] = [hell(schrift), hell(flaeche)].sort((a, b) => b - a);
-      const kontrast = (heller + 0.05) / (dunkler + 0.05);
+      const flaechen = grund(element);
+      if (!flaechen) { offen++; continue; }
+      // Bei mehreren möglichen Flächen (Muster, Verlauf) zählt die mit dem schwächsten Kontrast.
+      let kontrast = Infinity;
+      let flaeche = flaechen[0];
+      for (const eine of flaechen) {
+        const schrift = ueber(zahlen(stil.color), eine);
+        const [heller, dunkler] = [hell(schrift), hell(eine)].sort((a, b) => b - a);
+        const wert = (heller + 0.05) / (dunkler + 0.05);
+        if (wert < kontrast) { kontrast = wert; flaeche = eine; }
+      }
       geprueft++;
       if (kontrast < 4.5) {
         funde.push(`${kontrast.toFixed(2)}:1 „${knoten.textContent.trim().slice(0, 40)}“ (${element.tagName.toLowerCase()}.${element.className || '-'}, ${stil.color} auf rgb(${Math.round(flaeche.r)}, ${Math.round(flaeche.g)}, ${Math.round(flaeche.b)}), ${stil.fontSize})`);
@@ -615,7 +654,7 @@ sage('## 2g Knopf „Rezept teilen“');
       hoehe: Math.round(kasten.height),
       imFenster: kasten.top >= 0 && kasten.bottom <= window.innerHeight,
       imKopf: !!knopf.closest('.s-kopf'),
-      nachAngaben: knopf.parentElement.previousElementSibling?.matches('dl.s-kacheln') ?? false,
+      nachAngaben: knopf.parentElement.previousElementSibling?.matches('dl.r-zeile, dl.r-angaben') ?? false,
       kontrastText: kontrast(stil.color, stil.backgroundColor),
       kontrastFlaeche: kontrast(stil.backgroundColor, getComputedStyle(kopf).backgroundColor),
       kontrastMeldung: kontrast(getComputedStyle(status).color, getComputedStyle(kopf).backgroundColor),
@@ -1064,14 +1103,14 @@ for (const [name, ansicht] of [['Handy', HANDY], ['Laptop', LAPTOP]]) {
   await umgebung.close();
 }
 
-// 4b Rezeptübersicht: Filter (Entwurf 1, AP-17 Teil E3)
+// 4b Rezeptübersicht: Suche und Filter (AP-17 Teil E3; seit AP-23 nach Entwurf "Filter in der Seitenleiste"). Am
+// Laptop stehen die drei Gruppen ständig offen in einer Leiste links; am Handy und Tablet liegen sie im Blatt.
 sage();
 sage('## 4b Rezeptübersicht: Suche und Filter');
 const treffer = (seite) => seite.evaluate(() => ({
   karten: [...document.querySelectorAll('[data-karte]')].filter((karte) => !karte.hidden).length,
   stand: document.querySelector('[data-stand]').textContent.trim(),
   aktiv: [...document.querySelectorAll('[data-aktiv-liste] button')].map((knopf) => knopf.textContent.trim()),
-  knoepfe: [...document.querySelectorAll('[data-knopf] [data-knopf-text]')].map((el) => el.textContent.trim()),
   adresse: window.location.pathname + window.location.search,
 }));
 const waehle = (seite, gruppe, wert) => seite.evaluate((art, was) => {
@@ -1084,30 +1123,46 @@ const waehle = (seite, gruppe, wert) => seite.evaluate((art, was) => {
   await seite.goto(BASIS + '/rezepte/', { waitUntil: 'networkidle0' });
   let stand = await treffer(seite);
   const alle = stand.karten;
-  pruefe(alle > 0 && stand.stand === `${alle} Rezepte` && stand.aktiv.length === 0, `Laptop: am Anfang alle ${alle} Rezepte, kein Filter gewählt`);
-  pruefe(stand.knoepfe.join() === 'Kategorie,Land,Passt für', `Laptop: drei Auswahlknöpfe (${stand.knoepfe.join(', ')})`);
+  pruefe(alle === rezepte.length && stand.stand === `${alle} Rezepte` && stand.aktiv.length === 0, `Laptop: am Anfang alle ${alle} Rezepte, kein Filter gewählt`);
   const ohneAlle = await seite.evaluate(() => [...document.querySelectorAll('[data-filter] button, [data-filter] label')].every((el) => el.textContent.trim() !== 'Alle'));
   pruefe(ohneAlle, 'Laptop: kein Knopf "Alle"');
-  // Liste öffnen: nur Möglichkeiten mit Rezepten, jede mit Anzahl.
-  await seite.click('[data-gruppe="land"] [data-knopf]');
-  const liste = await seite.evaluate(() => {
-    const gruppe = document.querySelector('[data-gruppe="land"]');
-    const punkte = [...gruppe.querySelectorAll('li')];
+  // Leiste links: drei Gruppen, ständig offen, jede Möglichkeit mit Anzahl; "Land" zeigt zuerst acht Länder.
+  const lese = () => seite.evaluate(() => {
+    const sichtbar = (el) => !!el && el.getClientRects().length > 0;
+    const blatt = document.querySelector('[data-blatt]');
+    const gruppen = [...blatt.querySelectorAll('[data-gruppe]')];
+    const karten = document.querySelector('[data-karten]');
+    const bild = karten.querySelector('.r-karte-bild').getBoundingClientRect();
     return {
-      offen: gruppe.querySelector('[data-knopf]').getAttribute('aria-expanded'),
-      sichtbar: punkte.filter((punkt) => punkt.getClientRects().length > 0).length,
-      alle: punkte.length,
-      zahlen: punkte.every((punkt) => Number(punkt.querySelector('.f-anzahl').textContent) > 0),
-      knoepfe: [...gruppe.querySelectorAll('[data-feld] button')].filter((knopf) => knopf.getClientRects().length > 0).map((knopf) => knopf.textContent.trim()),
+      zusehen: sichtbar(blatt),
+      lage: getComputedStyle(blatt).position,
+      links: blatt.getBoundingClientRect().right <= karten.getBoundingClientRect().left,
+      titel: gruppen.map((gruppe) => gruppe.querySelector('legend').childNodes[0].textContent.trim()),
+      offen: gruppen.every((gruppe) => sichtbar(gruppe.querySelector('fieldset'))),
+      knoepfe: gruppen.filter((gruppe) => sichtbar(gruppe.querySelector('[data-knopf]'))).length + [...blatt.querySelectorAll('[data-fertig], [data-leeren], [data-blatt-zu]')].filter(sichtbar).length,
+      filterKnopf: sichtbar(document.querySelector('[data-blatt-auf]')),
+      zahlen: [...blatt.querySelectorAll('li')].every((punkt) => Number(punkt.querySelector('.f-anzahl').textContent) > 0),
+      je: Object.fromEntries(gruppen.map((gruppe) => [gruppe.dataset.gruppe, {
+        sichtbar: [...gruppe.querySelectorAll('li')].filter(sichtbar).length,
+        alle: gruppe.querySelectorAll('li').length,
+        mehr: [...gruppe.querySelectorAll('[data-mehr]')].filter(sichtbar).map((knopf) => knopf.textContent.trim()),
+      }])),
+      oben: [...blatt.querySelectorAll('.f-blatt-kopf button')].filter(sichtbar).map((knopf) => knopf.textContent.trim()),
+      spalten: getComputedStyle(karten).gridTemplateColumns.split(' ').length,
+      bild: Math.round((bild.width / bild.height) * 100) / 100,
     };
   });
-  pruefe(liste.offen === 'true' && liste.zahlen, `Laptop: "Land" öffnet eine Liste zum Ankreuzen, jede der ${liste.alle} Möglichkeiten hat Rezepte und nennt ihre Anzahl`);
-  pruefe(liste.knoepfe.includes('Zurücksetzen') && liste.knoepfe.includes('Fertig'), `Laptop: Knöpfe der Liste: ${liste.knoepfe.join(', ')}`);
-  if (liste.knoepfe.includes('Weitere Länder anzeigen')) {
-    await seite.click('[data-gruppe="land"] [data-mehr]');
-    const danach = await seite.evaluate(() => [...document.querySelectorAll('[data-gruppe="land"] li')].filter((punkt) => punkt.getClientRects().length > 0).length);
-    pruefe(liste.sichtbar < liste.alle && danach === liste.alle, `Laptop: zuerst ${liste.sichtbar} Länder, nach "Weitere Länder anzeigen" alle ${danach}`);
-  }
+  const leiste = await lese();
+  pruefe(leiste.zusehen && leiste.lage === 'sticky' && leiste.links, 'Laptop: Die Filter stehen in einer Leiste links neben den Karten, die beim Scrollen mitfährt');
+  pruefe(leiste.titel.join() === 'Passt für,Kategorie,Land' && leiste.offen && leiste.knoepfe === 0 && !leiste.filterKnopf, `Laptop: drei Gruppen ständig offen (${leiste.titel.join(', ')}), ohne Knöpfe zum Aufklappen`);
+  pruefe(leiste.zahlen, 'Laptop: Jede Möglichkeit hat Rezepte und nennt ihre Anzahl');
+  pruefe(leiste.je.passt.sichtbar === leiste.je.passt.alle && leiste.je.kategorie.sichtbar === leiste.je.kategorie.alle && leiste.je.passt.mehr.length === 0, `Laptop: "Passt für" (${leiste.je.passt.sichtbar}) und "Kategorie" (${leiste.je.kategorie.sichtbar}) stehen ganz da`);
+  pruefe(leiste.je.land.sichtbar === 8 && leiste.je.land.alle > 8 && leiste.je.land.mehr.join() === 'Weitere Länder anzeigen', `Laptop: "Land" zeigt zuerst ${leiste.je.land.sichtbar} von ${leiste.je.land.alle} Ländern und den Knopf "${leiste.je.land.mehr.join()}"`);
+  await seite.click('[data-gruppe="land"] [data-mehr]');
+  const ganz = await lese();
+  pruefe(ganz.je.land.sichtbar === ganz.je.land.alle && ganz.je.land.mehr.length === 0, `Laptop: danach stehen alle ${ganz.je.land.sichtbar} Länder da`);
+  pruefe(leiste.oben.join() === 'Zurücksetzen', `Laptop: oben in der Leiste "${leiste.oben.join()}"`);
+  pruefe(leiste.spalten === 3 && Math.abs(leiste.bild - 1.6) < 0.03, `Laptop: Karten in ${leiste.spalten} Spalten, Bild im Verhältnis ${leiste.bild} (16:10)`);
   // Verknüpfung: oder innerhalb von Land und Kategorie, und innerhalb von "Passt für", und zwischen den Gruppen.
   const zaehle = (probe) => seite.evaluate((quelle) => {
     const pruefung = new Function('k', `return ${quelle}`);
@@ -1116,46 +1171,68 @@ const waehle = (seite, gruppe, wert) => seite.evaluate((art, was) => {
   await waehle(seite, 'land', 'IT');
   stand = await treffer(seite);
   pruefe(stand.karten === (await zaehle("k.land.includes('IT')")) && stand.stand === (stand.karten === 1 ? '1 Rezept' : `${stand.karten} Rezepte`), `Laptop: Land Italien: ${stand.stand}`);
-  pruefe(stand.knoepfe[1] === 'Land: Italien' && stand.aktiv.join() === 'Italien', 'Laptop: Der Knopf nennt die Auswahl, darunter steht ein Kärtchen "Italien"');
+  pruefe(stand.aktiv.join() === 'Italien', 'Laptop: Über den Karten steht der gewählte Filter als Chip "Italien"');
   await waehle(seite, 'land', 'AT');
   stand = await treffer(seite);
   pruefe(stand.karten === (await zaehle("k.land.includes('IT') || k.land.includes('AT')")), `Laptop: Italien oder Österreich: ${stand.stand} (oder innerhalb von Land)`);
   await waehle(seite, 'kategorie', 'SUESSSPEISE');
   stand = await treffer(seite);
   pruefe(stand.karten === (await zaehle("(k.land.includes('IT') || k.land.includes('AT')) && k.kategorie === 'SUESSSPEISE'")), `Laptop: dazu Kategorie Süßspeise: ${stand.stand} (und zwischen den Gruppen)`);
-  // Die Liste "Land" ist noch offen und liegt über den Kärtchen: "Fertig" schließt sie.
-  await seite.click('[data-gruppe="land"] [data-fertig]');
-  const landZu = await seite.evaluate(() => document.querySelector('[data-gruppe="land"] [data-knopf]').getAttribute('aria-expanded') === 'false');
-  pruefe(landZu, 'Laptop: "Fertig" schließt die Liste');
-  await seite.click('[data-filter] [data-alle-leeren]');
+  await seite.click('[data-blatt] .f-blatt-kopf [data-alle-leeren]');
   stand = await treffer(seite);
-  pruefe(stand.karten === alle && stand.aktiv.length === 0, 'Laptop: "Alle Filter zurücksetzen" zeigt wieder alle Rezepte');
+  pruefe(stand.karten === alle && stand.aktiv.length === 0, 'Laptop: "Zurücksetzen" oben in der Leiste zeigt wieder alle Rezepte');
   await waehle(seite, 'passt', 'en:nuts');
   const ohneNuesse = (await treffer(seite)).karten;
   await waehle(seite, 'passt', 'en:vegan');
   stand = await treffer(seite);
   pruefe(stand.karten === (await zaehle("k.passt.includes('en:nuts') && k.passt.includes('en:vegan')")) && stand.karten <= ohneNuesse, `Laptop: Ohne Nüsse und Vegan: ${stand.stand} von ${ohneNuesse} ohne Nüsse (und innerhalb von "Passt für")`);
-  // Kärtchen mit X entfernt einen Filter.
+  // Chip mit X entfernt einen Filter.
   await seite.click('[data-aktiv-liste] button');
   stand = await treffer(seite);
-  pruefe(stand.aktiv.length === 1, `Laptop: Das X am Kärtchen nimmt den Filter weg (übrig: ${stand.aktiv.join(', ')})`);
-  await seite.click('[data-filter] [data-alle-leeren]');
+  pruefe(stand.aktiv.length === 1, `Laptop: Das X am Chip nimmt den Filter weg (übrig: ${stand.aktiv.join(', ')})`);
+  await seite.click('[data-aktiv] [data-alle-leeren]');
+  stand = await treffer(seite);
+  pruefe(stand.karten === alle && stand.aktiv.length === 0, 'Laptop: "Alle Filter zurücksetzen" zeigt wieder alle Rezepte');
   // Suche
   await seite.type('[data-suche]', 'mozzarella');
   stand = await treffer(seite);
   pruefe(stand.karten > 0 && stand.karten < alle, `Laptop: Suche nach einer Zutat ("mozzarella"): ${stand.stand}`);
   pruefe(stand.adresse === '/rezepte/', `Laptop: Die Adresse bleibt ${stand.adresse} (keine neuen Adressen durch Filter)`);
-  // Tastatur: Esc schließt die Liste, der Fokus steht auf ihrem Knopf.
-  await seite.focus('[data-gruppe="kategorie"] [data-knopf]');
-  await seite.keyboard.press('Enter');
-  await seite.keyboard.press('Tab');
-  const imFeld = await seite.evaluate(() => document.activeElement.matches('[data-gruppe="kategorie"] input'));
+  await seite.click('[data-blatt] .f-blatt-kopf [data-alle-leeren]');
+  // Tastatur: Die Kästchen der Leiste sind mit Tab erreichbar, die Leertaste kreuzt an.
+  await seite.focus('[data-gruppe="passt"] input');
   await seite.keyboard.press('Space');
-  await seite.keyboard.press('Escape');
-  const nachEsc = await seite.evaluate(() => ({ zu: document.querySelector('[data-gruppe="kategorie"] [data-knopf]').getAttribute('aria-expanded') === 'false', fokus: document.activeElement.matches('[data-gruppe="kategorie"] [data-knopf]') }));
-  pruefe(imFeld && nachEsc.zu && nachEsc.fokus, 'Laptop: Tastatur: Enter öffnet, Tab und Leertaste kreuzen an, Esc schließt und gibt den Fokus zurück');
-  const themen = await seite.evaluate(() => ({ titel: document.querySelector('#themen')?.textContent.trim(), links: document.querySelectorAll('.f-themen a').length }));
-  pruefe(themen.titel === 'Mehr Themen' && themen.links === 6, `Laptop: am Ende "${themen.titel}" mit ${themen.links} Links`);
+  await seite.keyboard.press('Tab');
+  const tastatur = await seite.evaluate(() => ({
+    erstes: document.querySelector('[data-gruppe="passt"] input').checked,
+    naechstes: document.activeElement.matches('[data-gruppe="passt"] li:nth-child(2) input'),
+    umriss: getComputedStyle(document.activeElement).outlineStyle,
+  }));
+  stand = await treffer(seite);
+  pruefe(tastatur.erstes && tastatur.naechstes && tastatur.umriss !== 'none' && stand.aktiv.length === 1, `Laptop: Tastatur: Die Leertaste kreuzt an, Tab geht zum nächsten Kästchen, der Fokus ist sichtbar (${stand.stand})`);
+  const themenTeil = await seite.evaluate(() => ({
+    titel: document.querySelector('#themen')?.textContent.trim(),
+    links: document.querySelectorAll('.f-themen a').length,
+    zeilen: [...document.querySelectorAll('.f-themen dt')].map((zeile) => zeile.childNodes[0].textContent.trim()),
+  }));
+  pruefe(themenTeil.titel === 'Rezepte nach Thema' && themenTeil.links === themen.length && themenTeil.zeilen.join() === 'Ohne …,Passt für,Nach Land,Nach Kategorie', `Laptop: am Ende "${themenTeil.titel}" mit ${themenTeil.links} Themenseiten als Chips in ${themenTeil.zeilen.length} Zeilen`);
+  await umgebung.close();
+}
+{
+  // Tablet: wie am Handy der Knopf "Filter" mit dem Blatt von unten, keine Leiste.
+  const { umgebung, seite } = await neueSeite({ ansicht: TABLET });
+  await seite.goto(BASIS + '/rezepte/', { waitUntil: 'networkidle0' });
+  const anfang = await seite.evaluate(() => ({
+    knopf: document.querySelector('[data-blatt-auf]').getClientRects().length > 0,
+    blatt: document.querySelector('[data-blatt]').getClientRects().length > 0,
+  }));
+  await seite.tap('[data-blatt-auf]');
+  await warte(400);
+  const offen = await seite.evaluate(() => {
+    const el = document.querySelector('[data-blatt]');
+    return { rolle: el.getAttribute('role'), unten: Math.round(el.getBoundingClientRect().bottom), fenster: window.innerHeight };
+  });
+  pruefe(anfang.knopf && !anfang.blatt && offen.rolle === 'dialog' && offen.unten === offen.fenster, 'Tablet: Knopf "Filter" öffnet das Blatt von unten, keine Leiste');
   await umgebung.close();
 }
 {
@@ -1180,7 +1257,7 @@ const waehle = (seite, gruppe, wert) => seite.evaluate((art, was) => {
     };
   });
   pruefe(blatt.rolle === 'dialog' && blatt.modal === 'true' && blatt.unten === HANDY.height && blatt.breite === HANDY.width, 'Handy: "Filter" öffnet ein Blatt von unten (Dialog über die ganze Breite)');
-  pruefe(blatt.gruppen.join() === 'Kategorie,Land,Passt für' && blatt.fokus, `Handy: im Blatt die drei Gruppen zum Aufklappen (${blatt.gruppen.join(', ')}), der Fokus steht im Blatt`);
+  pruefe(blatt.gruppen.join() === 'Passt für,Kategorie,Land' && blatt.fokus, `Handy: im Blatt die drei Gruppen zum Aufklappen (${blatt.gruppen.join(', ')}), der Fokus steht im Blatt`);
   pruefe(blatt.zeigen === `${alle} Rezepte anzeigen`, `Handy: Knopf "${blatt.zeigen}"`);
   await waehle(seite, 'land', 'IT');
   await waehle(seite, 'passt', 'en:vegetarian');
@@ -1212,9 +1289,9 @@ const waehle = (seite, gruppe, wert) => seite.evaluate((art, was) => {
   const ohne = await seite.evaluate(() => ({
     karten: [...document.querySelectorAll('[data-karte]')].filter((karte) => karte.getClientRects().length > 0).length,
     alle: document.querySelectorAll('[data-karte]').length,
-    leiste: document.querySelector('[data-filter]').getClientRects().length > 0,
+    leiste: [...document.querySelectorAll('[data-blatt], .f-leiste')].some((teil) => teil.getClientRects().length > 0),
   }));
-  pruefe(ohne.karten === ohne.alle && !ohne.leiste, `Ohne JavaScript: alle ${ohne.karten} Rezepte stehen da, die Filterleiste entfällt`);
+  pruefe(ohne.karten === ohne.alle && !ohne.leiste, `Ohne JavaScript: alle ${ohne.karten} Rezepte stehen da, Suche und Filter entfallen`);
   await umgebung.close();
 }
 

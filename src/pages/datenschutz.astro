@@ -1,27 +1,18 @@
 ---
 // Datenschutzerklärung unter der bestehenden Adresse /datenschutz.html (die App verlinkt sie). Der Wortlaut kommt
 // unverändert aus dem Baustein src/inhalte/datenschutz.html (tools/rechtstexte_uebernehmen.mjs); hier entsteht nur
-// die Gestaltung: ruhiger Kopfbereich ohne Bewegung, Inhaltsverzeichnis an der Seite am Laptop.
-import Basis from '../layouts/Basis.astro';
-import Seitenkopf from '../components/Seitenkopf.astro';
+// die Gestaltung (src/components/Rechtsseite.astro): Die Überschrift und die Zeile mit Version und Stand stehen im
+// Kopf, die Abschnitte im Inhaltsverzeichnis an der Seite.
+import Rechtsseite from '../components/Rechtsseite.astro';
 import erklaerung from '../inhalte/datenschutz.html?raw';
 import { geruest } from '../daten/startseite.mjs';
 
-const ueberschrift = erklaerung.match(/<h1>([^<]*)<\/h1>/)?.[1] ?? 'Datenschutzerklärung';
-const rumpf = erklaerung.replace(/<h1>[^<]*<\/h1>\s*/, '');
+const anfang = erklaerung.match(/^\s*<h1>([^<]*)<\/h1>\s*<p>([^<]*)<\/p>\s*/);
+if (!anfang) throw new Error('Datenschutzerklärung: Überschrift und Zeile mit Version und Stand am Anfang erwartet.');
+const [ganz, ueberschrift, stand] = anfang;
+const rumpf = erklaerung.slice(ganz.length);
 const abschnitte = [...erklaerung.matchAll(/<h2 id="([^"]+)">([^<]*)<\/h2>/g)].map(([, kennung, text]) => ({ kennung, text, teil: kennung.startsWith('teil-') }));
 ---
-<Basis adresse="/datenschutz.html">
-  <Seitenkopf krumen={[{ titel: geruest.recht.datenschutz, ziel: '/datenschutz.html' }]} titel={ueberschrift} still />
-  <div class="s-inhalt innen s-recht">
-    <nav class="s-toc" aria-label={geruest.recht.inhalt}>
-      <p class="s-toc-titel">{geruest.recht.inhalt}</p>
-      <ol>
-        {abschnitte.map((abschnitt) => (
-          <li class:list={{ teil: abschnitt.teil }}><a href={`#${abschnitt.kennung}`}>{abschnitt.text}</a></li>
-        ))}
-      </ol>
-    </nav>
-    <div class="text" set:html={rumpf} />
-  </div>
-</Basis>
+<Rechtsseite adresse="/datenschutz.html" krumen={[{ titel: geruest.recht.datenschutz, ziel: '/datenschutz.html' }]} titel={ueberschrift} stand={stand} inhalt={abschnitte}>
+  <div class="text" set:html={rumpf} />
+</Rechtsseite>

@@ -1,10 +1,14 @@
 ---
-// Seite eines Rezepts. Alle Angaben kommen aus dem Rezeptpaket, die festen Wörter aus src/daten/rezeptseiten.mjs.
-// Aufbau wie die Startseite: Kopfbereich mit Glas-Karten, darunter Karten statt Tabellen; die Tabellen bleiben
-// aufklappbar stehen. Quelle und Lizenz stehen auf der Seite "Quellen und Lizenzen"; hier führt ein Link dorthin.
+// Seite eines Rezepts (Aufbau seit AP-23 nach Entwurf "Schritt für Schritt"). Alle Angaben kommen aus dem
+// Rezeptpaket, die festen Wörter aus src/daten/rezeptseiten.mjs. Kopfbereich auf der Lavendel-Fläche mit drei großen
+// Angaben und dem Symbolbild, darunter eine Sprungleiste; Zutaten in zwei Spalten, ein Schritt je Karte, die Hinweise
+// nach Stufe gruppiert (die Tabelle bleibt als Umschalter), Nährwerte als Kacheln. Quelle und Lizenz stehen auf der
+// Seite "Quellen und Lizenzen"; hier führt ein Link dorthin. Die strukturierten Daten (Recipe) sind unverändert.
 import Basis from '../layouts/Basis.astro';
 import Seitenkopf from './Seitenkopf.astro';
+import Motive from './Motive.astro';
 import Rezeptkarte from './Rezeptkarte.astro';
+import '../styles/rezepte.css';
 import { seite, store } from '../daten/seite.mjs';
 import { fuss } from '../daten/startseite.mjs';
 import {
@@ -49,6 +53,36 @@ const landThema = (kuerzel) => { const thema = themaZu('land', kuerzel); return 
 const kategorieThema = themaZu('kategorie', rezept.kategorie);
 const nah = aehnliche(rezept);
 
+// Hinweise einer Zutat, je Stufe zusammengefasst: "Enthält: Gluten, Eier", "Je nach Produkt mit: Soja".
+const STUFEN = ['IST', 'MEIST_MIT', 'JE_NACH_PRODUKT'];
+const jeZutat = (zutat) => STUFEN.map((stufe, nummer) => ({
+  wort: nummer === 2 ? `${texte.hinweise.stufen[2][0]} mit` : texte.hinweise.stufen[nummer][0],
+  namen: zutat.hinweise.filter((h) => h.stufe === stufe).map((h) => (stufe === 'IST' ? eintragVon.get(h.eintrag).enthaelt : eintragVon.get(h.eintrag).mit)),
+})).filter((zeile) => zeile.namen.length);
+// Hinweise des Rezepts nach Stufe gruppiert: je Stufe die Einträge mit ihren Zutaten. Ein Eintrag, dessen Name nicht
+// sagt, was gemeint ist ("Vegetarisch"), steht mit seiner Form nach "Enthält" da ("nicht vegetarische Zutaten").
+const jeStufe = STUFEN.map((stufe, nummer) => ({
+  wort: texte.hinweise.stufen[nummer][0],
+  erklaerung: texte.hinweise.stufen[nummer][1],
+  art: ['voll', 'halb', 'offen'][nummer],
+  zeilen: hinweise.flatMap(({ eintrag, stufen }) => stufen.filter((zeile) => zeile.stufe === stufe).map((zeile) => ({
+    name: eintrag.name === eintrag.enthaelt ? eintrag.name : `${eintrag.name}: ${eintrag.enthaelt}`,
+    zutaten: zeile.zutaten.join(', '),
+  }))),
+}));
+// Sprungleiste unter dem Kopf: die fünf Abschnitte der Seite mit ihren Ankern.
+const sprung = [
+  ['zutaten', texte.zutaten.titel], ['zubereitung', texte.schritte.titel], ['hinweise', texte.sprung.hinweise],
+  ['naehrwerte', texte.naehrwerte.titel], ['app', texte.sprung.app],
+];
+// Die drei großen Angaben im Kopf; fehlt die Gesamtzeit im Rezeptpaket, sind es zwei.
+const gross = [
+  rezept.zeitGesamt != null && ['Gesamt', dauer(rezept.zeitGesamt)],
+  menge && [stueck ? 'Stück' : 'Portionen', String(rezept.portionen)],
+  ['Aufwand', AUFWAND[rezept.aufwand]],
+].filter(Boolean);
+const linien = { fill: 'none', stroke: 'currentColor', 'stroke-width': '2.5', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' };
+
 const kochen = rezept.zeitGesamt != null && rezept.zeitVorbereitung != null ? rezept.zeitGesamt - rezept.zeitVorbereitung : null;
 const schluesselwoerter = [
   ...formen.filter(({ stand }) => stand === 'voll').map(({ form }) => form),
@@ -89,47 +123,63 @@ const daten = [{
 ---
 <Basis daten={daten}>
   <article class="rezept">
-    <Seitenkopf krumen={[{ titel: texte.uebersicht, ziel: '/rezepte/' }, { titel: rezept.kurztitel, ziel: adresse }]} titel={rezept.titel} vorzeile={texte.rezeptVorzeile} vorspann={text}>
-      <dl class="s-kacheln">
+    <Seitenkopf
+      krumen={[{ titel: texte.uebersicht, ziel: '/rezepte/' }, { titel: rezept.kurztitel, ziel: adresse }]}
+      titel={rezept.titel}
+      vorzeile={texte.rezeptVorzeile}
+      vorspann={text}
+      motive={[
+        { art: 'zitrone', breite: 170, lage: 'top: -40px; right: 40px', ecke: true },
+        { art: 'blatt', breite: 140, lage: 'bottom: -30px; left: -20px', nurBreit: true },
+        { art: 'aehre', breite: 80, lage: 'bottom: 24px; left: 47%', nurBreit: true },
+      ]}
+    >
+      <dl class="r-angaben">
+        {gross.map(([name, wert]) => <div><dt>{name}</dt><dd>{wert}</dd></div>)}
+      </dl>
+      <dl class="r-zeile">
+        {rezept.zeitVorbereitung != null && <div><dt>Vorbereitung</dt><dd>{dauer(rezept.zeitVorbereitung)}</dd></div>}
         <div><dt>Land</dt><dd>{rezept.laender.map((kuerzel, nummer) => <>{nummer > 0 && ', '}{landThema(kuerzel) ? <a href={landThema(kuerzel)} aria-label={`Rezepte ${ausLand(kuerzel)}`}>{LAND[kuerzel]}</a> : LAND[kuerzel]}</>)}</dd></div>
         <div><dt>Kategorie</dt><dd>{kategorieThema && ziel(kategorieThema.adresse) ? <a href={kategorieThema.adresse} aria-label={kategorieThema.titel}>{KATEGORIE[rezept.kategorie][0]}</a> : KATEGORIE[rezept.kategorie][0]}</dd></div>
-        {rezept.zeitGesamt != null && <div><dt>Gesamt</dt><dd>{dauer(rezept.zeitGesamt)}</dd></div>}
-        {rezept.zeitVorbereitung != null && <div><dt>Vorbereitung</dt><dd>{dauer(rezept.zeitVorbereitung)}</dd></div>}
-        <div><dt>Aufwand</dt><dd>{AUFWAND[rezept.aufwand]}</dd></div>
-        {menge && <div><dt>Menge</dt><dd>{menge}</dd></div>}
         {stufe > 0 && <div><dt>{texte.naehrwerte.energie}</dt><dd>{ENERGIE.wort[rezept.energiedichte]}</dd></div>}
       </dl>
       <p class="r-teilen">
-        <button type="button" class="knopf r-teilen-knopf" data-teilen data-titel={rezept.titel} data-text={texte.teilen.satz(rezept.kurztitel)} data-adresse={voll} data-kopiert={texte.teilen.kopiert} data-fehler={texte.teilen.fehler}>
+        <button type="button" class="knopf voll r-teilen-knopf" data-teilen data-titel={rezept.titel} data-text={texte.teilen.satz(rezept.kurztitel)} data-adresse={voll} data-kopiert={texte.teilen.kopiert} data-fehler={texte.teilen.fehler}>
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><path d="M8.6 10.5l6.8-4M8.6 13.5l6.8 4" /></svg>
           {texte.teilen.knopf}
         </button>
         <span class="r-teilen-status" role="status" data-teilen-status></span>
       </p>
-      <figure class="s-bild s-glas" slot="seite">
+      <figure class="r-bild" slot="seite">
         <picture>
-          <source type="image/avif" srcset={quellen('avif')} sizes="(min-width: 56rem) 33rem, 100vw" />
-          <img src={bild('4x3-1200', 'webp')} srcset={quellen('webp')} sizes="(min-width: 56rem) 33rem, 100vw" alt={`${texte.symbolbild}: ${rezept.titel}`} width="1200" height="900" fetchpriority="high" decoding="async" />
+          <source type="image/avif" srcset={quellen('avif')} sizes="(min-width: 56rem) 31rem, 100vw" />
+          <img src={bild('4x3-1200', 'webp')} srcset={quellen('webp')} sizes="(min-width: 56rem) 31rem, 100vw" alt={`${texte.symbolbild}: ${rezept.titel}`} width="1200" height="900" fetchpriority="high" decoding="async" />
         </picture>
         <figcaption class="r-symbol">{texte.symbolbild}</figcaption>
       </figure>
     </Seitenkopf>
 
-    <div class="s-inhalt innen">
-      <section class="s-teil s-karte" aria-labelledby="passt">
+    <nav class="r-sprung" aria-label={texte.sprung.titel} data-sprung>
+      <ul class="innen">
+        {sprung.map(([anker, name]) => <li><a href={`#${anker}`}>{name}</a></li>)}
+      </ul>
+    </nav>
+
+    <div class="s-inhalt innen r-inhalt">
+      <section class="r-passt" aria-labelledby="passt">
         <h2 id="passt">{texte.passt.titel} <span class="r-zusatz">{texte.passt.zusatz}</span></h2>
         {formen.some(({ stand }) => stand) || ohne.length ? (
           <ul class="r-marken">
             {formen.filter(({ stand }) => stand === 'voll').map(({ schluessel, form }) => {
               const thema = themaZu('passt', schluessel);
               const wort = texte.passt[form];
-              return <li class="voll">{thema && ziel(thema.adresse) ? <a href={thema.adresse} aria-label={thema.titel}>{wort}</a> : wort}</li>;
+              return <li class="voll"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...linien}><path d="M20 6L9 17l-5-5" /></svg>{thema && ziel(thema.adresse) ? <a href={thema.adresse} aria-label={thema.titel}>{wort}</a> : wort}</li>;
             })}
             {moeglich.map(({ form }) => <li class="umriss">{texte.passt.moeglich[form]}</li>)}
             {ohne.map((eintrag) => {
               const thema = themaZu('ohne', eintrag.schluessel);
               const wort = texte.passt.ohne(eintrag.ohne === eintrag.name ? eintrag.name : `${eintrag.ohne} (${eintrag.name})`);
-              return <li>{thema && ziel(thema.adresse) ? <a href={thema.adresse} aria-label={thema.titel}>{wort}</a> : wort}</li>;
+              return <li><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...linien}><path d="M20 6L9 17l-5-5" /></svg>{thema && ziel(thema.adresse) ? <a href={thema.adresse} aria-label={thema.titel}>{wort}</a> : wort}</li>;
             })}
           </ul>
         ) : <p>{texte.passt.keine}</p>}
@@ -137,49 +187,52 @@ const daten = [{
         <p class="klein">{texte.passt.erklaerung}</p>
       </section>
 
-      <div class="s-teil r-spalten">
-        <section class="s-karte r-zutaten-karte" aria-labelledby="zutaten" tabindex="0">
+      <section class="r-teil r-zutaten-karte" aria-labelledby="zutaten">
+        <div class="r-kopfzeile">
           <h2 id="zutaten">{texte.zutaten.titel}</h2>
-          {menge && <p class="klein">{texte.zutaten.fuer} {menge}</p>}
-          {gruppen.map((gruppe) => (
-            <>
-              {gruppe.name && <h3>{gruppe.name}</h3>}
-              <ul class="r-zutaten">
-                {gruppe.zutaten.map((zutat) => (
-                  <li>
-                    <span>{zutat.menge && <b>{[zutat.menge, zutat.einheit].filter(Boolean).join(' ')}</b>} {zutat.name}</span>
-                    {zutat.hinweise.length > 0 && (
-                      <span class="r-hinweis">{zutat.hinweise.map((h) => hinweisText(h.stufe, eintragVon.get(h.eintrag))).join(' · ')}</span>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </>
-          ))}
-        </section>
-
-        <section aria-labelledby="zubereitung">
-          <h2 id="zubereitung">{texte.schritte.titel}</h2>
-          <ol class="r-schritte">
-            {rezept.schritte.map((schritt, nummer) => <li id={`schritt-${nummer + 1}`} data-ein>{schritt}</li>)}
-          </ol>
-        </section>
-      </div>
-
-      <section class="s-teil" aria-labelledby="hinweise">
-        <h2 id="hinweise">{texte.hinweise.titel}</h2>
-        {hinweise.length ? (
+          {menge && <p class="r-fuer">{texte.zutaten.fuer} {menge}</p>}
+        </div>
+        {gruppen.map((gruppe) => (
           <>
-            <p>{texte.hinweise.einleitung}</p>
-            <ul class="r-hinweiskarten">
-              {hinweise.map(({ eintrag, stufen }) => (
-                <li data-ein>
-                  <h3>{eintrag.name}</h3>
-                  {stufen.map((zeile) => <p><b>{zeile.text}</b><span>{zeile.zutaten.join(', ')}</span></p>)}
+            {gruppe.name && <h3>{gruppe.name}</h3>}
+            <ul class="r-zutaten">
+              {gruppe.zutaten.map((zutat) => (
+                <li>
+                  <span class="r-zutat">{zutat.menge && <b>{[zutat.menge, zutat.einheit].filter(Boolean).join(' ')}</b>} {zutat.name}</span>
+                  {zutat.hinweise.length > 0 && (
+                    <details class="r-hinweis">
+                      <summary>{texte.zutaten.hinweise(zutat.hinweise.length)}</summary>
+                      {jeZutat(zutat).map((zeile) => <p><b>{zeile.wort}:</b> {zeile.namen.join(', ')}</p>)}
+                    </details>
+                  )}
                 </li>
               ))}
             </ul>
-            <details class="s-klapp">
+          </>
+        ))}
+      </section>
+
+      <section class="r-teil" aria-labelledby="zubereitung">
+        <h2 id="zubereitung">{texte.schritte.titel}</h2>
+        <ol class="r-schritte">
+          {rezept.schritte.map((schritt, nummer) => (
+            <li id={`schritt-${nummer + 1}`} data-ein>
+              <span class="r-nr" aria-hidden="true">{nummer + 1}</span>
+              <div>
+                <span class="r-marke">{texte.schritte.marke(nummer + 1)}</span>
+                <p>{schritt}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <section class="r-teil r-hinweise" aria-labelledby="hinweise">
+        <h2 id="hinweise">{texte.hinweise.titel}</h2>
+        {hinweise.length ? (
+          <>
+            <p class="r-einleitung">{texte.hinweise.einleitung}</p>
+            <details class="r-umschalter">
               <summary>{texte.hinweise.tabelle}</summary>
               <div class="r-tabelle">
                 <table>
@@ -196,43 +249,68 @@ const daten = [{
                 </table>
               </div>
             </details>
-            <dl class="r-stufen">
-              {texte.hinweise.stufen.map(([wort, erklaerung]) => <div><dt>{wort}</dt><dd>{erklaerung}</dd></div>)}
-            </dl>
+            <div class="r-stufenkarten">
+              {jeStufe.map((gruppe) => (
+                <div class="r-stufe" data-ein>
+                  <h3><i class={gruppe.art} aria-hidden="true"></i>{gruppe.wort}</h3>
+                  <p class="r-stufe-text">{gruppe.erklaerung}</p>
+                  {gruppe.zeilen.length ? (
+                    <dl>
+                      {gruppe.zeilen.map((zeile) => <div><dt>{zeile.name}</dt><dd>{zeile.zutaten}</dd></div>)}
+                    </dl>
+                  ) : <p class="r-stufe-leer">{texte.hinweise.keine}</p>}
+                </div>
+              ))}
+            </div>
           </>
         ) : <p>{texte.hinweise.keine}</p>}
         <p class="klein">{texte.hinweise.app} {fuss.hinweis}</p>
       </section>
 
-      <section class="s-teil" aria-labelledby="naehrwerte">
+      <section class="r-teil" aria-labelledby="naehrwerte">
         {rezept.nwVollstaendig ? (
           <>
             <h2 id="naehrwerte">{proPortion ? (stueck ? texte.naehrwerte.proStueck : texte.naehrwerte.proPortion) : texte.naehrwerte.je100}</h2>
-            <dl class="r-nw">
-              {NAEHRWERT.map(([feld, name, einheit, stellen], nummer) => (
-                <div class:list={{ gross: nummer === 0 }} data-ein>
-                  <dt>{name}</dt>
-                  <dd>
-                    {zahl((proPortion ? rezept.portion : rezept.je100)[feld], stellen)} {einheit}
-                    {proPortion && <small>{zahl(rezept.je100[feld], stellen)} {einheit} {texte.naehrwerte.spalteJe100}</small>}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-            {stufe > 0 && (
-              <div class="r-energie">
-                <h3>{texte.naehrwerte.energie}: {texte.naehrwerte.energieStufe(ENERGIE.wort[rezept.energiedichte], stufe)}</h3>
-                <p class="klein">{texte.naehrwerte.energieText}</p>
-                <ol class="r-skala">
-                  {ENERGIE.stufen.map((name) => (
-                    <li class:list={{ aktuell: name === rezept.energiedichte }} aria-current={name === rezept.energiedichte ? 'true' : undefined}>
-                      <b>{ENERGIE.wort[name]}</b>{ENERGIE.bereich[name]}
-                    </li>
+            <div class="r-nw-raster">
+              <div class="r-kcal muster" data-ein>
+                <dl>
+                  {NAEHRWERT.slice(0, 1).map(([feld, name, einheit, stellen]) => (
+                    <div>
+                      <dt>{name}</dt>
+                      <dd>
+                        {zahl((proPortion ? rezept.portion : rezept.je100)[feld], stellen)} {einheit}
+                        {proPortion && <small>{zahl(rezept.je100[feld], stellen)} {einheit} {texte.naehrwerte.spalteJe100}</small>}
+                      </dd>
+                    </div>
                   ))}
-                </ol>
-                <p class="klein">{texte.naehrwerte.energieHinweis}</p>
+                </dl>
+                {stufe > 0 && (
+                  <div class="r-energie">
+                    <h3>{texte.naehrwerte.energie}: {texte.naehrwerte.energieStufe(ENERGIE.wort[rezept.energiedichte], stufe)}</h3>
+                    <ol class="r-skala">
+                      {ENERGIE.stufen.map((name, nummer) => (
+                        <li class:list={{ voll: nummer < stufe, aktuell: name === rezept.energiedichte }} aria-current={name === rezept.energiedichte ? 'true' : undefined}>
+                          <b>{ENERGIE.wort[name]}</b>{ENERGIE.bereich[name]}
+                        </li>
+                      ))}
+                    </ol>
+                    <p class="klein">{texte.naehrwerte.energieText}</p>
+                    <p class="klein">{texte.naehrwerte.energieHinweis}</p>
+                  </div>
+                )}
               </div>
-            )}
+              <dl class="r-nw">
+                {NAEHRWERT.slice(1).map(([feld, name, einheit, stellen]) => (
+                  <div data-ein>
+                    <dt>{name}</dt>
+                    <dd>
+                      {zahl((proPortion ? rezept.portion : rezept.je100)[feld], stellen)} {einheit}
+                      {proPortion && <small>{zahl(rezept.je100[feld], stellen)} {einheit} {texte.naehrwerte.spalteJe100}</small>}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
             <details class="s-klapp">
               <summary>{texte.naehrwerte.tabelle}</summary>
               <div class="r-tabelle">
@@ -260,36 +338,70 @@ const daten = [{
         )}
       </section>
 
-      <section class="s-teil s-app" aria-labelledby="app" data-ein>
-        <h2 id="app">{texte.app.titel}</h2>
-        <p>{texte.app.text} {texte.app.mehr}</p>
-        <p class="s-app-zeile">
-          <a class="knopf mint" href="/so-gehts/">{texte.app.soGehts}</a>
+      <section class="r-teil r-app muster" aria-labelledby="app" data-ein>
+        <Motive liste={[{ art: 'zitrone', breite: 160, lage: 'right: -36px; bottom: -44px' }]} />
+        <div class="r-app-text">
+          <h2 id="app">{texte.app.titel}</h2>
+          <p>{texte.app.text} {texte.app.mehr}</p>
+        </div>
+        <p class="r-app-zeile">
+          <a class="knopf voll" href="/so-gehts/">{texte.app.soGehts}</a>
           {store.oeffentlich ? <a class="knopf rand" href={store.adresse} rel="noopener">{fuss.auftritte.storeLink}</a> : <span class="r-bald">{fuss.auftritte.storeBald}</span>}
         </p>
       </section>
 
-      <section class="s-teil" aria-labelledby="aehnlich">
+      <p class="r-quelle-link"><a href={quelleAdresse(rezept)} aria-label={texte.quelle.fuer(rezept.kurztitel)}>{texte.quelle.link}</a></p>
+
+      <section class="r-teil" aria-labelledby="aehnlich">
         <h2 id="aehnlich">{texte.aehnlich}</h2>
-        <ul class="r-karten">{nah.map((anderes) => <Rezeptkarte rezept={anderes} />)}</ul>
+        <ul class="r-karten gefasst">{nah.map((anderes) => <Rezeptkarte rezept={anderes} />)}</ul>
         {themenLinks.length > 0 && (
-          <>
+          <div class="r-mehr">
             <h3>{texte.themenTitel}</h3>
             <ul class="chips">{themenLinks.map((thema) => <li><a class="chip" href={thema.adresse}>{thema.titel}</a></li>)}</ul>
-          </>
+          </div>
         )}
       </section>
-
-      <p class="r-quelle-link"><a href={quelleAdresse(rezept)} aria-label={texte.quelle.fuer(rezept.kurztitel)}>{texte.quelle.link}</a></p>
     </div>
   </article>
 </Basis>
 
 <script>
+  // Sprungleiste: Der Abschnitt, der gerade gelesen wird, ist hervorgehoben. Ohne Skript sind alle Einträge gleich.
+  const leiste = document.querySelector('[data-sprung]');
+  if (leiste && 'IntersectionObserver' in window) {
+    const links = new Map([...leiste.querySelectorAll('a')].map((link) => [link.getAttribute('href').slice(1), link]));
+    const teile = [...links.keys()].map((anker) => document.getElementById(anker)?.closest('section')).filter(Boolean);
+    const zeige = (aktuell) => {
+      for (const [anker, link] of links) {
+        if (anker === aktuell) link.setAttribute('aria-current', 'true');
+        else link.removeAttribute('aria-current');
+      }
+    };
+    // Gelesen wird der letzte Abschnitt, dessen Anfang über der Mitte des Fensters liegt.
+    const lies = () => {
+      let aktuell;
+      for (const teil of teile) {
+        if (teil.getBoundingClientRect().top > window.innerHeight * 0.5) break;
+        aktuell = teil.querySelector('h2[id]')?.id;
+      }
+      zeige(aktuell);
+    };
+    let geplant = false;
+    window.addEventListener('scroll', () => {
+      if (geplant) return;
+      geplant = true;
+      requestAnimationFrame(() => { geplant = false; lies(); });
+    }, { passive: true });
+    lies();
+  }
+</script>
+
+<script>
   // Knopf "Rezept teilen" (AP-18 Nacharbeiten Teil J). Am Handy öffnet er das Teilen-Menü des Geräts (Web Share API)
   // mit Titel, einem Satz und der kanonischen Adresse der Seite. Wo das Gerät das nicht kann, kopiert er die Adresse
   // und zeigt kurz "Link kopiert". Die Website überträgt dabei nichts und legt nichts im Speicher des Browsers ab.
-  // Ohne JavaScript ist der Knopf nicht zu sehen (seiten.css); kann der Browser weder teilen noch kopieren, auch nicht.
+  // Ohne JavaScript ist der Knopf nicht zu sehen (rezepte.css); kann der Browser weder teilen noch kopieren, auch nicht.
   const knopf = document.querySelector('[data-teilen]');
   if (knopf) {
     const status = document.querySelector('[data-teilen-status]');

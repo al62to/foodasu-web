@@ -1,27 +1,43 @@
 ---
-// "Über FoodAsu" (AP-22 Teil 2 Nr. 5): wer hinter der App steht, warum es sie gibt, was sie verspricht, wo sie steht
-// und der Kontakt per E-Mail. Alle Texte stehen in src/daten/ueber.mjs. Im Fuß jeder Seite verlinkt.
+// "Über FoodAsu" (AP-22 Teil 2 Nr. 5; Aufbau seit AP-23 nach Entwurf "Stationen an einer Linie"): warum es die App
+// gibt, für wen sie ist, woher die Angaben kommen, was am Handy bleibt, wo sie steht und der Kontakt per E-Mail. Jeder
+// Abschnitt ist eine Station: Zeichen im weißen Kreis an einer feinen Linie. Alle Texte stehen in
+// src/daten/ueber.mjs. Im Fuß jeder Seite verlinkt.
 import Basis from '../../layouts/Basis.astro';
 import Seitenkopf from '../../components/Seitenkopf.astro';
+import Unterschrift from '../../components/Unterschrift.astro';
+import Zeichen from '../../components/Zeichen.astro';
 import { ueber as t } from '../../daten/ueber.mjs';
 import kontakt from '../../inhalte/kontakt.html?raw';
 
 // Die Adresse bleibt wie im Fuß als Zeichenfolge aus HTML-Entitäten im Quelltext.
-const kontaktLink = (text) => `<a href="${kontakt.trim()}">${text}</a>`;
+const kontaktKnopf = (text) =>
+  `<a class="knopf voll" href="${kontakt.trim()}"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zM3 7l9 6 9-6"/></svg>${text}</a>`;
 ---
 <Basis>
-  <Seitenkopf krumen={[{ titel: t.titel, ziel: '/ueber-foodasu/' }]} titel={t.h1} vorspann={t.vorspann} still />
+  <Seitenkopf
+    krumen={[{ titel: t.titel, ziel: '/ueber-foodasu/' }]}
+    titel={t.h1}
+    vorspann={t.vorspann}
+    motive={[
+      { art: 'aehre', breite: 120, lage: 'top: 16px; right: 120px', nurBreit: true },
+      { art: 'zitrone', breite: 120, lage: 'bottom: -40px; right: 34%', ecke: true },
+    ]}
+  />
   <div class="s-inhalt innen">
-    <ul class="s-liste breit">
+    <ol class="stationen u-stationen">
       {t.teile.map((teil) => (
-        <li class="s-karte">
-          <h2 id={teil.anker}>{teil.titel}</h2>
-          {teil.absaetze.map((absatz) => <p>{absatz}</p>)}
-          {teil.unterschrift && <p class="unterschrift">{teil.unterschrift}</p>}
-          {teil.kontakt && <p set:html={kontaktLink(teil.kontakt)} />}
-          {teil.verweis && <p>{teil.verweis.vor}<a href={teil.verweis.ziel}>{teil.verweis.text}</a>{teil.verweis.nach}</p>}
+        <li class="station" data-ein>
+          <span class="station-kreis" aria-hidden="true"><Zeichen name={teil.symbol} /></span>
+          <section class="u-teil" aria-labelledby={teil.anker}>
+            <h2 id={teil.anker}>{teil.titel}</h2>
+            {teil.absaetze.map((absatz) => <p>{absatz}</p>)}
+            {teil.unterschrift && <Unterschrift text={teil.unterschrift} umbruch />}
+            {teil.kontakt && <p class="u-knopf" set:html={kontaktKnopf(teil.kontakt)} />}
+            {teil.verweis && <p class:list={{ klein: teil.kontakt }}>{teil.verweis.vor}<a href={teil.verweis.ziel}>{teil.verweis.text}</a>{teil.verweis.nach}</p>}
+          </section>
         </li>
       ))}
-    </ul>
+    </ol>
   </div>
 </Basis>

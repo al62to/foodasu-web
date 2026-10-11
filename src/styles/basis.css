@@ -1,24 +1,35 @@
-/* Farben und Formen nach Theme F3 (Indigo, Lavendel, Mint). Hell ist der Standard, unabhängig von der Einstellung
-   des Geräts. Dunkel wird die Seite nur über den Schalter in der Kopfzeile (AP-18 Teil C): Er setzt
-   data-modus="dunkel" am html-Element und merkt sich die Wahl im Browser (ein Eintrag "hell" oder "dunkel"). */
+/* Farben und Formen wie in der App: Indigo und Lavendel (AP-23). Jede Farbe der Website steht hier als Variable; in
+   den anderen Stildateien und im HTML stehen keine festen Farbwerte (tools/pruefe_seiten.mjs prüft das bei jedem
+   Bau). Ausnahme sind nur die Abbildungen der App im Handy-Rahmen (src/styles/geraet.css): Sie zeigen die App so, wie
+   sie ist. Grün gibt es nicht.
+   Hell ist der Standard, unabhängig von der Einstellung des Geräts. Dunkel wird die Seite nur über den Schalter in der
+   Kopfzeile (AP-18 Teil C): Er setzt data-modus="dunkel" am html-Element und merkt sich die Wahl im Browser (ein
+   Eintrag "hell" oder "dunkel").
+   --tone ist die Lavendel-Fläche, --punkt ihr Punktmuster, --motiv die Linienmotive darauf; --kasten ist der
+   Lavendel-Kasten für Hinweise, --flaeche der Grund unter den weißen Karten (--karte). --schatten und --schleier sind
+   Farbwerte ohne Deckkraft für rgb(var(...) / Deckkraft). */
 :root {
   --main: #4a3fd1;
   --on-main: #ffffff;
   --deep: #2a2277;
   --tone: #efedff;
   --tone-deep: #dedaff;
-  --mint: #b8f0d2;
-  --on-mint: #00382a;
+  --kasten: #efedff;
+  --punkt: #d9d3ff;
+  --motiv: #c9c1ff;
   --bg: #ffffff;
-  --flaeche: #f4f3fa;
+  --flaeche: #f6f5fc;
+  --karte: #ffffff;
   --text: #1a1a24;
   --muted: #5e5d6e;
   --line: #c7c4d7;
   --logo-word: #1a1a24;
   --logo-script: #4a3fd1;
-  --fuss: #fbfaff;
+  --fuss: #ffffff;
   --fuss-linie: #efedff;
-  --breite: 72rem;
+  --schatten: 42 34 119;
+  --schleier: 18 18 25;
+  --breite: 73.75rem;
   color-scheme: light;
 }
 :root[data-modus="dunkel"] {
@@ -28,17 +39,20 @@
   --deep: #dedaff;
   --tone: #1f1d33;
   --tone-deep: #2a2745;
-  --mint: #b8f0d2;
-  --on-mint: #00382a;
+  --kasten: #2a2745;
+  --punkt: #2a2745;
+  --motiv: #37336b;
   --bg: #121219;
   --flaeche: #0d0d13;
+  --karte: #1b1b24;
   --text: #e5e4ee;
   --muted: #a9a8b8;
   --line: #464554;
-  --logo-word: #ffffff;
-  --logo-script: #b8f0d2;
+  --logo-word: #e5e4ee;
+  --logo-script: #b3abff;
   --fuss: #1b1b24;
   --fuss-linie: #2a2745;
+  --schatten: 0 0 0;
 }
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; scroll-padding-top: 5rem; }
@@ -58,13 +72,13 @@ a { color: var(--main); text-underline-offset: 0.18em; }
 :focus-visible { outline: 3px solid var(--main); outline-offset: 3px; border-radius: 4px; }
 img, svg { max-width: 100%; }
 .vh { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
-.innen { max-width: var(--breite); margin: 0 auto; padding: 0 1rem; }
+.innen { max-width: var(--breite); margin: 0 auto; padding: 0 clamp(1rem, 2.6vw, 2rem); }
 .sprung { position: absolute; left: 1rem; top: -4rem; z-index: 100; background: var(--main); color: var(--on-main); padding: 0.6rem 1rem; border-radius: 0.75rem; font-weight: 700; }
 .sprung:focus { top: 0.5rem; }
 
 /* Kopf und Navigation. Das Mega-Menü folgt Entwurf A (AP-17 Teil E2): links die Gruppen, in der Mitte die Links der
    gewählten Gruppe, rechts drei Rezepte mit Bild. Am Handy füllt das Menü den Bildschirm. */
-.kopf { position: sticky; top: 0; z-index: 50; background: var(--bg); border-bottom: 1px solid var(--line); }
+.kopf { position: sticky; top: 0; z-index: 50; background: var(--bg); border-bottom: 1px solid var(--fuss-linie); }
 .kopf-innen { display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-height: 4rem; }
 .marke { display: inline-flex; align-items: center; min-height: 2.75rem; line-height: 0; }
 .marke svg { height: 1.75rem; width: auto; min-width: 120px; }
@@ -166,7 +180,7 @@ html:not(.js) .mega-knopf, html:not(.js) .mega-wahl { display: none; }
      der Mauszeiger das Menü verlassen würde. */
   .haupt-liste > li { display: flex; align-items: center; min-height: 4rem; }
   .mega { position: absolute; left: 0; right: 0; top: 100%; padding: 0 1rem; }
-  .mega-innen { display: grid; grid-template-columns: minmax(0, 1fr) 20.5rem; gap: 1.75rem; max-width: 75rem; margin: 0 auto; padding: 1.75rem; border: 1px solid var(--line); border-top: 0; border-radius: 0 0 1.75rem 1.75rem; background: var(--bg); box-shadow: 0 24px 60px rgb(42 34 119 / 0.16); }
+  .mega-innen { display: grid; grid-template-columns: minmax(0, 1fr) 20.5rem; gap: 1.75rem; max-width: 75rem; margin: 0 auto; padding: 1.75rem; border: 1px solid var(--line); border-top: 0; border-radius: 0 0 1.75rem 1.75rem; background: var(--bg); box-shadow: 0 24px 60px rgb(var(--schatten) / 0.16); }
   .mega-gruppen { display: grid; grid-template-columns: 15.5rem minmax(0, 1fr); grid-template-rows: repeat(5, auto) 1fr auto; column-gap: 1.75rem; row-gap: 0.25rem; align-content: start; }
   .mega-gruppen > .mega-kopf { grid-column: 1; grid-row: 1; }
   .mega-gruppe { display: contents; }
@@ -197,29 +211,75 @@ main { display: block; }
 .schmal { max-width: 46rem; }
 .vorspann { font-size: 1.2rem; color: var(--muted); max-width: 36rem; }
 .knoepfe { display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 1.5rem 0 1rem; }
-.knopf { display: inline-flex; align-items: center; min-height: 3rem; padding: 0 1.4rem; border-radius: 999px; font-weight: 800; text-decoration: none; }
+.knopf { display: inline-flex; align-items: center; gap: 0.6rem; min-height: 3.125rem; padding: 0 1.5rem; border: 0; border-radius: 999px; font: inherit; font-size: 0.95rem; font-weight: 700; text-decoration: none; cursor: pointer; }
+.knopf svg { flex: none; width: 1.1rem; height: 1.1rem; }
 .knopf.voll { background: var(--main); color: var(--on-main); }
-.knopf.rand { color: var(--main); border: 2px solid var(--main); }
+.knopf.rand { border: 1px solid var(--main); background: var(--karte); color: var(--main); }
+.knopf.hell { background: var(--tone); color: var(--deep); }
 .klein { font-size: 0.95rem; color: var(--muted); }
 .karte { background: var(--bg); border: 1px solid var(--line); border-radius: 1.5rem; padding: 1.25rem; }
 .karte p:last-child, .karte ul:last-child { margin-bottom: 0; }
 
-/* Rechtstexte */
-.text h1 { margin-top: 1.5rem; }
-.text h2 { font-size: 1.4rem; margin: 2.25rem 0 0.5rem; }
-.text h3 { font-size: 1.15rem; margin: 1.75rem 0 0.4rem; }
-.text h4 { font-size: 1.05rem; margin: 1.5rem 0 0.3rem; }
-.text p, .text li { max-width: 46rem; }
-.text ul, .text ol { padding-left: 1.4rem; }
-.text li { margin: 0.3rem 0; }
-.text a { overflow-wrap: anywhere; }
-.text .tabelle { overflow-x: auto; margin: 1rem 0; }
-.text table { border-collapse: collapse; width: 100%; font-size: 0.95rem; }
-.text th, .text td { border: 1px solid var(--line); padding: 0.5rem 0.6rem; text-align: left; vertical-align: top; }
-.text th { background: var(--tone); }
-.text .karte { background: var(--tone); border: 0; margin: 1.75rem 0; }
-.text hr { border: 0; border-top: 1px solid var(--line); margin: 2rem 0; }
-.text .stand { color: var(--muted); font-size: 0.95rem; }
+/* Lavendel-Fläche mit Punktmuster (AP-23 Teil B Nr. 5): der ruhige Grund für Kopfbereiche und Bänder. Dazu höchstens
+   drei blasse Linienmotive je Abschnitt (src/components/Motive.astro). Einfarbige dunkle Flächen, farbige
+   Randstreifen und Farbflecken gibt es nicht. */
+.muster { position: relative; overflow: clip; background-color: var(--tone); background-image: radial-gradient(var(--punkt) 1.6px, transparent 1.7px); background-size: 26px 26px; }
+.muster > .innen { position: relative; z-index: 1; }
+.motiv { position: absolute; z-index: 0; height: auto; max-width: none; fill: none; stroke: var(--motiv); stroke-width: 2; stroke-linecap: round; pointer-events: none; }
+@media (max-width: 55.99rem) {
+  .motiv.nur-breit { display: none; }
+  /* Am Handy in der rechten oberen Ecke, zum größten Teil außerhalb: So liegt das Motiv nicht hinter dem Text. Die
+     Lage am Laptop steht als Stil am Element, deshalb hier mit Vorrang. */
+  .motiv.m-ecke { inset: -3.25rem -3.25rem auto auto !important; }
+}
+
+/* Weiße Karte, Lavendel-Kasten für Hinweise, Überzeile, Chips. */
+.blatt-karte { border-radius: 1.75rem; background: var(--karte); box-shadow: 0 1px 2px rgb(var(--schatten) / 0.06); }
+.kasten { padding: 0.9rem 1.1rem; border-radius: 1rem; background: var(--kasten); color: var(--deep); font-size: 0.95rem; font-weight: 700; }
+.kasten > :last-child { margin-bottom: 0; }
+/* Ohne Großschreibung per CSS: Sie landet sonst im Namen, den ein Bildschirmleser vorliest. */
+.ueberzeile { margin: 0 0 0.9rem; font-size: 1.15rem; font-weight: 700; line-height: 1.4; letter-spacing: 0.12em; font-variant-caps: all-small-caps; color: var(--main); hyphens: none; }
+.chips { list-style: none; display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0; padding: 0; }
+.chip { display: inline-flex; align-items: center; gap: 0.5rem; min-height: 2.75rem; padding: 0 1rem; border: 1px solid var(--tone-deep); border-radius: 999px; background: var(--karte); color: var(--deep); font: inherit; font-size: 0.9rem; font-weight: 600; text-decoration: none; cursor: pointer; }
+a.chip:hover, button.chip:hover { border-color: var(--main); }
+.chip[aria-pressed="true"] { border-color: var(--main); background: var(--main); color: var(--on-main); }
+/* Chip ohne Ziel (Begriff, Schildchen): niedriger, weil er nicht angetippt wird. */
+.chip.ruht { min-height: 2.25rem; padding: 0 0.9rem; cursor: default; }
+.chip i { flex: none; width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--main); }
+
+/* Unterschrift unter einem persönlichen Absatz (src/components/Unterschrift.astro): der Name in der Schrift des Logos. */
+.unterschrift { margin: 1.4rem 0 0; font-size: 0.95rem; color: var(--muted); }
+.unterschrift .name { font-family: "Pacifico", cursive; font-size: 1.5rem; font-weight: 400; line-height: 1.3; color: var(--main); }
+.unterschrift.umbruch .rolle { display: block; }
+
+/* Stationen an einer feinen Linie (AP-23): Kreis mit Symbol oder Nummer, daneben der Inhalt. Die Linie führt von
+   jedem Kreis zum nächsten und endet am letzten. --kreis ist der Durchmesser, --abstand der Abstand der Stationen. */
+.stationen { --abstand: clamp(1.75rem, 4vw, 3rem); position: relative; list-style: none; margin: 0; padding: 0; }
+.station { position: relative; display: grid; grid-template-columns: var(--kreis, 2.75rem) minmax(0, 1fr); column-gap: clamp(0.9rem, 2.4vw, 1.75rem); }
+.station + .station { margin-top: var(--abstand); }
+.station:not(:last-child)::before { content: ""; position: absolute; left: calc(var(--kreis, 2.75rem) / 2 - 1px); top: var(--kreis, 2.75rem); bottom: calc(-1 * var(--abstand)); width: 2px; background: var(--tone-deep); }
+.station-kreis { position: relative; z-index: 1; display: grid; place-items: center; width: var(--kreis, 2.75rem); height: var(--kreis, 2.75rem); border-radius: 50%; background: var(--karte); color: var(--main); font-weight: 800; box-shadow: 0 0 0 6px var(--flaeche), 0 0 0 7px var(--tone-deep); }
+.station-kreis svg { width: 1.25rem; height: 1.25rem; }
+
+/* Weiche Fläche, auf der ein Handy steht: Lavendel, zur Ecke hin etwas kräftiger. */
+.weich { position: relative; border-radius: 1.75rem; background: radial-gradient(62% 48% at 88% 8%, var(--tone-deep), transparent 72%), var(--tone); }
+
+/* Knopf zum Anhalten der Bewegung (WCAG 2.2.2): fest unten rechts, erscheint nur, wenn eine Schleife läuft. */
+.bewegung-knopf { position: fixed; right: 0.75rem; bottom: 0.75rem; z-index: 40; display: inline-flex; align-items: center; gap: 0.5rem; min-height: 2.75rem; padding: 0 1rem 0 0.85rem; border: 1.5px solid var(--line); border-radius: 999px; background: var(--karte); color: var(--text); font: inherit; font-size: 0.9rem; font-weight: 700; cursor: pointer; box-shadow: 0 10px 30px -14px rgb(var(--schatten) / 0.55); }
+.bewegung-knopf[hidden] { display: none; }
+.bewegung-knopf svg { flex: none; width: 1.05rem; height: 1.05rem; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+.bewegung-knopf .z-lauf { display: none; fill: currentColor; stroke-width: 1.5; }
+.angehalten .bewegung-knopf .z-halt { display: none; }
+.angehalten .bewegung-knopf .z-lauf { display: inline; }
+/* Platz am Seitenende, damit der Knopf die letzte Zeile des Fußes nicht verdeckt. */
+.js body:has(.bewegung-knopf:not([hidden])) { padding-bottom: 4rem; }
+
+/* Das Menü blendet sanft ein. Nur am Laptop: Am Handy liegt im Menü eine Ebene mit fester Lage. Solange das Menü
+   verschoben einblendet, hinge sie am Menü statt am Bildschirm. */
+@media (prefers-reduced-motion: no-preference) and (min-width: 56rem) {
+  .mega { transition: opacity 0.18s, translate 0.18s; }
+  @starting-style { .mega { opacity: 0; translate: 0 -0.4rem; } }
+}
 
 /* Fuß: Fußzeile A (AP-18 Teil D). Links Logo und Satz, daneben drei Spalten, unten eine schmale Zeile. Am Handy
    steht alles untereinander, die beiden Knöpfe nebeneinander. Jeder Link ist mindestens 44 Pixel hoch. Die
@@ -240,7 +300,7 @@ main { display: block; }
 .fuss-knopf svg { flex: none; width: 1.3rem; height: 1.3rem; fill: currentColor; }
 .fuss-zeile { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem 1.5rem; padding: 1rem 0 1.5rem; border-top: 1px solid var(--fuss-linie); }
 .fuss-zeile p { margin: 0; }
-.fuss-bald, .fuss-store { display: inline-flex; align-items: center; gap: 0.5rem; min-height: 2.25rem; padding: 0 0.95rem 0 0.75rem; border-radius: 999px; background: var(--mint); color: var(--on-mint); font-weight: 700; }
+.fuss-bald, .fuss-store { display: inline-flex; align-items: center; gap: 0.5rem; min-height: 2.25rem; padding: 0 0.95rem 0 0.75rem; border: 1px solid var(--tone-deep); border-radius: 999px; background: var(--karte); color: var(--deep); font-weight: 700; }
 .fuss-store { min-height: 2.75rem; text-decoration: none; }
 .fuss-bald svg, .fuss-store svg { flex: none; width: 1.2rem; height: 1.2rem; }
 .fuss-store svg { fill: currentColor; }

@@ -1,0 +1,13 @@
+---
+// Unterschrift unter einem persönlichen Absatz (AP-23): der Name in der Schrift des Logos (Pacifico, selbst gehostet)
+// und in Indigo, der Rest klein daneben oder darunter. Im Text steht der Wortlaut unverändert, zum Beispiel
+// "Ali Tonc, Entwickler von FoodAsu"; getrennt wird nur für die Gestaltung nach dem ersten Komma.
+// "umbruch" stellt den Rest in eine eigene Zeile (Seite "Über FoodAsu").
+import '@fontsource/pacifico/latin-400.css';
+
+const { text, umbruch = false } = Astro.props;
+const stelle = text.indexOf(',');
+const name = stelle < 0 ? text : text.slice(0, stelle + 1);
+const rest = stelle < 0 ? '' : text.slice(stelle + 1).trim();
+---
+<p class:list={['unterschrift', { umbruch }]}><span class="name">{name}</span>{rest && <>{' '}<span class="rolle">{rest}</span></>}</p>

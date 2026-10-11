@@ -1,7 +1,8 @@
 ---
 // Karte eines Rezepts mit Symbolbild; die ganze Karte führt zum Rezept. Am Laptop neigt sie sich leicht unter dem
-// Mauszeiger (Skript in Seitenkopf.astro). Mit "filter" trägt sie die Angaben für Suche und Filter der Übersicht;
-// mit "land" steht unter dem Titel das Land statt der Zeit (Übersicht nach Entwurf 1).
+// Mauszeiger (Skript in Seitenkopf.astro). Mit "filter" trägt sie die Angaben für Suche und Filter der Übersicht.
+// Seit AP-23 steht der kurze Name als Titel da; der Zusatz in Klammern ("Reisschale mit Gemüse, Rindfleisch und Ei")
+// steht als eigene Zeile darunter, dann Kategorie und Zeit (mit "land" das Land statt der Zeit).
 import { texte, KATEGORIE, LAND, dauer, rezeptAdresse, ziel, filterAngaben } from '../daten/rezeptseiten.mjs';
 
 const { rezept, vorn = false, filter = false, ein = true, land = false } = Astro.props;
@@ -11,6 +12,10 @@ const quellen = (endung) => [360, 720].map((breite) => `${bild(endung, breite)} 
 const groessen = '(min-width: 48rem) 17rem, 46vw';
 const zusatz = land ? LAND[rezept.laender[0]] : rezept.zeitGesamt != null ? dauer(rezept.zeitGesamt) : null;
 const zeile = [KATEGORIE[rezept.kategorie][0], zusatz].filter(Boolean).join(' · ');
+// Der Titel des Rezeptpakets ist "Kurzer Name (Zusatz)"; der Zusatz steht ohne die Klammern unter dem Namen.
+const rest = rezept.titel.startsWith(rezept.kurztitel) ? rezept.titel.slice(rezept.kurztitel.length).trim() : '';
+const unter = /^\(.+\)$/.test(rest) ? rest.slice(1, -1) : rest;
+const name = unter ? rezept.kurztitel : rezept.titel;
 const angaben = filter ? filterAngaben(rezept) : {};
 ---
 <li class="r-karte" data-neigung data-ein={ein && !vorn ? '' : undefined} data-karte={filter ? '' : undefined} data-kategorie={angaben.kategorie} data-land={angaben.land} data-passt={angaben.passt} data-text={angaben.text}>
@@ -21,6 +26,9 @@ const angaben = filter ? filterAngaben(rezept) : {};
     </picture>
     <span class="r-symbol" aria-hidden="true">{texte.symbolbild}</span>
   </div>
-  <p class="r-karte-titel">{adresse ? <a href={adresse}>{rezept.titel}</a> : rezept.titel}</p>
-  <p class="r-karte-zeile">{zeile}</p>
+  <div class="r-karte-text">
+    <p class="r-karte-titel">{adresse ? <a href={adresse}>{name}</a> : name}</p>
+    {unter && <p class="r-karte-unter">{unter}</p>}
+    <p class="r-karte-zeile">{zeile}</p>
+  </div>
 </li>

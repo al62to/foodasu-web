@@ -1,17 +1,32 @@
 ---
-// Fragen und Antworten: dieselben Fragen wie auf der Startseite (src/daten/startseite.mjs), hier offen lesbar und
-// als FAQPage in den strukturierten Daten. In den Daten steht nur, was sichtbar auf der Seite steht.
+// Fragen und Antworten (AP-23 Teil C Nr. 4, Entwurf "Nach Themen"): dieselben Fragen wie auf der Startseite
+// (src/daten/fragen.mjs), hier in drei Gruppen, offen lesbar und als FAQPage in den strukturierten Daten. In den Daten
+// steht nur, was sichtbar auf der Seite steht, in der Reihenfolge der Seite. Links fährt am Laptop die Liste "Auf
+// dieser Seite" mit; am Handy steht sie oben.
 import Basis from '../../layouts/Basis.astro';
 import Seitenkopf from '../../components/Seitenkopf.astro';
-import { fragen, geruest } from '../../daten/startseite.mjs';
+import { geruest } from '../../daten/startseite.mjs';
+import { fragen, fragenGruppen, MEDIZIN } from '../../daten/fragen.mjs';
 
 const texte = geruest.fragenSeite;
+const gruppen = fragenGruppen.gruppen.map((gruppe) => ({
+  ...gruppe,
+  fragen: gruppe.fragen.map((anker) => {
+    const eintrag = fragen.liste.find((frage) => frage.anker === anker);
+    if (!eintrag) throw new Error(`Seite /fragen/: Die Frage mit dem Anker „${anker}“ gibt es nicht.`);
+    return eintrag;
+  }),
+}));
+const geordnet = gruppen.flatMap((gruppe) => gruppe.fragen);
+if (geordnet.length !== fragen.liste.length || new Set(geordnet).size !== geordnet.length) {
+  throw new Error('Seite /fragen/: Jede Frage muss in genau einer Gruppe stehen.');
+}
 const antwortText = (eintrag) =>
   [...eintrag.antwort, eintrag.verweis ? `${eintrag.verweis.vor}${eintrag.verweis.text}${eintrag.verweis.nach}` : null].filter(Boolean).join(' ');
 const daten = [{
   '@context': 'https://schema.org',
   '@type': 'FAQPage',
-  mainEntity: fragen.liste.map((eintrag) => ({
+  mainEntity: geordnet.map((eintrag) => ({
     '@type': 'Question',
     name: eintrag.frage,
     acceptedAnswer: { '@type': 'Answer', text: antwortText(eintrag) },
@@ -19,16 +34,39 @@ const daten = [{
 }];
 ---
 <Basis daten={daten}>
-  <Seitenkopf krumen={[{ titel: texte.titel, ziel: '/fragen/' }]} titel={texte.h1} vorspann={texte.beschreibung} />
-  <div class="s-inhalt innen">
-    <ul class="s-liste breit">
-      {fragen.liste.map((eintrag) => (
-        <li class="s-karte" data-ein>
-          <h2>{eintrag.frage}</h2>
-          {eintrag.antwort.map((absatz) => <p>{absatz}</p>)}
-          {eintrag.verweis && <p>{eintrag.verweis.vor}<a href={eintrag.verweis.ziel}>{eintrag.verweis.text}</a>{eintrag.verweis.nach}</p>}
-        </li>
+  <Seitenkopf
+    krumen={[{ titel: texte.titel, ziel: '/fragen/' }]}
+    titel={texte.h1}
+    vorspann={texte.beschreibung}
+    motive={[{ art: 'aehre', breite: 120, lage: 'top: 14px; right: 140px', nurBreit: true }]}
+  />
+  <div class="s-inhalt innen s-zwei">
+    <nav class="s-leiste" aria-labelledby="fragen-inhalt">
+      <p class="s-leiste-titel" id="fragen-inhalt">{fragenGruppen.inhalt}</p>
+      {gruppen.map((gruppe) => (
+        <>
+          <p class="gruppe">{gruppe.titel}</p>
+          <ul class="unter">
+            {gruppe.fragen.map((eintrag) => <li><a href={`#${eintrag.anker}`}>{eintrag.frage}</a></li>)}
+          </ul>
+        </>
       ))}
-    </ul>
+    </nav>
+    <div class="s-gruppen">
+      {gruppen.map((gruppe) => (
+        <section aria-labelledby={gruppe.anker}>
+          <h2 class="ueberzeile" id={gruppe.anker}>{gruppe.titel}</h2>
+          <div class="s-stapel">
+            {gruppe.fragen.map((eintrag) => (
+              <article class="s-karte s-frage" aria-labelledby={eintrag.anker} data-ein>
+                <h3 id={eintrag.anker}>{eintrag.frage}</h3>
+                {eintrag.antwort.map((absatz) => (absatz === MEDIZIN ? <p class="kasten">{absatz}</p> : <p>{absatz}</p>))}
+                {eintrag.verweis && <p>{eintrag.verweis.vor}<a href={eintrag.verweis.ziel}>{eintrag.verweis.text}</a>{eintrag.verweis.nach}</p>}
+              </article>
+            ))}
+          </div>
+        </section>
+      ))}
+    </div>
   </div>
 </Basis>

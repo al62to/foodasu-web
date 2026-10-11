@@ -9,12 +9,15 @@ import { seite } from './seite.mjs';
 export const ueber = {
   titel: 'Über FoodAsu',
   // Überschrift der Seite (h1); "titel" bleibt für Brotkrumen und Fuß.
-  h1: 'Über FoodAsu, die App aus Vorarlberg',
+  h1: 'Über FoodAsu, die App vom Bodensee',
   // Derselbe Satz wie oben auf der Startseite und in Organization und WebSite.
   vorspann: seite.beschreibung,
+  // Jeder Abschnitt ist seit AP-23 eine Station an einer feinen Linie; "symbol" nennt das Zeichen im Kreis
+  // (src/daten/zeichen.mjs).
   teile: [
     {
       anker: 'warum',
+      symbol: 'frage',
       titel: 'Warum es FoodAsu gibt',
       // Wortlaut nach Alis Angaben im Chat vom 10.10.2026: in seinen Worten, mit der Einkaufsliste als zweitem Grund,
       // ohne Doppelpunkte.
@@ -28,6 +31,7 @@ export const ueber = {
     {
       // Entscheidung 9: für wen FoodAsu ist, und die Einkaufsliste im Alltag (LISTE-01, LISTE-03, LISTE-04).
       anker: 'fuer-wen',
+      symbol: 'haus',
       titel: 'Für wen FoodAsu ist',
       absaetze: [
         'FoodAsu ist für alle, die wissen wollen, was sie einkaufen, statt blind zuzugreifen. Die App zeigt, was laut Daten im Produkt ist, und verspricht nichts, was die Daten nicht hergeben.',
@@ -38,6 +42,7 @@ export const ueber = {
     {
       // Entscheidung 4: offene Quellen, "laut Daten", die Verpackung ist maßgeblich.
       anker: 'angaben',
+      symbol: 'datenbank',
       titel: 'Woher die Angaben kommen',
       absaetze: [
         'FoodAsu legt offen, woher seine Angaben kommen. Die Angaben zu Produkten stammen aus der offenen Datenbank Open Food Facts, die Rezepte aus offenen Rezeptsammlungen.',
@@ -47,6 +52,7 @@ export const ueber = {
     },
     {
       anker: 'bei-dir',
+      symbol: 'handy',
       titel: 'Was bei dir bleibt',
       absaetze: [
         'Kein Konto, keine Werbung, kein Verkauf von Daten. FoodAsu funktioniert ohne Registrierung.',
@@ -56,12 +62,14 @@ export const ueber = {
     },
     {
       anker: 'stand',
+      symbol: 'neu',
       titel: 'Wo FoodAsu steht',
       absaetze: ['FoodAsu ist in der Beta. Wir bauen laufend neue Funktionen ein und freuen uns über dein Feedback. Die App kommt für Android in den Play Store. Eine Version fürs iPhone ist geplant.'],
       verweis: { vor: 'Was die App schon kann, zeigt die Anleitung ', text: "So geht's", nach: '.', ziel: '/so-gehts/' },
     },
     {
       anker: 'kontakt',
+      symbol: 'brief',
       titel: 'Kontakt',
       absaetze: ['Fragen, Hinweise und Feedback kommen per E-Mail an.'],
       kontakt: 'E-Mail schreiben',

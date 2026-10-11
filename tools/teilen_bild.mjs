@@ -1,7 +1,7 @@
 // Baut das gemeinsame Bild für Open Graph und die Twitter-Karte (1200 x 630) nach public/bilder/foodasu-teilen.jpg
-// (AP-18 Nachtrag Meta): Logo auf Indigo mit den Hintergrund-Akzenten aus Theme F3, im Stil der Kopfgrafik des
-// Store-Eintrags. Oben rechts der Fleck der Startbildschirme mit Kreis und kleinem Ring, unten links der große Ring
-// mit einem Kreis in Mint; darunter der Satz aus dem Fuß der Website. Alle Seiten außer den Rezeptseiten zeigen
+// (AP-18 Nachtrag Meta): Logo auf Indigo mit Akzenten in Indigo und Lavendel (seit AP-23 ohne Grün, wie die ganze
+// Website). Oben rechts der Fleck der Startbildschirme mit Kreis und kleinem Ring, unten links der große Ring mit
+// einem Kreis in Lavendel; darunter der Satz aus dem Fuß der Website. Alle Seiten außer den Rezeptseiten zeigen
 // dieses Bild. Kein Rezeptbild, keine Anfrage ins Netz. Aufruf: node tools/teilen_bild.mjs
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -17,12 +17,11 @@ const schrift = pathToFileURL(
 ).href;
 const logo = readFileSync(join(wurzel, 'src/inhalte/logo.svg'), 'utf8');
 const { breite, hoehe } = seite.teilen;
-// Farben der App (Theme F3): Indigo, tiefes Indigo, Lavendel, dunkles Lavendel, Mint.
+// Farben der App: Indigo, tiefes Indigo, Lavendel, kräftigeres Lavendel.
 const INDIGO = '#4a3fd1';
 const INDIGO_TIEF = '#2a2277';
 const LAVENDEL = '#efedff';
 const LAVENDEL_DUNKEL = '#dedaff';
-const MINT = '#b8f0d2';
 // Fleck der Startbildschirme (Ansichtsfeld 200 x 200), wie in der App und in der Kopfgrafik.
 const FLECK = 'M40 40C70 5 150 0 180 40s20 110-20 140-120 20-140-20S10 75 40 40Z';
 
@@ -34,15 +33,15 @@ body { margin: 0; width: ${breite}px; height: ${hoehe}px; overflow: hidden; posi
 .mitte { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 34px; }
 .logo svg { display: block; width: 620px; height: auto; }
 .logo .wort { fill: #fff; }
-.logo .schrift { fill: ${MINT}; }
+.logo .schrift { fill: ${LAVENDEL_DUNKEL}; }
 p { margin: 0; color: ${LAVENDEL}; font-size: 38px; font-weight: 500; letter-spacing: -.01em; }
 </style><body>
 <svg class="akzente" viewBox="0 0 ${breite} ${hoehe}" aria-hidden="true">
   <path d="${FLECK}" transform="translate(968 -178) scale(2.52)" fill="${INDIGO_TIEF}" fill-opacity=".55"/>
   <circle cx="1132" cy="100" r="98" fill="${LAVENDEL_DUNKEL}" fill-opacity=".24"/>
-  <circle cx="1068" cy="62" r="20" fill="none" stroke="${MINT}" stroke-width="9"/>
+  <circle cx="1068" cy="62" r="20" fill="none" stroke="${LAVENDEL_DUNKEL}" stroke-width="9"/>
   <circle cx="22" cy="610" r="150" fill="none" stroke="${LAVENDEL}" stroke-opacity=".16" stroke-width="40"/>
-  <circle cx="172" cy="566" r="28" fill="${MINT}"/>
+  <circle cx="172" cy="566" r="28" fill="${LAVENDEL_DUNKEL}"/>
 </svg>
 <div class="mitte"><div class="logo">${logo}</div><p>${fuss.satz}</p></div>
 </body></html>`;

@@ -11,10 +11,20 @@ export const datenquellen = {
   // Überschrift der Seite (h1); "titel" bleibt für Brotkrumen und Fuß.
   h1: 'Daten und Quellen: woher die Angaben kommen',
   vorspann: 'Woher die Angaben in FoodAsu kommen, was „laut Daten“ bedeutet und warum am Ende die Verpackung zählt.',
-  // "absaetze" sind Text; ein Absatz als Objekt hat einen Link: { vor, text, ziel, nach, extern }.
+  // Aufbau der Seite seit AP-23 (Entwurf "Herkunft und Bedeutung getrennt"): zwei Gruppen mit je einer Überschrift (h2),
+  // darin die Abschnitte (h3) in der hier genannten Reihenfolge; am Ende steht der Abschnitt "schluss" als einfache
+  // Liste. Die Anker der Abschnitte bleiben, wie sie sind.
+  gruppen: [
+    { anker: 'herkunft', titel: 'Woher die Angaben kommen', teile: ['produkte', 'rezepte', 'naehrwerte', 'bilder'] },
+    { anker: 'bedeutung', titel: 'Was die Angaben bedeuten', teile: ['laut-daten', 'luecken', 'verpackung'] },
+  ],
+  schluss: 'nachweise',
+  // "absaetze" sind Text; ein Absatz als Objekt hat einen Link: { vor, text, ziel, nach, extern }. "symbol" nennt das
+  // Zeichen neben der Überschrift (src/daten/zeichen.mjs).
   teile: [
     {
       anker: 'produkte',
+      symbol: 'scan',
       titel: 'Produkte: Open Food Facts',
       absaetze: [
         'Die Angaben zu Produkten kommen aus der offenen Datenbank Open Food Facts. Eine Gemeinschaft trägt dort ein, was auf der Verpackung steht: Zutaten, Spurenangaben und Nährwerte. Beim Scannen fragt FoodAsu mit dem Strichcode dort nach.',
@@ -24,6 +34,7 @@ export const datenquellen = {
     },
     {
       anker: 'laut-daten',
+      symbol: 'haken',
       titel: 'Was „laut Daten“ bedeutet',
       absaetze: [
         'FoodAsu zeigt, was laut Daten im Produkt ist, und hält das neben das, was jede Person in deinem Haushalt meidet. Das Ergebnis heißt „enthält“, „Spuren“, „Angaben unvollständig“ oder „Kein Konflikt laut Daten“.',
@@ -32,6 +43,7 @@ export const datenquellen = {
     },
     {
       anker: 'luecken',
+      symbol: 'uhr',
       titel: 'Warum Angaben fehlen oder veraltet sein können',
       absaetze: [
         'Die Datenbank lebt von Menschen, die Produkte eintragen. Manche Produkte fehlen ganz. Bei anderen fehlt die Zutatenliste, oder sie ist nicht vollständig erfasst. Ändert ein Hersteller die Zusammensetzung, kann in der Datenbank noch die alte stehen.',
@@ -40,6 +52,7 @@ export const datenquellen = {
     },
     {
       anker: 'verpackung',
+      symbol: 'etikett',
       titel: 'Warum die Verpackung maßgeblich ist',
       absaetze: [
         'Auf der Verpackung steht, was in genau dieser Packung ist. Die Angaben dort kommen vom Hersteller. FoodAsu gibt dir im Laden einen schnellen Überblick und ersetzt die Verpackung nicht.',
@@ -49,6 +62,7 @@ export const datenquellen = {
     },
     {
       anker: 'rezepte',
+      symbol: 'topf',
       titel: 'Rezepte',
       absaetze: [
         'Die Rezepte stammen aus offenen Rezeptsammlungen, zum Beispiel aus dem Koch-Wiki, dem Kochbuch von Wikibooks und UniTools World Recipes. Sie stehen unter freien Lizenzen und sind für FoodAsu verändert. Die Hinweise zu den Zutaten stammen von FoodAsu.',
@@ -57,6 +71,7 @@ export const datenquellen = {
     },
     {
       anker: 'naehrwerte',
+      symbol: 'diagramm',
       titel: 'Nährwerte der Rezepte',
       absaetze: [
         'Die Nährwerte der Rezepte sind eine eigene Berechnung aus den rohen Zutaten, mit Daten des Bundeslebensmittelschlüssels (BLS 4.0), herausgegeben vom Max Rubner-Institut. Das Max Rubner-Institut hat die Berechnung nicht geprüft. Beim Kochen ändert sich das Gewicht.',
@@ -65,6 +80,7 @@ export const datenquellen = {
     },
     {
       anker: 'bilder',
+      symbol: 'bild',
       titel: 'Symbolbilder',
       absaetze: [
         'Die Bilder der Rezepte sind Symbolbilder. Sie sind mit Adobe Firefly erzeugt und zeigen nicht das Gericht, wie es nach diesem Rezept gekocht aussieht. Jedes Bild ist als „Symbolbild“ gekennzeichnet; die Herkunft steht auch in der Bilddatei.',
@@ -72,6 +88,7 @@ export const datenquellen = {
     },
     {
       anker: 'nachweise',
+      symbol: 'wegweiser',
       titel: 'Wo die Nachweise stehen',
       absaetze: [
         { vor: 'Die Nachweise zu jedem Rezept: ', text: 'Quellen und Lizenzen der Rezepte', ziel: '/quellen-und-lizenzen/', nach: '.' },

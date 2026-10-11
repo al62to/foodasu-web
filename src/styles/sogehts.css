@@ -1,199 +1,135 @@
-/* Bereich "So geht's" (AP-15 Teil B2, Karte C; gestaltet in AP-19 Teil H): Übersicht mit acht Kapitelkarten und die
-   Kapitelseiten. Die Formen sind die der Startseite: Handy im Rahmen mit Schatten (geraet.css), weiche Flächen, große
-   dunkle Karten wie im Glas-Raster, Chips. Farben und Flächen kommen aus basis.css und seiten.css und folgen dem
-   Schalter für helle und dunkle Darstellung; feste Farben haben nur der Handy-Rahmen und die großen dunklen Karten
-   (wie der Kopfbereich). Jede Bewegung liegt am Ende der Datei in der Abfrage "prefers-reduced-motion: no-preference";
-   was in Schleife läuft, hält der Knopf "Bewegung anhalten" an. */
+/* Bereich "So geht's" (AP-15 Teil B2, Karte C; neu gestaltet in AP-23): die Übersicht als Weg mit acht Stationen und
+   die Kapitelseiten mit einer Station je Abschnitt. Die Stationen (Kreis an einer feinen Linie) kommen aus basis.css,
+   der Handy-Rahmen aus geraet.css. Alle Farben kommen aus den Variablen in basis.css und folgen dem Schalter für helle
+   und dunkle Darstellung. Jede Bewegung liegt am Ende der Datei in der Abfrage "prefers-reduced-motion: no-preference". */
 
-/* Übersicht: drei Handys im Kopf. Sie sind unten angeschnitten; der Kopfbereich schneidet sie ab. */
-.g-trio { position: relative; height: clamp(13rem, 44vw, 17rem); margin-bottom: calc(-1 * clamp(2rem, 5vw, 3.5rem)); }
-.g-trio .geraet { --gb: clamp(7.25rem, 27vw, 10rem); position: absolute; top: 1.75rem; left: 50%; margin: 0; }
-.g-trio .geraet:nth-child(1) { translate: -138% 2.25rem; rotate: -7deg; }
-.g-trio .geraet:nth-child(2) { z-index: 1; translate: -50% 0; }
-.g-trio .geraet:nth-child(3) { translate: 38% 2.25rem; rotate: 7deg; }
-.g-trio .geraet-rahmen { box-shadow: 0 2.5rem 4rem -1.5rem rgb(0 0 0 / 0.6), 0 0 0 1px rgb(255 255 255 / 0.16); }
-@media (min-width: 56rem) {
-  .g-trio { height: 23rem; }
-  .g-trio .geraet { --gb: 12.5rem; top: 0.5rem; }
-}
-
-/* Übersicht: Kapitelkarten. Am Handy steht der Handy-Ausschnitt rechts neben dem Text, sonst über dem Text. */
-.g-kacheln { list-style: none; display: grid; gap: 1rem; margin: 0; padding: 0; }
-.g-kacheln > li { display: flex; }
-.g-kachel { position: relative; display: grid; flex: 1; grid-template-columns: minmax(0, 1fr) 6.75rem; overflow: hidden; border: 1px solid var(--line); border-radius: 1.75rem; background: var(--karte); color: var(--text); text-decoration: none; box-shadow: 0 30px 60px -44px rgb(var(--schatten) / 0.45); transform: perspective(60rem) rotateX(var(--nx, 0deg)) rotateY(var(--ny, 0deg)); }
-.g-kachel:hover { border-color: var(--main); }
-.g-kachel-bild { position: relative; grid-column: 2; grid-row: 1; overflow: hidden; min-height: 10.5rem; border-radius: 0; }
-.g-kachel-bild .geraet { --gb: 5.75rem; position: absolute; top: 1.1rem; left: 50%; margin: 0; translate: -50% 0; }
-.g-kachel-inhalt { grid-column: 1; grid-row: 1; display: flex; flex-direction: column; gap: 0.75rem; padding: 1.2rem 0.5rem 1.2rem 1.2rem; }
-.g-nummer { display: grid; place-items: center; width: 2.75rem; height: 2.75rem; border-radius: 0.9rem; background: var(--tone); color: var(--deep); font-size: 1.25rem; font-weight: 800; }
-.g-kachel-text { display: grid; gap: 0.3rem; }
-.g-kachel-text b { font-size: 1.2rem; line-height: 1.25; letter-spacing: -0.02em; }
-.g-kachel-text > span:last-child { font-size: 0.98rem; color: var(--muted); }
-.g-lesen { display: inline-flex; align-items: center; gap: 0.4rem; min-height: 1.75rem; margin-top: auto; color: var(--main); font-weight: 800; }
+/* Übersicht (Entwurf "Ein Weg"): Am Laptop läuft die Linie durch die Mitte; die Nummer sitzt im Kreis auf der Linie,
+   auf der einen Seite steht die weiße Karte, auf der anderen das Handy mit dem Leitbild, von Station zu Station
+   abwechselnd. Am Handy läuft die Linie links, und das Handy steht klein in der Karte. */
+.g-weg { --kreis: 2.75rem; --abstand: 1.1rem; max-width: 58.5rem; margin: 0 auto; }
+.g-weg .station { align-items: center; column-gap: 0.75rem; }
+.g-weg .station-kreis { border: 2px solid var(--tone-deep); box-shadow: none; font-size: 1.1rem; }
+/* Die Linie verbindet die Mitten der Kreise. */
+.g-weg .station:not(:last-child)::before { top: 50%; bottom: calc(-50% - var(--abstand)); }
+.g-kachel { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 0.9rem; padding: 1.1rem 1.1rem 1.1rem 1.25rem; border-radius: 1.5rem; background: var(--karte); box-shadow: 0 1px 2px rgb(var(--schatten) / 0.06); color: var(--text); text-decoration: none; }
+.g-kachel-text b { display: block; font-size: 1.15rem; line-height: 1.25; letter-spacing: -0.01em; }
+.g-kurz { display: block; margin-top: 0.35rem; font-size: 0.92rem; line-height: 1.55; color: var(--muted); }
+.g-lesen { display: inline-flex; align-items: center; gap: 0.4rem; margin-top: 0.7rem; font-size: 0.88rem; font-weight: 700; color: var(--main); }
 .g-lesen svg { width: 1.1rem; height: 1.1rem; }
-.g-hinweis { max-width: 46rem; margin-top: 2rem; }
-@media (min-width: 40rem) {
-  .g-kacheln { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .g-kachel { grid-template-columns: minmax(0, 1fr); grid-template-rows: 10.5rem 1fr; }
-  .g-kachel-bild { grid-column: 1; grid-row: 1; }
-  .g-kachel-bild .geraet { --gb: 9.25rem; top: 1.5rem; }
-  .g-kachel-inhalt { grid-row: 2; padding: 0 1.3rem 1.3rem; }
-  .g-nummer { margin-top: -1.4rem; position: relative; border: 3px solid var(--karte); width: 3.1rem; height: 3.1rem; }
-  .g-kachel-text b { font-size: 1.3rem; }
+.g-kachel-bild .geraet { --gb: 4.25rem; margin: 0; rotate: 4deg; }
+.g-halt:nth-child(even) .g-kachel-bild .geraet { rotate: -4deg; }
+.g-kachel:hover b { text-decoration: underline; }
+.g-hinweis { position: relative; max-width: 58.5rem; margin: 2rem auto 0; }
+.g-hinweis p { line-height: 1.7; }
+.g-hinweis a { font-weight: 700; }
+@media (min-width: 48rem) {
+  .g-weg { --kreis: 3.5rem; --abstand: 1.75rem; }
+  /* Eine Linie durch die Mitte, bis zur Karte mit dem Hinweis. */
+  .g-weg::before { content: ""; position: absolute; left: calc(50% - 1px); top: 1.5rem; bottom: -2.25rem; width: 2px; background: var(--tone-deep); }
+  .g-weg .station:not(:last-child)::before { content: none; }
+  .g-weg .station { grid-template-columns: minmax(0, 1fr) var(--kreis) minmax(0, 1fr); column-gap: 2.5rem; }
+  .g-weg .station-kreis { grid-column: 2; grid-row: 1; font-size: 1.25rem; }
+  /* Karte und Handy stehen als eigene Felder links und rechts der Linie; beide gehören zum selben Link. */
+  .g-kachel { display: contents; }
+  .g-kachel-text { grid-column: 1; grid-row: 1; padding: 1.4rem 1.6rem; border-radius: 1.6rem; background: var(--karte); box-shadow: 0 1px 2px rgb(var(--schatten) / 0.06); }
+  .g-kachel-text b { font-size: 1.25rem; }
+  .g-kachel-bild { grid-column: 3; grid-row: 1; justify-self: start; }
+  .g-kachel-bild .geraet { --gb: 6.9rem; }
+  .g-halt:nth-child(even) .g-kachel-text { grid-column: 3; }
+  .g-halt:nth-child(even) .g-kachel-bild { grid-column: 1; justify-self: end; }
+  /* Der Link selbst hat keine Fläche: Der Fokus zeigt sich an der Karte. */
+  .g-kachel:focus-visible { outline: none; }
+  .g-kachel:focus-visible .g-kachel-text { outline: 3px solid var(--main); outline-offset: 3px; }
+  .g-hinweis { margin-top: 2.25rem; }
 }
-@media (min-width: 64rem) { .g-kacheln { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 
-/* Der Kopfbereich darf nie breiter werden als das Fenster, auch nicht durch die Leiste in einer Zeile. */
-.s-kopf-raster > * { min-width: 0; }
+/* Kapitel, Kopfbereich: rechts die kurze Schleife im Handy mit ihrer Unterschrift. */
+.g-film { display: grid; justify-items: center; gap: 0.6rem; margin: 0; }
+.g-film .geraet { --gb: 9.5rem; margin: 0; }
+.g-film figcaption { max-width: 17rem; font-size: 0.82rem; line-height: 1.45; text-align: center; color: var(--muted); }
+@media (min-width: 56rem) {
+  .s-kopf-raster.zwei:has(> .g-film) { grid-template-columns: minmax(0, 1fr) 18.75rem; }
+  .g-film .geraet { --gb: 12.5rem; }
+}
 
-/* Kapitel, Kopfbereich: "In diesem Kapitel" als Leiste mit Chips. Am Handy läuft die Leiste in einer Zeile und lässt
-   sich waagrecht schieben; sonst bricht sie um. */
-.g-inhalt { margin-top: 1.6rem; }
-.g-inhalt h2 { margin: 0 0 0.6rem; font-size: 0.85rem; font-weight: 800; letter-spacing: 0.04em; color: rgba(255, 255, 255, 0.82); }
-.g-leiste { list-style: none; display: flex; gap: 0.5rem; margin: 0 -1rem; padding: 0.2rem 1rem 0.6rem; overflow-x: auto; scroll-snap-type: x proximity; scroll-padding-inline: 1rem; scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.4) transparent; }
+/* Kapitel, "In diesem Kapitel": am Handy oben als Zeile aus Chips, die sich waagrecht schieben lässt; am Laptop links
+   als Liste, die beim Scrollen mitfährt. Darunter "Alle Kapitel". */
+.g-leiste ul { display: flex; gap: 0.5rem; margin: 0 calc(-1 * clamp(1rem, 2.6vw, 2rem)); padding: 0.2rem clamp(1rem, 2.6vw, 2rem) 0.6rem; overflow-x: auto; scroll-snap-type: x proximity; scroll-padding-inline: 1rem; scrollbar-width: thin; scrollbar-color: var(--tone-deep) transparent; }
 .g-leiste li { flex: none; scroll-snap-align: start; }
-.g-leiste a { display: inline-flex; align-items: center; min-height: 2.75rem; padding: 0 1.05rem; border: 1px solid rgba(255, 255, 255, 0.24); border-radius: 999px; background: rgba(255, 255, 255, 0.1); font-size: 0.92rem; font-weight: 700; text-decoration: none; white-space: nowrap; }
-.g-leiste a:hover { border-color: rgba(255, 255, 255, 0.6); background: rgba(255, 255, 255, 0.2); }
-@media (min-width: 56rem) { .g-leiste { flex-wrap: wrap; margin: 0; padding: 0; overflow: visible; } }
-
-/* Kapitel, Inhalt: links die Karten, rechts am breiten Bildschirm die Bühne. */
-.g-seite { display: grid; gap: 1.5rem; }
-.g-seite > * { min-width: 0; }
-.g-text { display: grid; gap: clamp(1rem, 2.4vw, 1.4rem); }
-.g-raster { display: grid; gap: 0.9rem; }
-@media (min-width: 40rem) {
-  .g-raster { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .g-raster > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+.g-leiste li a { padding: 0 1rem; border: 1px solid var(--tone-deep); border-radius: 999px; background: var(--karte); color: var(--deep); font-weight: 600; white-space: nowrap; }
+.g-leiste li a:hover { border-color: var(--main); background: var(--karte); }
+.g-alle { display: inline-flex; gap: 0.4rem; width: fit-content; margin-top: 0.25rem; font-weight: 700; }
+.s-leiste a.g-alle { color: var(--main); }
+.g-alle svg { flex: none; width: 1.1rem; height: 1.1rem; }
+@media (min-width: 64rem) {
+  .g-leiste ul { display: block; margin: 0; padding: 0 0 0 0.35rem; border-left: 2px solid var(--tone-deep); overflow: visible; }
+  .g-leiste li a { padding: 0.25rem 0.6rem; border: 0; border-radius: 0.6rem; background: transparent; color: var(--text); font-weight: 400; white-space: normal; }
+  .g-leiste li a:hover { background: var(--tone); color: var(--deep); }
+  .g-alle { margin-top: 0.75rem; }
 }
-html:not(.js) .g-seite { max-width: 50rem; }
 
-/* Abschnitt: Symbol und Titel, der Nutzen, der Weg in der App als kleiner Wegweiser. */
-.g-funktion { position: relative; min-width: 0; }
-.g-funktion h2 { margin: 0; scroll-margin-top: 5.5rem; }
-.g-kopfzeile { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.75rem; }
-.g-symbol { flex: none; display: grid; place-items: center; width: 2.75rem; height: 2.75rem; border-radius: 0.9rem; background: var(--tone); color: var(--main); }
-.g-symbol svg { width: 1.5rem; height: 1.5rem; }
-.g-worte > :first-child { margin-top: 0; }
-.g-worte > :last-child { margin-bottom: 0; }
-.g-nutzen { font-size: 1.05rem; }
-.g-wo { display: inline-flex; align-items: flex-start; gap: 0.5rem; max-width: 100%; margin: 0 0 1em; padding: 0.5rem 1rem 0.5rem 0.75rem; border: 1.5px solid var(--tone-deep); border-radius: 1.25rem; background: var(--karte); color: var(--deep); font-size: 0.92rem; font-weight: 600; line-height: 1.45; }
-.g-wo svg { flex: none; width: 1.2rem; height: 1.2rem; margin-top: 0.08rem; color: var(--main); }
+/* Kapitel, Abschnitte: jede Funktion eine Station. Das Symbol sitzt im weißen Kreis an der Linie, daneben die Karte mit
+   Titel, Nutzen, dem Weg in der App und dem Bildschirmfoto. Wichtige Abschnitte ("gross" in den Daten) sind
+   Lavendel-Karten mit Punktmuster. */
+.g-spalte { min-width: 0; }
+.g-text { --kreis: 2.5rem; --abstand: 1rem; --oben: 1.1rem; }
+.g-text .station { column-gap: 0.7rem; }
+.g-text .station-kreis { margin-top: var(--oben); }
+.g-text .station-kreis svg { width: 1.2rem; height: 1.2rem; }
+/* Der Kreis steht etwas unter der Oberkante der Karte; die Linie reicht bis in den nächsten Kreis. */
+.g-text .station:not(:last-child)::before { top: calc(var(--oben) + var(--kreis)); bottom: calc(-1 * var(--abstand) - var(--oben)); }
+.g-funktion { min-width: 0; }
+.g-karte { display: grid; gap: 1.25rem; min-width: 0; padding: 1.25rem 1.25rem 1.4rem; }
+.g-karte.lavendel { padding: 1.5rem 1.4rem; box-shadow: 0 1px 2px rgb(var(--schatten) / 0.06); }
+.g-worte { min-width: 0; }
+.g-karte h2 { margin: 0; font-size: clamp(1.2rem, 2.2vw, 1.32rem); line-height: 1.15; letter-spacing: -0.01em; scroll-margin-top: 5.5rem; }
+.g-gross .g-karte h2 { font-size: clamp(1.45rem, 3vw, 1.75rem); letter-spacing: -0.02em; }
+.g-worte > p { margin: 0.6rem 0 0; line-height: 1.7; }
+.g-gross .g-nutzen { font-size: 1.06rem; }
+.g-worte a { font-weight: 700; }
+.g-worte > .g-wo { display: inline-flex; align-items: flex-start; gap: 0.5rem; max-width: 100%; margin-top: 0.9rem; padding: 0.5rem 0.9rem 0.5rem 0.7rem; border: 1px solid var(--tone-deep); border-radius: 1rem; background: var(--karte); font-size: 0.88rem; line-height: 1.45; }
+.g-wo svg { flex: none; width: 1.1rem; height: 1.1rem; margin-top: 0.1rem; color: var(--main); }
 .g-wo b { font-weight: 800; }
 .g-wo i { font-style: normal; font-weight: 800; color: var(--main); }
-.g-funktion .r-stufen { margin: 1rem 0; }
+.g-funktion .r-stufen { margin: 1rem 0 0; }
+.g-funktion .r-stufen div { background: var(--karte); }
 @media (min-width: 48rem) { .g-funktion .r-stufen { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 /* Sprungmarken aus der Fassung vor AP-19: ohne Inhalt, nur als Ziel alter Links. */
 .g-alt-anker { position: absolute; top: 0; scroll-margin-top: 5.5rem; }
-
-/* Große Karte: dunkles Indigo mit Farbflächen wie das Glas-Raster der Startseite, in beiden Farbschemata gleich. */
-.g-gross { overflow: clip; isolation: isolate; padding: clamp(1.5rem, 4vw, 2.4rem); border-radius: 1.75rem; background: #16123f; color: #fff; }
-.g-gross::before, .g-gross::after { content: ""; position: absolute; z-index: -1; border-radius: 50%; pointer-events: none; }
-.g-gross::before { left: -12%; top: -45%; width: 70%; height: 130%; background: radial-gradient(closest-side, rgba(74, 63, 209, 0.9), rgba(74, 63, 209, 0)); }
-.g-gross::after { right: -8%; bottom: -55%; width: 46%; height: 110%; background: radial-gradient(closest-side, rgba(63, 191, 143, 0.3), rgba(63, 191, 143, 0)); }
-.g-gross .g-kopfzeile { flex-direction: column; align-items: flex-start; gap: 1rem; margin-bottom: 0.9rem; }
-.g-gross .g-symbol { width: 3.1rem; height: 3.1rem; border: 1px solid rgba(255, 255, 255, 0.18); background: rgba(255, 255, 255, 0.1); color: #b8f0d2; }
-.g-gross .g-symbol svg { width: 1.75rem; height: 1.75rem; }
-.g-gross h2 { font-size: clamp(1.75rem, 4.6vw, 2.5rem); line-height: 1.05; letter-spacing: -0.035em; text-wrap: balance; }
-.g-gross .g-nutzen { font-size: clamp(1.06rem, 1.6vw, 1.2rem); }
-.g-gross .g-worte { color: rgba(255, 255, 255, 0.88); }
-.g-gross a { color: #fff; }
-.g-gross :focus-visible { outline-color: #fff; }
-.g-gross .g-wo { border: 1px solid rgba(255, 255, 255, 0.24); background: rgba(255, 255, 255, 0.1); color: #fff; }
-.g-gross .g-wo svg, .g-gross .g-wo i { color: #b8f0d2; }
-.g-gross .g-flaeche { border: 1px solid rgba(255, 255, 255, 0.16); background: rgba(255, 255, 255, 0.08); }
-.g-gross .geraet-rahmen { box-shadow: 0 2.2rem 3.6rem -1.4rem rgb(0 0 0 / 0.6), 0 0 0 1px rgb(255 255 255 / 0.16); }
-.g-gross .g-foto figcaption { color: rgba(255, 255, 255, 0.82); }
-
-/* Helle Karte mit Bild. */
-.g-mittel { padding: clamp(1.2rem, 3vw, 1.6rem); border: 1px solid var(--line); border-radius: 1.75rem; background: var(--karte); box-shadow: 0 30px 60px -44px rgb(var(--schatten) / 0.45); }
-.g-mittel h2 { font-size: clamp(1.3rem, 2.8vw, 1.6rem); letter-spacing: -0.025em; }
-.g-mittel .g-wo { border-color: transparent; background: var(--tone); }
-
-/* Kompakte Karte mit Symbol. */
-.g-klein { padding: 1.15rem 1.2rem; border-radius: 1.4rem; background: var(--tone); }
-.g-klein .g-kopfzeile { gap: 0.7rem; margin-bottom: 0.6rem; }
-.g-klein .g-symbol { width: 2.4rem; height: 2.4rem; border-radius: 0.8rem; background: var(--karte); }
-.g-klein .g-symbol svg { width: 1.35rem; height: 1.35rem; }
-.g-klein h2 { font-size: 1.15rem; letter-spacing: -0.01em; }
-.g-klein .g-nutzen { font-size: 1rem; }
-.g-klein .g-worte > p:not(.g-wo) { font-size: 1rem; }
-
-/* Notiz: Abschnitt ohne Funktion, nur Text. Der Strich links ist der der Startseite. */
-.g-notiz { padding: 0.4rem 0 0.4rem 1.25rem; border-left: 4px solid var(--mint); }
-.g-notiz .g-symbol { width: auto; height: auto; background: none; }
-.g-notiz h2 { font-size: clamp(1.2rem, 2.6vw, 1.4rem); letter-spacing: -0.02em; }
-.g-notiz .g-worte { max-width: 46rem; }
-
-/* Bild beim Abschnitt: Handy im Rahmen auf einer weichen Fläche, darunter die Unterschrift. Am Handy steht es unter
-   dem Text, ab dem Tablet rechts daneben. */
-.g-foto { margin: 1.25rem 0 0; }
-.g-flaeche { padding: 1.5rem 1rem; }
-.g-foto .geraet { --gb: min(15rem, 62vw); }
-.g-foto figcaption { margin-top: 0.65rem; font-size: 0.92rem; line-height: 1.4; color: var(--muted); text-align: center; }
+/* Bildschirmfoto in der Karte: am Handy unter dem Text, sonst rechts daneben. */
+.g-foto { display: grid; justify-items: center; align-content: start; gap: 0.6rem; margin: 0; }
+.g-foto .geraet { --gb: min(11rem, 58vw); margin: 0; }
+.g-foto figcaption { max-width: 13rem; font-size: 0.82rem; line-height: 1.45; text-align: center; color: var(--muted); }
 @media (min-width: 40rem) {
-  .g-mit-foto { display: grid; grid-template-columns: minmax(0, 1fr) 17rem; grid-template-rows: auto 1fr; column-gap: clamp(1.25rem, 3vw, 2rem); }
-  .g-mit-foto > .g-kopfzeile, .g-mit-foto > .g-worte { grid-column: 1; }
-  .g-mit-foto > .g-foto { grid-column: 2; grid-row: 1 / span 2; align-self: center; margin: 0; }
-  .g-foto .geraet { --gb: 13rem; }
+  .g-text { --kreis: 2.75rem; --abstand: 1.1rem; --oben: 1.25rem; }
+  .g-text .station { column-gap: 1.25rem; }
+  .g-karte { padding: 1.5rem 1.75rem; }
+  .g-karte.lavendel { padding: 2rem; }
+  .g-mit-foto { grid-template-columns: minmax(0, 1fr) auto; column-gap: 1.75rem; align-items: start; }
+  .g-foto .geraet { --gb: 8.25rem; }
+  .g-foto figcaption { max-width: 10rem; }
+  .g-gross .g-foto .geraet { --gb: 10rem; }
+  .g-gross .g-foto figcaption { max-width: 12rem; }
 }
 
-/* Bühne. Am Handy zeigt sie nur die Schleife eines Kapitels (über den Abschnitten); ohne Schleife gibt es sie dort
-   nicht. Am breiten Bildschirm bleibt sie beim Scrollen stehen und zeigt das Bild zum Abschnitt, der gerade gelesen
-   wird: Das Skript der Seite hängt die Bilder hierher um. --g-max ist die Höhe des
-   höchsten Bildes samt Rahmen in Breiten des Handys; damit hat die Bühne von Anfang an ihre Größe. */
-.g-buehne { display: none; }
-.g-buehne.mit-film { display: block; order: -1; }
-.g-buehne-flaeche { padding: 1.5rem 1rem 1.25rem; }
-.g-buehne .g-foto { margin: 0; }
-.g-buehne .g-foto .geraet { --gb: min(11.5rem, 50vw); }
-.g-buehne-titel { display: none; }
-@media (min-width: 64rem) {
-  .js .g-seite { grid-template-columns: minmax(0, 1fr) 21rem; column-gap: 2.5rem; align-items: start; }
-  .js .g-mit-foto { display: block; }
-  .js .g-buehne { --gbb: clamp(9.5rem, calc((100vh - 15.5rem) / var(--g-max)), 16rem); display: block; order: 0; position: sticky; top: 5.25rem; }
-  .js .g-buehne-flaeche { padding: 2.9rem 1.25rem 1.25rem; }
-  .js .g-buehne-platz { position: relative; height: calc(var(--gbb) * var(--g-max) + 3.75rem); }
-  /* Alle Bilder liegen übereinander; zu sehen ist das aktive. Für Bildschirmleser bleiben alle mit ihrer Beschreibung da. */
-  .js .g-buehne .g-foto { position: absolute; inset: 0 0 auto; opacity: 0; pointer-events: none; }
-  .js .g-buehne .g-foto.aktiv { opacity: 1; pointer-events: auto; }
-  .js .g-buehne .g-flaeche { padding: 0; border: 0; border-radius: 0; background: none; }
-  .js .g-buehne .g-foto .geraet { --gb: var(--gbb); }
-  .js .g-buehne .g-film .geraet { --gb: calc(var(--gbb) * var(--g-film)); }
-  /* Der Titel des Abschnitts schwebt als Chip an der oberen Ecke des Handys, wie die Begriffe im Kopf der Startseite. */
-  .js .g-buehne-titel:not([hidden]) { position: absolute; z-index: 2; left: 0.9rem; top: 1.15rem; display: inline-flex; align-items: center; gap: 0.45rem; max-width: calc(100% - 1.8rem); margin: 0; padding: 0.5rem 0.9rem; border: 1px solid var(--line); border-radius: 999px; background: var(--karte); box-shadow: 0 14px 30px -14px rgb(var(--schatten) / 0.35); font-size: 0.85rem; font-weight: 700; line-height: 1.3; }
-  .g-buehne-titel i { flex: none; width: 0.55rem; height: 0.55rem; border-radius: 50%; background: var(--main); }
-  /* Der Abschnitt, dessen Bild die Bühne zeigt. */
-  .js .g-mittel.zeigt { border-color: var(--main); }
-  .js .g-gross.zeigt { box-shadow: 0 0 0 3px var(--mint); }
-  /* Bevor das Skript die Bilder umgehängt hat, stehen sie am breiten Bildschirm nicht im Text: So springt nichts. */
-  .js .g-text .g-foto { display: none; }
-}
-
-/* Unter den Karten */
-.g-bildhinweis { max-width: 46rem; margin: 2.5rem 0 0; }
-.g-mehr h2 { font-size: 1.15rem; }
-.g-blaettern { display: grid; gap: 0.75rem; margin-top: clamp(2rem, 5vw, 3rem); }
-.g-blatt { display: grid; align-content: center; gap: 0.15rem; min-height: 4.5rem; padding: 0.9rem 1.25rem; border: 1px solid var(--line); border-radius: 1.4rem; background: var(--karte); color: var(--text); text-decoration: none; }
-.g-blatt:hover { border-color: var(--main); }
-.g-blatt span { font-size: 0.9rem; color: var(--muted); }
-.g-blatt b { color: var(--main); }
+/* Unter den Stationen: Bildhinweis, "Weiterlesen" als Chips, voriges und nächstes Kapitel als zwei weiße Karten. */
+.g-bildhinweis { max-width: 46rem; margin: 2rem 0 0; }
+.g-mehr { margin-top: 1.75rem; }
+.g-mehr h2 { margin: 0 0 0.75rem; font-size: 1.1rem; letter-spacing: 0; }
+.g-blaettern { display: grid; gap: 0.75rem; margin-top: 2rem; }
+.g-blatt { display: grid; gap: 0.25rem; padding: 1.1rem 1.4rem; border-radius: 1.5rem; background: var(--karte); box-shadow: 0 1px 2px rgb(var(--schatten) / 0.06), 0 0 0 1px var(--fuss-linie); color: var(--text); text-decoration: none; }
+.g-blatt span { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; font-weight: 700; color: var(--main); }
+.g-blatt span svg { flex: none; width: 1rem; height: 1rem; }
+.g-blatt.zurueck span svg { rotate: 180deg; }
+.g-blatt b { font-size: 1.06rem; line-height: 1.3; }
+.g-blatt:hover b { text-decoration: underline; }
 @media (min-width: 40rem) {
   .g-blaettern { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .g-blatt.weiter { text-align: right; }
+  .g-blatt.weiter { justify-items: end; text-align: right; }
 }
 
-/* Bewegung: sanft. Karten heben sich unter dem Mauszeiger, das Bild der Bühne blendet über, der Chip schwebt. */
+/* Bewegung: sanft. Das Handy einer Station der Übersicht hebt sich unter dem Mauszeiger. */
 @media (prefers-reduced-motion: no-preference) {
-  .g-kachel { transition: transform 0.25s ease, border-color 0.2s ease, box-shadow 0.25s ease; }
-  .g-kachel .geraet { transition: translate 0.35s cubic-bezier(0.22, 1, 0.36, 1); }
-  .g-kachel:hover .geraet, .g-kachel:focus-visible .geraet { translate: -50% -0.6rem; }
-  .g-leiste a, .g-blatt, .g-mittel { transition: border-color 0.2s ease, background-color 0.2s ease; }
-  .g-gross { transition: box-shadow 0.25s ease; }
-  @media (min-width: 64rem) {
-    .js .g-buehne .g-foto { transition: opacity 0.3s ease; }
-    .angehalten .g-buehne .g-foto { transition: none; }
-    .js .g-buehne-titel { animation: g-schweben 5.4s ease-in-out infinite alternate; }
-    .js.angehalten .g-buehne-titel { animation-play-state: paused; }
-  }
+  .g-kachel-bild .geraet { transition: translate 0.35s cubic-bezier(0.22, 1, 0.36, 1); }
+  .g-kachel:hover .g-kachel-bild .geraet, .g-kachel:focus-visible .g-kachel-bild .geraet { translate: 0 -0.4rem; }
 }
-@keyframes g-schweben { from { translate: 0 -0.3rem; } to { translate: 0 0.3rem; } }

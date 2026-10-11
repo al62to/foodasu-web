@@ -1,13 +1,16 @@
 ---
-// Startseite, Abschnitte 1 bis 8 nach AP-15 Teil B und dem Entwurf Website_Entwuerfe_FoodAsu.html. Alle Texte stehen
-// in src/daten/startseite.mjs. Die Bewegung kommt aus src/styles/start.css (läuft ohne Skript) und aus
-// src/skripte/bewegung.js (GSAP, wird erst nach dem ersten Zeichnen geladen).
+// Startseite nach Entwurf "Der Tisch" (AP-23 Teil C Nr. 1). Alle Texte stehen in src/daten/startseite.mjs. Die
+// Bewegung kommt aus src/styles/start.css (läuft ohne Skript) und aus src/skripte/bewegung.js (GSAP, wird erst nach
+// dem ersten Zeichnen geladen). Ohne JavaScript und mit "Bewegung reduzieren" steht alles sofort und vollständig da.
 import Basis from '../layouts/Basis.astro';
 import Handy from '../components/Handy.astro';
+import Motive from '../components/Motive.astro';
+import Unterschrift from '../components/Unterschrift.astro';
 import '../styles/start.css';
 import { seite, auftritte, store } from '../daten/seite.mjs';
 import { kopf, wort, schritte, lagen, funktionen, einblick, zahlen, vorschau, fragen, geruest } from '../daten/startseite.mjs';
 import { fotoDaten } from '../daten/sogehts.mjs';
+import { ziel } from '../daten/rezeptseiten.mjs';
 
 const organisation = `${seite.adresse}/#organisation`;
 // Strukturierte Daten: nur WebSite und Organization. MobileApplication steht hier seit AP-22 nicht mehr (Entscheidung Ali
@@ -36,35 +39,42 @@ const daten = [
   },
 ];
 
-const karte = Object.fromEntries(funktionen.karten.map((eintrag) => [eintrag.kennung, eintrag]));
 const quellen = (datei, endung) => [360, 720].map((breite) => `/bilder/rezepte/${datei}-${breite}.${endung} ${breite}w`).join(', ');
-const linien = { fill: 'none', stroke: 'currentColor', 'stroke-width': '1.8', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' };
-const zeichen = [
-  'M4 8V5h3M17 5h3v3M4 16v3h3M17 19h3v-3M8 9v6M11 9v6M13.5 9v6M16 9v6',
-  'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM9.6 9.4a2.5 2.5 0 1 1 3.6 2.3c-.8.4-1.2 1-1.2 1.8M12 16.6v.1',
-  'M5 11h14v5a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4zM3 11h18M9 4c0 1.2 1 1.4 1 2.6S9 8 9 8M14 4c0 1.2 1 1.4 1 2.6S14 8 14 8',
-];
+const linien = { fill: 'none', stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' };
 const urteilZeichen = 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM9 9l6 6M15 9l-6 6';
-// Zeichen der vier Schritte einer Einkaufswoche ("symbol" in den Daten).
-const schrittZeichen = {
-  rezept: 'M6 3.5h12v17H6zM9 8h6M9 12h6M9 16h3.5',
-  stift: 'M4 20l1-4.2L16.4 4.4a2.05 2.05 0 0 1 2.9 2.9L7.9 18.9zM14.6 6.2l3 3',
-  scan: zeichen[0],
-  topf: zeichen[2],
+// Zeichen der sechs Funktionen ("symbol" in den Daten).
+const funktionZeichen = {
+  scan: 'M4 7V5a1 1 0 0 1 1-1h2M17 4h2a1 1 0 0 1 1 1v2M20 17v2a1 1 0 0 1-1 1h-2M7 20H5a1 1 0 0 1-1-1v-2M8 8v8M11 8v8M14 8v8M16.5 8v8',
+  haushalt: 'M9 11.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4zM3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M17 11.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM15.5 14.2c3 .2 5.5 2.7 5.5 5.8',
+  liste: 'M6 3h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM8 9l1.5 1.5L12 8M14 9.5h3M8 15h9',
+  buch: 'M4 4h7a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4zM20 4h-4a2 2 0 0 0-2 2M20 4v14h-6',
+  topf: 'M4 11h16v3a6 6 0 0 1-6 6h-4a6 6 0 0 1-6-6zM2 11h20M9 7c0-1.5 1-1.5 1-3M14 7c0-1.5 1-1.5 1-3',
+  handy: 'M9 2h6a3 3 0 0 1 3 3v14a3 3 0 0 1-3 3H9a3 3 0 0 1-3-3V5a3 3 0 0 1 3-3zM10 10h4a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1zM10 10V8.5a2 2 0 0 1 4 0V10',
 };
+for (const karte of funktionen.karten) {
+  if (!funktionZeichen[karte.symbol]) throw new Error(`Startseite: Zeichen „${karte.symbol}“ der Funktion „${karte.titel}“ fehlt.`);
+}
+const pfeilRechts = 'M5 12h14M13 6l6 6-6 6';
+// Die vier Lagen am Tisch und der Wocheneinkauf, der als Karte darunter steht.
+const amTisch = lagen.karten.filter((karte) => !karte.breit);
+const woche = lagen.karten.find((karte) => karte.breit);
+if (amTisch.length !== 4 || !woche) throw new Error('Startseite: Der Tisch braucht vier Lagen mit Schildchen und die Lage zum Wocheneinkauf.');
 ---
 <Basis daten={daten}>
   <button type="button" class="bewegung-knopf" data-bewegung data-anhalten={geruest.bewegung.anhalten} data-fortsetzen={geruest.bewegung.fortsetzen} hidden>
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path class="z-halt" d="M8 5v14M16 5v14" /><path class="z-lauf" d="M8 5l11 7-11 7z" /></svg>
     <span data-bewegung-text>{geruest.bewegung.anhalten}</span>
   </button>
-  <section class="held" id="start">
-    <div class="held-fleck f1" aria-hidden="true"></div>
-    <div class="held-fleck f2" aria-hidden="true"></div>
+
+  <section class="held muster" id="start">
+    <Motive liste={[
+      { art: 'zitrone', breite: 200, klasse: 'm-held' },
+      { art: 'blatt', breite: 150, lage: 'bottom: -30px; left: 8%', nurBreit: true },
+    ]} />
     <div class="innen held-raster">
       <div class="held-text">
         <h1><span class="held-vorzeile">{kopf.vorzeile}<span class="vh">: </span></span>{kopf.ueberschrift[0]}<em>{kopf.ueberschrift[1]}</em>{kopf.ueberschrift[2]}</h1>
-        <p class="held-vorspann lang">{seite.beschreibung}</p>
+        <p class="held-vorspann">{seite.beschreibung}</p>
         <div class="held-knoepfe">
           <span class="bald"><i aria-hidden="true"></i><span>{kopf.aufruf}</span></span>
           <a class="knopf voll" href="#schritte">
@@ -76,21 +86,20 @@ const schrittZeichen = {
       </div>
       <div class="buehne">
         {kopf.begriffe.map((begriff, nummer) => (
-          <span class={`schwebt s${nummer + 1}`} aria-hidden="true"><i></i>{begriff}</span>
+          <span class={`chip ruht schwebt s${nummer + 1}`} aria-hidden="true"><i></i>{begriff}</span>
         ))}
         <div class="handy-rahmen">
           <div class="handy" role="img" aria-label={kopf.handy.beschreibung} data-handy>
             <div class="schirm" aria-hidden="true">
               <div class="kamera">
                 <div class="strichcode"><i></i></div>
-                <div class="strahl" data-strahl></div>
               </div>
               <div class="blatt" data-blatt>
                 <div class="griff"></div>
                 <div class="produkt">{kopf.handy.produkt}</div>
                 <div class="zusatz">{kopf.handy.zusatz}</div>
                 <div class="urteil-rot" data-urteil>
-                  <svg viewBox="0 0 24 24" {...linien} stroke-width="2"><path d={urteilZeichen} /></svg>
+                  <svg viewBox="0 0 24 24" {...linien}><path d={urteilZeichen} /></svg>
                   {kopf.handy.urteil}
                 </div>
                 {kopf.handy.personen.map((person, nummer) => (
@@ -109,109 +118,119 @@ const schrittZeichen = {
   </section>
 
   <section class="wort" id="ohne">
-    <div class="innen">
-      <h2 class="gross">
-        <span class="gross-vor">{wort.vorsatz}</span>
-        <span class="rot" aria-hidden="true"><span data-wort data-woerter={JSON.stringify(wort.woerter)}>{wort.woerter[0]}</span></span>
-        <span class="vh">{wort.woerter.join(', ')}</span>
-      </h2>
-      <div class="wort-unten">
-        <ul class="wort-marken" aria-hidden="true">
-          {wort.woerter.map((eintrag, nummer) => <li class:list={{ an: nummer === 0 }} data-wortmarke>{eintrag}</li>)}
+    <div class="innen wort-raster">
+      <div>
+        <h2 class="gross">
+          <span class="gross-vor">{wort.vorsatz}</span>
+          <span class="rot" aria-hidden="true"><span data-wort data-woerter={JSON.stringify(wort.woerter)}>{wort.woerter[0]}</span></span>
+          <span class="vh">{wort.woerter.join(', ')}</span>
+        </h2>
+        <ul class="chips wort-marken" aria-hidden="true">
+          {wort.woerter.map((eintrag, nummer) => <li class:list={['chip', 'ruht', { an: nummer === 0 }]} data-wortmarke>{eintrag}</li>)}
         </ul>
-        <div class="wort-text">
-          {wort.absaetze.map((absatz) => <p>{absatz}</p>)}
-          <p class="unterschrift">{wort.unterschrift}</p>
-        </div>
+      </div>
+      <div class="wort-text">
+        {wort.absaetze.map((absatz) => <p>{absatz}</p>)}
+        <Unterschrift text={wort.unterschrift} />
+        <p class="wort-link">
+          <a class="pfeil-link" href={wort.link.ziel}>
+            {wort.link.text}
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...linien} stroke-width="2.2"><path d={pfeilRechts} /></svg>
+          </a>
+        </p>
       </div>
     </div>
   </section>
 
-  <section class="lagen" id="alltag">
+  <section class="lagen muster" id="alltag">
+    <Motive liste={[
+      { art: 'aehre', breite: 110, lage: 'top: 40px; right: 50px', nurBreit: true },
+      { art: 'blatt', breite: 130, lage: 'bottom: 40px; left: 30px', nurBreit: true },
+    ]} />
     <div class="innen">
-      <h2 class="titel">{lagen.ueberschrift}</h2>
+      <h2 class="titel mittig">{lagen.ueberschrift}</h2>
       <p class="lagen-text">{lagen.text}</p>
-      <ul class="lagen-liste">
-        {lagen.karten.map((karte) => (
-          <li class:list={['lage', { breit: karte.breit }]}>
-            <h3>{karte.titel}</h3>
-            <p>{karte.text}</p>
+      <div class="tisch-feld">
+        <div class="tisch" aria-hidden="true">
+          <svg viewBox="0 0 440 440" focusable="false">
+            <circle class="t-platte" cx="220" cy="220" r="168" />
+            <circle class="t-ring" cx="220" cy="220" r="150" />
+            {[[150, 150], [290, 150], [150, 290], [290, 290]].map(([x, y]) => (
+              <>
+                <circle class="t-teller" cx={x} cy={y} r="38" />
+                <circle class="t-rand" cx={x} cy={y} r="25" />
+              </>
+            ))}
+            <path class="t-mitte" d="M240 220a20 20 0 1 1-40 0 20 20 0 0 1 40 0zM220 200v40M200 220h40" />
+          </svg>
+          {amTisch.map((karte, nummer) => <span class={`chip ruht schild p${nummer + 1}`}><i></i>{karte.schild}</span>)}
+        </div>
+        <ul class="lagen-liste">
+          {amTisch.map((karte) => (
+            <li class="lage">
+              <h3>{karte.titel}</h3>
+              <p>{karte.text}</p>
+            </li>
+          ))}
+          <li class="lage woche">
+            <div class="einkauf" aria-hidden="true">
+              <div class="einkauf-titel">{lagen.liste.titel}</div>
+              <ul>{lagen.liste.offen.map((ware) => <li><b></b>{ware}</li>)}</ul>
+              <div class="einkauf-erledigt">{lagen.liste.erledigtTitel}</div>
+              <ul class="ab">
+                {lagen.liste.erledigt.map((ware) => (
+                  <li><b><svg viewBox="0 0 24 24" focusable="false" {...linien} stroke-width="3.5"><path d="M5 12l5 5 9-10" /></svg></b>{ware}</li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h3>{woche.titel}</h3>
+              <p>{woche.text}</p>
+            </div>
           </li>
-        ))}
-      </ul>
+        </ul>
+      </div>
       <p class="lagen-hinweis">{lagen.hinweis}</p>
     </div>
   </section>
 
   <section class="schritte" id="schritte">
     <div class="innen">
-      <h2 class="titel">{schritte.ueberschrift}</h2>
-      <div class="linie" aria-hidden="true"><i data-linie></i></div>
-      <ol class="schritt-liste vier">
-        {schritte.liste.map((schritt, nummer) => (
-          <li class="schritt">
-            <div class="schritt-nr" aria-hidden="true">{String(nummer + 1).padStart(2, '0')}</div>
-            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...linien}><path d={schrittZeichen[schritt.symbol]} /></svg>
-            <h3>{schritt.titel}</h3>
-            <p>{schritt.text}</p>
-          </li>
-        ))}
-      </ol>
-      <div class="knoepfe"><a class="knopf rand" href={schritte.link.ziel}>{schritte.link.text}</a></div>
+      <h2 class="titel mittig">{schritte.ueberschrift}</h2>
+      <div class="weg">
+        <span class="weg-linie" aria-hidden="true"><i data-linie></i></span>
+        <ol class="schritt-liste">
+          {schritte.liste.map((schritt, nummer) => (
+            <li class="schritt">
+              <span class="schritt-nr" aria-hidden="true">{nummer + 1}</span>
+              <div>
+                <h3>{schritt.titel}</h3>
+                <p>{schritt.text}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </div>
+      <p class="weg-link">
+        <a class="pfeil-link" href={schritte.link.ziel}>
+          {schritte.link.text}
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...linien} stroke-width="2.2"><path d={pfeilRechts} /></svg>
+        </a>
+      </p>
     </div>
   </section>
 
-  <section class="glas" id="funktionen">
-    <div class="glas-flaechen" aria-hidden="true"><i class="a"></i><i class="b"></i><i class="c"></i><i class="d"></i></div>
+  <section class="funktionen" id="funktionen">
     <div class="innen">
       <h2 class="titel">{funktionen.ueberschrift}</h2>
-      <ul class="glas-raster">
-        <li class="glaskarte k-scanner" data-neigung>
-          <h3>{karte.scanner.titel}</h3>
-          <p>{karte.scanner.text}</p>
-          <div class="mini" aria-hidden="true">
-            <div class="produkt">{kopf.handy.produkt}</div>
-            <div class="zusatz">{kopf.handy.zusatz}</div>
-            <div class="urteil-rot">
-              <svg viewBox="0 0 24 24" {...linien} stroke-width="2"><path d={urteilZeichen} /></svg>
-              {kopf.handy.urteil}
-            </div>
-          </div>
-        </li>
-        <li class="glaskarte k-haushalt" data-neigung>
-          <h3>{karte.haushalt.titel}</h3>
-          <p>{karte.haushalt.text}</p>
-          <div class="reihe" aria-hidden="true">{kopf.handy.personen.map((person) => <span>{person.name[0]}</span>)}</div>
-        </li>
-        <li class="glaskarte k-rezepte" data-neigung>
-          <picture>
-            <source type="image/avif" srcset={quellen(karte.rezepte.datei, 'avif')} sizes="(min-width: 64rem) 35rem, (min-width: 44rem) 46vw, 92vw" />
-            <source type="image/webp" srcset={quellen(karte.rezepte.datei, 'webp')} sizes="(min-width: 64rem) 35rem, (min-width: 44rem) 46vw, 92vw" />
-            <img src={`/bilder/rezepte/${karte.rezepte.datei}-720.webp`} alt={karte.rezepte.bild} width="720" height="540" loading="lazy" decoding="async" />
-          </picture>
-          <span class="symbolbild" aria-hidden="true">{vorschau.kennzeichnung}</span>
-          <div class="ueber">
-            <h3>{karte.rezepte.titel}</h3>
-            <p>{karte.rezepte.text}</p>
-          </div>
-        </li>
-        <li class="glaskarte k-liste" data-neigung>
-          <h3>{karte.liste.titel}</h3>
-          <p>{karte.liste.text}</p>
-          <ul class="haken" data-haken>
-            {karte.liste.beispiel.map((ware) => <li><b aria-hidden="true"></b>{ware}</li>)}
-          </ul>
-        </li>
-        <li class="glaskarte k-kochen" data-neigung>
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...linien}><path d={zeichen[2]} /></svg>
-          <h3>{karte.kochen.titel}</h3>
-          <p>{karte.kochen.text}</p>
-        </li>
-        <li class="glaskarte k-daten" data-neigung>
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...linien}><path d="M8 3h8a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM10 12.5h4v3.5h-4zM10.8 12.5v-1.3a1.2 1.2 0 0 1 2.4 0v1.3" /></svg>
-          <h3>{karte.daten.titel}</h3>
-          <p>{karte.daten.text}</p>
-        </li>
+      <ul class="funktion-liste">
+        {funktionen.karten.map((karte) => (
+          <li class="funktion">
+            <span class="funktion-zeichen" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false" {...linien}><path d={funktionZeichen[karte.symbol]} /></svg></span>
+            <h3>{karte.titel}</h3>
+            <p>{karte.text}</p>
+          </li>
+        ))}
       </ul>
     </div>
   </section>
@@ -221,7 +240,7 @@ const schrittZeichen = {
       <h2 class="titel">{einblick.ueberschrift}</h2>
       <p class="einblick-text">{einblick.text}</p>
       <div class="einblick-flaeche">
-        <div class="einblick-flecken" aria-hidden="true"><i class="a"></i><i class="b"></i></div>
+        <Motive liste={[{ art: 'zitrone', breite: 150, lage: 'top: -60px; right: -40px' }]} />
         <ul class="einblick-karten">
           {einblick.karten.map((karte) => (
             <li class="einblick-karte">
@@ -237,25 +256,9 @@ const schrittZeichen = {
     </div>
   </section>
 
-  <section class="zahlen" id="zahlen">
-    <h2 class="vh">{zahlen.ueberschrift}</h2>
-    <div class="baender">
-      <div class="band">
-        <div class="band-spur" data-band>
-          <ul class="band-liste">
-            {zahlen.zutatenband.map((eintrag, nummer) => <li class:list={{ d: nummer % 5 === 0, m: nummer % 7 === 3 }}>{eintrag}</li>)}
-          </ul>
-        </div>
-      </div>
-      <div class="band">
-        <div class="band-spur rueck" data-band>
-          <ul class="band-liste">
-            {zahlen.rezeptband.map((eintrag, nummer) => <li class:list={{ m: nummer % 4 === 1 }}>{eintrag}</li>)}
-          </ul>
-        </div>
-      </div>
-    </div>
+  <section class="zahlen muster" id="zahlen">
     <div class="innen">
+      <h2 class="vh">{zahlen.ueberschrift}</h2>
       <ul class="zaehler">
         {zahlen.zaehler.map((eintrag) => (
           <li>
@@ -265,6 +268,12 @@ const schrittZeichen = {
           </li>
         ))}
       </ul>
+      <ul class="chips band-liste">
+        {zahlen.zutatenband.map((eintrag) => <li class="chip ruht">{eintrag}</li>)}
+      </ul>
+      <ul class="chips band-liste">
+        {zahlen.rezeptband.map((eintrag) => <li class="chip ruht">{eintrag}</li>)}
+      </ul>
     </div>
   </section>
 
@@ -273,19 +282,22 @@ const schrittZeichen = {
       <h2 class="titel">{vorschau.ueberschrift}</h2>
       <p class="vorschau-text">{vorschau.text}</p>
       <ul class="rezeptkarten">
-        {vorschau.karten.map((rezept) => (
-          <li class="rezeptkarte">
-            <div class="rezeptbild">
-              <picture>
-                <source type="image/avif" srcset={quellen(rezept.datei, 'avif')} sizes="(min-width: 56rem) 16rem, 44vw" />
-                <source type="image/webp" srcset={quellen(rezept.datei, 'webp')} sizes="(min-width: 56rem) 16rem, 44vw" />
-                <img src={`/bilder/rezepte/${rezept.datei}-720.webp`} alt={`${vorschau.kennzeichnung}: ${rezept.titel}`} width="720" height="540" loading="lazy" decoding="async" />
-              </picture>
-              <span class="symbolbild" aria-hidden="true">{vorschau.kennzeichnung}</span>
-            </div>
-            <h3>{rezept.titel}</h3>
-          </li>
-        ))}
+        {vorschau.karten.map((rezept) => {
+          const adresse = ziel(`/rezepte/${rezept.datei}/`);
+          return (
+            <li class="rezeptkarte">
+              <div class="rezeptbild">
+                <picture>
+                  <source type="image/avif" srcset={quellen(rezept.datei, 'avif')} sizes="(min-width: 56rem) 17rem, 44vw" />
+                  <source type="image/webp" srcset={quellen(rezept.datei, 'webp')} sizes="(min-width: 56rem) 17rem, 44vw" />
+                  <img src={`/bilder/rezepte/${rezept.datei}-720.webp`} alt={`${vorschau.kennzeichnung}: ${rezept.titel}`} width="720" height="540" loading="lazy" decoding="async" />
+                </picture>
+                <span class="symbolbild" aria-hidden="true">{vorschau.kennzeichnung}</span>
+              </div>
+              <h3>{adresse ? <a href={adresse}>{rezept.titel}</a> : rezept.titel}</h3>
+            </li>
+          );
+        })}
       </ul>
       <p class="vorschau-hinweis">{vorschau.hinweis}</p>
       <div class="knoepfe"><a class="knopf rand" href="/rezepte/">{vorschau.link}</a></div>
@@ -294,7 +306,7 @@ const schrittZeichen = {
 
   <section class="faq" id="fragen">
     <div class="innen schmal">
-      <h2 class="titel">{fragen.ueberschrift}</h2>
+      <h2 class="titel mittig">{fragen.ueberschrift}</h2>
       {fragen.liste.map((eintrag) => (
         <details>
           <summary>{eintrag.frage}</summary>
@@ -311,10 +323,9 @@ const schrittZeichen = {
 </Basis>
 
 <script>
-  // Ohne "Bewegung reduzieren": Laufbänder starten und GSAP nachladen, beides erst nach dem ersten Zeichnen.
-  // Mit "Bewegung reduzieren" wird GSAP gar nicht geladen.
-  // Der Knopf "Bewegung anhalten" erscheint, sobald Bewegung läuft. Sein Zustand steht nur in einer Variablen
-  // dieser Seite: Er gilt für den Besuch, im Browser wird nichts gespeichert.
+  // Ohne "Bewegung reduzieren": GSAP nachladen, erst nach dem ersten Zeichnen. Mit "Bewegung reduzieren" wird GSAP gar
+  // nicht geladen. Der Knopf "Bewegung anhalten" erscheint, sobald Bewegung läuft. Sein Zustand steht nur in einer
+  // Variablen dieser Seite: Er gilt für den Besuch, im Browser wird nichts gespeichert.
   const ruhig = window.matchMedia('(prefers-reduced-motion: reduce)');
   const knopf = document.querySelector('[data-bewegung]');
   const wurzel = document.documentElement;
@@ -322,26 +333,9 @@ const schrittZeichen = {
   let angehalten = false;
   let bewegung;
 
-  const baender = () => {
-    for (const spur of document.querySelectorAll('[data-band]:not(.laeuft)')) {
-      const liste = spur.firstElementChild;
-      const breite = liste.getBoundingClientRect().width;
-      if (!breite) continue;
-      const kopien = Math.max(2, Math.ceil((window.innerWidth * 2) / breite) + 1);
-      for (let nummer = 1; nummer < kopien; nummer++) {
-        const kopie = liste.cloneNode(true);
-        kopie.setAttribute('aria-hidden', 'true');
-        spur.append(kopie);
-      }
-      spur.style.setProperty('--kopien', String(kopien));
-      spur.style.setProperty('--dauer', `${Math.round(breite / 55)}s`);
-      spur.classList.add('laeuft');
-    }
-  };
   const starte = () => {
     if (geladen || ruhig.matches) return;
     geladen = true;
-    baender();
     knopf.hidden = false;
     import('../skripte/bewegung.js').then((modul) => {
       bewegung = modul;

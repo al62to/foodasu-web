@@ -1,23 +1,29 @@
 ---
-// Lizenzen: Schriften, Daten, Bilder und Programme dieser Website. Ruhiger Kopfbereich, Einträge als Karten.
-import Basis from '../../layouts/Basis.astro';
-import Seitenkopf from '../../components/Seitenkopf.astro';
+// Lizenzen: Schriften, Daten, Bilder und Programme dieser Website (Texte in src/daten/lizenzen.mjs). Gestaltung wie die
+// übrigen Rechtstexte (src/components/Rechtsseite.astro): jeder Eintrag ein Abschnitt in der Lesespalte, links das
+// Inhaltsverzeichnis.
+import Rechtsseite from '../../components/Rechtsseite.astro';
 import { geruest } from '../../daten/startseite.mjs';
 
 const texte = geruest.lizenzen;
+// Sprungmarke eines Eintrags aus seinem Namen.
+const marke = (name) => name.toLowerCase().replaceAll('ä', 'ae').replaceAll('ö', 'oe').replaceAll('ü', 'ue').replaceAll('ß', 'ss').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const inhalt = [...texte.eintraege, ...texte.saetze].map((eintrag) => ({ kennung: marke(eintrag.name), text: eintrag.name }));
 ---
-<Basis>
-  <Seitenkopf krumen={[{ titel: texte.titel, ziel: '/lizenzen/' }]} titel={texte.titel} vorspann={texte.einleitung} still />
-  <div class="s-inhalt innen">
-    <ul class="s-liste">
-      {texte.eintraege.map((eintrag) => (
-        <li class="s-karte">
-          <h2>{eintrag.name}</h2>
-          <p>{eintrag.art}</p>
-          <p><a href={eintrag.ziel} rel="noopener">{eintrag.lizenz}</a>{eintrag.zusatz && <>{eintrag.zusatz.vor}<a href={eintrag.zusatz.ziel} rel="noopener">{eintrag.zusatz.text}</a></>}</p>
-        </li>
-      ))}
-      {texte.saetze.map((satz) => <li class="s-karte"><h2>{satz.name}</h2><p>{satz.text}{satz.link && <><a href={satz.link.ziel}>{satz.link.text}</a>{satz.nach}</>}</p></li>)}
-    </ul>
+<Rechtsseite krumen={[{ titel: texte.titel, ziel: '/lizenzen/' }]} titel={texte.titel} vorspann={texte.einleitung} inhalt={inhalt}>
+  <div class="text">
+    {texte.eintraege.map((eintrag) => (
+      <section aria-labelledby={marke(eintrag.name)}>
+        <h2 id={marke(eintrag.name)}>{eintrag.name}</h2>
+        <p>{eintrag.art}</p>
+        <p><a href={eintrag.ziel} rel="noopener">{eintrag.lizenz}</a>{eintrag.zusatz && <>{eintrag.zusatz.vor}<a href={eintrag.zusatz.ziel} rel="noopener">{eintrag.zusatz.text}</a></>}</p>
+      </section>
+    ))}
+    {texte.saetze.map((satz) => (
+      <section aria-labelledby={marke(satz.name)}>
+        <h2 id={marke(satz.name)}>{satz.name}</h2>
+        <p>{satz.text}{satz.link && <><a href={satz.link.ziel}>{satz.link.text}</a>{satz.nach}</>}</p>
+      </section>
+    ))}
   </div>
-</Basis>
+</Rechtsseite>

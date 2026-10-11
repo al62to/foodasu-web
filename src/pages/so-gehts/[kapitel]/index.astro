@@ -1,15 +1,15 @@
 ---
-// "So geht's", ein Kapitel (AP-15 Teil B2, Karte C; neu gebaut in AP-19 Teil G, gestaltet in AP-19 Teil H): eine Seite
-// je Bereich der App. Jeder Abschnitt erklärt eine Funktion: der Nutzen, der kurze Weg in der App und bei den wichtigen
-// Funktionen ein Bildschirmfoto im Handy-Rahmen. Jeder Abschnitt hat einen festen Anker aus den Daten. Alle Texte
-// kommen aus src/daten/sogehts.mjs und src/daten/anleitung/.
-// Gestaltung: Die Abschnitte stehen als Karten da. Ein oder zwei wichtige je Kapitel sind große Karten ("gross" in den
-// Daten), die übrigen mit Bild helle Karten, die ohne Bild kompakte Karten mit Symbol in einem Raster. Am Handy steht
-// jedes Bild im Rahmen bei seinem Abschnitt. Am breiten Bildschirm steht rechts eine Bühne, die beim Scrollen stehen
-// bleibt: Das Skript unten hängt die Bilder dorthin um und zeigt das Bild zum Abschnitt, der gerade gelesen wird.
-// Ohne JavaScript bleiben die Bilder bei ihren Abschnitten.
-// Die Schleife läuft nur mit Bewegung: Ohne JavaScript und mit "Bewegung reduzieren" steht ihr Standbild da, und der
-// Knopf "Bewegung anhalten" im Kopfbereich hält auch sie an.
+// "So geht's", ein Kapitel (AP-15 Teil B2, Karte C; neu gebaut in AP-19 Teil G; neu gestaltet in AP-23, Entwurf
+// "Stationen"): eine Seite je Bereich der App. Jeder Abschnitt erklärt eine Funktion: der Nutzen, der kurze Weg in
+// der App und bei den wichtigen Funktionen ein Bildschirmfoto im Handy-Rahmen. Jeder Abschnitt hat einen festen Anker
+// aus den Daten. Alle Texte kommen aus src/daten/sogehts.mjs und src/daten/anleitung/.
+// Gestaltung: Jeder Abschnitt ist eine Station an einer feinen Linie, mit seinem Symbol im Kreis und einer Karte
+// daneben. Abschnitte mit "gross" in den Daten sind Lavendel-Karten mit Punktmuster, alle anderen weiße Karten. Das
+// Bildschirmfoto steht in der Karte seines Abschnitts, am Laptop rechts neben dem Text, am Handy darunter; kein
+// Skript hängt Bilder um. Links fährt am Laptop "In diesem Kapitel" als Liste mit; am Handy steht dieselbe Liste
+// oben als Zeile aus Chips.
+// Die Schleife steht im Kopf und läuft nur mit Bewegung: Ohne JavaScript und mit "Bewegung reduzieren" steht ihr
+// Standbild da, und der Knopf "Bewegung anhalten" im Kopfbereich hält auch sie an.
 import Basis from '../../../layouts/Basis.astro';
 import Seitenkopf from '../../../components/Seitenkopf.astro';
 import Handy from '../../../components/Handy.astro';
@@ -33,27 +33,26 @@ const ORDNER = '/bilder/sogehts/';
 const BREITEN = [360, 720];
 const bild = (name, breite) => `${ORDNER}${name}-${breite}.webp`;
 const quellen = (name) => BREITEN.map((breite) => `${bild(name, breite)} ${breite}w`).join(', ');
-// Die Angabe sagt dem Browser, wie breit das Bild auf der Seite ist: in der Bühne, neben dem Text, am Handy.
-const GROESSEN = '(min-width: 64rem) 16rem, (min-width: 40rem) 13rem, 62vw';
+// Die Angabe sagt dem Browser, wie breit das Bild auf der Seite ist: in der Karte neben dem Text (in der großen Karte
+// etwas breiter), am Handy unter dem Text; die Schleife im Kopf.
+const GROESSEN = { gross: '(min-width: 40rem) 12.5rem, 56vw', sonst: '(min-width: 40rem) 10.5rem, 56vw' };
+const GROESSEN_FILM = '(min-width: 56rem) 12.5rem, 9.5rem';
 // Das erste Foto der Seite lädt sofort, alle weiteren erst beim Scrollen.
 const ersterTeilMitFoto = eintrag.teile.find((teil) => (teil.fotos ?? []).length > 0);
-
-// Blöcke der Seite in der Reihenfolge der Daten: Kompakte Karten, die aufeinander folgen, stehen in einem Raster.
-const bloecke = [];
-for (const teil of eintrag.teile) {
-  const art = artVon(teil);
-  const letzter = bloecke.at(-1);
-  if (art === 'klein' && letzter?.art === 'klein') letzter.teile.push(teil);
-  else bloecke.push({ art, teile: [teil] });
-}
-// Höhe des höchsten Bildes samt Rahmen, in Breiten des Handys: So viel Platz hält die Bühne frei.
-const RAND = 0.0345;
-const hoch = (breite, hoehe) => (hoehe / breite) * (1 - 2 * RAND) + 2 * RAND;
-const fotos = eintrag.teile.flatMap((teil) => teil.fotos ?? []).map(fotoDaten);
-const hoechstes = Math.max(...fotos.map((foto) => hoch(foto.breite, foto.hoehe)));
-// Die Schleife ist höher als die Fotos (4:9). In der Bühne ist ihr Handy deshalb so viel schmaler, dass es gleich hoch
-// ist wie das höchste Foto.
-const filmBreite = Math.min(1, hoechstes / hoch(4, 9));
+// Kopf: Mit Schleife stehen die Linienmotive wie im Entwurf (Zitronenscheibe oben, Blatt unten links); ohne Schleife
+// gelten die Motive aller Unterseiten.
+const kopf = {
+  krumen: [{ titel: uebersicht.titel, ziel: BEREICH }, { titel: eintrag.titel, ziel: pfad }],
+  etikett: `${uebersicht.kapitelWort} ${eintrag.nummer} von ${kapitel.length}`,
+  titel: eintrag.h1,
+  vorspann: eintrag.vorspann,
+  ...(eintrag.film && {
+    motive: [
+      { art: 'zitrone', breite: 150, lage: 'top: -40px; right: 30%', ecke: true },
+      { art: 'blatt', breite: 120, lage: 'bottom: -20px; left: 4%', nurBreit: true },
+    ],
+  }),
+};
 
 // Gliederung für Suchmaschinen und KI-Antworten: das Kapitel als Artikel mit seinen Abschnitten. In den Daten steht
 // nur, was auf der Seite sichtbar ist.
@@ -70,220 +69,135 @@ const daten = [{
 }];
 ---
 <Basis daten={daten}>
-  <Seitenkopf
-    krumen={[{ titel: uebersicht.titel, ziel: BEREICH }, { titel: eintrag.titel, ziel: pfad }]}
-    etikett={`${uebersicht.kapitelWort} ${eintrag.nummer} von ${kapitel.length}`}
-    titel={eintrag.h1}
-    vorspann={eintrag.vorspann}
-  >
-    <nav class="g-inhalt" aria-labelledby="g-inhalt-titel">
-      <h2 id="g-inhalt-titel">{rahmen.inhalt}</h2>
-      <ul class="g-leiste">
-        {eintrag.teile.map((teil) => <li><a href={`#${teil.anker}`}>{teil.titel}</a></li>)}
-      </ul>
-    </nav>
-  </Seitenkopf>
-  <div class="s-inhalt innen">
-    <div class="g-seite" data-seite>
-      <article class="g-text">
-        {bloecke.map((block) => {
-          const karten = block.teile.map((teil) => {
-            const foto = teil.fotos?.[0] && fotoDaten(teil.fotos[0]);
-            return (
-              <section
-                class:list={['g-funktion', `g-${block.art}`, { 'g-mit-foto': foto }]}
-                aria-labelledby={teil.anker}
-                data-foto-teil={foto ? '' : undefined}
-                data-ein
-              >
-                {(teil.alteAnker ?? []).map((marke) => <span id={marke} class="g-alt-anker"></span>)}
-                <div class="g-kopfzeile">
-                  <span class="g-symbol"><Zeichen name={teil.symbol} /></span>
-                  <h2 id={teil.anker}>{teil.titel}</h2>
-                </div>
-                <div class="g-worte">
-                  {teil.nutzen && <p class="g-nutzen">{teil.nutzen}</p>}
-                  {teil.wo && (
-                    <p class="g-wo"><Zeichen name="wegweiser" /><span><b>{rahmen.wo}:</b> {teil.wo.split(' > ').map((stueck, nummer) => <>{nummer > 0 && <i> &gt; </i>}{stueck}</>)}</span></p>
-                  )}
-                  {teil.liste && (
-                    <dl class="r-stufen">
-                      {teil.liste.map((punkt) => <div><dt>{punkt.name}</dt><dd>{punkt.text}</dd></div>)}
-                    </dl>
-                  )}
-                  {(teil.absaetze ?? []).map((absatz) => <p>{absatz}</p>)}
-                  {teil.verweis && <p>{teil.verweis.vor}<a href={teil.verweis.ziel}>{teil.verweis.text}</a>{teil.verweis.nach}</p>}
-                  {teil.extern && <p><a href={teil.extern.ziel} rel="noopener">{teil.extern.text}</a></p>}
-                </div>
-                {foto && (
-                  <figure class="g-foto">
-                    <div class="g-flaeche weich">
-                      <Handy foto={foto} groessen={GROESSEN} laden={teil === ersterTeilMitFoto ? 'eager' : 'lazy'} />
-                    </div>
-                    <figcaption>{foto.unterschrift}</figcaption>
-                  </figure>
-                )}
-              </section>
-            );
-          });
-          return block.art === 'klein' ? <div class="g-raster">{karten}</div> : karten;
-        })}
-      </article>
-
-      <aside class:list={['g-buehne', { 'mit-film': eintrag.film }]} aria-label={rahmen.bilder} style={`--g-max: ${hoechstes.toFixed(3)}; --g-film: ${filmBreite.toFixed(3)}`} data-buehne>
-        <div class="g-buehne-flaeche weich">
-          <p class="g-buehne-titel" aria-hidden="true" data-buehne-titel hidden><i></i><span></span></p>
-          <div class="g-buehne-platz" data-buehne-platz>
-            {eintrag.film && (
-              <figure class="g-foto g-film aktiv" data-buehne-film>
-                <div class="geraet">
-                  <div class="geraet-rahmen">
-                    <img
-                      src={bild(`film-${eintrag.film.datei}`, 720)}
-                      srcset={quellen(`film-${eintrag.film.datei}`)}
-                      sizes={GROESSEN}
-                      alt={eintrag.film.alt}
-                      width="720"
-                      height="1620"
-                      decoding="async"
-                      data-film={`${ORDNER}film-${eintrag.film.datei}.webm`}
-                    />
-                  </div>
-                </div>
-                <figcaption>{eintrag.film.unterschrift}<span class="g-film-hinweis" data-film-hinweis hidden> {rahmen.filmHinweis}</span></figcaption>
-              </figure>
-            )}
+  {eintrag.film ? (
+    <Seitenkopf {...kopf}>
+      <figure class="g-film" slot="seite" data-schleife>
+        <div class="geraet">
+          <div class="geraet-rahmen">
+            <img
+              src={bild(`film-${eintrag.film.datei}`, 720)}
+              srcset={quellen(`film-${eintrag.film.datei}`)}
+              sizes={GROESSEN_FILM}
+              alt={eintrag.film.alt}
+              width="720"
+              height="1620"
+              fetchpriority="high"
+              decoding="async"
+              data-film={`${ORDNER}film-${eintrag.film.datei}.webm`}
+            />
           </div>
         </div>
-      </aside>
-    </div>
-
-    <p class="klein g-bildhinweis">{rahmen.bild}</p>
-    {eintrag.verweise && (
-      <div class="s-teil g-mehr">
-        <h2>{rahmen.mehr}</h2>
-        <ul class="chips">
-          {eintrag.verweise.map((verweis) => <li><a class="chip" href={verweis.ziel}>{verweis.text}</a></li>)}
+        <figcaption>{eintrag.film.unterschrift}<span class="g-film-hinweis" data-film-hinweis hidden> {rahmen.filmHinweis}</span></figcaption>
+      </figure>
+    </Seitenkopf>
+  ) : (
+    <Seitenkopf {...kopf} />
+  )}
+  <div class="s-inhalt innen">
+    <div class="s-zwei">
+      <nav class="s-leiste g-leiste" aria-labelledby="g-inhalt-titel">
+        <h2 class="s-leiste-titel" id="g-inhalt-titel">{rahmen.inhalt}</h2>
+        <ul>
+          {eintrag.teile.map((teil) => <li><a href={`#${teil.anker}`}>{teil.titel}</a></li>)}
         </ul>
-      </div>
-    )}
+        <a class="g-alle" href={BEREICH}>
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M19 12H5M11 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          {rahmen.uebersicht}
+        </a>
+      </nav>
 
-    <nav class="g-blaettern" aria-label={uebersicht.titel}>
-      {davor ? (
-        <a class="g-blatt zurueck" href={adresse(davor)}>
-          <span>{rahmen.zurueck}</span>
-          <b>{davor.titel}</b>
-        </a>
-      ) : (
-        <a class="g-blatt zurueck" href={BEREICH}>
-          <span>{uebersicht.titel}</span>
-          <b>{rahmen.uebersicht}</b>
-        </a>
-      )}
-      {danach ? (
-        <a class="g-blatt weiter" href={adresse(danach)}>
-          <span>{rahmen.weiter}</span>
-          <b>{danach.titel}</b>
-        </a>
-      ) : (
-        <a class="g-blatt weiter" href={BEREICH}>
-          <span>{uebersicht.titel}</span>
-          <b>{rahmen.uebersicht}</b>
-        </a>
-      )}
-    </nav>
+      <div class="g-spalte">
+        <article class="stationen g-text">
+          {eintrag.teile.map((teil) => {
+            const art = artVon(teil);
+            const foto = teil.fotos?.[0] && fotoDaten(teil.fotos[0]);
+            return (
+              <section class:list={['station', 'g-funktion', `g-${art}`]} aria-labelledby={teil.anker} data-ein>
+                {(teil.alteAnker ?? []).map((marke) => <span id={marke} class="g-alt-anker"></span>)}
+                <span class="station-kreis" aria-hidden="true"><Zeichen name={teil.symbol} /></span>
+                <div class:list={['g-karte', 's-karte', { 'lavendel muster': art === 'gross', 'g-mit-foto': foto }]}>
+                  <div class="g-worte">
+                    <h2 id={teil.anker}>{teil.titel}</h2>
+                    {teil.nutzen && <p class="g-nutzen">{teil.nutzen}</p>}
+                    {teil.wo && (
+                      <p class="g-wo"><Zeichen name="wegweiser" /><span><b>{rahmen.wo}:</b> {teil.wo.split(' > ').map((stueck, nummer) => <>{nummer > 0 && <i> &gt; </i>}{stueck}</>)}</span></p>
+                    )}
+                    {teil.liste && (
+                      <dl class="r-stufen">
+                        {teil.liste.map((punkt) => <div><dt>{punkt.name}</dt><dd>{punkt.text}</dd></div>)}
+                      </dl>
+                    )}
+                    {(teil.absaetze ?? []).map((absatz) => <p>{absatz}</p>)}
+                    {teil.verweis && <p>{teil.verweis.vor}<a href={teil.verweis.ziel}>{teil.verweis.text}</a>{teil.verweis.nach}</p>}
+                    {teil.extern && <p><a href={teil.extern.ziel} rel="noopener">{teil.extern.text}</a></p>}
+                  </div>
+                  {foto && (
+                    <figure class="g-foto">
+                      <Handy foto={foto} groessen={art === 'gross' ? GROESSEN.gross : GROESSEN.sonst} laden={teil === ersterTeilMitFoto ? 'eager' : 'lazy'} />
+                      <figcaption>{foto.unterschrift}</figcaption>
+                    </figure>
+                  )}
+                </div>
+              </section>
+            );
+          })}
+        </article>
+
+        <p class="klein g-bildhinweis">{rahmen.bild}</p>
+        {eintrag.verweise && (
+          <div class="g-mehr">
+            <h2>{rahmen.mehr}</h2>
+            <ul class="chips">
+              {eintrag.verweise.map((verweis) => <li><a class="chip" href={verweis.ziel}>{verweis.text}</a></li>)}
+            </ul>
+          </div>
+        )}
+
+        <nav class="g-blaettern" aria-label={uebersicht.titel}>
+          {davor ? (
+            <a class="g-blatt zurueck" href={adresse(davor)}>
+              <span><Zeichen name="pfeil" />{rahmen.zurueck}</span>
+              <b>{davor.titel}</b>
+            </a>
+          ) : (
+            <a class="g-blatt zurueck" href={BEREICH}>
+              <span><Zeichen name="pfeil" />{uebersicht.titel}</span>
+              <b>{rahmen.uebersicht}</b>
+            </a>
+          )}
+          {danach ? (
+            <a class="g-blatt weiter" href={adresse(danach)}>
+              <span>{rahmen.weiter}<Zeichen name="pfeil" /></span>
+              <b>{danach.titel}</b>
+            </a>
+          ) : (
+            <a class="g-blatt weiter" href={BEREICH}>
+              <span>{uebersicht.titel}<Zeichen name="pfeil" /></span>
+              <b>{rahmen.uebersicht}</b>
+            </a>
+          )}
+        </nav>
+      </div>
+    </div>
   </div>
 </Basis>
 
 <script>
-  // Bühne am breiten Bildschirm und Schleife. Beides braucht JavaScript; ohne Skript stehen die Bilder bei ihren
-  // Abschnitten und das Standbild der Schleife bleibt stehen. Der Knopf "Bewegung anhalten" im Kopfbereich setzt die
-  // Klasse "angehalten" am html-Element: Die Schleife hält dann an, und die Bilder wechseln ohne Überblenden (CSS).
+  // Schleife im Kopf statt des Standbilds, nur mit Bewegung. Ohne Skript und mit "Bewegung reduzieren" bleibt das
+  // Standbild stehen. Die Datei wird erst geladen, wenn das Bild in die Nähe des Fensters kommt. Der Knopf "Bewegung
+  // anhalten" im Kopfbereich setzt die Klasse "angehalten" am html-Element: Die Schleife hält dann an. Sie hält auch,
+  // solange sie nicht im Fenster zu sehen ist.
   const ruhig = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const breit = window.matchMedia('(min-width: 64rem)');
   const wurzel = document.documentElement;
-  const seite = document.querySelector('[data-seite]');
-  const platz = document.querySelector('[data-buehne-platz]');
-  const marke = document.querySelector('[data-buehne-titel]');
-  const filmBild = document.querySelector('[data-buehne-film]');
-  // Abschnitte mit Bild, je mit ihrem Bild; die Reihenfolge ist die der Seite.
-  const paare = [...document.querySelectorAll('[data-foto-teil]')].map((teil) => ({ teil, figur: teil.querySelector('.g-foto') }));
-  let gezeigt = filmBild;
-  let film;
-
-  // Die Schleife läuft, solange Bewegung erlaubt ist und ihr Bild zu sehen ist.
-  const filmLaeuft = () => !wurzel.classList.contains('angehalten') && !ruhig.matches && (!seite.classList.contains('buehne') || gezeigt === filmBild);
-  const folge = () => {
-    if (!film) return;
-    if (filmLaeuft()) film.play().catch(() => {});
-    else film.pause();
-  };
-
-  // Zeigt in der Bühne das Bild eines Abschnitts; ohne Abschnitt die Schleife oder das erste Bild.
-  const zeige = (paar) => {
-    const figur = paar?.figur ?? filmBild ?? paare[0]?.figur;
-    const quelle = paar ?? (filmBild ? undefined : paare[0]);
-    if (figur === gezeigt) return;
-    gezeigt?.classList.remove('aktiv');
-    figur?.classList.add('aktiv');
-    gezeigt = figur;
-    for (const { teil } of paare) teil.classList.toggle('zeigt', teil === quelle?.teil);
-    marke.hidden = !quelle;
-    if (quelle) marke.querySelector('span').textContent = quelle.teil.querySelector('h2').textContent;
-    folge();
-  };
-
-  // Gelesen wird der letzte Abschnitt mit Bild, dessen Anfang über der Leselinie liegt (etwas über der Mitte).
-  const lies = () => {
-    const linie = window.innerHeight * 0.45;
-    let wahl;
-    for (const paar of paare) {
-      if (paar.teil.getBoundingClientRect().top > linie) break;
-      wahl = paar;
-    }
-    zeige(wahl);
-  };
-  let geplant = false;
-  const plane = () => {
-    if (geplant) return;
-    geplant = true;
-    requestAnimationFrame(() => { geplant = false; lies(); });
-  };
-
-  // Breit: Die Bilder hängen in der Bühne. Schmal: Jedes Bild steht wieder bei seinem Abschnitt.
-  const richte = () => {
-    const buehne = breit.matches && paare.length > 0;
-    if (buehne === seite.classList.contains('buehne')) return;
-    seite.classList.toggle('buehne', buehne);
-    if (buehne) {
-      for (const { figur } of paare) platz.append(figur);
-      gezeigt = platz.querySelector('.g-foto.aktiv');
-      window.addEventListener('scroll', plane, { passive: true });
-      window.addEventListener('resize', plane);
-      lies();
-    } else {
-      window.removeEventListener('scroll', plane);
-      window.removeEventListener('resize', plane);
-      for (const { teil, figur } of paare) {
-        figur.classList.remove('aktiv');
-        teil.classList.remove('zeigt');
-        teil.append(figur);
-      }
-      filmBild?.classList.add('aktiv');
-      gezeigt = filmBild;
-      marke.hidden = true;
-      folge();
-    }
-  };
-  if (seite && platz) {
-    richte();
-    breit.addEventListener('change', richte);
-  }
-
-  // Schleife statt Standbild, nur mit Bewegung. Die Datei wird erst geladen, wenn das Bild in die Nähe des Fensters
-  // kommt.
   const standbild = document.querySelector('img[data-film]');
   if (standbild && !ruhig.matches && 'IntersectionObserver' in window) {
+    let film;
+    let zuSehen = true;
+    const folge = () => {
+      if (!film) return;
+      if (zuSehen && !wurzel.classList.contains('angehalten') && !ruhig.matches) film.play().catch(() => {});
+      else film.pause();
+    };
     const beobachter = new IntersectionObserver((eintraege) => {
       if (!eintraege.some((eintrag) => eintrag.isIntersecting)) return;
       beobachter.disconnect();
@@ -301,6 +215,7 @@ const daten = [{
         standbild.replaceWith(neu);
         film = neu;
         document.querySelector('[data-film-hinweis]')?.removeAttribute('hidden');
+        new IntersectionObserver((stand) => { zuSehen = stand.at(-1).isIntersecting; folge(); }).observe(neu);
         folge();
       }, { once: true });
       // Der Knopf setzt die Klasse "angehalten" am html-Element; die Schleife folgt ihr.

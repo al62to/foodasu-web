@@ -8,9 +8,10 @@ export const seite = {
   // Gemeinsames Bild für Open Graph und die Twitter-Karte (gebaut mit tools/teilen_bild.mjs). Rezeptseiten zeigen
   // ihr eigenes Bild in denselben Maßen (tools/rezeptbilder_bauen.py).
   teilen: { pfad: '/bilder/foodasu-teilen.jpg', breite: 1200, hoehe: 630 },
-  // Der Satz zur Beschreibung (Projektleitung, 10.10.2026, AP-22 Teil 2 Nr. 1), wörtlich. Er steht sichtbar oben auf der
-  // Startseite und auf der Seite "Über FoodAsu" und ist die Beschreibung in Organization und WebSite.
-  beschreibung: 'FoodAsu ist eine App für Android aus Vorarlberg. Beim Scannen zeigt sie für jede Person im Haushalt einzeln, ob laut den Angaben zum Produkt etwas drin ist, das sie meidet. Dazu kommen Einkaufslisten und über 300 Rezepte. Ohne Konto, ohne Werbung.',
+  // Der Satz zur Beschreibung (Projektleitung, 10.10.2026, AP-22 Teil 2 Nr. 1; seit AP-23 "vom Bodensee", Entscheidung
+  // Ali vom 10.10.2026), wörtlich. Er steht sichtbar oben auf der Startseite und auf der Seite "Über FoodAsu" und ist
+  // die Beschreibung in Organization und WebSite.
+  beschreibung: 'FoodAsu ist eine App für Android vom Bodensee. Beim Scannen zeigt sie für jede Person im Haushalt einzeln, ob laut den Angaben zum Produkt etwas drin ist, das sie meidet. Dazu kommen Einkaufslisten und über 300 Rezepte. Ohne Konto, ohne Werbung.',
 };
 
 // Auftritte. Eine leere Adresse blendet Symbol und Eintrag in sameAs aus.

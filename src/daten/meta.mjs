@@ -58,8 +58,8 @@ const FEST = [
   },
   {
     pfad: '/ueber-foodasu/',
-    titel: 'Über FoodAsu: eine App für Android aus Vorarlberg',
-    beschreibung: 'Wer FoodAsu in Vorarlberg entwickelt, warum es die App gibt, für wen sie ist und woher die Angaben kommen. Kein Konto, keine Werbung.',
+    titel: 'Über FoodAsu: eine App für Android vom Bodensee',
+    beschreibung: 'Wer FoodAsu am Bodensee entwickelt, warum es die App gibt, für wen sie ist und woher die Angaben kommen. Kein Konto, keine Werbung.',
   },
   {
     pfad: '/daten-und-quellen/',

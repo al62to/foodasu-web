@@ -1,4 +1,4 @@
-"""Baut die Bildschirmfotos und die kurzen Schleifen für den Bereich "So geht's" und die zwei Fotos der 404-Seite.
+"""Baut die kurzen Schleifen für den Bereich "So geht's" mit ihren Standbildern.
 
 Quelle sind die Bilder aus dem Gerätetest der App (StoreScreenshotsTest: erfundener Beispielhaushalt, ohne Marken, hell,
 Fläche 360 x 810 dp). Jedes Foto entsteht als WebP in zwei Breiten unter public/bilder/sogehts/. Eine Schleife ist
@@ -17,12 +17,11 @@ from PIL import Image
 
 WURZEL = Path(__file__).resolve().parent.parent
 ZIEL = WURZEL / "public" / "bilder" / "sogehts"
-APP = WURZEL / "public" / "bilder" / "app"
 SEITE = (4, 9)
 
 # Name auf der Website -> Datei aus dem Gerätetest. Seit AP-19 Teil G kommen die Bildschirmfotos der Anleitung aus der
-# Play-Fassung (tools/sogehts_fotos.py); hier entstehen nur noch die Schleifen mit ihren Standbildern und die zwei Fotos
-# der 404-Seite.
+# Play-Fassung (tools/sogehts_fotos.py); hier entstehen nur noch die Schleifen mit ihren Standbildern. Die zwei Fotos
+# der 404-Seite gibt es seit AP-23 nicht mehr (die Seite zeigt keine Handys).
 BILDER = {}
 # Name der Schleife -> Folge aus (Datei, Sekunden, die das Bild ruhig steht)
 FILME = {
@@ -30,10 +29,7 @@ FILME = {
     "auf-die-liste": [("film_liste_1.png", 1.8), ("film_liste_2.png", 2.0), ("store_6_liste.png", 2.8)],
     "kochen": [("store_6_liste.png", 2.0), ("store_5_kochen.png", 3.4)],
 }
-# Fotos der 404-Seite (public/bilder/app): Name -> (Datei, Breiten)
-APP_BILDER = {"startbildschirm": "store_7_start.png", "produktkarte": "store_1_scanner.png"}
 BREITEN = (360, 720)
-APP_BREITEN = (240, 480)
 FILM_BREITE = 480
 UEBERGANG = 0.4
 
@@ -95,10 +91,6 @@ def main() -> int:
         bild = lade(quelle / datei)
         for breite in BREITEN:
             schreibe(bild, ZIEL / f"{name}-{breite}.webp", breite)
-    for name, datei in APP_BILDER.items():
-        bild = lade(quelle / datei)
-        for breite in APP_BREITEN:
-            schreibe(bild, APP / f"{name}-{breite}.webp", breite)
     if not wahl.ohne_filme:
         arbeit = quelle / "_film"
         arbeit.mkdir(exist_ok=True)

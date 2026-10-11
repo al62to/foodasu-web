@@ -1,16 +1,19 @@
 ---
-// Übersicht "Rezepte" nach Entwurf 1 der Projektleitung (AP-17 Teil E3): Suche, drei Auswahlknöpfe (Kategorie, Land,
-// Passt für) mit Listen zum Ankreuzen, darunter die gewählten Filter als Kärtchen und die Trefferzahl. Am Handy ein
-// Knopf "Filter", der ein Blatt von unten öffnet.
+// Übersicht "Rezepte" (AP-17 Teil E3; Aufbau seit AP-23 nach Entwurf "Filter in der Seitenleiste"): Ab 64rem Breite
+// stehen die drei Filtergruppen (Passt für, Kategorie, Land) ständig offen in einer weißen Leiste links, die beim
+// Scrollen mitfährt; rechts Suchfeld, Trefferzahl, die gewählten Filter als Chips und die Karten in drei Spalten. Am
+// Handy und Tablet öffnet der Knopf "Filter" wie bisher ein Blatt von unten. Darunter alle Themenseiten als Chips.
 // Gefiltert wird im Browser über Angaben an den Karten: keine neuen Adressen, nichts wird gespeichert oder geladen.
-// Ohne JavaScript stehen alle Karten da; die Themenseiten übernehmen dann die Auswahl.
+// Alle Karten stehen im HTML und sind ohne Auswahl sichtbar; ohne JavaScript entfallen Suche und Filter, und die
+// Themenseiten übernehmen die Auswahl.
 import Basis from '../../layouts/Basis.astro';
 import Seitenkopf from '../../components/Seitenkopf.astro';
 import Rezeptkarte from '../../components/Rezeptkarte.astro';
+import '../../styles/rezepte.css';
 import { seite } from '../../daten/seite.mjs';
 import {
   rezepte, texte, KATEGORIE, LAND, LAND_REIHENFOLGE, EINTRAEGE, FILTER_PASST, FILTER_ZUERST, rezeptAdresse, ziel,
-  filterAngaben,
+  filterAngaben, themenMitSeite,
 } from '../../daten/rezeptseiten.mjs';
 
 const t = texte.alle;
@@ -29,17 +32,35 @@ const passt = FILTER_PASST
     const eintrag = eintragVon.get(schluessel);
     return { wert: schluessel, wort: eintrag.adresse ? t.ohne(eintrag.ohne) : eintrag.name, zahl: anzahl((a) => a.passt.split(' ').includes(schluessel)) };
   });
+// In der Leiste am Laptop zeigt "Land" zuerst so viele Länder; "Passt für" und "Kategorie" stehen dort ganz da.
+const LEISTE_ZUERST = 8;
 const gruppen = [
+  { kennung: 'passt', titel: t.gruppen.passt, zusatz: t.passtZusatz, wahl: passt, mehr: t.weitere.passt, breitGanz: true },
   { kennung: 'kategorie', titel: t.gruppen.kategorie, wahl: kategorien },
   { kennung: 'land', titel: t.gruppen.land, wahl: laender, mehr: t.weitere.land },
-  { kennung: 'passt', titel: t.gruppen.passt, zusatz: t.passtZusatz, wahl: passt, mehr: t.weitere.passt },
 ].map((gruppe) => {
   const wahl = gruppe.wahl.filter((eintrag) => eintrag.zahl > 0);
-  // Lange Listen zeigen zuerst nur den Anfang; der Rest folgt hinter "Weitere ... anzeigen".
+  // Lange Listen zeigen zuerst nur den Anfang; der Rest folgt hinter "Weitere ... anzeigen". "spaeter" gilt im Blatt
+  // am Handy und Tablet, "spaeterBreit" in der Leiste am Laptop.
   const vorn = gruppe.mehr && wahl.length > FILTER_ZUERST + 2 ? FILTER_ZUERST : wahl.length;
-  return { ...gruppe, wahl: wahl.map((eintrag, nummer) => ({ ...eintrag, spaeter: nummer >= vorn })), geteilt: vorn < wahl.length };
+  const vornBreit = gruppe.breitGanz ? wahl.length : gruppe.mehr && wahl.length > LEISTE_ZUERST + 2 ? LEISTE_ZUERST : wahl.length;
+  return {
+    ...gruppe,
+    wahl: wahl.map((eintrag, nummer) => ({ ...eintrag, spaeter: nummer >= vorn, spaeterBreit: nummer >= vornBreit })),
+    geteilt: vorn < wahl.length,
+    geteiltBreit: vornBreit < wahl.length,
+  };
 });
-const mehrThemen = t.mehrThemen.filter((thema) => ziel(thema.ziel));
+// Alle Themenseiten als Chips in vier Zeilen; der Name eines Chips ist der des Eintrags im Menü.
+const themenZeilen = ['ohne', 'passt', 'land', 'kategorie'].map((art) => ({
+  art,
+  titel: t.themenZeilen[art],
+  zusatz: art === 'ohne' ? t.passtZusatz : null,
+  themen: themenMitSeite
+    .filter((thema) => thema.art === art && ziel(thema.adresse))
+    .map((thema) => ({ name: art === 'ohne' ? t.ohne(thema.menue) : thema.menue, ziel: thema.adresse, titel: thema.titel }))
+    .sort((a, b) => a.name.localeCompare(b.name, 'de')),
+})).filter((zeile) => zeile.themen.length > 0);
 const text = t.text(rezepte.length);
 const daten = [{
   '@context': 'https://schema.org',
@@ -50,87 +71,108 @@ const daten = [{
 }];
 ---
 <Basis daten={daten}>
-  <Seitenkopf krumen={[{ titel: texte.uebersicht, ziel: '/rezepte/' }]} titel={t.seitentitel} vorspann={text} />
+  <Seitenkopf
+    krumen={[{ titel: texte.uebersicht, ziel: '/rezepte/' }]}
+    titel={t.seitentitel}
+    vorspann={text}
+    klein
+    motive={[
+      { art: 'aehre', breite: 120, lage: 'top: 10px; right: 120px', nurBreit: true },
+      { art: 'zitrone', breite: 130, lage: 'bottom: -50px; right: 360px', ecke: true },
+    ]}
+  >
+    <p class="klein">{t.grundlage}</p>
+  </Seitenkopf>
 
   <div class="s-inhalt innen">
-    <form class="f-leiste" id="filter" role="search" aria-label={t.suche} data-filter>
-      <label class="f-suche">
-        <span class="vh">{t.suche}</span>
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
-        <input type="search" name="suche" placeholder={t.suche} autocomplete="off" enterkeyhint="search" data-suche />
-      </label>
-
-      <div class="f-zeile">
-        <button type="button" class="f-knopf f-mobil" aria-haspopup="dialog" aria-expanded="false" aria-controls="f-blatt" data-blatt-auf>
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 6h16M7 12h10M10 18h4" /></svg>
-          {t.filter}
-          <span class="f-marke" data-aktiv-zahl hidden></span>
-        </button>
-
-        <div class="f-blatt" id="f-blatt" aria-labelledby="f-blatt-titel" data-blatt>
-          <div class="f-blatt-kopf">
-            <p id="f-blatt-titel">{t.filter}</p>
-            <button type="button" class="f-rund" aria-label={t.schliessen} data-blatt-zu>
-              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18" /></svg>
-            </button>
-          </div>
-          <div class="f-gruppen">
-            {gruppen.map((gruppe) => (
-              <div class="f-gruppe" data-gruppe={gruppe.kennung}>
-                <button type="button" class="f-knopf" aria-expanded="false" aria-controls={`f-${gruppe.kennung}`} data-knopf data-titel={gruppe.titel}>
-                  <span data-knopf-text>{gruppe.titel}</span>
-                  <svg class="pfeil" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 9l6 6 6-6" /></svg>
-                </button>
-                <div class="f-feld" id={`f-${gruppe.kennung}`} data-feld>
-                  <fieldset>
-                    <legend>{gruppe.titel}{gruppe.zusatz && <span>, {gruppe.zusatz}</span>}</legend>
-                    <ul>
-                      {gruppe.wahl.map((eintrag) => (
-                        <li data-spaeter={eintrag.spaeter ? '' : undefined}>
-                          <label>
-                            <input type="checkbox" name={gruppe.kennung} value={eintrag.wert} data-wort={eintrag.wort} />
-                            <span>{eintrag.wort}</span>
-                            <span class="f-anzahl">{eintrag.zahl}</span>
-                          </label>
-                        </li>
-                      ))}
-                    </ul>
-                  </fieldset>
-                  {gruppe.geteilt && <button type="button" class="f-schlicht" data-mehr>{gruppe.mehr}</button>}
-                  <div class="f-feld-fuss">
-                    <button type="button" class="f-schlicht grau" data-leeren>{t.zuruecksetzen}</button>
-                    <button type="button" class="f-voll" data-fertig>{t.fertig}</button>
-                  </div>
+    <form class="f-seite" id="filter" role="search" aria-label={t.suche} data-filter>
+      <div class="f-blatt" id="f-blatt" aria-labelledby="f-blatt-titel" data-blatt>
+        <div class="f-blatt-kopf">
+          <p id="f-blatt-titel">{t.filter}</p>
+          <button type="button" class="f-schlicht f-alles" data-alle-leeren>{t.zuruecksetzen}</button>
+          <button type="button" class="f-rund" aria-label={t.schliessen} data-blatt-zu>
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18" /></svg>
+          </button>
+        </div>
+        <div class="f-gruppen">
+          {gruppen.map((gruppe) => (
+            <div class:list={['f-gruppe', { 'breit-ganz': !gruppe.geteiltBreit }]} data-gruppe={gruppe.kennung}>
+              <button type="button" class="f-knopf" aria-expanded="false" aria-controls={`f-${gruppe.kennung}`} data-knopf data-titel={gruppe.titel}>
+                <span data-knopf-text>{gruppe.titel}</span>
+                <svg class="pfeil" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 9l6 6 6-6" /></svg>
+              </button>
+              <div class="f-feld" id={`f-${gruppe.kennung}`} data-feld>
+                <fieldset>
+                  <legend>{gruppe.titel}{gruppe.zusatz && <><span class="vh">, </span><small>{gruppe.zusatz}</small></>}</legend>
+                  <ul>
+                    {gruppe.wahl.map((eintrag) => (
+                      <li data-spaeter={eintrag.spaeter ? '' : undefined} data-spaeter-breit={eintrag.spaeterBreit ? '' : undefined}>
+                        <label>
+                          <input type="checkbox" name={gruppe.kennung} value={eintrag.wert} data-wort={eintrag.wort} />
+                          <span>{eintrag.wort}</span>
+                          <span class="f-anzahl">{eintrag.zahl}</span>
+                        </label>
+                      </li>
+                    ))}
+                  </ul>
+                </fieldset>
+                {gruppe.geteilt && <button type="button" class="f-schlicht" data-mehr>{gruppe.mehr}</button>}
+                <div class="f-feld-fuss">
+                  <button type="button" class="f-schlicht grau" data-leeren>{t.zuruecksetzen}</button>
+                  <button type="button" class="f-voll" data-fertig>{t.fertig}</button>
                 </div>
               </div>
-            ))}
+            </div>
+          ))}
+        </div>
+        <div class="f-blatt-fuss">
+          <button type="button" class="f-voll" data-blatt-zu data-zeigen data-eins={t.zeigen(1)} data-viele={t.zeigen(2).replace('2', '{zahl}')}>{t.zeigen(nachName.length)}</button>
+        </div>
+      </div>
+
+      <div class="f-haupt">
+        <div class="f-leiste">
+          <label class="f-suche-titel" for="f-suche-feld">{t.suche}</label>
+          <div class="f-suche">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
+            <input type="search" id="f-suche-feld" name="suche" autocomplete="off" enterkeyhint="search" data-suche />
           </div>
-          <div class="f-blatt-fuss">
-            <button type="button" class="f-voll" data-blatt-zu data-zeigen data-eins={t.zeigen(1)} data-viele={t.zeigen(2).replace('2', '{zahl}')}>{t.zeigen(nachName.length)}</button>
+
+          <div class="f-zeile">
+            <button type="button" class="f-knopf f-mobil" aria-haspopup="dialog" aria-expanded="false" aria-controls="f-blatt" data-blatt-auf>
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 6h16M7 12h10M10 18h4" /></svg>
+              {t.filter}
+              <span class="f-marke" data-aktiv-zahl hidden></span>
+            </button>
+            <p class="f-stand" role="status" data-stand data-eins={t.stand(1)} data-viele={t.stand(2).replace('2', '{zahl}')}>{t.stand(nachName.length)}</p>
+          </div>
+
+          <div class="f-aktiv" data-aktiv hidden>
+            <ul class="f-aktiv-liste" aria-label={t.gewaehlt} data-aktiv-liste data-entfernen={t.entfernen('{wort}')}></ul>
+            <button type="button" class="f-schlicht" data-alle-leeren>{t.alleZuruecksetzen}</button>
           </div>
         </div>
 
-        <p class="f-stand" role="status" data-stand data-eins={t.stand(1)} data-viele={t.stand(2).replace('2', '{zahl}')}>{t.stand(nachName.length)}</p>
-      </div>
-
-      <div class="f-aktiv" data-aktiv hidden>
-        <ul class="f-aktiv-liste" aria-label={t.gewaehlt} data-aktiv-liste data-entfernen={t.entfernen('{wort}')}></ul>
-        <button type="button" class="f-schlicht" data-alle-leeren>{t.alleZuruecksetzen}</button>
+        <ul class="r-karten flach" data-karten>{nachName.map((rezept, nummer) => <Rezeptkarte rezept={rezept} vorn={nummer < 3} filter ein={false} />)}</ul>
+        <div class="f-leer" data-leer hidden>
+          <p>{t.leer}</p>
+          <button type="button" class="chip" data-alle-leeren>{t.alleZuruecksetzen}</button>
+        </div>
       </div>
     </form>
     <div class="f-schleier" data-schleier hidden></div>
 
-    <ul class="r-karten" data-karten>{nachName.map((rezept, nummer) => <Rezeptkarte rezept={rezept} vorn={nummer < 4} filter land ein={false} />)}</ul>
-    <div class="f-leer" data-leer hidden>
-      <p>{t.leer}</p>
-      <button type="button" class="chip" data-alle-leeren>{t.alleZuruecksetzen}</button>
-    </div>
-    <p class="klein f-grundlage">{t.grundlage}</p>
-
-    {mehrThemen.length > 0 && (
-      <section class="s-teil f-themen" aria-labelledby="themen">
+    {themenZeilen.length > 0 && (
+      <section class="f-themen" aria-labelledby="themen">
         <h2 id="themen">{t.themen}</h2>
-        <ul class="chips">{mehrThemen.map((thema) => <li><a class="chip" href={thema.ziel}>{thema.titel}</a></li>)}</ul>
+        <dl>
+          {themenZeilen.map((zeile) => (
+            <div>
+              <dt>{zeile.titel}{zeile.zusatz && <><span class="vh">, </span><small>{zeile.zusatz}</small></>}</dt>
+              <dd><ul class="chips">{zeile.themen.map((thema) => <li><a class="chip" href={thema.ziel} aria-label={thema.titel}>{thema.name}</a></li>)}</ul></dd>
+            </div>
+          ))}
+        </dl>
       </section>
     )}
   </div>
@@ -154,7 +196,8 @@ const daten = [{
     const aktivZahl = form.querySelector('[data-aktiv-zahl]');
     const zeigen = form.querySelector('[data-zeigen]');
     const gruppen = [...form.querySelectorAll('[data-gruppe]')];
-    const schmal = window.matchMedia('(max-width: 47.99rem)');
+    // Bis 64rem (Handy und Tablet) liegen die Gruppen im Blatt; darüber stehen sie offen in der Leiste.
+    const schmal = window.matchMedia('(max-width: 63.99rem)');
     const UND = new Set(['passt']);
     const kreuz = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18" /></svg>';
 
@@ -214,7 +257,8 @@ const daten = [{
       aktivZahl.textContent = String(alle);
     };
 
-    // Auswahlknöpfe: am Laptop kleine Listen unter dem Knopf (immer nur eine offen), am Handy Abschnitte im Blatt.
+    // Auswahlknöpfe: am Handy und Tablet Abschnitte im Blatt. Am Laptop stehen alle Gruppen offen in der Leiste; die
+    // Knöpfe sind dort nicht zu sehen.
     const schliesseFelder = (ausser) => {
       for (const gruppe of gruppen) if (gruppe !== ausser) knopfVon(gruppe).setAttribute('aria-expanded', 'false');
     };
@@ -236,7 +280,8 @@ const daten = [{
       });
       const mehr = gruppe.querySelector('[data-mehr]');
       mehr?.addEventListener('click', () => {
-        const erstes = gruppe.querySelector('[data-spaeter] input');
+        // Der Fokus geht auf die erste Möglichkeit, die neu dazukommt (im Blatt und in der Leiste verschieden viele).
+        const erstes = gruppe.querySelector(schmal.matches ? '[data-spaeter] input' : '[data-spaeter-breit] input');
         gruppe.classList.add('ganz');
         mehr.hidden = true;
         erstes?.focus();
@@ -294,12 +339,6 @@ const daten = [{
         knopfVon(gruppe).focus();
       }
     });
-    // Am Laptop schließt ein Klick neben der offenen Liste sie wieder.
-    document.addEventListener('click', (ereignis) => {
-      if (schmal.matches) return;
-      const gruppe = ereignis.target.closest?.('[data-gruppe]');
-      schliesseFelder(gruppe ?? null);
-    });
     schmal.addEventListener('change', () => {
       setzeBlatt(false);
     });
@@ -314,11 +353,8 @@ const daten = [{
         suche.focus();
       });
     }
-    // Ein Verweis auf "#filter" zeigt die Seite mit geöffnetem Filter (am Handy das Blatt, am Laptop die erste Liste).
-    if (window.location.hash === '#filter') {
-      if (schmal.matches) setzeBlatt(true);
-      else knopfVon(gruppen[0]).setAttribute('aria-expanded', 'true');
-    }
+    // Ein Verweis auf "#filter" zeigt die Seite am Handy und Tablet mit geöffnetem Blatt; am Laptop steht die Leiste da.
+    if (window.location.hash === '#filter' && schmal.matches) setzeBlatt(true);
     zeige();
   }
 </script>

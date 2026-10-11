@@ -106,6 +106,19 @@ const sichtbar = (html) => {
   return text;
 };
 
+// AP-23 Teil E Nr. 2: Was eine ItemList nennt, steht sichtbar im HTML der Seite: jedes Rezept als Karte mit Link, ohne
+// Auswahl und ohne Nachladen, und kein Knopf "mehr anzeigen" vor Inhalten. Die Filtergruppen der Übersicht zählen dabei
+// nicht: Dort blendet "Weitere ... anzeigen" nur weitere Möglichkeiten zum Ankreuzen ein, keine Rezepte.
+function listeSichtbar(adresse, html, ziele) {
+  const inhalt = (html.match(/<main[\s\S]*<\/main>/)?.[0] ?? '').replace(/<div class="f-blatt"[\s\S]*?<div class="f-haupt">/, ' ');
+  const nichtGezeigt = ziele.filter((ziel) => !inhalt.includes(`href="${ziel.replace(HOST, '')}"`));
+  if (nichtGezeigt.length) melde(adresse, `ItemList nennt ${nichtGezeigt.length} Rezepte, die auf der Seite nicht als Link stehen`);
+  const karten = alle(inhalt, /<li\b[^>]*\bclass="r-karte[^"]*"[^>]*>/g).map(([marke]) => marke);
+  if (karten.length < ziele.length) melde(adresse, `ItemList nennt ${ziele.length} Rezepte, die Seite zeigt ${karten.length} Karten`);
+  if (karten.some((marke) => /\shidden\b|display:\s*none/.test(marke))) melde(adresse, 'eine Rezeptkarte ist im HTML ausgeblendet (ohne Auswahl sind alle Rezepte sichtbar)');
+  if (/(?:mehr|weitere)\s+(?:anzeigen|laden)/i.test(sichtbar(inhalt))) melde(adresse, 'Knopf „mehr anzeigen“ vor Inhalten (alle Rezepte stehen sichtbar auf der Seite)');
+}
+
 // Kopfdaten je Seite (AP-18 Nachtrag Meta): Titel und Beschreibung vorhanden, eindeutig, in den Grenzen (Zeichen und
 // Pixel wie in der Vorschau der Suche, src/daten/breite.mjs) und ohne Wort aus den Wortlisten; kanonische Adresse;
 // noindex nur auf den drei genannten Seiten und auf den kleinen Themenseiten (siehe unten), sonst keine Robots-Angabe;
@@ -286,6 +299,13 @@ for (const [adresse, html] of seiten) {
     if (liste && liste.itemListElement.some((punkt, nummer) => punkt.position !== nummer + 1 || !String(punkt.item).startsWith(HOST))) melde(adresse, 'Brotkrumen: position oder item fehlt');
   }
 
+  // Übersicht der Rezepte: Alle Rezepte der ItemList stehen sichtbar im HTML (AP-23 Teil E Nr. 2).
+  if (adresse === '/rezepte/') {
+    const uebersicht = alle(html, /<script type="application\/ld\+json">([\s\S]*?)<\/script>/g).map(([, roh]) => { try { return JSON.parse(roh); } catch { return {}; } }).find((block) => block['@type'] === 'ItemList');
+    if (!uebersicht) melde(adresse, 'ItemList fehlt in den strukturierten Daten');
+    else listeSichtbar(adresse, html, (uebersicht.itemListElement ?? []).map((punkt) => punkt.url));
+  }
+
   // Rezept- und Themenseiten: Pflichtfelder der strukturierten Daten, Bilder in drei Seitenverhältnissen,
   // FoodAsu-eigener Teil, Lizenzzeile.
   if (adresse.startsWith('/rezepte/') && adresse !== '/rezepte/') {
@@ -336,7 +356,7 @@ for (const [adresse, html] of seiten) {
         if (wert('data-kopiert') !== 'Link kopiert') melde(adresse, `Knopf „${TEILEN_NAME}“: Meldung „Link kopiert“ fehlt`);
         if (!/<span\b[^>]*\brole="status"[^>]*\bdata-teilen-status\b[^>]*><\/span>/.test(html)) melde(adresse, `Zeile für die Meldung neben dem Knopf „${TEILEN_NAME}“ fehlt oder ist nicht leer`);
         const stelle = html.indexOf(ganz);
-        if (stelle < html.indexOf('class="s-kacheln"') || stelle > html.indexOf('class="s-inhalt')) melde(adresse, `Knopf „${TEILEN_NAME}“ steht nicht im Kopfbereich nach den Angaben zum Rezept`);
+        if (stelle < html.indexOf('class="r-angaben"') || stelle > html.indexOf('class="s-inhalt')) melde(adresse, `Knopf „${TEILEN_NAME}“ steht nicht im Kopfbereich nach den Angaben zum Rezept`);
       }
       // Quelle und Lizenz stehen auf der Seite "Quellen und Lizenzen": Die Rezeptseite verlinkt ihren Abschnitt, und
       // der Abschnitt nennt Lizenz und Änderungsvermerk.
@@ -356,6 +376,7 @@ for (const [adresse, html] of seiten) {
       if (ohneSeite.length && !nurMuster) melde(adresse, `ItemList nennt ${ohneSeite.length} Adressen ohne Seite`);
       else if (ohneSeite.length) hinweise.push(`${adresse}: ItemList nennt ${ohneSeite.length} Adressen, deren Seiten erst nach der Freigabe der Muster entstehen`);
       if (!html.includes('laut Zutatenliste') && /ohne-|vegetarisch|vegan/.test(adresse)) melde(adresse, '"laut Zutatenliste" fehlt');
+      listeSichtbar(adresse, html, ziele);
     }
   }
 
@@ -584,7 +605,7 @@ for (const karte of einblick.karten) {
 if (alle(startseite, /<div class="geraet-rahmen"/g).length !== einblick.karten.length) melde('/', `Abschnitt „${einblick.ueberschrift}“: jedes Bild im Handy-Rahmen erwartet`);
 if (kapitel.filter((eintrag) => eintrag.film).length > 3) melde(BEREICH, 'höchstens drei Schleifen (Karte C)');
 const nichtGefunden = seiten.get('/404.html') ?? '';
-if (!/<a class="nf-knopf" href="\/so-gehts\/"/.test(nichtGefunden)) melde('/404.html', "der Knopf „So geht's“ führt nicht zur Anleitung");
+if (!/<a class="knopf hell" href="\/so-gehts\/"/.test(nichtGefunden)) melde('/404.html', "der Knopf „So geht's“ führt nicht zur Anleitung");
 const llms = existsSync(join(DIST, 'llms.txt')) ? readFileSync(join(DIST, 'llms.txt'), 'utf8') : '';
 for (const ziel of [BEREICH, ...kapitel.map(kapitelAdresse)]) if (!llms.includes(`(${HOST}${ziel})`)) melde('llms.txt', `Eintrag fehlt: ${ziel}`);
 // llms.txt nennt jede Seite im Index mit ihrer Beschreibung und keine Seite mit noindex (AP-18 Nachtrag Meta).
@@ -663,7 +684,7 @@ if (OHNE_INDEX.has('/daten-und-quellen/')) melde('/daten-und-quellen/', 'steht a
 // Satz zur Beschreibung (AP-22 Teil 2 Nr. 1): wörtlich und sichtbar auf der Startseite und auf "Über FoodAsu", dazu
 // als Beschreibung in Organization und WebSite. Die Einkaufswoche behält den Anker #schritte und verlinkt die Seite
 // "Zu Hause schreiben, im Laden abhaken"; beschrieben ist nur, was 0.14.3 kann.
-const BESCHREIBUNG = 'FoodAsu ist eine App für Android aus Vorarlberg. Beim Scannen zeigt sie für jede Person im Haushalt einzeln, ob laut den Angaben zum Produkt etwas drin ist, das sie meidet. Dazu kommen Einkaufslisten und über 300 Rezepte. Ohne Konto, ohne Werbung.';
+const BESCHREIBUNG = 'FoodAsu ist eine App für Android vom Bodensee. Beim Scannen zeigt sie für jede Person im Haushalt einzeln, ob laut den Angaben zum Produkt etwas drin ist, das sie meidet. Dazu kommen Einkaufslisten und über 300 Rezepte. Ohne Konto, ohne Werbung.';
 for (const adresse of ['/', '/ueber-foodasu/']) {
   if (!seiten.has(adresse)) { melde(adresse, 'Seite fehlt'); continue; }
   if (!textVon(adresse).includes(BESCHREIBUNG)) melde(adresse, 'Satz zur Beschreibung fehlt oder weicht ab');
@@ -703,6 +724,165 @@ const ueberInhalt = (seiten.get('/ueber-foodasu/') ?? '').match(/<main[\s\S]*<\/
 if (!ueberInhalt.includes('href="/daten-und-quellen/"')) melde('/ueber-foodasu/', 'Link auf „Daten und Quellen“ fehlt');
 if (!textVon('/ueber-foodasu/').includes('Ali Tonc')) melde('/ueber-foodasu/', 'der Name Ali Tonc fehlt');
 
+// AP-23 (Website neu gestalten), Teil B Nr. 10: Farbprüfung. Jede Farbe kommt aus den Variablen in
+// src/styles/basis.css. In den anderen Stildateien, in den Stilen der Komponenten und im gebauten HTML steht kein
+// fester Farbwert (kein Hex-Wert, kein rgb() oder hsl() mit Zahlen, kein Farbname). Ausgenommen ist nur
+// src/styles/geraet.css mit den Abbildungen der App im Handy-Rahmen. In basis.css steht ein fester Farbwert nur in der
+// Festlegung einer Variable. Grün (Teil B Nr. 4) und die Variablen --mint, --on-mint und --strich stehen nirgends,
+// auch nicht in den beiden ausgenommenen Dateien; ebenso nicht das dunkle Indigo der früheren Flächen.
+const STILORDNER = 'src/styles';
+const FARBEN_FEST = new Set(['basis.css', 'geraet.css']);
+const FARBNAMEN = [
+  'white', 'black', 'red', 'green', 'blue', 'yellow', 'orange', 'purple', 'pink', 'gray', 'grey', 'silver', 'navy',
+  'teal', 'aqua', 'cyan', 'magenta', 'lime', 'maroon', 'olive', 'fuchsia', 'indigo', 'violet', 'lavender', 'gold',
+  'brown', 'beige', 'ivory', 'crimson', 'coral', 'salmon', 'khaki', 'plum', 'orchid', 'tan', 'turquoise', 'mintcream',
+  'whitesmoke', 'ghostwhite', 'snow', 'linen', 'gainsboro', 'dimgray', 'dimgrey', 'slategray', 'slategrey',
+  'lightgray', 'lightgrey', 'darkgray', 'darkgrey', 'rebeccapurple',
+];
+const FESTE_FARBE = new RegExp(`#[0-9a-f]{3,8}(?![0-9a-z_-])|\\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch)\\(\\s*[-+.\\d]|\\bcolor\\(|(?<![\\w-])(?:${FARBNAMEN.join('|')})(?![\\w-])`, 'i');
+const GRUEN = /#?(?:b8f0d2|00382a|c9f3dd|1f6f54|1c3a34)\b|184[\s,]+240[\s,]+210|63[\s,]+191[\s,]+143|--(?:on-)?mint\b|--strich\b/i;
+const DUNKLE_FLAECHE = /#16123f/i;
+// Festlegungen einer Stildatei als Liste aus { name, wert }. Kommentare zählen nicht.
+const festlegungen = (css) => {
+  const ohneKommentar = css.replace(/\/\*[\s\S]*?\*\//g, ' ');
+  return alle(ohneKommentar, /\{([^{}]*)\}/g).flatMap(([, block]) =>
+    block.split(';').map((teil) => teil.match(/^\s*([\w-]+)\s*:\s*([\s\S]+)$/)).filter(Boolean).map(([, name, wert]) => ({ name, wert: wert.trim() })));
+};
+// Ein Wert ohne die Verweise auf Variablen: Was übrig bleibt, darf keine Farbe nennen.
+const ohneVariablen = (wert) => wert.replace(/var\(--[\w-]+\)/g, ' ');
+const farbBefund = (wert) => ohneVariablen(wert).match(FESTE_FARBE)?.[0];
+const stilDateien = existsSync(STILORDNER) ? readdirSync(STILORDNER).filter((name) => name.endsWith('.css')) : [];
+if (stilDateien.length === 0) melde(STILORDNER, 'Farbprüfung: Stildateien nicht gefunden (der Lauf braucht den Quelltext unter src/styles)');
+for (const name of stilDateien) {
+  const css = readFileSync(join(STILORDNER, name), 'utf8');
+  if (GRUEN.test(css)) melde(`${STILORDNER}/${name}`, `Farbprüfung: Grün oder eine entfallene Variable steht in der Datei: ${css.match(GRUEN)[0]}`);
+  if (DUNKLE_FLAECHE.test(css)) melde(`${STILORDNER}/${name}`, 'Farbprüfung: das dunkle Indigo der früheren Flächen (#16123f) steht in der Datei');
+  if (name === 'geraet.css') continue;
+  for (const { name: eigenschaft, wert } of festlegungen(css)) {
+    const fund = farbBefund(wert);
+    if (!fund) continue;
+    // In basis.css legt eine Variable ihre Farbe fest; überall sonst ist ein fester Farbwert ein Befund.
+    if (name === 'basis.css' && eigenschaft.startsWith('--')) continue;
+    melde(`${STILORDNER}/${name}`, `Farbprüfung: fester Farbwert „${fund}“ in „${eigenschaft}: ${wert.slice(0, 80)}“${FARBEN_FEST.has(name) ? ' (in basis.css nur in der Festlegung einer Variable erlaubt)' : ''}`);
+  }
+}
+// Stile in den Komponenten und Seiten (style-Blöcke im Quelltext).
+const quellDateien = (ordner) => existsSync(ordner)
+  ? readdirSync(ordner).flatMap((name) => {
+    const pfad = join(ordner, name);
+    return statSync(pfad).isDirectory() ? quellDateien(pfad) : [pfad];
+  })
+  : [];
+for (const datei of quellDateien('src').filter((pfad) => pfad.endsWith('.astro'))) {
+  const quelle = readFileSync(datei, 'utf8');
+  for (const [, css] of alle(quelle, /<style[^>]*>([\s\S]*?)<\/style>/g)) {
+    for (const { name: eigenschaft, wert } of festlegungen(css)) {
+      const fund = farbBefund(wert);
+      if (fund) melde(datei.split(sep).join('/'), `Farbprüfung: fester Farbwert „${fund}“ in „${eigenschaft}: ${wert.slice(0, 80)}“`);
+    }
+  }
+}
+// Gebautes HTML: Stile an Elementen und Farbangaben an SVG-Elementen.
+const FARB_ATTRIBUT = /\s(fill|stroke|color|stop-color|flood-color|lighting-color|bgcolor|background)="([^"]*)"/g;
+const FARBE_ERLAUBT = /^(?:none|currentcolor|transparent|inherit|var\(--[\w-]+\)|url\(#[\w-]+\))$/i;
+let farbStellen = 0;
+for (const [adresse, html] of seiten) {
+  const ohneSkript = html.replace(/<script[\s\S]*?<\/script>/g, ' ');
+  for (const [, stil] of alle(ohneSkript, /\sstyle="([^"]*)"/g)) {
+    farbStellen++;
+    for (const teil of entschluesselt(stil).split(';')) {
+      const fund = farbBefund(teil.slice(teil.indexOf(':') + 1));
+      if (fund) melde(adresse, `Farbprüfung: fester Farbwert „${fund}“ im Stil eines Elements: ${teil.trim().slice(0, 80)}`);
+    }
+  }
+  for (const [, name, wert] of alle(ohneSkript.replace(/<meta[^>]*>/g, ' '), FARB_ATTRIBUT)) {
+    farbStellen++;
+    if (!FARBE_ERLAUBT.test(wert.trim())) melde(adresse, `Farbprüfung: fester Farbwert im Attribut ${name}="${wert}"`);
+  }
+}
+// Grün und das dunkle Indigo im ganzen Bau (HTML, Stile, Skripte, Vektorbilder).
+for (const datei of dateien.filter((pfad) => /\.(?:html|css|js|svg|txt|xml)$/.test(pfad))) {
+  const inhalt = readFileSync(datei, 'utf8');
+  const name = '/' + relative(DIST, datei).split(sep).join('/');
+  if (GRUEN.test(inhalt)) melde(name, `Farbprüfung: Grün oder eine entfallene Variable steht im Bau: ${inhalt.match(GRUEN)[0]}`);
+  if (DUNKLE_FLAECHE.test(inhalt)) melde(name, 'Farbprüfung: das dunkle Indigo der früheren Flächen (#16123f) steht im Bau');
+}
+
+// AP-23, Teil A, C und D: Texte und Aufbau.
+// Startseite: der Absatz mit Unterschrift im Wortlaut der Projektleitung (ohne Doppelpunkt), darunter die Unterschrift
+// und der Link auf "Über FoodAsu"; die Bänder stehen still (kein laufendes Band); der Tisch und die kleine
+// Einkaufsliste schmücken nur; die Anker #schritte und #fragen bleiben.
+const ABSATZ_START = [
+  'In vielen Haushalten isst nicht jeder alles. Der eine isst kein Gluten, die andere keine Nüsse, das Kind trinkt keine Milch. Im Laden heißt das Packung umdrehen, Kleingedrucktes lesen, und beim nächsten Produkt wieder von vorn.',
+  'Deshalb habe ich FoodAsu gebaut. Du legst einmal fest, was jede Person bei dir zu Hause meidet. Danach reicht ein Scan.',
+];
+const wortTeil = startseite.match(/<section class="wort" id="ohne">[\s\S]*?<\/section>/)?.[0] ?? '';
+if (!wortTeil) melde('/', 'Abschnitt „Einkaufen ohne …“ fehlt');
+else {
+  const wortText = entschluesselt(wortTeil.replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ');
+  for (const absatz of ABSATZ_START) if (!wortText.includes(absatz)) melde('/', `Absatz mit Unterschrift weicht vom Wortlaut ab: ${absatz.slice(0, 50)} …`);
+  if (!/Ali Tonc,\s*Entwickler von FoodAsu/.test(wortText)) melde('/', 'Unterschrift „Ali Tonc, Entwickler von FoodAsu“ fehlt');
+  if (!/<a\b[^>]*href="\/ueber-foodasu\/#warum"[^>]*>\s*Warum es FoodAsu gibt/.test(wortTeil)) melde('/', 'Link „Warum es FoodAsu gibt“ auf /ueber-foodasu/#warum fehlt');
+  if (/Schweinefleisch/.test(wortText.slice(wortText.indexOf('In vielen Haushalten')))) melde('/', 'im Absatz mit Alis Unterschrift steht „Schweinefleisch“ als Beispiel');
+  if (/:/.test(ABSATZ_START.map((absatz) => wortText.includes(absatz) ? '' : ':').join(''))) melde('/', 'der Absatz mit Unterschrift enthält einen Doppelpunkt');
+}
+if (/data-band\b|band-spur/.test(startseite)) melde('/', 'die Bänder der Startseite laufen noch (sie stehen seit AP-23 still, als Chips in Reihen)');
+if (!/id="fragen"/.test(startseite)) melde('/', 'Abschnitt mit dem Anker #fragen fehlt');
+const tischTeil = startseite.match(/<div class="tisch" aria-hidden="true">[\s\S]*?<\/div>/)?.[0] ?? '';
+if (!tischTeil) melde('/', 'der Tisch im Abschnitt „Wenn nicht alle dasselbe essen“ fehlt oder ist für Bildschirmleser nicht ausgeblendet');
+else for (const schild of ['Kind · Milch', 'Partner · Vegetarisch', 'Gäste · Schweinefleisch', 'Oma · Gluten']) if (!entschluesselt(tischTeil).includes(schild)) melde('/', `Schildchen am Tisch fehlt: ${schild}`);
+if (alle(startseite, /<li class="lage(?: woche)?">/g).length !== 5) melde('/', '„Wenn nicht alle dasselbe essen“: fünf Lagen erwartet');
+if (!/<div class="einkauf" aria-hidden="true">/.test(startseite)) melde('/', 'die kleine Einkaufsliste beim Wocheneinkauf fehlt oder ist für Bildschirmleser nicht ausgeblendet');
+// "vom Bodensee": Die Herkunft "Vorarlberg" steht nur noch dort, wo ein Rechtstext sie nennt.
+for (const [adresse, html] of seiten) {
+  if (['/offenlegung/', '/datenschutz.html'].includes(adresse)) continue;
+  if (/Vorarlberg/.test(html)) melde(adresse, '„Vorarlberg“ steht noch auf der Seite (seit AP-23 „vom Bodensee“)');
+}
+if (/Vorarlberg/.test(llms)) melde('llms.txt', '„Vorarlberg“ steht noch in der Datei');
+if (!/<h1[^>]*>Über FoodAsu, die App vom Bodensee<\/h1>/.test(seiten.get('/ueber-foodasu/') ?? '')) melde('/ueber-foodasu/', 'Überschrift „Über FoodAsu, die App vom Bodensee“ fehlt');
+// "Über FoodAsu": sechs Stationen mit ihren Ankern, die Unterschrift im Wortlaut, die Adresse des Kontakts weiter aus
+// HTML-Entitäten.
+for (const anker of ['warum', 'fuer-wen', 'angaben', 'bei-dir', 'stand', 'kontakt']) if (!new RegExp(`<h2 id="${anker}">`).test(ueberInhalt)) melde('/ueber-foodasu/', `Abschnitt mit dem Anker #${anker} fehlt`);
+if (alle(ueberInhalt, /<li class="station"/g).length !== 6) melde('/ueber-foodasu/', 'sechs Stationen erwartet');
+if (!/Ali Tonc,\s*Entwickler von FoodAsu/.test(entschluesselt(ueberInhalt.replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' '))) melde('/ueber-foodasu/', 'Unterschrift „Ali Tonc, Entwickler von FoodAsu“ fehlt');
+if (!/<a class="knopf voll" href="(?:&#\d+;)+">/.test(ueberInhalt)) melde('/ueber-foodasu/', 'Knopf „E-Mail schreiben“: Adresse aus HTML-Entitäten erwartet');
+if (/mailto:/.test(ueberInhalt)) melde('/ueber-foodasu/', 'die Adresse des Kontakts steht im Klartext');
+// 404-Seite: Karte im Wortlaut der Projektleitung, keine Handys mehr, die Null als Zitronenscheibe.
+if (!sichtbar(nichtGefunden).includes('Eine App für Android: Du scannst Lebensmittel beim Einkauf und siehst sofort, ob laut den Angaben etwas drin ist, das du meidest.')) melde('/404.html', 'Karte „Was ist FoodAsu?“ weicht vom Wortlaut ab');
+if (/<img\b/.test(nichtGefunden.match(/<main[\s\S]*<\/main>/)?.[0] ?? '')) melde('/404.html', 'die Handys stehen noch auf der Seite');
+if (!/<div class="nf-zahl" aria-hidden="true">\s*4\s*<svg/.test(nichtGefunden)) melde('/404.html', 'die Zahl mit der Zitronenscheibe fehlt oder ist für Bildschirmleser nicht ausgeblendet');
+// Fragen: drei Gruppen (h2), jede Frage eine h3 mit Sprungmarke; FAQPage nennt die Fragen in der Reihenfolge der Seite.
+const fragenSeite = seiten.get('/fragen/') ?? '';
+const fragenInhalt = fragenSeite.match(/<main[\s\S]*<\/main>/)?.[0] ?? '';
+const gruppenTitel = alle(fragenInhalt, /<h2 class="ueberzeile" id="[^"]+">([^<]*)<\/h2>/g).map(([, titel]) => entschluesselt(titel));
+if (gruppenTitel.join(' | ') !== 'Die Daten | Deine Angaben | Die App') melde('/fragen/', `Gruppen: „Die Daten“, „Deine Angaben“, „Die App“ erwartet, gefunden: ${gruppenTitel.join(' | ')}`);
+const fragenTitel = alle(fragenInhalt, /<h3 id="[^"]+">([\s\S]*?)<\/h3>/g).map(([, titel]) => entschluesselt(titel.replace(/<[^>]+>/g, '')));
+const faqDaten = alle(fragenSeite, /<script type="application\/ld\+json">([\s\S]*?)<\/script>/g).map(([, roh]) => { try { return JSON.parse(roh); } catch { return {}; } }).find((einer) => einer['@type'] === 'FAQPage');
+const faqNamen = (faqDaten?.mainEntity ?? []).map((eintrag) => eintrag.name);
+if (fragenTitel.length !== 6 || fragenTitel.join(' | ') !== faqNamen.join(' | ')) melde('/fragen/', `FAQPage folgt nicht der Reihenfolge der Seite: Seite „${fragenTitel.join(' | ')}“, Daten „${faqNamen.join(' | ')}“`);
+if (!/<p class="kasten">FoodAsu ist kein Medizinprodukt/.test(fragenInhalt)) melde('/fragen/', 'der Satz zum Medizinprodukt steht nicht als Lavendel-Kasten da');
+if (/<details/.test(fragenInhalt)) melde('/fragen/', 'eine Antwort ist zugeklappt (auf dieser Seite stehen alle Antworten offen)');
+for (const [adresse, html] of seiten) {
+  if (adresse !== '/fragen/' && /"@type":\s*"FAQPage"/.test(html)) melde(adresse, 'FAQPage gehört nur auf /fragen/');
+}
+// Daten und Quellen: zwei Gruppen (h2), die Abschnitte als h3 mit ihren Ankern, die Nachweise am Ende.
+const gruppenDaten = alle(datenInhalt, /<h2 class="ueberzeile" id="[^"]+">([^<]*)<\/h2>/g).map(([, titel]) => entschluesselt(titel));
+if (gruppenDaten.join(' | ') !== 'Woher die Angaben kommen | Was die Angaben bedeuten') melde('/daten-und-quellen/', `Gruppen: „Woher die Angaben kommen“ und „Was die Angaben bedeuten“ erwartet, gefunden: ${gruppenDaten.join(' | ')}`);
+for (const anker of ['produkte', 'rezepte', 'naehrwerte', 'bilder', 'laut-daten', 'luecken', 'verpackung']) if (!new RegExp(`<h3[^>]* id="${anker}">`).test(datenInhalt)) melde('/daten-und-quellen/', `Abschnitt (h3) mit dem Anker #${anker} fehlt`);
+if (!/<h2[^>]* id="nachweise">/.test(datenInhalt)) melde('/daten-und-quellen/', 'Abschnitt mit dem Anker #nachweise fehlt');
+// Rechtstexte: Die Datenschutzerklärung behält ihre Anker (die App verlinkt die Adresse), das Inhaltsverzeichnis steht
+// an der Seite; die Offenlegung hat keine Leiste.
+const datenschutz = seiten.get('/datenschutz.html') ?? '';
+for (let nummer = 1; nummer <= 26; nummer++) if (!datenschutz.includes(`<h2 id="abschnitt-${nummer}">`)) melde('/datenschutz.html', `Abschnitt mit dem Anker #abschnitt-${nummer} fehlt`);
+for (const teil of ['teil-a', 'teil-b', 'teil-c', 'teil-d']) if (!datenschutz.includes(`<h2 id="${teil}">`)) melde('/datenschutz.html', `Überschrift mit dem Anker #${teil} fehlt`);
+if (alle(datenschutz, /<nav class="s-toc"/g).length !== 1) melde('/datenschutz.html', 'Inhaltsverzeichnis an der Seite: genau eines erwartet');
+if (/<nav class="s-toc"/.test(seiten.get('/offenlegung/') ?? '')) melde('/offenlegung/', 'die Offenlegung hat keine Abschnitte und braucht kein Inhaltsverzeichnis');
+// Linienmotive: höchstens drei je Abschnitt (die Komponente bricht sonst den Bau ab); hier zählt die Seite als Ganzes
+// nur als Hinweis auf vergessene Kennzeichnung: Jedes Motiv ist für Bildschirmleser ausgeblendet.
+for (const [adresse, html] of seiten) {
+  for (const [motiv] of alle(html, /<svg[^>]*class="motiv[^"]*"[^>]*>/g)) if (!/aria-hidden="true"/.test(motiv)) melde(adresse, 'ein Linienmotiv ist für Bildschirmleser nicht ausgeblendet');
+}
+
 // Tabelle aller Titel und Beschreibungen, wie sie auf den gebauten Seiten stehen (Aufruf mit --meta <Datei>).
 const metaZiel = process.argv.includes('--meta') ? process.argv[process.argv.indexOf('--meta') + 1] : null;
 if (metaZiel) {
@@ -735,6 +915,7 @@ console.log(`Geprüft: ${seiten.size} Seiten (${[...seiten.keys()].join(', ')}),
 console.log(`Knopf „${TEILEN_NAME}“: auf ${teilenKnoepfe} von ${rezeptSeiten} Rezeptseiten, auf keiner anderen Seite`);
 console.log(`Themenseiten: ${themenSeiten.imIndex.length} im Index (ab ${INDEX_AB} Rezepten, mit Einleitungstext), ${themenSeiten.ohneIndex.length} mit noindex (${themenSeiten.ohneIndex.join(', ')})`);
 console.log(`Im Index: ${seiten.size - OHNE_INDEX.size} von ${seiten.size} Seiten`);
+console.log(`Farbprüfung: ${stilDateien.length} Stildateien (feste Farbwerte nur in basis.css und geraet.css), ${farbStellen} Stellen im HTML`);
 for (const hinweis of hinweise) console.log(`HINWEIS ${hinweis}`);
 for (const eintrag of fehler) console.log(`FEHLER ${eintrag}`);
 console.log(`Ergebnis: ${fehler.length === 0 ? 'bestanden' : fehler.length + ' Befunde'}`);

@@ -118,7 +118,11 @@ export const texte = {
     erklaerung: 'Grundlage ist die Zutatenliste dieses Rezepts. Was in einem Produkt aus dem Laden steckt, steht auf der Packung. Maßgeblich ist die Verpackung.',
     keine: 'Für dieses Rezept gibt es zu jedem Eintrag einen Hinweis.',
   },
-  zutaten: { titel: 'Zutaten', fuer: 'Für' },
+  // "hinweise": Zeile zum Aufklappen an einer Zutat (seit AP-23 stehen die Hinweise je Zutat zusammengefasst darunter).
+  zutaten: { titel: 'Zutaten', fuer: 'Für', hinweise: (zahl) => (zahl === 1 ? '1 Hinweis' : `${zahl} Hinweise`) },
+  // Sprungleiste unter dem Kopf der Rezeptseite (AP-23 Teil C Nr. 2): Zutaten, Zubereitung, Hinweise, Nährwerte, In
+  // der App. "titel" ist der Name der Leiste für Bildschirmleser; die übrigen Namen stehen bei ihren Abschnitten.
+  sprung: { titel: 'Auf dieser Seite', hinweise: 'Hinweise', app: 'In der App' },
   hinweise: {
     titel: 'Hinweise zu den Zutaten',
     einleitung: 'FoodAsu prüft jede Zutat gegen 20 Einträge zum Meiden. Bei diesem Rezept gibt es diese Hinweise:',
@@ -190,8 +194,9 @@ export const texte = {
   },
   aehnlich: 'Ähnliche Rezepte',
   themenTitel: 'Mehr Rezepte',
-  // Übersicht "Rezepte" nach Entwurf 1 der Projektleitung (AP-17 Teil E3): Suche, drei Auswahlknöpfe mit Listen zum
-  // Ankreuzen, gewählte Filter als Kärtchen, am Handy ein Blatt von unten.
+  // Übersicht "Rezepte" (AP-17 Teil E3; seit AP-23 nach Entwurf "Filter in der Seitenleiste"): Suche, drei Gruppen mit
+  // Listen zum Ankreuzen (am Laptop ständig offen in einer Leiste links, am Handy und Tablet ein Blatt von unten),
+  // gewählte Filter als Chips.
   alle: {
     titel: 'Rezepte',
     seitentitel: 'Rezepte mit Hinweisen zu den Zutaten',
@@ -214,16 +219,10 @@ export const texte = {
     schliessen: 'Filter schließen',
     zeigen: (zahl) => (zahl === 1 ? '1 Rezept anzeigen' : `${zahl} Rezepte anzeigen`),
     leer: 'Kein Rezept passt zu dieser Auswahl.',
-    themen: 'Mehr Themen',
-    // Sechs Themen am Ende der Seite (statt der langen Liste "Rezepte nach Thema"); alle Themen stehen im Menü.
-    mehrThemen: [
-      { titel: 'Rezepte ohne Nüsse', ziel: '/rezepte/ohne-nuesse/' },
-      { titel: 'Rezepte ohne Gluten', ziel: '/rezepte/ohne-gluten/' },
-      { titel: 'Vegetarische Rezepte', ziel: '/rezepte/vegetarisch/' },
-      { titel: 'Vegane Rezepte', ziel: '/rezepte/vegan/' },
-      { titel: 'Rezepte aus Österreich', ziel: '/rezepte/land/oesterreich/' },
-      { titel: 'Süßspeisen', ziel: '/rezepte/kategorie/suessspeise/' },
-    ],
+    // Am Ende der Seite stehen seit AP-23 alle Themenseiten als Chips in vier Zeilen (AP-23 Teil C Nr. 3). Die Namen
+    // der Zeilen sind die der Gruppen im Menü und im Filter.
+    themen: 'Rezepte nach Thema',
+    themenZeilen: { ohne: 'Ohne …', passt: 'Passt für', land: 'Nach Land', kategorie: 'Nach Kategorie' },
   },
   thema: {
     grundlage: 'Grundlage ist die Zutatenliste des Rezepts. Was in einem Produkt aus dem Laden steckt, steht auf der Packung. Maßgeblich ist die Verpackung.',

@@ -20,10 +20,10 @@
 // Sprungmarken aus der Fassung vor AP-19, die weiter ankommen sollen. "funktionen" nennt die Kennungen aus der
 // Funktionsliste der App, die der Abschnitt erklärt.
 //
-// Gestaltung (AP-19 Teil H): "symbol" nennt das Symbol eines Abschnitts oder Kapitels (src/daten/zeichen.mjs).
-// "gross: true" macht aus einem Abschnitt mit Bild eine große Karte; je Kapitel gibt es eine oder zwei. Abschnitte mit
-// Bild ohne "gross" sind helle Karten, Abschnitte ohne Bild kompakte Karten in einem Raster, Abschnitte ohne Funktion
-// (nur Absätze) ruhige Notizen. "leitbild" nennt das Bild eines Kapitels, das seine Karte in der Übersicht zeigt.
+// Gestaltung (AP-19 Teil H, neu in AP-23): "symbol" nennt das Symbol eines Abschnitts (src/daten/zeichen.mjs); es
+// steht im Kreis der Station. "gross: true" macht aus einem Abschnitt mit Bild eine Lavendel-Karte mit Muster; je
+// Kapitel gibt es eine oder zwei. Alle anderen Abschnitte sind weiße Karten, mit oder ohne Bild. Jedes Bild steht in
+// der Karte seines Abschnitts. "leitbild" nennt das Bild eines Kapitels, das seine Station in der Übersicht zeigt.
 // An Texten, Ankern und an der Reihenfolge ändert das nichts.
 //
 // Bilder: Bildschirmfotos der Play-Fassung mit dem erfundenen Beispielhaushalt (Mia, Jonas, Elif); Namen, Marken und
@@ -102,13 +102,11 @@ export function fotoDaten(eintrag) {
 // Alle Bildschirmfotos eines Kapitels in der Reihenfolge der Seite (für Prüfung und Vorschau).
 export const fotosVon = (eintrag) => eintrag.teile.flatMap((teil) => teil.fotos ?? []).map(fotoDaten);
 
-// Das Bild, das die Karte eines Kapitels in der Übersicht zeigt: eines der Bilder des Kapitels.
+// Das Bild, das die Station eines Kapitels in der Übersicht zeigt: eines der Bilder des Kapitels.
 export const leitbildVon = (eintrag) => fotosVon(eintrag).find((foto) => foto.datei === eintrag.leitbild);
 
-// Die drei Handys im Kopf der Übersicht: links, Mitte, rechts. Es sind Bilder aus den Kapiteln.
-export const kopfBilder = ['liste_abhaken_02', 'karte_urteil_01', 'rezepte_ansehen_01'];
-
-// Art eines Abschnitts für die Gestaltung: große Karte, helle Karte mit Bild, kompakte Karte oder Notiz.
+// Art eines Abschnitts für die Gestaltung (seit AP-23 Stationen an einer Linie): "gross" ist eine Lavendel-Karte mit
+// Muster, "mittel" eine weiße Karte mit Bild, "klein" und "notiz" sind weiße Karten ohne Bild.
 export const artVon = (teil) => (teil.fotos?.length ? (teil.gross ? 'gross' : 'mittel') : teil.funktionen ? 'klein' : 'notiz');
 
 // ---- Prüfung beim Laden: Jeder Verstoß bricht den Bau ab. ----

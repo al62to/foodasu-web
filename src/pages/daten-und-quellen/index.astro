@@ -1,26 +1,75 @@
 ---
-// "Daten und Quellen" (AP-22 Teil 1 Nr. 5): woher Produktangaben, Rezepte, Nährwerte und Bilder kommen, was "laut
-// Daten" bedeutet und warum die Verpackung maßgeblich ist. Alle Texte stehen in src/daten/datenquellen.mjs. Die
-// Einzelnachweise bleiben auf der Seite "Quellen und Lizenzen"; diese Seite verlinkt dorthin. Im Fuß jeder Seite
-// verlinkt, im Index der Suchmaschinen und in sitemap.xml.
+// "Daten und Quellen" (AP-22 Teil 1 Nr. 5; Aufbau seit AP-23 nach Entwurf "Herkunft und Bedeutung getrennt"): woher
+// Produktangaben, Rezepte, Nährwerte und Bilder kommen (vier weiße Karten), was "laut Daten" bedeutet und warum die
+// Verpackung maßgeblich ist (Lavendel-Band mit schmaler Lesespalte), am Ende die Nachweise als einfache Liste. Alle
+// Texte stehen in src/daten/datenquellen.mjs. Die Einzelnachweise bleiben auf der Seite "Quellen und Lizenzen"; diese
+// Seite verlinkt dorthin. Im Fuß jeder Seite verlinkt, im Index der Suchmaschinen und in sitemap.xml.
 import Basis from '../../layouts/Basis.astro';
 import Seitenkopf from '../../components/Seitenkopf.astro';
+import Motive from '../../components/Motive.astro';
+import Zeichen from '../../components/Zeichen.astro';
 import { datenquellen as t } from '../../daten/datenquellen.mjs';
+import { MEDIZIN } from '../../daten/fragen.mjs';
+
+const teil = (anker) => {
+  const eintrag = t.teile.find((einer) => einer.anker === anker);
+  if (!eintrag) throw new Error(`Daten und Quellen: Den Abschnitt „${anker}“ gibt es nicht.`);
+  return eintrag;
+};
+const [herkunft, bedeutung] = t.gruppen.map((gruppe) => ({ ...gruppe, teile: gruppe.teile.map(teil) }));
+const schluss = teil(t.schluss);
+if (herkunft.teile.length + bedeutung.teile.length + 1 !== t.teile.length) {
+  throw new Error('Daten und Quellen: Jeder Abschnitt muss in genau einer Gruppe stehen oder der Schluss sein.');
+}
 ---
 <Basis>
-  <Seitenkopf krumen={[{ titel: t.titel, ziel: '/daten-und-quellen/' }]} titel={t.h1} vorspann={t.vorspann} still />
-  <div class="s-inhalt innen">
-    <ul class="s-liste breit">
-      {t.teile.map((teil) => (
-        <li class="s-karte">
-          <h2 id={teil.anker}>{teil.titel}</h2>
-          {teil.absaetze.map((absatz) =>
+  <Seitenkopf
+    krumen={[{ titel: t.titel, ziel: '/daten-und-quellen/' }]}
+    titel={t.h1}
+    vorspann={t.vorspann}
+    mittig
+    motive={[
+      { art: 'zitrone', breite: 150, lage: 'top: 30px; left: 6%', nurBreit: true },
+      { art: 'aehre', breite: 90, lage: 'bottom: 10px; right: 8%', nurBreit: true },
+    ]}
+  />
+  <div class="d-herkunft innen" aria-labelledby={herkunft.anker}>
+    <h2 class="ueberzeile" id={herkunft.anker}>{herkunft.titel}</h2>
+    <div class="d-karten">
+      {herkunft.teile.map((abschnitt) => (
+        <article class="s-karte" aria-labelledby={abschnitt.anker} data-ein>
+          <h3 class="d-titel" id={abschnitt.anker}><span class="d-zeichen"><Zeichen name={abschnitt.symbol} /></span>{abschnitt.titel}</h3>
+          {abschnitt.absaetze.map((absatz) =>
             typeof absatz === 'string'
               ? <p>{absatz}</p>
               : <p>{absatz.vor}<a href={absatz.ziel} rel={absatz.extern ? 'noopener' : undefined}>{absatz.text}</a>{absatz.nach}</p>
           )}
-        </li>
+        </article>
       ))}
-    </ul>
+    </div>
+  </div>
+
+  <section class="d-band muster" aria-labelledby={bedeutung.anker}>
+    <Motive liste={[{ art: 'blatt', breite: 160, lage: 'top: -40px; right: 40px', ecke: true }]} />
+    <div class="innen">
+      <div class="d-spalte">
+        <h2 class="ueberzeile" id={bedeutung.anker}>{bedeutung.titel}</h2>
+        {bedeutung.teile.map((abschnitt) => (
+          <article aria-labelledby={abschnitt.anker}>
+            <h3 class="d-titel" id={abschnitt.anker}><span class="d-zeichen hell"><Zeichen name={abschnitt.symbol} /></span>{abschnitt.titel}</h3>
+            {abschnitt.absaetze.map((absatz) => (absatz === MEDIZIN ? <p class="kasten d-kasten">{absatz}</p> : <p>{absatz}</p>))}
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <div class="d-schluss innen">
+    <div class="d-spalte">
+      <h2 class="d-titel" id={schluss.anker}><span class="d-zeichen"><Zeichen name={schluss.symbol} /></span>{schluss.titel}</h2>
+      <ul>
+        {schluss.absaetze.map((absatz) => <li>{absatz.vor}<a href={absatz.ziel}>{absatz.text}</a>{absatz.nach}</li>)}
+      </ul>
+    </div>
   </div>
 </Basis>

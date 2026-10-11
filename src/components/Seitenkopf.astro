@@ -1,30 +1,36 @@
 ---
-// Kopfbereich der Unterseiten im Stil der Startseite: dunkles Indigo mit ruhigen Farbflächen, Brotkrumen, Titel.
-// "still" lässt die Farbflächen stehen (Rechtstexte). Läuft die Schleife, gibt es den Knopf "Bewegung anhalten"
+// Kopfbereich der Unterseiten (AP-23 Teil B Nr. 7): helle Lavendel-Fläche mit Punktmuster und blassen Linienmotiven,
+// dunkle Schrift, Brotkrumen in Grau. "mittig" stellt alles in die Mitte, "klein" ist der niedrigere Kopf der
+// Übersichten und Rechtstexte. "motive" nennt die Linienmotive (src/components/Motive.astro, höchstens drei).
+// Platz "seite": rechte Spalte am Laptop (zum Beispiel das Bild eines Rezepts oder die Schleife eines Kapitels).
+// Läuft auf der Seite eine Schleife (ein Element mit data-schleife), gibt es den Knopf "Bewegung anhalten"
 // (WCAG 2.2.2); sein Zustand steht nur in einer Variablen der Seite, im Browser wird nichts gespeichert.
-// Platz "seite": rechte Spalte am Laptop (zum Beispiel das Bild eines Rezepts).
 import '../styles/seiten.css';
 import Brotkrumen from './Brotkrumen.astro';
+import Motive from './Motive.astro';
 import { geruest } from '../daten/startseite.mjs';
 
 // "vorzeile" (AP-22, Überschriften mit Suchwort): eine kleine Zeile über dem Titel, die zur h1 gehört, zum Beispiel
 // "Rezept" über dem Namen des Gerichts. Bildschirmleser lesen sie mit Doppelpunkt vor dem Titel.
-const { krumen, titel, vorspann, etikett, vorzeile, still = false } = Astro.props;
+// "etikett" ist eine kleine Zeile über der h1, die nicht zu ihr gehört (zum Beispiel "Kapitel 3 von 8").
+const STANDARD = [
+  { art: 'aehre', breite: 120, lage: 'top: 14px; right: 8%', nurBreit: true },
+  { art: 'zitrone', breite: 130, lage: 'bottom: -50px; right: 32%', ecke: true },
+];
+const { krumen, titel, vorspann, etikett, vorzeile, mittig = false, klein = false, motive = STANDARD } = Astro.props;
 const zwei = Astro.slots.has('seite');
 ---
-{!still && (
-  <button type="button" class="bewegung-knopf" data-bewegung-seite data-anhalten={geruest.bewegung.anhalten} data-fortsetzen={geruest.bewegung.fortsetzen} hidden>
-    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path class="z-halt" d="M8 5v14M16 5v14" /><path class="z-lauf" d="M8 5l11 7-11 7z" /></svg>
-    <span data-bewegung-text>{geruest.bewegung.anhalten}</span>
-  </button>
-)}
-<div class:list={['s-kopf', { still }]}>
-  <div class="s-flaechen" aria-hidden="true" data-schleife={still ? undefined : ''}><i class="a"></i><i class="b"></i><i class="c"></i></div>
+<button type="button" class="bewegung-knopf" data-bewegung-seite data-anhalten={geruest.bewegung.anhalten} data-fortsetzen={geruest.bewegung.fortsetzen} hidden>
+  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path class="z-halt" d="M8 5v14M16 5v14" /><path class="z-lauf" d="M8 5l11 7-11 7z" /></svg>
+  <span data-bewegung-text>{geruest.bewegung.anhalten}</span>
+</button>
+<div class:list={['s-kopf', 'muster', { mittig, 'klein-kopf': klein }]}>
+  <Motive liste={motive} />
   <div class="innen">
     {krumen && <Brotkrumen pfad={krumen} />}
     <div class:list={['s-kopf-raster', { zwei }]}>
-      <div>
-        {etikett && <p class="s-etikett">{etikett}</p>}
+      <div class="s-kopf-text">
+        {etikett && <p class="ueberzeile">{etikett}</p>}
         {vorzeile
           ? <h1><span class="s-vorzeile">{vorzeile}<span class="vh">: </span></span><span data-titel-kern><slot name="titel">{titel}</slot></span></h1>
           : <h1><slot name="titel">{titel}</slot></h1>}
