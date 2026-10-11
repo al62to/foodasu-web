@@ -10,6 +10,7 @@ import { muster as nurMuster } from '../src/daten/auswahl.mjs';
 import { BEREICH, adresse as kapitelAdresse, fotosVon, kapitel } from '../src/daten/sogehts.mjs';
 import { einblick } from '../src/daten/startseite.mjs';
 import { GRENZEN, grenzBefunde, masse } from '../src/daten/breite.mjs';
+import { alleRezepte, zutatenBefunde } from './zutaten_pruefen.mjs';
 
 // Der Ordner der gebauten Website; mit der Umgebungsvariable DIST prüft der Lauf einen anderen Ordner (Vorschau).
 const DIST = process.env.DIST ?? 'dist';
@@ -1139,7 +1140,22 @@ console.log(`Themenseiten: ${themenSeiten.imIndex.length} im Index (ab ${INDEX_A
 console.log(`Im Index: ${seiten.size - OHNE_INDEX.size} von ${seiten.size} Seiten`);
 console.log(`Farbprüfung: ${stilDateien.length} Stildateien (feste Farbwerte nur in basis.css und geraet.css), ${farbStellen} Stellen im HTML`);
 console.log(`Herkunft und Plattform: ${herkunftDateien} Dateien des Baus durchsucht (HTML, TXT, XML, JSON; Skripte, Stile und Vektorbilder auf die Herkunft)`);
+// Zutaten und Zubereitung (AP-25 Nachbesserung, 11.10.2026): Warnung ohne Abbruch, wenn eine Zutat in keinem Schritt
+// vorkommt oder mehrmals in der Liste steht, ohne dass ein Schritt sagt, welcher Eintrag gemeint ist
+// (tools/zutaten_pruefen.mjs). Einzeln gemeldet werden die Rezepte, die es in der App noch nicht gibt: Ihren Wortlaut
+// schreibt oder bearbeitet FoodAsu. Bei den Rezepten aus der App kommt der Wortlaut aus der Quelle; dort steht nur
+// die Zahl, die Liste schreibt "node tools/zutaten_pruefen.mjs".
+const zutatenStellen = { zusatz: 0, app: 0 };
+const gepruefteRezepte = alleRezepte();
+const warnungen = [];
+for (const rezept of gepruefteRezepte) {
+  const befunde = zutatenBefunde(rezept);
+  zutatenStellen[rezept.herkunft] += befunde.length;
+  if (rezept.herkunft === 'zusatz') for (const befund of befunde) warnungen.push(`/rezepte/${rezept.slug}/: ${befund.text}`);
+}
+console.log(`Zutaten und Zubereitung: ${gepruefteRezepte.length} Rezepte geprüft; ${zutatenStellen.zusatz} Warnungen bei den Rezepten, die es in der App noch nicht gibt; ${zutatenStellen.app} Stellen bei den Rezepten aus der App (Wortlaut aus der Quelle, Liste mit „node tools/zutaten_pruefen.mjs“)`);
 for (const hinweis of hinweise) console.log(`HINWEIS ${hinweis}`);
+for (const warnung of warnungen) console.log(`WARNUNG ${warnung}`);
 for (const eintrag of fehler) console.log(`FEHLER ${eintrag}`);
 console.log(`Ergebnis: ${fehler.length === 0 ? 'bestanden' : fehler.length + ' Befunde'}`);
 process.exit(fehler.length === 0 ? 0 : 1);
