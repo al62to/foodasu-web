@@ -53,7 +53,6 @@ export default {
       funktionen: ['KARTE-10'],
       nutzen: 'Die Karte sagt, von wann die Angaben sind und woher sie stammen: „Daten: Open Food Facts“. Findet FoodAsu ein Produkt nicht oder besteht keine Verbindung, steht das anstelle der Karte da.',
       wo: 'Produktkarte nach oben ziehen > unter den Zutaten',
-      verweis: link('Fehlt ein Produkt in den Daten, kannst du es selbst ergänzen: ', 'Fehlt ein Produkt?', '/so-gehts/deine-daten/#fehlt-ein-produkt'),
     },
     {
       titel: '„Daten neu laden“',

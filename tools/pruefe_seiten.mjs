@@ -329,13 +329,31 @@ for (const [adresse, html] of seiten) {
     // Seite unter "Rezepte nach Thema".
     const kopf = html.slice(html.indexOf('<main'), html.indexOf('<form class="f-seite"'));
     if (kopf.includes(`href="${ALTE}"`) || /<p\b[^>]*>(?:(?!<\/p>)[\s\S])*Auf der Website stehen(?:(?!<\/p>)[\s\S])*<a\b/.test(kopf)) melde(adresse, 'Kopf der Übersicht: Link im Vorspann oder zur Rubrik „Aus alten Kochbüchern“');
-    if (!(html.match(/<section class="f-themen"[\s\S]*?<\/section>/)?.[0] ?? '').includes(`href="${ALTE}"`)) melde(adresse, `„Rezepte nach Thema“ ohne Link auf ${ALTE}`);
+    const themenTeil = html.match(/<section class="f-themen"[\s\S]*?<\/section>/)?.[0] ?? '';
+    if (!themenTeil.includes(`href="${ALTE}"`)) melde(adresse, `„Rezepte nach Thema“ ohne Link auf ${ALTE}`);
+    // Zeile "Nach Zeit" (Projektleitung, 11.10.2026): nach der Rubrik je Zeitraum mit Rezepten ein Chip, der zu
+    // seiner Überschrift am Zeitstrahl der Sammelseite springt.
+    {
+      const mitRezepten = ZEITRAEUME.filter((zeitraum) => [...ZUSATZ.values()].some(({ paket, original }) => paket === 'historisch' && original.zeitraum === zeitraum));
+      const soll = [`Aus alten Kochbüchern > ${ALTE}`, ...mitRezepten.map((zeitraum) => `${zeitraum} > ${ALTE}#${zeitraum.replaceAll(' ', '-')}`)].join(', ');
+      const zeile = themenTeil.match(/<dt>Nach Zeit<\/dt>[\s\S]*?<\/dd>/)?.[0] ?? '';
+      const ist = alle(zeile, /<a class="chip" href="([^"]+)"[^>]*>([^<]+)<\/a>/g).map(([, ziel, name]) => `${name} > ${ziel}`).join(', ');
+      if (ist !== soll) melde(adresse, `„Rezepte nach Thema“, Zeile „Nach Zeit“: erwartet „${soll}“, gefunden „${ist}“`);
+      const sammelseite = seiten.get(ALTE) ?? '';
+      for (const zeitraum of mitRezepten) {
+        if (!sammelseite.includes(`<h3 id="${zeitraum.replaceAll(' ', '-')}">${zeitraum}</h3>`)) melde(adresse, `Chip „${zeitraum}“: Die Überschrift mit dieser Sprungmarke fehlt am Zeitstrahl von ${ALTE}`);
+      }
+    }
     // Filter: vier Gruppen in fester Reihenfolge. "Zeit" nennt die Zeiträume der Rezepte aus alten Kochbüchern mit
     // ihrer Anzahl, gezählt aus src/daten/rezepte_zusatz.json; genau diese Karten tragen ihren Zeitraum.
     const gruppen = alle(html, /<div class="f-gruppe[^"]*" data-gruppe="([a-z]+)"/g).map((treffer) => treffer[1]);
     if (gruppen.join() !== 'passt,kategorie,land,zeit') melde(adresse, `Filtergruppen: passt, kategorie, land, zeit erwartet, gefunden: ${gruppen.join(', ')}`);
     const zeit = html.match(/<div class="f-gruppe[^"]*" data-gruppe="zeit"[\s\S]*?<\/fieldset>/)?.[0] ?? '';
     if (!zeit.includes('<legend>Zeit<span class="vh">, </span><small>aus alten Kochbüchern</small></legend>')) melde(adresse, 'Filter „Zeit“: Titel oder Unterzeile „aus alten Kochbüchern“ fehlt');
+    // Im Blatt am Handy steht die Unterzeile im Knopf der Gruppe (Projektleitung, 11.10.2026): bei "Passt für" und
+    // "Zeit", bei "Kategorie" und "Land" keine.
+    const knoepfe = alle(html, /<span class="f-knopf-name"><span data-knopf-text>([^<]+)<\/span>(?:<span class="vh">, <\/span><small>([^<]+)<\/small>)?<\/span>/g).map(([, name, unterzeile]) => (unterzeile ? `${name}: ${unterzeile}` : name)).join(', ');
+    if (knoepfe !== 'Passt für: laut Zutatenliste, Kategorie, Land, Zeit: aus alten Kochbüchern') melde(adresse, `Knöpfe der Filtergruppen im Blatt: gefunden „${knoepfe}“`);
     const jeZeitraum = new Map(ZEITRAEUME.map((zeitraum) => [zeitraum, 0]));
     for (const { paket, original } of ZUSATZ.values()) if (paket === 'historisch') jeZeitraum.set(original.zeitraum, (jeZeitraum.get(original.zeitraum) ?? 0) + 1);
     const erwartet = [...jeZeitraum].filter(([, zahl]) => zahl > 0).map(([zeitraum, zahl]) => `${zeitraum}: ${zahl}`).join(', ');

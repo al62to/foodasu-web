@@ -145,7 +145,7 @@ const a = r.alle;
 punkt('Übersicht, Titel und Seitentitel', `${a.titel}; ${a.seitentitel}`);
 punkt('Übersicht, Vorspann', `${a.text(websiteZahlen)} ${a.grundlage}`);
 punkt('Übersicht, Suche und Filter', `„${a.suche}“; Auswahlknöpfe „${Object.values(a.gruppen).join('“, „')}“ (in der Liste „Passt für“ der Zusatz „${a.passtZusatz}“, in der Liste „${a.gruppen.zeit}“ der Zusatz „${a.zeitZusatz}“); „${a.ohne('...')}“; „${a.weitere.land}“, „${a.weitere.passt}“; „${a.zuruecksetzen}“, „${a.fertig}“; für Bildschirmleser „${a.gewaehlt}“ und „${a.entfernen('Italien')}“; „${a.alleZuruecksetzen}“; „${a.stand(1)}“, „${a.stand(40)}“; am Handy „${a.filter}“, „${a.schliessen}“, „${a.zeigen(1)}“, „${a.zeigen(5)}“; „${a.leer}“`);
-punkt('Übersicht, Ende der Seite', `„${a.themen}“: alle Themenseiten als Chips, eine Zeile je Gruppe (${Object.values(a.themenZeilen).map((name) => `„${name}“`).join(', ')}; bei „${a.themenZeilen.ohne}“ der Zusatz „${a.passtZusatz}“; unter „${a.themenZeilen.zeit}“ die Rubrik „Aus alten Kochbüchern“)`);
+punkt('Übersicht, Ende der Seite', `„${a.themen}“: alle Themenseiten als Chips, eine Zeile je Gruppe (${Object.values(a.themenZeilen).map((name) => `„${name}“`).join(', ')}; bei „${a.themenZeilen.ohne}“ der Zusatz „${a.passtZusatz}“; unter „${a.themenZeilen.zeit}“ die Rubrik „Aus alten Kochbüchern“ und je Zeitraum ein Chip, der zum Zeitstrahl der Rubrik springt, für Bildschirmleser „${a.zeitChip('1500er')}“)`);
 punkt('Rezeptseite, Titel der Seite', '<Name>: Rezept aus <Land> | FoodAsu; bei mehreren Ländern <Name>: Rezept mit Hinweisen zu den Zutaten | FoodAsu (Kürzung und alle Titel: Website_Meta_Uebersicht.md)');
 punkt('Rezeptseite, „Passt für“', `${r.passt.titel} ${r.passt.zusatz}; ${r.passt.erklaerung} ${r.passt.moeglichText('vegetarisch', '...')}`);
 punkt('Rezeptseite, Hinweise', `${r.hinweise.titel}: ${r.hinweise.einleitung} ${r.hinweise.stufen.map(([wort, text]) => `${wort}: ${text}`).join(' ')} ${r.hinweise.app} Aufklappen: „${r.hinweise.tabelle}“`);
@@ -184,6 +184,7 @@ zeile('## Entscheidungen (Ali, 09.10.2026)');
   'AP-25, Rezeptübersicht (Ali, 11.10.2026): Der Hinweis mit Link unter dem Vorspann ist entfernt; neue Filtergruppe „Zeit“ mit der Unterzeile „aus alten Kochbüchern“ nach „Land“; unter „Rezepte nach Thema“ die Zeile „Nach Zeit“ mit der Rubrik.',
   'AP-25, Zahlen der App (Projektleitung, 11.10.2026): Keine Zahl von Rezepten oder Ländern steht von Hand da. Die Zahlen der App kommen aus den Daten: im Text „über N“ (abgerundet auf volle 50, immer kleiner als die echte Zahl), im Zahlenblock die genauen Zahlen.',
   'AP-25, Mega-Menü (Ali, 11.10.2026): „Zum Ausprobieren“ zeigt auf jeder Seite andere Rezepte (bisher fest Wiener Schnitzel, Pizza Margherita, Bibimbap).',
+  'AP-25 Nachlese (Projektleitung, 11.10.2026): unter „Rezepte nach Thema“, Zeile „Nach Zeit“, neben der Rubrik die vier Zeiträume als Chips mit Sprung zum Zeitstrahl; im Filterblatt am Handy steht die Unterzeile („laut Zutatenliste“, „aus alten Kochbüchern“) klein unter dem Namen der Gruppe.',
 ].forEach((text, i) => zeile(`${i + 1}. ${text}`));
 zeile();
 

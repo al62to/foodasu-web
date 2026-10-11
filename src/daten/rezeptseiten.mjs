@@ -293,6 +293,9 @@ export const texte = {
     // der Zeilen sind die der Gruppen im Menü und im Filter.
     themen: 'Rezepte nach Thema',
     themenZeilen: { ohne: 'Ohne …', passt: 'Passt für', land: 'Nach Land', kategorie: 'Nach Kategorie', zeit: 'Nach Zeit' },
+    // Zeile "Nach Zeit": neben der Rubrik je Zeitraum ein Chip, der zum Zeitstrahl der Sammelseite springt. Der Chip
+    // zeigt nur den Zeitraum; für Bildschirmleser steht die Rubrik dabei.
+    zeitChip: (zeitraum) => `Rezepte aus alten Kochbüchern, ${zeitraum}`,
   },
   thema: {
     grundlage: 'Grundlage ist die Zutatenliste des Rezepts. Was in einem Produkt aus dem Laden steckt, steht auf der Packung. Maßgeblich ist die Verpackung.',

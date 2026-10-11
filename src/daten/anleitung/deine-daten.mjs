@@ -86,16 +86,6 @@ export default {
       wo: 'Einstellungen > „Über“ > „Nach Update suchen“',
     },
     {
-      titel: 'Fehlt ein Produkt?',
-      anker: 'fehlt-ein-produkt',
-      symbol: 'lupe',
-      absaetze: [
-        'Die Angaben zu Produkten kommen von Open Food Facts, einer offenen Datenbank, die von Freiwilligen gepflegt wird. Ist ein Produkt dort nicht erfasst oder fehlt die Zutatenliste, schreibt FoodAsu das dazu und bittet dich, die Verpackung zu prüfen.',
-        'Du kannst das Produkt bei Open Food Facts selbst ergänzen, auf der Website von Open Food Facts oder in deren App. Das geschieht außerhalb von FoodAsu; FoodAsu überträgt dafür nichts. Danach holst du die neuen Angaben mit „Daten neu laden“.',
-      ],
-      extern: { text: 'Open Food Facts', ziel: 'https://de.openfoodfacts.org' },
-    },
-    {
       titel: 'Mehr dazu',
       anker: 'mehr-dazu',
       symbol: 'info',

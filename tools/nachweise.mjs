@@ -1327,9 +1327,29 @@ const waehle = (seite, gruppe, wert) => seite.evaluate((art, was) => {
     links: document.querySelectorAll('.f-themen a').length,
     zeilen: [...document.querySelectorAll('.f-themen dt')].map((zeile) => zeile.childNodes[0].textContent.trim()),
     rubrik: [...document.querySelectorAll('.f-themen dl > div:last-child a')].map((link) => `${link.textContent.trim()} > ${link.getAttribute('href')}`),
+    // Form der Chips: Die Chips der Zeile "Nach Zeit" sehen aus wie die der Zeile darüber.
+    form: [...document.querySelectorAll('.f-themen dl > div')].slice(-2).map((zeile) => [...new Set([...zeile.querySelectorAll('a')].map((link) => {
+      const stil = getComputedStyle(link);
+      return [link.className, Math.round(link.getBoundingClientRect().height), stil.fontSize, stil.fontWeight, stil.color, stil.backgroundColor, stil.borderTopColor, stil.borderRadius].join(' ');
+    }))].join(' | ')),
   }));
-  pruefe(themenTeil.titel === 'Rezepte nach Thema' && themenTeil.links === themen.length + 1 && themenTeil.zeilen.join() === 'Ohne …,Passt für,Nach Land,Nach Kategorie,Nach Zeit', `Laptop: am Ende "${themenTeil.titel}" mit ${themen.length} Themenseiten und der Rubrik als Chips in ${themenTeil.zeilen.length} Zeilen`);
-  pruefe(themenTeil.rubrik.join() === 'Aus alten Kochbüchern > /alte-rezepte/' && leiste.kopfLinks === 0, `Laptop: Zeile "Nach Zeit" führt zur Rubrik (${themenTeil.rubrik.join()}); im Kopf der Seite steht kein Link`);
+  pruefe(themenTeil.titel === 'Rezepte nach Thema' && themenTeil.links === themen.length + 1 + zeitraeume.length && themenTeil.zeilen.join() === 'Ohne …,Passt für,Nach Land,Nach Kategorie,Nach Zeit', `Laptop: am Ende "${themenTeil.titel}" mit ${themen.length} Themenseiten, der Rubrik und ${zeitraeume.length} Zeiträumen als Chips in ${themenTeil.zeilen.length} Zeilen`);
+  const zeitChips = ['Aus alten Kochbüchern > /alte-rezepte/', ...zeitraeume.map((zeitraum) => `${zeitraum.kennung} > /alte-rezepte/#${zeitraum.anker}`)];
+  pruefe(themenTeil.rubrik.join() === zeitChips.join() && leiste.kopfLinks === 0, `Laptop: Zeile "Nach Zeit" führt zur Rubrik und zu den Zeiträumen (${themenTeil.rubrik.join(', ')}); im Kopf der Seite steht kein Link`);
+  pruefe(themenTeil.form.length === 2 && themenTeil.form[0] === themenTeil.form[1] && !themenTeil.form[1].includes(' | '), `Laptop: Die Chips der Zeile "Nach Zeit" haben die Form der übrigen Chips (${themenTeil.form[1]})`);
+  // Jeder Chip eines Zeitraums springt zu seiner Überschrift am Zeitstrahl der Sammelseite.
+  const spruenge = [];
+  for (const zeitraum of zeitraeume) {
+    await seite.goto(BASIS + '/rezepte/', { waitUntil: 'networkidle0' });
+    await Promise.all([seite.waitForNavigation({ waitUntil: 'networkidle0' }), seite.evaluate((ziel) => document.querySelector(`.f-themen a[href="${ziel}"]`).click(), `/alte-rezepte/#${zeitraum.anker}`)]);
+    await warte(900);
+    spruenge.push(await seite.evaluate((anker, kennung) => {
+      const ziel = document.getElementById(anker);
+      const oben = ziel ? Math.round(ziel.getBoundingClientRect().top) : null;
+      return { kennung, ort: window.location.pathname + window.location.hash, titel: ziel?.textContent.trim(), art: ziel?.tagName, oben, imBild: oben !== null && oben >= 0 && oben < window.innerHeight / 2 };
+    }, zeitraum.anker, zeitraum.kennung));
+  }
+  pruefe(spruenge.length === zeitraeume.length && spruenge.every((sprung, nummer) => sprung.ort === `/alte-rezepte/#${zeitraeume[nummer].anker}` && sprung.titel === sprung.kennung && sprung.art === 'H3' && sprung.imBild), `Laptop: Jeder Chip springt zu seinem Zeitraum am Zeitstrahl (${spruenge.map((sprung) => `${sprung.kennung}: ${sprung.oben} px unter dem oberen Rand`).join(', ')})`);
   await umgebung.close();
 }
 {
@@ -1365,13 +1385,41 @@ const waehle = (seite, gruppe, wert) => seite.evaluate((art, was) => {
     const rahmen = el.getBoundingClientRect();
     return {
       rolle: el.getAttribute('role'), modal: el.getAttribute('aria-modal'), unten: Math.round(rahmen.bottom), breite: Math.round(rahmen.width),
-      gruppen: [...el.querySelectorAll('[data-knopf]')].map((knopf) => knopf.textContent.trim()),
+      gruppen: [...el.querySelectorAll('[data-knopf-text]')].map((knopf) => knopf.textContent.trim()),
+      // Unterzeile der Gruppe: klein unter dem Namen im Knopf, in der gedämpften Farbe auf dem Grund des Blatts.
+      unterzeilen: [...el.querySelectorAll('[data-gruppe]')].map((gruppe) => {
+        const knopf = gruppe.querySelector('[data-knopf]');
+        const name = knopf.querySelector('[data-knopf-text]');
+        const klein = knopf.querySelector('small');
+        if (!klein) return { gruppe: gruppe.dataset.gruppe, text: '' };
+        const hell = (wert) => {
+          const [r, g, b] = wert.match(/[\d.]+/g).slice(0, 3).map((teil) => Number(teil) / 255).map((teil) => (teil <= 0.03928 ? teil / 12.92 : ((teil + 0.055) / 1.055) ** 2.4));
+          return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+        };
+        const [oben, unten] = [hell(getComputedStyle(klein).color), hell(getComputedStyle(el).backgroundColor)].sort((a, b) => b - a);
+        return {
+          gruppe: gruppe.dataset.gruppe, text: klein.textContent.trim(), zusehen: klein.getClientRects().length > 0,
+          darunter: klein.getBoundingClientRect().top >= name.getBoundingClientRect().bottom - 1 && Math.round(klein.getBoundingClientRect().left) === Math.round(name.getBoundingClientRect().left),
+          kleiner: parseFloat(getComputedStyle(klein).fontSize) < parseFloat(getComputedStyle(name).fontSize), groesse: getComputedStyle(klein).fontSize,
+          kontrast: Math.round(((oben + 0.05) / (unten + 0.05)) * 100) / 100, grund: getComputedStyle(knopf).backgroundColor,
+          hoehe: Math.round(knopf.getBoundingClientRect().height), name: knopf.textContent.replace(/\s+/g, ' ').trim(),
+          legende: gruppe.querySelector('legend').getBoundingClientRect().width <= 1,
+        };
+      }),
       zeigen: el.querySelector('[data-zeigen]').textContent.trim(),
       fokus: el.contains(document.activeElement),
     };
   });
   pruefe(blatt.rolle === 'dialog' && blatt.modal === 'true' && blatt.unten === HANDY.height && blatt.breite === HANDY.width, 'Handy: "Filter" öffnet ein Blatt von unten (Dialog über die ganze Breite)');
   pruefe(blatt.gruppen.join() === 'Passt für,Kategorie,Land,Zeit' && blatt.fokus, `Handy: im Blatt die vier Gruppen zum Aufklappen (${blatt.gruppen.join(', ')}), der Fokus steht im Blatt`);
+  {
+    // Unterzeile im Blatt (Projektleitung, 11.10.2026): bei "Passt für" und "Zeit" klein unter dem Namen, wie am Laptop.
+    const mit = blatt.unterzeilen.filter((zeile) => zeile.text);
+    pruefe(mit.map((zeile) => `${zeile.gruppe}: ${zeile.text}`).join() === 'passt: laut Zutatenliste,zeit: aus alten Kochbüchern', `Handy: Unterzeile im Blatt bei "Passt für" und "Zeit", bei "Kategorie" und "Land" keine (${mit.map((zeile) => `${zeile.gruppe}: ${zeile.text}`).join(', ')})`);
+    pruefe(mit.length === 2 && mit.every((zeile) => zeile.zusehen && zeile.darunter && zeile.kleiner && zeile.hoehe >= 44 && zeile.legende), `Handy: Die Unterzeile steht sichtbar und klein (${mit.map((zeile) => zeile.groesse).join(', ')}) unter dem Namen, der Knopf ist ${mit.map((zeile) => zeile.hoehe).join(' und ')} px hoch`);
+    pruefe(mit.length === 2 && mit.every((zeile) => zeile.kontrast >= 4.5), `Handy: Kontrast der Unterzeile auf dem Blatt ${mit.map((zeile) => `${zeile.kontrast}:1`).join(' und ')} (mindestens 4,5:1)`);
+    pruefe(mit.length === 2 && mit[0].name === 'Passt für, laut Zutatenliste' && mit[1].name === 'Zeit, aus alten Kochbüchern', `Handy: Der Knopf heißt für Bildschirmleser "${mit.map((zeile) => zeile.name).join('" und "')}"`);
+  }
   pruefe(blatt.zeigen === `${alle} Rezepte anzeigen`, `Handy: Knopf "${blatt.zeigen}"`);
   // Zeit im Blatt: aufklappen, einen Zeitraum antippen, der Knopf zählt mit; dann mit Land kombinieren und zurücksetzen.
   await seite.tap('[data-gruppe="zeit"] [data-knopf]');

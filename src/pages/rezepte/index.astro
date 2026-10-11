@@ -2,7 +2,8 @@
 // Übersicht "Rezepte" (AP-17 Teil E3; Aufbau seit AP-23 nach Entwurf "Filter in der Seitenleiste"): Ab 64rem Breite
 // stehen die vier Filtergruppen (Passt für, Kategorie, Land, Zeit) ständig offen in einer weißen Leiste links, die beim
 // Scrollen mitfährt; rechts Suchfeld, Trefferzahl, die gewählten Filter als Chips und die Karten in drei Spalten. Am
-// Handy und Tablet öffnet der Knopf "Filter" wie bisher ein Blatt von unten. Darunter alle Themenseiten als Chips.
+// Handy und Tablet öffnet der Knopf "Filter" wie bisher ein Blatt von unten; der Knopf einer Gruppe trägt dort ihre
+// Unterzeile klein unter dem Namen, wie die Liste in der Leiste am Laptop. Darunter alle Themenseiten als Chips.
 // Gefiltert wird im Browser über Angaben an den Karten: keine neuen Adressen, nichts wird gespeichert oder geladen.
 // Alle Karten stehen im HTML und sind ohne Auswahl sichtbar; ohne JavaScript entfallen Suche und Filter, und die
 // Themenseiten übernehmen die Auswahl.
@@ -70,8 +71,19 @@ const themenZeilen = ['ohne', 'passt', 'land', 'kategorie'].map((art) => ({
     .map((thema) => ({ name: art === 'ohne' ? t.ohne(thema.menue) : thema.menue, ziel: thema.adresse, titel: thema.titel }))
     .sort((a, b) => a.name.localeCompare(b.name, 'de')),
 })).filter((zeile) => zeile.themen.length > 0);
-// Dazu die Rubrik "Aus alten Kochbüchern" als eigene Zeile: keine Themenseite, sondern die Sammelseite.
-if (alteRezepte.length > 0) themenZeilen.push({ art: 'zeit', titel: t.themenZeilen.zeit, zusatz: null, themen: [{ name: alteSeite.name, ziel: alteSeite.adresse, titel: alteSeite.name }] });
+// Dazu die Rubrik "Aus alten Kochbüchern" als eigene Zeile: keine Themenseite, sondern die Sammelseite. Daneben steht
+// je Zeitraum ein Chip, der zu seiner Stelle am Zeitstrahl der Sammelseite springt.
+if (alteRezepte.length > 0) {
+  themenZeilen.push({
+    art: 'zeit',
+    titel: t.themenZeilen.zeit,
+    zusatz: null,
+    themen: [
+      { name: alteSeite.name, ziel: alteSeite.adresse, titel: alteSeite.name },
+      ...zeitraeume.map((zeitraum) => ({ name: zeitraum.kennung, ziel: `${alteSeite.adresse}#${zeitraum.anker}`, titel: t.zeitChip(zeitraum.kennung) })),
+    ],
+  });
+}
 const text = t.text(websiteZahlen);
 const daten = [{
   '@context': 'https://schema.org',
@@ -109,7 +121,7 @@ const daten = [{
           {gruppen.map((gruppe) => (
             <div class:list={['f-gruppe', { 'breit-ganz': !gruppe.geteiltBreit }]} data-gruppe={gruppe.kennung}>
               <button type="button" class="f-knopf" aria-expanded="false" aria-controls={`f-${gruppe.kennung}`} data-knopf data-titel={gruppe.titel}>
-                <span data-knopf-text>{gruppe.titel}</span>
+                <span class="f-knopf-name"><span data-knopf-text>{gruppe.titel}</span>{gruppe.zusatz && <><span class="vh">, </span><small>{gruppe.zusatz}</small></>}</span>
                 <svg class="pfeil" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 9l6 6 6-6" /></svg>
               </button>
               <div class="f-feld" id={`f-${gruppe.kennung}`} data-feld>

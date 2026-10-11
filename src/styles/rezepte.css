@@ -202,6 +202,9 @@ html:not(.js) .f-blatt, html:not(.js) .f-leiste { display: none; }
 .f-knopf:hover { border-color: var(--main); }
 .f-knopf.gewaehlt, .f-knopf[aria-expanded="true"] { border-color: var(--main); background: var(--tone); color: var(--deep); font-weight: 700; }
 .f-knopf[aria-expanded="true"] .pfeil { transform: rotate(180deg); }
+/* Knopf einer Gruppe im Blatt: unter dem Namen klein die Unterzeile der Gruppe, wie bei der Liste in der Leiste. */
+.f-knopf-name { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; line-height: 1.25; text-align: left; }
+.f-knopf-name small { font-size: 0.8rem; font-weight: 400; color: var(--muted); }
 .f-marke { display: inline-flex; align-items: center; justify-content: center; min-width: 1.6rem; height: 1.6rem; padding: 0 0.4rem; border-radius: 999px; background: var(--main); color: var(--on-main); font-size: 0.85rem; font-weight: 800; }
 .f-marke[hidden] { display: none; }
 .f-stand { margin: 0; font-weight: 800; }
