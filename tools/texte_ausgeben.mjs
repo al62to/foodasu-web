@@ -34,6 +34,7 @@ punkt('Hauptpunkte', hauptpunkte.map((p) => p.titel).join(', '));
 punkt('Mega-Menü, links oben', mega.titel);
 for (const gruppe of mega.gruppen) punkt(`Mega-Menü, Gruppe „${gruppe.titel}“`, gruppe.eintraege.map((e) => e.name).join(', '));
 punkt('Mega-Menü, links unten', mega.alle.titel);
+if (mega.alte) punkt('Mega-Menü, links unten, zweiter Link', mega.alte.titel);
 punkt('Mega-Menü, rechts', `${mega.probieren.titel}: ${mega.probieren.rezepte.map((r) => `${r.titel} (${r.land})`).join(', ')}`);
 punkt('Mega-Menü am Handy, Ebene einer Gruppe', `„${mega.zurueck}“`);
 punkt('Für Bildschirmleser', `„${t.geruest.sprung}“, „${t.geruest.marke}“, „${t.geruest.navigation}“, „${t.geruest.menue}“, „${t.geruest.menueZu}“, „${t.geruest.brotkrumen}“; Knopf der Startseite „${t.geruest.bewegung.anhalten}“ und „${t.geruest.bewegung.fortsetzen}“ (sichtbar, unten rechts); vor den Einträgen des Mega-Menüs unsichtbar „Rezepte aus: …“, „Rezepte der Kategorie …“, „Rezepte ohne …“, „Rezepte, passt für: …“`);

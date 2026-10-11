@@ -1,7 +1,8 @@
 // Hauptnavigation und Mega-Menü unter "Rezepte" (Entwurf A der Projektleitung, AP-17 Teil E2). Länder und Kategorien
 // heißen wie in der App (strings_rezept_teile.xml). Jeder Eintrag zeigt auf seine Themenseite
 // (src/daten/rezeptseiten.mjs).
-import { rezepte, themenMitSeite, ziel, LAND, rezeptAdresse } from './rezeptseiten.mjs';
+import { rezepte, alteRezepte, themenMitSeite, ziel, LAND, rezeptAdresse } from './rezeptseiten.mjs';
+import { alteSeite } from './alte_rezepte.mjs';
 
 const UEBERSICHT = '/rezepte/';
 
@@ -45,6 +46,9 @@ const probieren = PROBIEREN.flatMap((slug) => {
 export const mega = {
   titel: 'Rezepte finden',
   alle: { titel: `Alle ${rezepte.length} Rezepte`, ziel: UEBERSICHT },
+  // Link zur Rubrik "Aus alten Kochbüchern" direkt bei "Alle ... Rezepte" (Ali, 11.10.2026): ein Link in derselben
+  // Form, ohne Abzeichen. Ohne Rezepte aus alten Kochbüchern entfällt er.
+  alte: alteRezepte.length > 0 ? { titel: alteSeite.name, ziel: alteSeite.adresse } : null,
   zurueck: 'Zurück',
   gruppen: [
     { kennung: 'land', titel: 'Nach Land', eintraege: eintraege(laender, 'Rezepte aus: ', 'land') },

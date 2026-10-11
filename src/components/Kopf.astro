@@ -39,6 +39,12 @@ const aktuell = (ziel) => (ziel === '/' ? pfad === '/' : pfad.startsWith(ziel));
                         {mega.alle.titel}
                         <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" /></svg>
                       </a></p>
+                      {mega.alte && (
+                        <p class="alle"><a href={mega.alte.ziel} aria-current={pfad.startsWith(mega.alte.ziel) ? 'page' : undefined}>
+                          {mega.alte.titel}
+                          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                        </a></p>
+                      )}
                       {mega.gruppen.map((gruppe) => (
                         <div class="mega-gruppe">
                           <button class="mega-wahl" type="button" aria-expanded="false" aria-controls={`mega-${gruppe.kennung}`} data-wahl>

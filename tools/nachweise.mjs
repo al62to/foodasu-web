@@ -1056,7 +1056,7 @@ const mitte = (seite, auswahl) => seite.evaluate((ziel) => {
   stand = await zustand(seite);
   const wahlen = await seite.evaluate(() => [...document.querySelectorAll('.mega .alle a, [data-wahl]')].filter((el) => el.getClientRects().length > 0).map((el) => el.textContent.trim()));
   pruefe(stand.megaSichtbar && stand.gewaehlt.length === 0 && stand.gruppen.every((zahl) => zahl === 0), 'Handy: "Rezepte" klappt auf, noch ist keine Gruppe offen');
-  pruefe(/^Alle \d+ Rezepte$/.test(wahlen[0]) && wahlen.slice(1).join() === 'Nach Land,Nach Kategorie,Ohne …,Vegetarisch und vegan', `Handy: darin ${wahlen.join(', ')}`);
+  pruefe(/^Alle \d+ Rezepte$/.test(wahlen[0]) && wahlen.slice(1).join() === 'Aus alten Kochbüchern,Nach Land,Nach Kategorie,Ohne …,Vegetarisch und vegan', `Handy: darin ${wahlen.join(', ')}`);
   const hoehe = await seite.evaluate(() => Math.min(...[...document.querySelectorAll('.haupt button')].filter((knopf) => knopf.getClientRects().length > 0).map((knopf) => knopf.getBoundingClientRect().height)));
   pruefe(hoehe >= 44, `Handy: Knöpfe mindestens 44 px hoch (${Math.round(hoehe)} px)`);
   await tabBis(seite, '[data-wahl][aria-controls="mega-land"]');

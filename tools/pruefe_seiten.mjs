@@ -483,6 +483,12 @@ if (teilenKnoepfe !== rezeptSeiten || rezeptSeiten === 0) melde('/rezepte/', `Kn
 // nennt nur, was auf der Seite steht. Titel, Beschreibung und Text tragen die drei Suchbegriffe. Die Startseite und
 // die Übersicht der Rezepte verlinken die Seite (der Fuß jeder Seite auch: FUSS_LINKS).
 for (const slug of ZUSATZ.keys()) if (!IST_REZEPT.test(seiten.get(`/rezepte/${slug}/`) ?? '')) melde(`/rezepte/${slug}/`, 'Rezeptseite fehlt');
+// Im Menü "Rezepte" jeder Seite steht der Link zur Rubrik direkt nach "Alle ... Rezepte", in derselben Form: ein
+// einfacher Link ohne Abzeichen (Ali, 11.10.2026).
+for (const [adresse, html] of seiten) {
+  const eintraege = alle(html.match(/<div class="mega-gruppen">[\s\S]*?<div class="mega-gruppe">/)?.[0] ?? '', /<p class="alle"><a href="([^"]*)"[^>]*>\s*([^<]*?)\s*<svg/g).map(([, ziel, name]) => `${entschluesselt(name)} > ${ziel}`);
+  if (eintraege.length !== 2 || !/^Alle \d+ Rezepte > \/rezepte\/$/.test(eintraege[0]) || eintraege[1] !== `Aus alten Kochbüchern > ${ALTE}`) melde(adresse, `Menü „Rezepte“: „Alle … Rezepte“ und danach „Aus alten Kochbüchern“ erwartet, gefunden: ${eintraege.join(' | ') || 'nichts'}`);
+}
 if (spaeterSeiten !== ZUSATZ.size) melde('/rezepte/', `der Satz „${SPAETER}“ ist auf ${spaeterSeiten} von ${ZUSATZ.size} Seiten geprüft`);
 const alteSeite = seiten.get(ALTE);
 const alteSlugs = [...ZUSATZ.values()].filter((rezept) => rezept.original).map((rezept) => rezept.slug);
