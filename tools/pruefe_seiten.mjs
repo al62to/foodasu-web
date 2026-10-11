@@ -219,7 +219,7 @@ for (const [adresse, html] of seiten) {
   const istRezept = IST_REZEPT.test(html);
   const bildPfad = istRezept ? `/bilder/rezepte/${adresse.split('/').at(-2)}-teilen.jpg` : TEILEN.gemeinsam;
   const teilen = {
-    'og:type': istRezept ? 'article' : 'website', 'og:site_name': 'FoodAsu', 'og:locale': 'de_AT', 'og:title': titel,
+    'og:type': istRezept ? 'article' : 'website', 'og:site_name': 'FoodAsu', 'og:locale': 'de_DE', 'og:title': titel,
     'og:description': beschreibung, 'og:url': HOST + adresse, 'og:image': HOST + bildPfad,
     'og:image:width': String(TEILEN.breite), 'og:image:height': String(TEILEN.hoehe),
     'twitter:card': 'summary_large_image', 'twitter:title': titel, 'twitter:description': beschreibung, 'twitter:image': HOST + bildPfad,
@@ -228,6 +228,9 @@ for (const [adresse, html] of seiten) {
     if (inhaltVon(html, name) !== wert) melde(adresse, `${name}: erwartet „${wert}“, gefunden „${inhaltVon(html, name)}“`);
   }
   for (const name of ['og:image:alt', 'twitter:image:alt']) if (!inhaltVon(html, name)?.trim()) melde(adresse, `${name} fehlt`);
+  // Sprache ohne Region (Nachtrag zu AP-23 Teil A Nr. 10): de_DE, dazu de_AT und de_CH als gleichwertige Angaben.
+  const weitereSprachen = alle(html, /<meta property="og:locale:alternate" content="([^"]*)"/g).map(([, wert]) => wert);
+  if (weitereSprachen.join(' ') !== 'de_AT de_CH') melde(adresse, `og:locale:alternate: „de_AT“ und „de_CH“ erwartet, gefunden „${weitereSprachen.join(' ')}“`);
   if (!vorhanden.has(bildPfad)) melde(adresse, `Bild zum Teilen fehlt: ${bildPfad}`);
   else {
     const groesse = jpegMasse(readFileSync(join(DIST, bildPfad)));
@@ -458,7 +461,7 @@ for (const [adresse, html] of seiten) {
 // Zeile mit dem Vermerk. Facebook und Instagram sind einfache Links; eingebettet wird nichts.
 const FUSS_LINKS = ['/datenschutz.html', '/offenlegung/', '/lizenzen/', '/quellen-und-lizenzen/', '/so-gehts/', '/rezepte/', '/fragen/', '/daten-und-quellen/', '/ueber-foodasu/'];
 const FUSS_TEXTE = [
-  'Der Lebensmittel-Scanner für den ganzen Haushalt.', 'Maßgeblich ist die Verpackung.', 'Rechtliches', 'Folge uns',
+  'Lebensmittel-Scanner und Einkaufsliste für den ganzen Haushalt.', 'Maßgeblich ist die Verpackung.', 'Rechtliches', 'Folge uns',
   '© 2026 FoodAsu · Eine App von Ali',
 ];
 for (const [adresse, html] of seiten) {
@@ -681,10 +684,12 @@ const datenInhalt = (seiten.get('/daten-und-quellen/') ?? '').match(/<main[\s\S]
 for (const ziel of ['/quellen-und-lizenzen/', '/lizenzen/', '/datenschutz.html']) if (!datenInhalt.includes(`href="${ziel}"`)) melde('/daten-und-quellen/', `Link fehlt: ${ziel}`);
 for (const wort of ['Open Food Facts', 'BLS 4.0', 'Adobe Firefly', 'laut Daten', 'Maßgeblich ist immer die Verpackung.']) if (!textVon('/daten-und-quellen/').includes(wort)) melde('/daten-und-quellen/', `Angabe fehlt: ${wort}`);
 if (OHNE_INDEX.has('/daten-und-quellen/')) melde('/daten-und-quellen/', 'steht auf noindex');
-// Satz zur Beschreibung (AP-22 Teil 2 Nr. 1): wörtlich und sichtbar auf der Startseite und auf "Über FoodAsu", dazu
-// als Beschreibung in Organization und WebSite. Die Einkaufswoche behält den Anker #schritte und verlinkt die Seite
+// Satz zur Beschreibung (AP-22 Teil 2 Nr. 1; Wortlaut seit dem Nachtrag zu AP-23 in der Fassung der Änderung vom
+// 11.10.2026): wörtlich und sichtbar auf der Startseite und auf "Über FoodAsu", dazu als Beschreibung in Organization
+// und WebSite. Die Einkaufswoche behält den Anker #schritte und verlinkt die Seite
 // "Zu Hause schreiben, im Laden abhaken"; beschrieben ist nur, was 0.14.3 kann.
-const BESCHREIBUNG = 'FoodAsu ist eine App für Android vom Bodensee. Beim Scannen zeigt sie für jede Person im Haushalt einzeln, ob laut den Angaben zum Produkt etwas drin ist, das sie meidet. Dazu kommen Einkaufslisten und über 300 Rezepte. Ohne Konto, ohne Werbung.';
+const KERNSATZ = 'FoodAsu verbindet Lebensmittel-Scanner und Einkaufsliste in einer App für den ganzen Haushalt.';
+const BESCHREIBUNG = `${KERNSATZ} Beim Scannen zeigt die App für jede Person einzeln, ob laut den Angaben zum Produkt etwas drin ist, das sie meidet. Dazu kommen über 300 Rezepte. Ohne Konto, ohne Werbung.`;
 for (const adresse of ['/', '/ueber-foodasu/']) {
   if (!seiten.has(adresse)) { melde(adresse, 'Seite fehlt'); continue; }
   if (!textVon(adresse).includes(BESCHREIBUNG)) melde(adresse, 'Satz zur Beschreibung fehlt oder weicht ab');
@@ -823,7 +828,9 @@ else {
   for (const absatz of ABSATZ_START) if (!wortText.includes(absatz)) melde('/', `Absatz mit Unterschrift weicht vom Wortlaut ab: ${absatz.slice(0, 50)} …`);
   if (!/Ali Tonc,\s*Entwickler von FoodAsu/.test(wortText)) melde('/', 'Unterschrift „Ali Tonc, Entwickler von FoodAsu“ fehlt');
   if (!/<a\b[^>]*href="\/ueber-foodasu\/#warum"[^>]*>\s*Warum es FoodAsu gibt/.test(wortTeil)) melde('/', 'Link „Warum es FoodAsu gibt“ auf /ueber-foodasu/#warum fehlt');
-  if (/Schweinefleisch/.test(wortText.slice(wortText.indexOf('In vielen Haushalten')))) melde('/', 'im Absatz mit Alis Unterschrift steht „Schweinefleisch“ als Beispiel');
+  // Nachtrag zu AP-23 Teil B Nr. 6: Die Wörter stehen als Chips neben der Unterschrift; "Eier" statt "Schweinefleisch".
+  if (/Schweinefleisch/.test(entschluesselt(wortTeil))) melde('/', 'im Abschnitt mit Alis Unterschrift steht „Schweinefleisch“ (Chips und Absatz; seit dem Nachtrag zu AP-23 „Eier“)');
+  if (!/<li[^>]*\bdata-wortmarke\b[^>]*>Eier<\/li>/.test(wortTeil)) melde('/', 'der Chip „Eier“ im Abschnitt „Einkaufen ohne …“ fehlt');
   if (/:/.test(ABSATZ_START.map((absatz) => wortText.includes(absatz) ? '' : ':').join(''))) melde('/', 'der Absatz mit Unterschrift enthält einen Doppelpunkt');
 }
 if (/data-band\b|band-spur/.test(startseite)) melde('/', 'die Bänder der Startseite laufen noch (sie stehen seit AP-23 still, als Chips in Reihen)');
@@ -833,13 +840,89 @@ if (!tischTeil) melde('/', 'der Tisch im Abschnitt „Wenn nicht alle dasselbe e
 else for (const schild of ['Kind · Milch', 'Partner · Vegetarisch', 'Gäste · Schweinefleisch', 'Oma · Gluten']) if (!entschluesselt(tischTeil).includes(schild)) melde('/', `Schildchen am Tisch fehlt: ${schild}`);
 if (alle(startseite, /<li class="lage(?: woche)?">/g).length !== 5) melde('/', '„Wenn nicht alle dasselbe essen“: fünf Lagen erwartet');
 if (!/<div class="einkauf" aria-hidden="true">/.test(startseite)) melde('/', 'die kleine Einkaufsliste beim Wocheneinkauf fehlt oder ist für Bildschirmleser nicht ausgeblendet');
-// "vom Bodensee": Die Herkunft "Vorarlberg" steht nur noch dort, wo ein Rechtstext sie nennt.
-for (const [adresse, html] of seiten) {
-  if (['/offenlegung/', '/datenschutz.html'].includes(adresse)) continue;
-  if (/Vorarlberg/.test(html)) melde(adresse, '„Vorarlberg“ steht noch auf der Seite (seit AP-23 „vom Bodensee“)');
+// Nachtrag zu AP-23 (Ali, 11.10.2026): FoodAsu tritt ohne regionale Herkunft auf (kein Ort, keine Region, kein Land als
+// Herkunft) und wird ohne Plattform beschrieben. Geprüft wird der fertige Bau, nicht der Quelltext: jede HTML-, TXT-,
+// XML- und JSON-Datei als Ganzes, also auch Titel, Beschreibungen, Open Graph, Twitter-Karte, strukturierte Daten,
+// Bildbeschreibungen, Sprungmarken, llms.txt, sitemap.xml und robots.txt; Skripte, Stile und Vektorbilder dazu auf die
+// Wörter zur Herkunft. Erlaubt bleiben genau diese Stellen:
+// - Datenschutzerklärung und Offenlegung: der Rechtstext selbst (Anschrift und Behörde sind Pflicht), nicht die
+//   Kopfdaten und der Rahmen der Seite;
+// - die Länder der Rezepte: "aus Österreich" auf den Seiten unter /rezepte/ und in llms.txt in der Zeile einer solchen
+//   Seite;
+// - og:locale:alternate "de_AT" (Sprache ohne Region: de_DE, dazu de_AT und de_CH als gleichwertige Angaben);
+// - der Satz zur Verfügbarkeit, der als einziger die Plattform nennt;
+// - die Adresse des Eintrags bei Google Play (der Paketname at.tonc.einkauf lässt sich nicht ändern);
+// - technische Hinweise zu Android: im Text der Datenschutzerklärung, und in der Anleitung die Abschnitte
+//   "Installieren", "Backup von Android" und "Feedback geben" mit genau den Wortlauten unten (die Beschreibung des
+//   Kapitels "Einstellungen und deine Daten" nennt das Backup und steht deshalb auch in llms.txt).
+// "Bald im Play Store" enthält keines der Wörter. Jeder andere Treffer ist ein Befund und bricht den Bau ab.
+const GANZES_WORT = (wort) => new RegExp(`(?<![\\p{L}\\p{N}_])${wort}(?![\\p{L}\\p{N}_])`, 'gu');
+const HERKUNFT = [
+  ['Vorarlberg', /Vorarlberg/giu], ['Bodensee', /Bodensee/giu], ['Höchst', GANZES_WORT('Höchst')],
+  ['aus Österreich', /aus\s+Österreich/giu], ['Made in Austria', /made\s+in\s+austria/giu],
+  ['de_AT', /de_AT/g], ['de-AT', /de-AT/g],
+];
+const PLATTFORM = [['Android', /Android/giu]];
+const VERFUEGBAR = 'Zuerst kommt die App für Android in den Play Store, danach folgt die Version fürs iPhone.';
+const STAND = `FoodAsu ist in der Beta. Wir bauen laufend neue Funktionen ein und freuen uns über dein Feedback. ${VERFUEGBAR}`;
+const PLAY_EINTRAG = 'https://play.google.com/store/apps/details?id=at.tonc.einkauf';
+const WEITERE_SPRACHE = /<meta property="og:locale:alternate" content="de_AT"\s*\/?>/g;
+const ANLEITUNG_ANDROID = [
+  'FoodAsu gibt es zuerst für Android und kommt über Google Play auf dein Handy.',
+  'Backup von Android', 'backup-von-android', 'Android kann ein Backup deiner App-Daten anlegen',
+  'Mit geht die Version der App und von Android, sonst nichts.',
+];
+const RECHT_MIT_ANSCHRIFT = new Set(['/datenschutz.html', '/offenlegung/']);
+// Sprachangaben um ein fremdes Wort (tools/sprache_setzen.mjs) trennen einen Wortlaut nicht.
+const ohneSprachangabe = (html) => html.replace(/<span lang="[a-z-]+">([^<]*)<\/span>/g, '$1');
+const fliesstext = (adresse) => entschluesselt(ohneSprachangabe(seiten.get(adresse) ?? '').replace(/<script[\s\S]*?<\/script>/g, ' ').replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ');
+let herkunftDateien = 0;
+for (const datei of dateien.filter((pfad) => /\.(?:html|txt|xml|json|webmanifest|js|css|svg)$/.test(pfad))) {
+  const name = '/' + relative(DIST, datei).split(sep).join('/');
+  const adresse = name.endsWith('.html') ? adresseVon(datei) : name;
+  const nurHerkunft = /\.(?:js|css|svg)$/.test(name);
+  let inhalt = readFileSync(datei, 'utf8');
+  if (RECHT_MIT_ANSCHRIFT.has(adresse)) inhalt = inhalt.replace(/<main[\s\S]*<\/main>/, ' ');
+  herkunftDateien++;
+  // llms.txt Zeile für Zeile: Jede Zeile nennt eine Seite, und die Ausnahme hängt an der Seite.
+  for (const roh of name === '/llms.txt' ? inhalt.split('\n') : [inhalt]) {
+    let teil = entschluesselt(ohneSprachangabe(roh)).replace(/\s+/g, ' ');
+    teil = teil.replaceAll(VERFUEGBAR, ' ').replaceAll(PLAY_EINTRAG, ' ').replace(WEITERE_SPRACHE, ' ');
+    const inAnleitung = adresse.startsWith(BEREICH) || (name === '/llms.txt' && teil.includes(`](${HOST}${BEREICH}`));
+    if (inAnleitung) for (const wortlaut of ANLEITUNG_ANDROID) teil = teil.replaceAll(wortlaut, ' ');
+    const beiRezepten = adresse.startsWith('/rezepte/') || (name === '/llms.txt' && teil.includes(`](${HOST}/rezepte/`));
+    for (const [wort, ausdruck] of nurHerkunft ? HERKUNFT : [...HERKUNFT, ...PLATTFORM]) {
+      if (wort === 'aus Österreich' && beiRezepten) continue;
+      for (const fund of alle(teil, ausdruck)) {
+        melde(name, `Herkunft oder Plattform: „${fund[0]}“ steht im Bau („… ${teil.slice(Math.max(0, fund.index - 50), fund.index + fund[0].length + 50).trim()} …“)`);
+      }
+    }
+  }
 }
-if (/Vorarlberg/.test(llms)) melde('llms.txt', '„Vorarlberg“ steht noch in der Datei');
-if (!/<h1[^>]*>Über FoodAsu, die App vom Bodensee<\/h1>/.test(seiten.get('/ueber-foodasu/') ?? '')) melde('/ueber-foodasu/', 'Überschrift „Über FoodAsu, die App vom Bodensee“ fehlt');
+// Die neuen Wortlaute (Nachtrag zu AP-23 Teil A in der Fassung der Änderung vom 11.10.2026).
+// Satz zur Verfügbarkeit: gleich auf der Startseite, unter /fragen/ (auch in FAQPage) und auf "Über FoodAsu".
+for (const adresse of ['/', '/fragen/', '/ueber-foodasu/']) if (!fliesstext(adresse).includes(STAND)) melde(adresse, 'Satz zur Verfügbarkeit fehlt oder weicht ab');
+for (const [adresse, html] of seiten) if (/iPhone ist geplant|iPhone ist in Arbeit/.test(html)) melde(adresse, 'der frühere Satz zum iPhone steht noch da');
+// llms.txt: Kernsatz, dann der Satz mit der Plattform; der Absatz darunter wiederholt ihn nicht.
+if (!llms.split('\n').some((zeile) => zeile.startsWith(`> ${KERNSATZ} ${VERFUEGBAR} `))) melde('llms.txt', 'Einleitung: der Kernsatz und danach der Satz zur Plattform erwartet');
+if (llms.split(VERFUEGBAR).length !== 2) melde('llms.txt', 'der Satz zur Plattform steht nicht genau einmal in der Datei');
+// Titel der Startseite, Überschrift von "Über FoodAsu", Satz der Fußzeile als Beschreibung des Bildes zum Teilen.
+if (!startseite.includes('<title>FoodAsu: Lebensmittel-Scanner und Einkaufsliste</title>')) melde('/', 'Titel „FoodAsu: Lebensmittel-Scanner und Einkaufsliste“ erwartet');
+if (!fliesstext('/ueber-foodasu/').includes(' Über FoodAsu: Lebensmittel-Scanner und Einkaufsliste für den ganzen Haushalt ') || !/<h1[^>]*>Über FoodAsu: /.test(seiten.get('/ueber-foodasu/') ?? '')) melde('/ueber-foodasu/', 'Überschrift „Über FoodAsu: Lebensmittel-Scanner und Einkaufsliste für den ganzen Haushalt“ fehlt');
+if (inhaltVon(startseite, 'og:image:alt') !== 'FoodAsu: Lebensmittel-Scanner und Einkaufsliste für den ganzen Haushalt.') melde('/', 'Beschreibung des Bildes zum Teilen: der Satz der Fußzeile erwartet');
+// /favicon.ico (Nachtrag zu AP-23 Teil C): eine ICO-Datei mit 16, 32 und 48 Pixeln (tools/favicon_bauen.mjs); die
+// Angaben im Kopf jeder Seite bleiben.
+const ico = existsSync(join(DIST, 'favicon.ico')) ? readFileSync(join(DIST, 'favicon.ico')) : null;
+if (!ico || ico.length < 22) melde('/favicon.ico', 'fehlt');
+else {
+  const groessen = Array.from({ length: ico.readUInt16LE(4) }, (_, nummer) => ico[6 + 16 * nummer] || 256).sort((a, b) => a - b);
+  if (ico.readUInt16LE(0) !== 0 || ico.readUInt16LE(2) !== 1 || groessen.join(' ') !== '16 32 48') melde('/favicon.ico', `ICO-Datei mit 16, 32 und 48 Pixeln erwartet, gefunden: ${groessen.join(', ')}`);
+}
+for (const [adresse, html] of seiten) {
+  for (const angabe of ['<link rel="icon" href="/favicon.svg" type="image/svg+xml">', '<link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">']) {
+    if (!html.includes(angabe)) melde(adresse, `Angabe zum Symbol der Seite fehlt: ${angabe}`);
+  }
+}
 // "Über FoodAsu": sechs Stationen mit ihren Ankern, die Unterschrift im Wortlaut, die Adresse des Kontakts weiter aus
 // HTML-Entitäten.
 for (const anker of ['warum', 'fuer-wen', 'angaben', 'bei-dir', 'stand', 'kontakt']) if (!new RegExp(`<h2 id="${anker}">`).test(ueberInhalt)) melde('/ueber-foodasu/', `Abschnitt mit dem Anker #${anker} fehlt`);
@@ -848,7 +931,7 @@ if (!/Ali Tonc,\s*Entwickler von FoodAsu/.test(entschluesselt(ueberInhalt.replac
 if (!/<a class="knopf voll" href="(?:&#\d+;)+">/.test(ueberInhalt)) melde('/ueber-foodasu/', 'Knopf „E-Mail schreiben“: Adresse aus HTML-Entitäten erwartet');
 if (/mailto:/.test(ueberInhalt)) melde('/ueber-foodasu/', 'die Adresse des Kontakts steht im Klartext');
 // 404-Seite: Karte im Wortlaut der Projektleitung, keine Handys mehr, die Null als Zitronenscheibe.
-if (!sichtbar(nichtGefunden).includes('Eine App für Android: Du scannst Lebensmittel beim Einkauf und siehst sofort, ob laut den Angaben etwas drin ist, das du meidest.')) melde('/404.html', 'Karte „Was ist FoodAsu?“ weicht vom Wortlaut ab');
+if (!sichtbar(nichtGefunden).includes('Lebensmittel-Scanner und Einkaufsliste in einer App: Du scannst beim Einkauf und siehst sofort, ob laut den Angaben etwas drin ist, das du meidest.')) melde('/404.html', 'Karte „Was ist FoodAsu?“ weicht vom Wortlaut ab');
 if (/<img\b/.test(nichtGefunden.match(/<main[\s\S]*<\/main>/)?.[0] ?? '')) melde('/404.html', 'die Handys stehen noch auf der Seite');
 if (!/<div class="nf-zahl" aria-hidden="true">\s*4\s*<svg/.test(nichtGefunden)) melde('/404.html', 'die Zahl mit der Zitronenscheibe fehlt oder ist für Bildschirmleser nicht ausgeblendet');
 // Fragen: drei Gruppen (h2), jede Frage eine h3 mit Sprungmarke; FAQPage nennt die Fragen in der Reihenfolge der Seite.
@@ -860,6 +943,7 @@ const fragenTitel = alle(fragenInhalt, /<h3 id="[^"]+">([\s\S]*?)<\/h3>/g).map((
 const faqDaten = alle(fragenSeite, /<script type="application\/ld\+json">([\s\S]*?)<\/script>/g).map(([, roh]) => { try { return JSON.parse(roh); } catch { return {}; } }).find((einer) => einer['@type'] === 'FAQPage');
 const faqNamen = (faqDaten?.mainEntity ?? []).map((eintrag) => eintrag.name);
 if (fragenTitel.length !== 6 || fragenTitel.join(' | ') !== faqNamen.join(' | ')) melde('/fragen/', `FAQPage folgt nicht der Reihenfolge der Seite: Seite „${fragenTitel.join(' | ')}“, Daten „${faqNamen.join(' | ')}“`);
+if ((faqDaten?.mainEntity ?? []).find((eintrag) => eintrag.name === 'Wo bekomme ich FoodAsu?')?.acceptedAnswer?.text !== STAND) melde('/fragen/', 'FAQPage: Die Antwort auf „Wo bekomme ich FoodAsu?“ ist nicht der Satz zur Verfügbarkeit');
 if (!/<p class="kasten">FoodAsu ist kein Medizinprodukt/.test(fragenInhalt)) melde('/fragen/', 'der Satz zum Medizinprodukt steht nicht als Lavendel-Kasten da');
 if (/<details/.test(fragenInhalt)) melde('/fragen/', 'eine Antwort ist zugeklappt (auf dieser Seite stehen alle Antworten offen)');
 for (const [adresse, html] of seiten) {
@@ -916,6 +1000,7 @@ console.log(`Knopf „${TEILEN_NAME}“: auf ${teilenKnoepfe} von ${rezeptSeiten
 console.log(`Themenseiten: ${themenSeiten.imIndex.length} im Index (ab ${INDEX_AB} Rezepten, mit Einleitungstext), ${themenSeiten.ohneIndex.length} mit noindex (${themenSeiten.ohneIndex.join(', ')})`);
 console.log(`Im Index: ${seiten.size - OHNE_INDEX.size} von ${seiten.size} Seiten`);
 console.log(`Farbprüfung: ${stilDateien.length} Stildateien (feste Farbwerte nur in basis.css und geraet.css), ${farbStellen} Stellen im HTML`);
+console.log(`Herkunft und Plattform: ${herkunftDateien} Dateien des Baus durchsucht (HTML, TXT, XML, JSON; Skripte, Stile und Vektorbilder auf die Herkunft)`);
 for (const hinweis of hinweise) console.log(`HINWEIS ${hinweis}`);
 for (const eintrag of fehler) console.log(`FEHLER ${eintrag}`);
 console.log(`Ergebnis: ${fehler.length === 0 ? 'bestanden' : fehler.length + ' Befunde'}`);

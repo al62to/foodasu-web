@@ -9,7 +9,7 @@ import { seite } from './seite.mjs';
 export const ueber = {
   titel: 'Über FoodAsu',
   // Überschrift der Seite (h1); "titel" bleibt für Brotkrumen und Fuß.
-  h1: 'Über FoodAsu, die App vom Bodensee',
+  h1: 'Über FoodAsu: Lebensmittel-Scanner und Einkaufsliste für den ganzen Haushalt',
   // Derselbe Satz wie oben auf der Startseite und in Organization und WebSite.
   vorspann: seite.beschreibung,
   // Jeder Abschnitt ist seit AP-23 eine Station an einer feinen Linie; "symbol" nennt das Zeichen im Kreis
@@ -64,7 +64,7 @@ export const ueber = {
       anker: 'stand',
       symbol: 'neu',
       titel: 'Wo FoodAsu steht',
-      absaetze: ['FoodAsu ist in der Beta. Wir bauen laufend neue Funktionen ein und freuen uns über dein Feedback. Die App kommt für Android in den Play Store. Eine Version fürs iPhone ist geplant.'],
+      absaetze: ['FoodAsu ist in der Beta. Wir bauen laufend neue Funktionen ein und freuen uns über dein Feedback. Zuerst kommt die App für Android in den Play Store, danach folgt die Version fürs iPhone.'],
       verweis: { vor: 'Was die App schon kann, zeigt die Anleitung ', text: "So geht's", nach: '.', ziel: '/so-gehts/' },
     },
     {

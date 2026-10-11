@@ -1,8 +1,9 @@
 // Baut das gemeinsame Bild für Open Graph und die Twitter-Karte (1200 x 630) nach public/bilder/foodasu-teilen.jpg
 // (AP-18 Nachtrag Meta): Logo auf Indigo mit Akzenten in Indigo und Lavendel (seit AP-23 ohne Grün, wie die ganze
 // Website). Oben rechts der Fleck der Startbildschirme mit Kreis und kleinem Ring, unten links der große Ring mit
-// einem Kreis in Lavendel; darunter der Satz aus dem Fuß der Website. Alle Seiten außer den Rezeptseiten zeigen
-// dieses Bild. Kein Rezeptbild, keine Anfrage ins Netz. Aufruf: node tools/teilen_bild.mjs
+// einem Kreis in Lavendel; darunter der Satz aus dem Fuß der Website (seit dem Nachtrag zu AP-23 der längere Satz mit
+// Scanner und Einkaufsliste, deshalb in 33 statt 38 Pixel, damit links und rechts Rand bleibt). Alle Seiten außer den
+// Rezeptseiten zeigen dieses Bild. Kein Rezeptbild, keine Anfrage ins Netz. Aufruf: node tools/teilen_bild.mjs
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -34,7 +35,7 @@ body { margin: 0; width: ${breite}px; height: ${hoehe}px; overflow: hidden; posi
 .logo svg { display: block; width: 620px; height: auto; }
 .logo .wort { fill: #fff; }
 .logo .schrift { fill: ${LAVENDEL_DUNKEL}; }
-p { margin: 0; color: ${LAVENDEL}; font-size: 38px; font-weight: 500; letter-spacing: -.01em; }
+p { margin: 0; color: ${LAVENDEL}; font-size: 33px; font-weight: 500; letter-spacing: -.01em; }
 </style><body>
 <svg class="akzente" viewBox="0 0 ${breite} ${hoehe}" aria-hidden="true">
   <path d="${FLECK}" transform="translate(968 -178) scale(2.52)" fill="${INDIGO_TIEF}" fill-opacity=".55"/>

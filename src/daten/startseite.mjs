@@ -1,10 +1,13 @@
 // Alle Texte der Startseite an einer Stelle (AP-15 Teil B, Abschnitte 1 bis 8). Von Ali am 09.10.2026 freigegeben.
 // Die Datei Website_Texte_Startseite.md entsteht daraus mit tools/texte_ausgeben.mjs.
 // Titel der Startseite. Die Beschreibung steht mit denen aller Seiten in src/daten/meta.mjs.
+// Titel seit dem Nachtrag zu AP-23 (Änderung Ali vom 11.10.2026): Scanner und Einkaufsliste zusammen. Die längere
+// Fassung "FoodAsu: Lebensmittel-Scanner und Einkaufsliste für den Haushalt" ist in der Vorschau der Suche 595 Pixel
+// breit (Grenze 580) und hat 64 Zeichen (Grenze 60); deshalb gilt die kurze.
 import { lizenzen } from './lizenzen.mjs';
 
 export const kopfdaten = {
-  titel: 'FoodAsu: Lebensmittel-Scanner für den ganzen Haushalt',
+  titel: 'FoodAsu: Lebensmittel-Scanner und Einkaufsliste',
 };
 
 export const kopf = {
@@ -17,7 +20,10 @@ export const kopf = {
   text: 'Du scannst den Strichcode und siehst, ob laut den Angaben etwas drin ist, das jemand bei dir zu Hause meidet. Für jede Person einzeln.',
   aufruf: 'Bald im Play Store',
   zweiterKnopf: 'Eine Einkaufswoche',
-  stand: 'FoodAsu ist in der Beta. Wir bauen laufend neue Funktionen ein und freuen uns über dein Feedback. Eine Version fürs iPhone ist geplant.',
+  // Satz zur Verfügbarkeit (Projektleitung, 11.10.2026, Nachtrag zu AP-23 Teil A Nr. 2), wörtlich und gleich an drei
+  // Stellen: hier, in der Antwort "Wo bekomme ich FoodAsu?" (fragen.mjs) und unter "Wo FoodAsu steht" (ueber.mjs). Nur
+  // sein letzter Satz nennt die Plattform; sonst wird FoodAsu ohne Plattform beschrieben.
+  stand: 'FoodAsu ist in der Beta. Wir bauen laufend neue Funktionen ein und freuen uns über dein Feedback. Zuerst kommt die App für Android in den Play Store, danach folgt die Version fürs iPhone.',
   handy: {
     beschreibung:
       'Beispiel aus der App: Ein Müsli wird gescannt. Das Urteil lautet „Nicht für Mia: enthält Schalenfrüchte“. Für Jonas und Elif steht „Kein Konflikt laut Daten“.',
@@ -36,7 +42,9 @@ export const kopf = {
 
 export const wort = {
   vorsatz: 'Einkaufen ohne',
-  woerter: ['Nüsse', 'Gluten', 'Schweinefleisch', 'Alkohol', 'Palmöl', 'Sesam', 'Milch'],
+  // "Eier" statt "Schweinefleisch" (Projektleitung, 11.10.2026, Nachtrag zu AP-23 Teil B Nr. 6): Die Wörter stehen
+  // als Chips neben dem Absatz mit Alis Unterschrift.
+  woerter: ['Nüsse', 'Gluten', 'Eier', 'Alkohol', 'Palmöl', 'Sesam', 'Milch'],
   // Alis Wortlaut von "Über FoodAsu", gekürzt auf zwei Absätze und ohne Doppelpunkt (Projektleitung, 11.10.2026,
   // AP-23 Teil A Nr. 2; wörtlich). Darunter die Unterschrift und ein Link auf den ganzen Text.
   absaetze: [
@@ -250,7 +258,7 @@ export { fragen } from './fragen.mjs';
 // Fußzeile A (Entscheidung Ali vom 10.10.2026, AP-18 Teil D): links Logo und Satz, daneben drei Spalten, unten eine
 // schmale Zeile. Der Hinweis zur Verpackung steht weiter auf jeder Seite, jetzt unter dem Satz.
 export const fuss = {
-  satz: 'Der Lebensmittel-Scanner für den ganzen Haushalt.',
+  satz: 'Lebensmittel-Scanner und Einkaufsliste für den ganzen Haushalt.',
   hinweis: 'Maßgeblich ist die Verpackung.',
   spalten: { recht: 'Rechtliches', foodasu: 'FoodAsu', folgen: 'Folge uns' },
   links: { datenschutz: 'Datenschutz', offenlegung: 'Offenlegung', lizenzen: 'Lizenzen', quellen: 'Quellen und Lizenzen', kontakt: 'Kontakt per E-Mail' },
@@ -315,8 +323,8 @@ export const geruest = {
     ],
     karte: {
       titel: 'Was ist FoodAsu?',
-      // Wortlaut der Projektleitung vom 11.10.2026 (AP-23 Teil D Nr. 3), mit "laut den Angaben".
-      text: 'Eine App für Android: Du scannst Lebensmittel beim Einkauf und siehst sofort, ob laut den Angaben etwas drin ist, das du meidest.',
+      // Wortlaut vom 11.10.2026 (Nachtrag zu AP-23 Teil A Nr. 6 in der Fassung der Änderung), ohne Plattform.
+      text: 'Lebensmittel-Scanner und Einkaufsliste in einer App: Du scannst beim Einkauf und siehst sofort, ob laut den Angaben etwas drin ist, das du meidest.',
       // Der Knopf führt zur Anleitung (bis AP-18 zu den drei Schritten der Startseite).
       knopf: "So geht's",
       ziel: '/so-gehts/',

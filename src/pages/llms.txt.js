@@ -13,13 +13,21 @@ const link = (titel, pfad) => `- [${titel}](${seite.adresse + pfad}): ${metaVon(
 const gruppe = (art) => themen.filter((thema) => thema.art === art && thema.imIndex).sort((a, b) => a.titel.localeCompare(b.titel, 'de'));
 const nachName = [...rezeptSeiten].sort((a, b) => a.titel.localeCompare(b.titel, 'de'));
 
+// Einleitung (Nachtrag zu AP-23 Teil A Nr. 7 in der Fassung der Änderung vom 11.10.2026): der erste Satz des Satzes zur
+// Beschreibung (FoodAsu ohne Plattform), dann der Satz, der die Plattform nennt, danach wie bisher kopf.text und
+// fuss.hinweis. Der Absatz darunter ist kopf.stand ohne diesen Satz, damit er in der Datei nicht zweimal steht.
+const VERFUEGBAR = 'Zuerst kommt die App für Android in den Play Store, danach folgt die Version fürs iPhone.';
+
 export function GET() {
+  if (!kopf.stand.endsWith(` ${VERFUEGBAR}`)) throw new Error('llms.txt: kopf.stand endet nicht mit dem Satz zur Plattform');
+  const kernsatz = seite.beschreibung.slice(0, seite.beschreibung.indexOf('. ') + 1);
+  if (!kernsatz.endsWith('für den ganzen Haushalt.')) throw new Error('llms.txt: der Satz zur Beschreibung beginnt nicht mit dem Kernsatz');
   const zeilen = [
     `# ${seite.name}`,
     '',
-    `> ${seite.name} ist eine App für Android. ${kopf.text} ${fuss.hinweis}`,
+    `> ${kernsatz} ${VERFUEGBAR} ${kopf.text} ${fuss.hinweis}`,
     '',
-    kopf.stand,
+    kopf.stand.slice(0, -VERFUEGBAR.length - 1),
     '',
     '## Website',
     link('Startseite', '/'),

@@ -13,7 +13,8 @@
 // - noindex tragen /offenlegung/, /quellen-und-lizenzen/ und die 404-Seite, dazu jede Themenseite der Rezepte mit
 //   weniger als sechs Rezepten oder ohne eigenen Einleitungstext (AP-22, src/daten/rezeptseiten.mjs).
 // - Wortwahl (AP-22 Teil 1 Nr. 7): Wo es ohne Bruch der Wortregeln geht, steht das Wort, nach dem laut Keyword-Planer
-//   gesucht wird (Stand 10.10.2026: "einkaufsliste app", "lebensmittel scanner app"). Der Titel der Startseite bleibt.
+//   gesucht wird (Stand 10.10.2026: "einkaufsliste app", "lebensmittel scanner app"). Der Titel der Startseite steht in
+//   src/daten/startseite.mjs (kopfdaten.titel).
 import { grenzBefunde } from './breite.mjs';
 import { seite } from './seite.mjs';
 import { kopfdaten, fuss } from './startseite.mjs';
@@ -40,11 +41,11 @@ const namen = (liste) => aufzaehlung(liste.map((rezept) => rezept.kurztitel));
 
 // ---- Feste Seiten ----
 const FEST = [
-  // Startseite: Der Titel bleibt.
+  // Startseite: Titel aus kopfdaten.titel (seit dem Nachtrag zu AP-23 mit Scanner und Einkaufsliste).
   {
     pfad: '/',
     titel: kopfdaten.titel,
-    beschreibung: 'Lebensmittel-Scanner und Einkaufsliste als Android-App: FoodAsu zeigt, ob ein Produkt laut den Angaben für alle im Haushalt passt. Ohne Konto.',
+    beschreibung: 'Lebensmittel-Scanner und Einkaufsliste in einer App: FoodAsu zeigt, ob ein Produkt laut den Angaben für alle im Haushalt passt. Ohne Konto.',
   },
   {
     pfad: BEREICH,
@@ -58,8 +59,8 @@ const FEST = [
   },
   {
     pfad: '/ueber-foodasu/',
-    titel: 'Über FoodAsu: eine App für Android vom Bodensee',
-    beschreibung: 'Wer FoodAsu am Bodensee entwickelt, warum es die App gibt, für wen sie ist und woher die Angaben kommen. Kein Konto, keine Werbung.',
+    titel: 'Über FoodAsu: warum es die App gibt und für wen sie ist',
+    beschreibung: 'Wer FoodAsu entwickelt, warum es die App gibt, für wen sie ist und woher die Angaben kommen. Kein Konto, keine Werbung.',
   },
   {
     pfad: '/daten-und-quellen/',

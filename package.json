@@ -13,7 +13,8 @@
     "meta": "node tools/pruefe_seiten.mjs --meta C:/Users/ali/foodasu-play/Website_Meta_Uebersicht.md",
     "nachweise": "node tools/nachweise.mjs",
     "bilder": "python tools/bilder_bauen.py",
-    "teilen": "node tools/teilen_bild.mjs"
+    "teilen": "node tools/teilen_bild.mjs",
+    "favicon": "node tools/favicon_bauen.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",

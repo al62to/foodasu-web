@@ -6,7 +6,7 @@ export const lizenzen = {
   eintraege: [
     { name: 'Plus Jakarta Sans', art: 'Schrift', lizenz: 'SIL Open Font License 1.1', ziel: 'https://openfontlicense.org/open-font-license-official-text/' },
     { name: 'Pacifico', art: 'Schrift im Logo und in der Unterschrift', lizenz: 'SIL Open Font License 1.1', ziel: 'https://openfontlicense.org/open-font-license-official-text/' },
-    { name: 'Astro', art: 'Programm, mit dem die Seiten gebaut werden', lizenz: 'MIT License', ziel: 'https://github.com/withastro/astro/blob/main/LICENSE' },
+    { name: 'Astro', art: 'Programm, mit dem die Seiten gebaut werden', lizenz: 'MIT License', ziel: 'https://raw.githubusercontent.com/withastro/astro/main/LICENSE' },
     { name: 'GSAP', art: 'Programm für die Animationen', lizenz: 'Standard „no charge“ GSAP License', ziel: 'https://gsap.com/standard-license' },
     {
       name: 'Bundeslebensmittelschlüssel (BLS) 4.0',

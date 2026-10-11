@@ -45,7 +45,7 @@ punkt('Text (Satz zur Beschreibung, AP-22; auch in Organization und WebSite und 
 punkt('Früherer Vorspann (steht nur noch in llms.txt)', t.kopf.text);
 punkt('Aufruf', `${t.kopf.aufruf} (Text ohne Link)`);
 punkt('Zweiter Knopf', `${t.kopf.zweiterKnopf} (springt zu Abschnitt 3)`);
-punkt('Zeile darunter', `${t.kopf.stand} (Beta-Satz wörtlich wie freigegeben; im Satz zum iPhone seit den Nacharbeiten zu AP-18 „geplant“ statt „in Arbeit“)`);
+punkt('Zeile darunter', `${t.kopf.stand} (Satz zur Verfügbarkeit, Nachtrag zu AP-23 vom 11.10.2026; wörtlich gleich in der Antwort „Wo bekomme ich FoodAsu?“ und unter „Wo FoodAsu steht“; nur sein letzter Satz nennt die Plattform)`);
 punkt('Im Handy, Produkt', `${t.kopf.handy.produkt}, ${t.kopf.handy.zusatz} (erfunden, ohne Marke)`);
 punkt('Im Handy, Urteil', `${t.kopf.handy.urteil} (App)`);
 punkt('Im Handy, Personen', t.kopf.handy.personen.map((p) => `${p.name}: ${p.ergebnis}`).join('; '));

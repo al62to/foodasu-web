@@ -233,7 +233,7 @@ export const texte = {
 };
 
 // ---- Darstellung ----
-export const zahl = (wert, stellen) => wert.toLocaleString('de-AT', { minimumFractionDigits: stellen, maximumFractionDigits: stellen });
+export const zahl = (wert, stellen) => wert.toLocaleString('de', { minimumFractionDigits: stellen, maximumFractionDigits: stellen });
 export const dauer = (minuten) => {
   if (minuten < 60) return `${minuten} Min.`;
   if (minuten >= 1440) { const tage = Math.round(minuten / 1440); return tage === 1 ? '1 Tag' : `${tage} Tage`; }
