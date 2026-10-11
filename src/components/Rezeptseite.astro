@@ -14,7 +14,7 @@ import { fuss } from '../daten/startseite.mjs';
 import {
   rezepte, texte, LAND, KATEGORIE, AUFWAND, ENERGIE, QUELLE, NAEHRWERT, STAND, ausLand, zahl, dauer, iso, portionen,
   zutatText, hinweiseVon, hinweisText, ohneHinweis, ernaehrung, einleitung, themaZu, ziel, aehnliche, schrittName, rezeptAdresse,
-  quelleAdresse, EINTRAEGE,
+  quelleAdresse, EINTRAEGE, kommtSpaeter, alteRezepte, rezepte as alleRezepte,
 } from '../daten/rezeptseiten.mjs';
 
 const { slug } = Astro.props;
@@ -44,7 +44,12 @@ const proPortion = rezept.nwVollstaendig && rezept.portion;
 const stueck = rezept.portionenEinheit === 'STUECK';
 const spalte = stueck ? texte.naehrwerte.spalteStueck : texte.naehrwerte.spaltePortion;
 const stufe = rezept.energiedichte ? ENERGIE.stufen.indexOf(rezept.energiedichte) + 1 : 0;
-const urheberName = QUELLE[rezept.quelle][1];
+// Rezepte, die später in die App kommen (AP-25); bei denen aus alten Kochbüchern stehen die Angaben zum Buch dabei.
+const spaeter = kommtSpaeter(rezept);
+const original = rezept.original;
+const heutige = original?.gleiches_gericht ? alleRezepte.find((anderes) => anderes.slug === original.gleiches_gericht) : null;
+const alteFassungen = alteRezepte.filter((anderes) => anderes.original.gleiches_gericht === rezept.slug);
+const urheberName = original ? null : QUELLE[rezept.quelle][1];
 const themenLinks = [
   ...rezept.laender.map((kuerzel) => themaZu('land', kuerzel)),
   themaZu('kategorie', rezept.kategorie),
@@ -72,6 +77,7 @@ const jeStufe = STUFEN.map((stufe, nummer) => ({
 }));
 // Sprungleiste unter dem Kopf: die fünf Abschnitte der Seite mit ihren Ankern.
 const sprung = [
+  ...(original ? [['original', texte.sprung.original]] : []),
   ['zutaten', texte.zutaten.titel], ['zubereitung', texte.schritte.titel], ['hinweise', texte.sprung.hinweise],
   ['naehrwerte', texte.naehrwerte.titel], ['app', texte.sprung.app],
 ];
@@ -101,11 +107,13 @@ const daten = [{
   description: text,
   author: [
     { '@type': 'Organization', name: seite.name, url: `${seite.adresse}/` },
-    { '@type': 'Organization', name: urheberName, url: rezept.urheberUrl },
+    ...(original ? [] : [{ '@type': 'Organization', name: urheberName, url: rezept.urheberUrl }]),
   ],
   publisher: { '@type': 'Organization', name: seite.name, url: `${seite.adresse}/` },
-  isBasedOn: rezept.quelleUrl,
-  license: rezept.lizenzUrl,
+  // Rezepte aus alten Kochbüchern nennen das Buch (Titel, Verfasser, Erscheinungsjahr); die heutige Fassung ist von FoodAsu.
+  ...(original
+    ? { isBasedOn: { '@type': 'Book', name: original.buch, ...(original.todesjahr ? { author: { '@type': 'Person', name: original.verfasser } } : {}), datePublished: String(original.jahr), inLanguage: original.sprache_kennung, url: original.digitalisat ?? original.abschrift } }
+    : { isBasedOn: rezept.quelleUrl, license: rezept.lizenzUrl }),
   datePublished: STAND,
   ...(rezept.zeitGesamt != null ? { totalTime: iso(rezept.zeitGesamt) } : {}),
   ...(kochen != null && kochen >= 0 ? { prepTime: iso(rezept.zeitVorbereitung), cookTime: iso(kochen) } : {}),
@@ -166,6 +174,27 @@ const daten = [{
     </nav>
 
     <div class="s-inhalt innen r-inhalt">
+      {original && (
+        <section class="r-teil r-original muster" aria-labelledby="original" data-ein>
+          <p class="ueberzeile">{original.buch_kurz} · {original.jahr}</p>
+          <h2 id="original">{texte.original.titel}</h2>
+          <figure class="r-auszug">
+            <figcaption>{texte.original.auszugAlt}</figcaption>
+            <blockquote lang={original.sprache_kennung} cite={original.digitalisat ?? original.abschrift}><p>{original.auszug_alt}</p></blockquote>
+          </figure>
+          <figure class="r-auszug heute">
+            <figcaption>{texte.original.auszugHeute(original.sprache_original)}</figcaption>
+            <blockquote><p>{original.auszug_heute}</p></blockquote>
+          </figure>
+          <p class="klein">{texte.original.quelle}: <cite lang={original.sprache_kennung}>{original.buch}</cite>, {original.verfasser}, {original.ort} {original.jahr}. {original.auszug_anmerkung}</p>
+          <p class="klein">{texte.original.fassung}</p>
+          <p class="r-original-links">
+            <a href={original.digitalisat ?? original.abschrift} rel="noopener">{original.digitalisat ? texte.original.digitalisat : texte.original.abschrift}<span class="vh">: {original.buch}</span></a>
+            {heutige && <a href={rezeptAdresse(heutige)}>{texte.original.heute}: {heutige.kurztitel}</a>}
+            <a href={texte.original.rubrikZiel}>{texte.original.rubrikLink}</a>
+          </p>
+        </section>
+      )}
       <section class="r-passt" aria-labelledby="passt">
         <h2 id="passt">{texte.passt.titel} <span class="r-zusatz">{texte.passt.zusatz}</span></h2>
         {formen.some(({ stand }) => stand) || ohne.length ? (
@@ -264,7 +293,7 @@ const daten = [{
             </div>
           </>
         ) : <p>{texte.hinweise.keine}</p>}
-        <p class="klein">{texte.hinweise.app} {fuss.hinweis}</p>
+        <p class="klein">{!spaeter && `${texte.hinweise.app} `}{fuss.hinweis}</p>
       </section>
 
       <section class="r-teil" aria-labelledby="naehrwerte">
@@ -341,8 +370,8 @@ const daten = [{
       <section class="r-teil r-app muster" aria-labelledby="app" data-ein>
         <Motive liste={[{ art: 'zitrone', breite: 160, lage: 'right: -36px; bottom: -44px' }]} />
         <div class="r-app-text">
-          <h2 id="app">{texte.app.titel}</h2>
-          <p>{texte.app.text} {texte.app.mehr}</p>
+          <h2 id="app">{spaeter ? texte.spaeter.titel : texte.app.titel}</h2>
+          <p>{spaeter ? texte.spaeter.appText : `${texte.app.text} ${texte.app.mehr}`}</p>
         </div>
         <p class="r-app-zeile">
           <a class="knopf voll" href="/so-gehts/">{texte.app.soGehts}</a>
@@ -351,6 +380,9 @@ const daten = [{
       </section>
 
       <p class="r-quelle-link"><a href={quelleAdresse(rezept)} aria-label={texte.quelle.fuer(rezept.kurztitel)}>{texte.quelle.link}</a></p>
+      {alteFassungen.map((anderes) => (
+        <p class="r-quelle-link r-alt-link"><a href={rezeptAdresse(anderes)}>{texte.original.alt(anderes.original.jahr)}: {anderes.kurztitel}</a></p>
+      ))}
 
       <section class="r-teil" aria-labelledby="aehnlich">
         <h2 id="aehnlich">{texte.aehnlich}</h2>

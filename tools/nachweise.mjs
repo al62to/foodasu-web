@@ -25,9 +25,9 @@ const BASIS = (werte[0] ?? 'http://localhost:4321').replace(/\/$/, '');
 const ZIEL = resolve(werte[1] ?? 'nachweise');
 const MIT_BILDERN = !process.argv.includes('--ohne-bilder');
 // Alle festen Seiten (auch die mit noindex und die 404-Seite), dazu je eine erzeugte Seite jeder Art (Rezeptseite,
-// Themenseite).
+// Themenseite, seit AP-25 auch ein Rezept aus einem alten Kochbuch und ein neues Rezept).
 const FEST = alleMeta.map((eintrag) => eintrag.pfad).filter((pfad) => pfad === '/rezepte/' || !pfad.startsWith('/rezepte/'));
-const SEITEN = [...FEST, '/rezepte/bibimbap/', '/rezepte/ohne-nuesse/'];
+const SEITEN = [...FEST, '/rezepte/bibimbap/', '/rezepte/ohne-nuesse/', '/rezepte/linzer-torte-1849/', '/rezepte/ful-medames/'];
 const BREITEN = [360, 390, 768, 1024, 1440];
 const HANDY = { width: 390, height: 844, deviceScaleFactor: 1, isMobile: true, hasTouch: true };
 const TABLET = { width: 768, height: 1024, deviceScaleFactor: 1, isMobile: true, hasTouch: true };
@@ -842,13 +842,15 @@ sage('## 2g Knopf „Rezept teilen“');
     pruefe(befunde.length === 0, `Alle ${rezepte.length} Rezeptseiten: Der Knopf teilt Titel, Satz und die kanonische Adresse der Seite${befunde.length ? ` (${befunde.length} Befunde)` : ''}`);
     for (const befund of befunde.slice(0, 12)) sage(`    ${befund}`);
     pruefe(anfragen === 0, `Alle ${rezepte.length} Rezeptseiten: Die Klicks lösen keine Anfrage aus (${anfragen})`);
-    // Auf den anderen Seiten gibt es den Knopf nicht.
+    // Auf den anderen Seiten gibt es den Knopf nicht (die Rezeptseiten der Liste sind oben mitgeprüft).
+    const rezeptAdressen = new Set(rezepte.map(rezeptAdresse));
+    const ohneKnopf = SEITEN.filter((einer) => !rezeptAdressen.has(einer));
     const fremd = [];
-    for (const pfad of SEITEN.filter((einer) => einer !== REZEPT)) {
+    for (const pfad of ohneKnopf) {
       await seite.goto(BASIS + pfad, { waitUntil: 'domcontentloaded' });
       if (await seite.evaluate(() => !!document.querySelector('[data-teilen]'))) fremd.push(pfad);
     }
-    pruefe(fremd.length === 0, `Auf den ${SEITEN.length - 1} anderen geprüften Seiten gibt es den Knopf nicht${fremd.length ? ` (${fremd.join(', ')})` : ''}`);
+    pruefe(fremd.length === 0, `Auf den ${ohneKnopf.length} anderen geprüften Seiten gibt es den Knopf nicht${fremd.length ? ` (${fremd.join(', ')})` : ''}`);
     await umgebung.close();
   }
 

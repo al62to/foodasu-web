@@ -23,9 +23,9 @@ export const THEMEN_TEXTE = {
     nichtDabei: ['spaetzle', 'tiramisu'],
   },
   '/rezepte/ohne-fisch/': {
-    text: 'Fast alle Rezepte dieser Website kommen ohne Fisch als Zutat laut Zutatenliste aus, vom Wiener Schnitzel bis zum Tiramisu. Garnelen stehen in FoodAsu beim Eintrag Krebstiere; deshalb sind die Knoblauchgarnelen hier dabei. Es fehlen die Gerichte mit Sardellen oder Fischsauce: Königsberger Klopse und das Massaman-Curry mit Rindfleisch.',
+    text: 'Fast alle Rezepte dieser Website kommen ohne Fisch als Zutat laut Zutatenliste aus, vom Wiener Schnitzel bis zum Tiramisu. Garnelen stehen in FoodAsu beim Eintrag Krebstiere; deshalb sind die Knoblauchgarnelen hier dabei. Es fehlen die Gerichte mit Sardellen, Hering oder Fischsauce: Königsberger Klopse, auch die Königsberger Klopse (1905) aus dem alten Kochbuch, und das Massaman-Curry mit Rindfleisch.',
     dabei: ['wiener-schnitzel', 'tiramisu', 'knoblauchgarnelen'],
-    nichtDabei: ['koenigsberger-klopse', 'massaman-curry-mit-rindfleisch'],
+    nichtDabei: ['koenigsberger-klopse', 'koenigsberger-klopse-1905', 'massaman-curry-mit-rindfleisch'],
   },
   '/rezepte/ohne-erdnuesse/': {
     text: 'Ohne Erdnüsse als Zutat laut Zutatenliste sind fast alle Rezepte dieser Website, darunter Hummus, Bibimbap und Baklava mit Pistazien. Erdnüsse sind in FoodAsu ein eigener Eintrag neben den Nüssen (Schalenfrüchten). Bei Schokolade kommt es auf das Produkt an; deshalb steht die Sachertorte unter „Je nach Produkt“.',
@@ -46,17 +46,17 @@ export const THEMEN_TEXTE = {
     dabei: ['massaman-curry-mit-rindfleisch'],
   },
   '/rezepte/ohne-sesam/': {
-    text: 'Ohne Sesam als Zutat laut Zutatenliste sind die meisten Rezepte hier, von Dal Tadka bis Tiramisu. Es fehlen Hummus, in dem Tahin aus Sesam steckt, und Bibimbap mit Sesam und Sesamöl. Bei Brot, Brötchen und fertigem Teig kommt es auf das Produkt an.',
+    text: 'Ohne Sesam als Zutat laut Zutatenliste sind die meisten Rezepte hier, von Dal Tadka bis Tiramisu. Es fehlen Hummus und Ful Medames, in denen Tahin aus Sesam steckt, und Bibimbap mit Sesam und Sesamöl. Bei Brot, Brötchen und fertigem Teig kommt es auf das Produkt an.',
     dabei: ['dal-tadka', 'tiramisu'],
-    nichtDabei: ['hummus', 'bibimbap'],
+    nichtDabei: ['hummus', 'ful-medames', 'bibimbap'],
   },
   '/rezepte/ohne-schweinefleisch/': {
-    text: 'Ohne Schweinefleisch als Zutat laut Zutatenliste: Dazu gehören hier Gerichte mit Rind, Kalb, Lamm und Huhn wie Lahmacun, Moussaka, Butter Chicken und Zürcher Geschnetzeltes, dazu die Rezepte ohne Fleisch. Es fehlen die Gerichte mit Speck, Pancetta, Guanciale oder Schweineschulter, zum Beispiel Quiche lorraine und Spaghetti carbonara. Bei Hackfleisch und Gelatine kommt es auf das Produkt an.',
+    text: 'Ohne Schweinefleisch als Zutat laut Zutatenliste: Dazu gehören hier Gerichte mit Rind, Kalb, Lamm und Huhn wie Lahmacun, Moussaka, Butter Chicken und Zürcher Geschnetzeltes, dazu die Rezepte ohne Fleisch. Es fehlen die Gerichte mit Speck, Pancetta, Guanciale, Schweineschulter oder Hackfleisch vom Schwein, zum Beispiel Quiche lorraine und Spaghetti carbonara. Bei Hackfleisch und Gelatine kommt es auf das Produkt an.',
     dabei: ['lahmacun', 'moussaka', 'butter-chicken', 'zuercher-geschnetzeltes'],
     nichtDabei: ['quiche-lorraine', 'spaghetti-carbonara'],
   },
   '/rezepte/ohne-alkohol/': {
-    text: 'Ohne Alkohol als Zutat laut Zutatenliste sind die meisten Rezepte hier, auch Süßes wie Sachertorte, Kaiserschmarren und Baklava. Es fehlen die Gerichte, bei denen Wein, Marsala oder Kirschwasser in der Zutatenliste steht, zum Beispiel Tiramisu, Moussaka und Schwarzwälder Kirschtorte.',
+    text: 'Ohne Alkohol als Zutat laut Zutatenliste sind die meisten Rezepte hier, auch Süßes wie Sachertorte, Kaiserschmarren und Baklava. Es fehlen die Gerichte, bei denen Wein, Bier, Marsala oder Kirschwasser in der Zutatenliste steht, zum Beispiel Tiramisu, Moussaka und Schwarzwälder Kirschtorte.',
     dabei: ['sachertorte', 'kaiserschmarren', 'baklava'],
     nichtDabei: ['tiramisu', 'moussaka', 'schwarzwaelder-kirschtorte'],
   },
@@ -71,20 +71,33 @@ export const THEMEN_TEXTE = {
     jeNach: ['pizza-margherita'],
   },
   '/rezepte/land/deutschland/': {
-    text: 'Aus Deutschland stehen hier Königsberger Klopse, Schwäbischer Kartoffelsalat, Spätzle und Schwarzwälder Kirschtorte. Apfelstrudel und Kaiserschmarren sind auch dabei: In den Daten gehören sie zu mehreren Ländern. Bei jeder Zutat steht, ob es dazu einen Hinweis gibt.',
-    dabei: ['koenigsberger-klopse', 'schwaebischer-kartoffelsalat', 'spaetzle', 'schwarzwaelder-kirschtorte', 'apfelstrudel', 'kaiserschmarren'],
+    text: 'Aus Deutschland stehen hier Königsberger Klopse, Schwäbischer Kartoffelsalat, Spätzle und Schwarzwälder Kirschtorte. Apfelstrudel und Kaiserschmarren sind auch dabei: In den Daten gehören sie zu mehreren Ländern. Aus alten deutschen Kochbüchern kommen unter anderem Lebkuchen (1706) und Kartoffelpuffer (1905) dazu. Bei jeder Zutat steht, ob es dazu einen Hinweis gibt.',
+    dabei: ['koenigsberger-klopse', 'schwaebischer-kartoffelsalat', 'spaetzle', 'schwarzwaelder-kirschtorte', 'apfelstrudel', 'kaiserschmarren', 'lebkuchen-1706', 'kartoffelpuffer-1905'],
   },
   '/rezepte/land/oesterreich/': {
-    text: 'Aus Österreich stehen hier Wiener Schnitzel, Alt-Wiener Erdäpfelsalat, Kaiserschmarren, Apfelstrudel und Sachertorte. Spätzle sind auch dabei: In den Daten gehören sie zu Deutschland, Österreich und der Schweiz. Jedes Rezept nennt Zutaten, Zubereitung und Nährwerte.',
-    dabei: ['wiener-schnitzel', 'alt-wiener-erdaepfelsalat', 'kaiserschmarren', 'apfelstrudel', 'sachertorte', 'spaetzle'],
+    text: 'Aus Österreich stehen hier Wiener Schnitzel, Alt-Wiener Erdäpfelsalat, Kaiserschmarren, Apfelstrudel und Sachertorte. Spätzle sind auch dabei: In den Daten gehören sie zu Deutschland, Österreich und der Schweiz. Aus alten Kochbüchern kommen Apfelauflauf (1688) und Kaiserschmarrn (1890) dazu. Jedes Rezept nennt Zutaten, Zubereitung und Nährwerte.',
+    dabei: ['wiener-schnitzel', 'alt-wiener-erdaepfelsalat', 'kaiserschmarren', 'apfelstrudel', 'sachertorte', 'spaetzle', 'apfelauflauf-1688', 'kaiserschmarrn-1890'],
   },
   '/rezepte/land/italien/': {
-    text: 'Aus Italien stehen hier Pizza Margherita, Spaghetti carbonara, Lasagne alla bolognese, Insalata caprese und Tiramisu. Der Apfelstrudel ist auch dabei: In den Daten gehört er zu Österreich, Deutschland und Italien.',
-    dabei: ['pizza-margherita', 'spaghetti-carbonara', 'lasagne-alla-bolognese', 'insalata-caprese', 'tiramisu', 'apfelstrudel'],
+    text: 'Aus Italien stehen hier Pizza Margherita, Spaghetti carbonara, Lasagne alla bolognese, Insalata caprese und Tiramisu. Der Apfelstrudel ist auch dabei: In den Daten gehört er zu Österreich, Deutschland und Italien. Aus alten Kochbüchern kommen Gnocchi (1570) und Maccheroni alla bolognese (1895) dazu.',
+    dabei: ['pizza-margherita', 'spaghetti-carbonara', 'lasagne-alla-bolognese', 'insalata-caprese', 'tiramisu', 'apfelstrudel', 'gnocchi-1570', 'maccheroni-alla-bolognese-1895'],
+  },
+  // Seit AP-25 zeigen diese drei Seiten mindestens sechs Rezepte.
+  '/rezepte/land/spanien/': {
+    text: 'Aus Spanien stehen hier Paella valenciana, Tortilla española, Patatas bravas, Knoblauchgarnelen und Gazpacho andaluz. Der Gazpacho (1875) aus einem Madrider Kochbuch kommt noch ohne Tomate aus: Brot, Olivenöl, Knoblauch und Essig. Bei jeder Zutat steht, ob es dazu einen Hinweis gibt.',
+    dabei: ['paella-valenciana', 'tortilla-espanola', 'patatas-bravas', 'knoblauchgarnelen', 'gazpacho-andaluz', 'gazpacho-1875'],
+  },
+  '/rezepte/kategorie/suessspeise/': {
+    text: 'Süßspeisen aus mehreren Ländern: Apfelstrudel, Kaiserschmarren, Tiramisu und Baklava. Aus alten Kochbüchern kommen Marzipan (1598), Pfannkuchen (1597), Apfelauflauf (1688), Kaiserschmarrn (1890) und Pfirsich Melba (1907) dazu. Den Kaiserschmarren gibt es damit in einer Fassung von heute und in einer aus dem alten Kochbuch.',
+    dabei: ['apfelstrudel', 'kaiserschmarren', 'tiramisu', 'baklava', 'marzipan-1598', 'pfannkuchen-1597', 'apfelauflauf-1688', 'kaiserschmarrn-1890', 'pfirsich-melba-1907'],
+  },
+  '/rezepte/kategorie/gebaeck/': {
+    text: 'Gebäck vom Frühstück bis zur Festtafel: Croissants, Sachertorte und Schwarzwälder Kirschtorte, dazu Kladdkaka, der flache Schokoladenkuchen aus Schweden. Aus alten Kochbüchern kommen Lebkuchen (1706), Linzer Torte (1849) und Brownies (1910). Bei jeder Zutat steht, ob es dazu einen Hinweis gibt.',
+    dabei: ['croissants', 'sachertorte', 'schwarzwaelder-kirschtorte', 'kladdkaka', 'lebkuchen-1706', 'linzer-torte-1849', 'brownies-1910'],
   },
   '/rezepte/kategorie/hauptgericht/': {
-    text: 'Hauptgerichte aus vielen Küchen: vom Wiener Schnitzel über Paella valenciana und Moussaka bis zu Bibimbap und Butter Chicken. Vegetarisch laut Zutatenliste sind davon Dal Tadka, Ratatouille und Tortilla española.',
-    dabei: ['wiener-schnitzel', 'paella-valenciana', 'moussaka', 'bibimbap', 'butter-chicken', 'dal-tadka', 'ratatouille', 'tortilla-espanola'],
-    vegetarisch: ['dal-tadka', 'ratatouille', 'tortilla-espanola'],
+    text: 'Hauptgerichte aus vielen Küchen: vom Wiener Schnitzel über Paella valenciana und Moussaka bis zu Bibimbap und Butter Chicken. Vegetarisch laut Zutatenliste sind davon Dal Tadka, Ful Medames, Kartoffelpuffer (1905), Omelett (1746), Ratatouille und Tortilla española.',
+    dabei: ['wiener-schnitzel', 'paella-valenciana', 'moussaka', 'bibimbap', 'butter-chicken', 'dal-tadka', 'ful-medames', 'kartoffelpuffer-1905', 'omelett-1746', 'ratatouille', 'tortilla-espanola'],
+    vegetarisch: ['dal-tadka', 'ful-medames', 'kartoffelpuffer-1905', 'omelett-1746', 'ratatouille', 'tortilla-espanola'],
   },
 };

@@ -5,6 +5,11 @@
 // Satz zum Medizinprodukt (Projektleitung, 10.10.2026, AP-22 Teil 1 Nr. 6), wörtlich. Er steht hier, auf der
 // Startseite und auf der Seite "Daten und Quellen". tools/pruefe_seiten.mjs nimmt genau diesen Satz von der
 // Wortliste aus ("gesundheitlichen").
+import { websiteZahlen } from './rezeptseiten.mjs';
+import { jahreVonBis } from './alte_rezepte.mjs';
+
+const [altVon, altBis] = jahreVonBis();
+
 export const MEDIZIN = 'FoodAsu ist kein Medizinprodukt und ersetzt keine ärztliche Beratung. Maßgeblich ist immer die Verpackung. Bei gesundheitlichen Fragen wende dich an Fachleute.';
 
 // "anker" ist die Sprungmarke der Frage auf der Seite /fragen/ (seit AP-23; sie bleibt, auch wenn sich die Frage ändert).
@@ -18,6 +23,18 @@ export const fragen = {
         'Die Angaben zu Produkten kommen aus der offenen Datenbank Open Food Facts. Eine Gemeinschaft trägt dort ein, was auf der Verpackung steht. Die Angaben können unvollständig oder veraltet sein.',
         'Die Rezepte stammen aus offenen Rezeptsammlungen; Quelle und Lizenz sind bei jedem Rezept verlinkt. Die Nährwerte der Rezepte sind aus den rohen Zutaten berechnet, mit dem Bundeslebensmittelschlüssel (BLS 4.0).',
       ],
+    },
+    // AP-25 Teil G Nr. 1 (Ali, 11.10.2026): Frage zur Rubrik "Aus alten Kochbüchern". Sie steht nur auf der Seite
+    // /fragen/ (nurSeite); die Liste der Startseite bleibt, wie sie ist. Zahl und Jahre kommen aus den Daten.
+    {
+      anker: 'alte-kochbuecher',
+      nurSeite: true,
+      frage: 'Was sind die Rezepte aus alten Kochbüchern?',
+      antwort: [
+        `Das sind ${websiteZahlen.alt} Rezepte aus gedruckten Kochbüchern von ${altVon} bis ${altBis}, geordnet nach Zeiträumen. Die Bücher sind gemeinfrei: Ihre Verfasserinnen und Verfasser sind seit mehr als 70 Jahren tot, oder das Buch erschien ohne Namen.`,
+        'Zu jedem Rezept steht ein kurzer Auszug aus dem Buch in der alten Schreibweise und in heutigem Deutsch. Zutaten, Mengen und Schritte sind eine heutige Fassung von FoodAsu: Alte Maße sind umgerechnet und mit heutigen Rezepten abgeglichen. Die Rezepte stehen auf der Website und kommen später in die App.',
+      ],
+      verweis: { vor: 'Alle Rezepte der Rubrik stehen unter ', text: 'Aus alten Kochbüchern', nach: '.', ziel: '/alte-rezepte/' },
     },
     {
       anker: 'meine-angaben',
@@ -65,7 +82,7 @@ export const fragen = {
 export const fragenGruppen = {
   inhalt: 'Auf dieser Seite',
   gruppen: [
-    { anker: 'die-daten', titel: 'Die Daten', fragen: ['woher-kommen-die-daten', 'angaben-unvollstaendig'] },
+    { anker: 'die-daten', titel: 'Die Daten', fragen: ['woher-kommen-die-daten', 'angaben-unvollstaendig', 'alte-kochbuecher'] },
     { anker: 'deine-angaben', titel: 'Deine Angaben', fragen: ['meine-angaben', 'konto'] },
     { anker: 'die-app', titel: 'Die App', fragen: ['verpackung', 'wo-bekomme-ich-foodasu'] },
   ],

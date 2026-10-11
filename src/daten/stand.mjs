@@ -16,14 +16,15 @@ export const QUELLEN = {
   '/': ['src/pages/index.astro', 'src/daten/startseite.mjs', 'src/daten/fragen.mjs', 'src/daten/seite.mjs'],
   '/ueber-foodasu/': ['src/pages/ueber-foodasu/index.astro', 'src/daten/ueber.mjs', 'src/daten/seite.mjs'],
   '/so-gehts/': ['src/pages/so-gehts/index.astro', 'src/daten/sogehts.mjs'],
-  '/rezepte/': ['src/pages/rezepte/index.astro', 'src/daten/rezepte.json', 'src/daten/auswahl.mjs'],
+  '/rezepte/': ['src/pages/rezepte/index.astro', 'src/daten/rezepte.json', 'src/daten/rezepte_zusatz.json', 'src/daten/auswahl.mjs'],
+  '/alte-rezepte/': ['src/pages/alte-rezepte/index.astro', 'src/daten/alte_rezepte.mjs', 'src/daten/rezepte_zusatz.json'],
   '/fragen/': ['src/pages/fragen/index.astro', 'src/daten/fragen.mjs'],
   '/daten-und-quellen/': ['src/pages/daten-und-quellen/index.astro', 'src/daten/datenquellen.mjs'],
   '/datenschutz.html': ['src/pages/datenschutz.astro', 'src/inhalte/datenschutz.html'],
   '/lizenzen/': ['src/pages/lizenzen/index.astro', 'src/daten/lizenzen.mjs'],
 };
-const REZEPT = ['src/daten/rezepte.json', 'src/daten/rezeptseiten.mjs', 'src/components/Rezeptseite.astro'];
-const THEMA = ['src/daten/rezepte.json', 'src/daten/auswahl.mjs', 'src/daten/rezeptseiten.mjs', 'src/daten/themen_texte.mjs', 'src/components/Themenseite.astro'];
+const REZEPT = ['src/daten/rezepte.json', 'src/daten/rezepte_zusatz.json', 'src/daten/rezeptseiten.mjs', 'src/components/Rezeptseite.astro'];
+const THEMA = ['src/daten/rezepte.json', 'src/daten/rezepte_zusatz.json', 'src/daten/auswahl.mjs', 'src/daten/rezeptseiten.mjs', 'src/daten/themen_texte.mjs', 'src/components/Themenseite.astro'];
 const KAPITEL = (slug) => [`src/daten/anleitung/${slug}.mjs`, 'src/pages/so-gehts/[kapitel]/index.astro'];
 
 export function quellenVon(pfad) {

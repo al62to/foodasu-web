@@ -13,11 +13,41 @@ const inhalt = nachName.map((rezept) => ({ kennung: rezept.slug, text: rezept.ku
 <Rechtsseite krumen={[{ titel: t.seite.titel, ziel: t.seite.adresse }]} titel={t.seite.titel} vorspann={t.seite.einleitung} inhalt={inhalt} leistenTitel={t.seite.uebersicht}>
   <div class="text q-liste">
     {nachName.map((rezept) => {
+      const zusatz = <span class="vh">: {rezept.kurztitel}</span>;
+      // Rezepte aus alten Kochbüchern: Buch, Verfasser, Jahr, Todesjahr, Digitalisat, Abschrift mit Lizenz und die
+      // eigene heutige Fassung (AP-25 Teil C Nr. 6).
+      if (rezept.original) {
+        const o = rezept.original;
+        return (
+          <section class="r-quelle" id={rezept.slug} aria-labelledby={`q-${rezept.slug}`}>
+            <h2 id={`q-${rezept.slug}`}>{rezept.titel}</h2>
+            <dl>
+              <div><dt>{t.alt.buch}</dt><dd><cite lang={o.sprache_kennung}>{o.buch}</cite></dd></div>
+              <div><dt>{t.alt.verfasser}</dt><dd>{o.verfasser}{o.todesjahr && ` (${t.alt.gestorben(o.todesjahr)})`}</dd></div>
+              <div><dt>{t.alt.erschienen}</dt><dd>{o.jahr}, {o.ort}</dd></div>
+              <div><dt>{t.alt.stelle}</dt><dd>{o.fundstelle}</dd></div>
+              {o.digitalisat && <div><dt>{t.alt.digitalisat}</dt><dd><a href={o.digitalisat} rel="noopener">{t.alt.digitalisatLink}{zusatz}</a>{o.digitalisat_rechte && ` (${o.digitalisat_rechte})`}</dd></div>}
+              <div><dt>{t.alt.abschrift}</dt><dd>{o.abschrift ? <><a href={o.abschrift} rel="noopener">{t.alt.abschriftLink}{zusatz}</a>, {o.abschrift_lizenz_url ? <a href={o.abschrift_lizenz_url} rel="license noopener">{o.abschrift_lizenz}</a> : o.abschrift_lizenz}</> : t.alt.eigeneAbschrift}</dd></div>
+              <div><dt>{t.alt.fassung[0]}</dt><dd>{t.alt.fassung[1]}</dd></div>
+              <div><dt>{t.aenderungen}</dt><dd>{rezept.aenderung}.</dd></div>
+              <div><dt>{t.bild[0]}</dt><dd>{t.bild[1]}</dd></div>
+              {rezept.nwVollstaendig && (
+                <div>
+                  <dt>{t.naehrwerte[0]}</dt>
+                  <dd>{t.naehrwerte[1]}<a href={t.bls.doiZiel} rel="noopener">{t.bls.doi}</a>{t.naehrwerte[2]}<a href={t.bls.lizenzZiel} rel="noopener">{t.bls.lizenz}</a>{t.naehrwerte[3]}</dd>
+                </div>
+              )}
+            </dl>
+            <p class="klein">{t.alt.hinweise}</p>
+            <p class="klein"><a href={rezeptAdresse(rezept)}>{t.seite.zumRezept}{zusatz}</a></p>
+          </section>
+        );
+      }
       const [quelleName, urheberName] = QUELLE[rezept.quelle];
       const [lizenzName, lizenzKurz] = LIZENZ[rezept.lizenz];
       const eineAdresse = rezept.quelleUrl === rezept.urheberUrl;
-      // Derselbe sichtbare Linktext führt je Rezept zu einem anderen Ziel; für Bildschirmleser nennt er das Rezept.
-      const zusatz = <span class="vh">: {rezept.kurztitel}</span>;
+      // Derselbe sichtbare Linktext führt je Rezept zu einem anderen Ziel; für Bildschirmleser nennt er das Rezept
+      // ("zusatz", oben).
       return (
         <section class="r-quelle" id={rezept.slug} aria-labelledby={`q-${rezept.slug}`}>
           <h2 id={`q-${rezept.slug}`}>{rezept.titel}</h2>

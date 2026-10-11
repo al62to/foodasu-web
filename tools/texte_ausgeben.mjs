@@ -3,7 +3,7 @@
 import { writeFileSync } from 'node:fs';
 import { mega, hauptpunkte } from '../src/daten/navigation.mjs';
 import * as t from '../src/daten/startseite.mjs';
-import { texte as r, rezepte, themen } from '../src/daten/rezeptseiten.mjs';
+import { texte as r, rezepte, themen, websiteZahlen } from '../src/daten/rezeptseiten.mjs';
 import { metaVon } from '../src/daten/meta.mjs';
 import { seite } from '../src/daten/seite.mjs';
 import { datenquellen } from '../src/daten/datenquellen.mjs';
@@ -101,8 +101,8 @@ zeile('## Abschnitt 6: Rezepte-Vorschau');
 punkt('Überschrift', t.vorschau.ueberschrift);
 punkt('Text', t.vorschau.text);
 punkt('Karten', `${t.vorschau.karten.map((k) => k.titel).join(', ')}; jede mit Bild, Kennzeichnung „${t.vorschau.kennzeichnung}“ und Bildbeschreibung „Symbolbild: Titel“ (App); jede führt zu ihrer Rezeptseite`);
-punkt('Satz vor dem Link', t.vorschau.hinweis);
-punkt('Link', t.vorschau.link);
+punkt('Satz vor dem Link', t.vorschau.hinweis(websiteZahlen));
+punkt('Link', t.vorschau.link(websiteZahlen));
 zeile();
 
 zeile('## Abschnitt 7: Fragen und Antworten');
@@ -142,7 +142,7 @@ zeile();
 zeile('## Rezeptbereich: feste Texte (aus src/daten/rezeptseiten.mjs)');
 const a = r.alle;
 punkt('Übersicht, Titel und Seitentitel', `${a.titel}; ${a.seitentitel}`);
-punkt('Übersicht, Vorspann', `${a.text(rezepte.length)} ${a.grundlage}`);
+punkt('Übersicht, Vorspann', `${a.text(websiteZahlen)} ${a.grundlage}`);
 punkt('Übersicht, Suche und Filter', `„${a.suche}“; Auswahlknöpfe „${Object.values(a.gruppen).join('“, „')}“ (in der Liste „Passt für“ der Zusatz „${a.passtZusatz}“); „${a.ohne('...')}“; „${a.weitere.land}“, „${a.weitere.passt}“; „${a.zuruecksetzen}“, „${a.fertig}“; für Bildschirmleser „${a.gewaehlt}“ und „${a.entfernen('Italien')}“; „${a.alleZuruecksetzen}“; „${a.stand(1)}“, „${a.stand(40)}“; am Handy „${a.filter}“, „${a.schliessen}“, „${a.zeigen(1)}“, „${a.zeigen(5)}“; „${a.leer}“`);
 punkt('Übersicht, Ende der Seite', `„${a.themen}“: alle Themenseiten als Chips in vier Zeilen (${Object.values(a.themenZeilen).map((name) => `„${name}“`).join(', ')}; bei „${a.themenZeilen.ohne}“ der Zusatz „${a.passtZusatz}“)`);
 punkt('Rezeptseite, Titel der Seite', '<Name>: Rezept aus <Land> | FoodAsu; bei mehreren Ländern <Name>: Rezept mit Hinweisen zu den Zutaten | FoodAsu (Kürzung und alle Titel: Website_Meta_Uebersicht.md)');
@@ -179,6 +179,7 @@ zeile('## Entscheidungen (Ali, 09.10.2026)');
   'AP-16, Rezepte-Vorschau: Satz „Über 300 Rezepte gibt es in der App, 40 davon stehen hier.“ und Link „40 Rezepte auf der Website ansehen“ (bisher „Alle Rezepte ansehen“).',
   'AP-16, Mega-Menü, Spalte „Ohne ...“: Nüsse, Erdnüsse, Gluten, Milch, Eier, Soja, Sesam, Fisch, Schweinefleisch, Alkohol, Gelatine (Themenseiten nach Suchnachfrage); ersetzt Entscheidung 8.',
   'AP-16, Zusatz von Ali vom 09.10.2026: Unter jedem Rezept steht nur der Link „Quelle und Lizenz“; die Angaben stehen je Rezept auf der Seite „Quellen und Lizenzen“ (im Fuß verlinkt, nicht im Index).',
+  'AP-25, Zahlen der Website: Der Satz und der Link der Rezepte-Vorschau und der Vorspann der Übersicht nennen die Zahlen aus den Daten (Rezepte aus der App, aus alten Kochbüchern und neue, die später in die App kommen); die Zahlen der App (über 300 Rezepte, 25 Länder) bleiben für sich.',
 ].forEach((text, i) => zeile(`${i + 1}. ${text}`));
 zeile();
 

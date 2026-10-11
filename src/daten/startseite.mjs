@@ -250,9 +250,21 @@ export const vorschau = {
     { titel: 'Baklava', datei: 'baklava' },
   ],
   kennzeichnung: 'Symbolbild',
-  // Auf der Website stehen 40 Rezepte, alle über 300 gibt es nur in der App (Ali, 09.10.2026).
-  hinweis: 'Über 300 Rezepte gibt es in der App, 40 davon stehen hier.',
-  link: '40 Rezepte auf der Website ansehen',
+  // Auf der Website steht nur eine Auswahl aus der App, alle über 300 gibt es nur in der App (Ali, 09.10.2026). Seit
+  // AP-25 kommen Rezepte dazu, die es in der App noch nicht gibt; die Zahlen kommen aus den Daten
+  // (websiteZahlen in src/daten/rezeptseiten.mjs).
+  // Seit AP-25 stehen dazu 25 Rezepte hier, die später in die App kommen (20 aus alten Kochbüchern, 5 weitere).
+  hinweis: (zahlen) => `Über 300 Rezepte gibt es in der App, ${zahlen.app} davon stehen hier. Dazu kommen ${zahlen.alt} Rezepte aus alten Kochbüchern und ${zahlen.neu} neue, die später in die App kommen.`,
+  link: (zahlen) => `${zahlen.gesamt} Rezepte auf der Website ansehen`,
+  // Kleine Karte, die zur Rubrik "Aus alten Kochbüchern" führt (AP-25 Teil C Nr. 5). Die Zahlen kommen aus den Daten.
+  alt: {
+    titel: 'Aus alten Kochbüchern',
+    text: (zahl, von, bis) => `${zahl} Rezepte aus Kochbüchern von ${von} bis ${bis}: ein Auszug aus dem Original, dazu eine heutige Fassung mit Mengen.`,
+    link: 'Alte Rezepte ansehen',
+    ziel: '/alte-rezepte/',
+    // Adresse des Rezepts, dessen Symbolbild die Karte zeigt.
+    bild: 'linzer-torte-1849',
+  },
 };
 
 // Fragen und Antworten stehen seit AP-22 in src/daten/fragen.mjs.
@@ -269,6 +281,8 @@ export const fuss = {
   seiten: [
     { titel: "So geht's", ziel: '/so-gehts/' },
     { titel: 'Rezepte', ziel: '/rezepte/' },
+    // AP-25: Rubrik mit Rezepten aus alten Kochbüchern.
+    { titel: 'Aus alten Kochbüchern', ziel: '/alte-rezepte/' },
     { titel: 'Fragen', ziel: '/fragen/' },
     // AP-22: woher die Angaben kommen, verständlich erklärt; die Einzelnachweise bleiben unter "Quellen und Lizenzen".
     { titel: 'Daten und Quellen', ziel: '/daten-und-quellen/' },

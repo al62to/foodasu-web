@@ -66,6 +66,7 @@ export const datenquellen = {
       titel: 'Rezepte',
       absaetze: [
         'Die Rezepte stammen aus offenen Rezeptsammlungen, zum Beispiel aus dem Koch-Wiki, dem Kochbuch von Wikibooks und UniTools World Recipes. Sie stehen unter freien Lizenzen und sind für FoodAsu verändert. Die Hinweise zu den Zutaten stammen von FoodAsu.',
+        'Die Rezepte der Rubrik „Aus alten Kochbüchern“ gehen auf gedruckte Kochbücher zurück, deren Schutzfrist abgelaufen ist; Zutaten, Mengen und Schritte sind dort eine heutige Fassung von FoodAsu.',
         { vor: 'Quelle, Urheber, Lizenz und Änderungen stehen für jedes Rezept dieser Website auf der Seite ', text: 'Quellen und Lizenzen', ziel: '/quellen-und-lizenzen/', nach: '.' },
       ],
     },

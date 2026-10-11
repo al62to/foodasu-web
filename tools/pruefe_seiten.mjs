@@ -19,6 +19,13 @@ const OHNE_EINGANG = new Set(['/', '/404.html']);
 const RECHTSTEXTE = new Set(['/datenschutz.html']);
 // Quelle, Urheber, Lizenz und Änderungen je Rezept (nicht im Index, im Fuß verlinkt).
 const QUELLEN = '/quellen-und-lizenzen/';
+// Rezepte, die es in der App noch nicht gibt (AP-25): Rezepte aus alten Kochbüchern und neue Rezepte. Gelesen wird die
+// Datei selbst, nicht src/daten/rezeptseiten.mjs: Die Prüfung zählt unabhängig vom Bau.
+const ZUSATZ = new Map(JSON.parse(readFileSync('src/daten/rezepte_zusatz.json', 'utf8')).rezepte.map((rezept) => [rezept.slug, rezept]));
+// Überschrift des Kastens am Ende dieser Rezeptseiten, ohne Punkt wie „Dieses Rezept in FoodAsu“ (Ali, 11.10.2026).
+const SPAETER = 'Dieses Rezept kommt später in die App';
+const ALTE = '/alte-rezepte/';
+let spaeterSeiten = 0;
 
 const VOR = '(?<![\\p{L}\\p{N}_])(?:';
 const NACH = ')(?![\\p{L}\\p{N}_])';
@@ -40,6 +47,8 @@ const BETA = [['BETA-WORT', muster('testfassung')]];
 const WENDUNGEN = [
   'heutigen\\s+schnelllebigen', 'tauche\\s+ein', 'entdecke\\s+die\\s+welt', 'nahtlos', 'revolutionär', 'ganzheitlich',
   'egal\\s+ob', 'hier\\s+klicken',
+  // AP-25: Die Rezepte aus alten Kochbüchern sind heutige Fassungen nach dem Buch; keine Seite behauptet mehr.
+  'nachgekocht',
 ].map((wort) => ['WENDUNG', muster(wort)]);
 // Der Satz zum Medizinprodukt (AP-22 Teil 1 Nr. 6, wörtlich von der Projektleitung) enthält "gesundheitlichen". Nur
 // dieser eine Satz ist von der Wortliste ausgenommen; er steht in src/daten/fragen.mjs.
@@ -362,13 +371,55 @@ for (const [adresse, html] of seiten) {
         if (stelle < html.indexOf('class="r-angaben"') || stelle > html.indexOf('class="s-inhalt')) melde(adresse, `Knopf „${TEILEN_NAME}“ steht nicht im Kopfbereich nach den Angaben zum Rezept`);
       }
       // Quelle und Lizenz stehen auf der Seite "Quellen und Lizenzen": Die Rezeptseite verlinkt ihren Abschnitt, und
-      // der Abschnitt nennt Lizenz und Änderungsvermerk.
+      // der Abschnitt nennt Lizenz und Änderungsvermerk. Bei einem Rezept aus einem alten Kochbuch nennt er das Buch,
+      // Jahr und Ort, die Stelle im Buch, Digitalisat oder Abschrift und die eigene Fassung (AP-25 Teil C Nr. 6).
       const kennung = adresse.split('/').at(-2);
+      const zusatz = ZUSATZ.get(kennung);
+      const alt = zusatz?.original;
+      const klar = (teil) => entschluesselt(teil.replace(/<span lang="[a-z-]+">([^<]*)<\/span>/g, '$1'));
       if (!html.includes(`href="${QUELLEN}#${kennung}"`)) melde(adresse, `Link auf ${QUELLEN}#${kennung} fehlt`);
       const abschnitt = (seiten.get(QUELLEN) ?? '').split(/<section /).find((teil) => teil.includes(`id="${kennung}"`));
+      const teile = alt
+        ? [alt.buch, `${alt.jahr}, ${alt.ort}`, alt.fundstelle, `href="${alt.digitalisat ?? alt.abschrift}"`, alt.abschrift ? `href="${alt.abschrift}"` : 'Eigene Abschrift aus dem Digitalisat.', 'eigene Fassung von FoodAsu']
+        : ['rel="license', 'Für FoodAsu verändert.', rezept.license, rezept.isBasedOn];
       if (!abschnitt) melde(QUELLEN, `Abschnitt zu ${kennung} fehlt`);
-      else for (const teil of ['rel="license', 'Für FoodAsu verändert.', rezept.license, rezept.isBasedOn]) {
-        if (!abschnitt.includes(teil.replaceAll('&', '&amp;'))) melde(QUELLEN, `Abschnitt ${kennung}: ${teil} fehlt`);
+      else for (const teil of teile) {
+        if (typeof teil !== 'string' || !klar(abschnitt).includes(teil)) melde(QUELLEN, `Abschnitt ${kennung}: ${teil} fehlt`);
+      }
+      // AP-25 Teil H Nr. 4 und 5: "Dieses Rezept kommt später in die App" (ohne Punkt) ist die Überschrift des Kastens am
+      // Ende der Seite (sonst "Dieses Rezept in FoodAsu"), und zwar auf genau den Rezepten, die es in der App noch
+      // nicht gibt. Der Kopf der Seite bleibt, wie ihn die Vorlage vorgibt.
+      const kasten = html.match(/<section class="r-teil r-app[\s\S]*?<\/section>/)?.[0] ?? '';
+      const imKasten = entschluesselt(kasten.match(/<h2 id="app">([^<]*)<\/h2>/)?.[1] ?? '') === SPAETER;
+      if (zusatz) {
+        spaeterSeiten++;
+        if (!imKasten) melde(adresse, `der Satz „${SPAETER}“ ist nicht die Überschrift des Kastens am Ende der Seite`);
+        if (html.slice(0, html.indexOf('class="r-sprung"')).replace(/<script[\s\S]*?<\/script>/g, ' ').includes(SPAETER)) melde(adresse, `der Satz „${SPAETER}“ steht im Kopf der Seite (die Vorlage bleibt dort unverändert)`);
+      } else if (sichtbar(html).includes(SPAETER)) melde(adresse, `der Satz „${SPAETER}“ gehört nur auf Rezepte, die es in der App noch nicht gibt`);
+      // AP-25 Teil C Nr. 2 und Teil H Nr. 4: Block "Aus dem Original" direkt nach dem Kopf, ein Lavendel-Kasten mit
+      // Buch, Verfasser und Jahr als Überzeile, dem Auszug in der alten Schreibweise (mit Sprachangabe, höchstens drei
+      // Sätze) und in heutigem Deutsch, den vollen Angaben zum Buch und dem Link zum Digitalisat oder zur Abschrift
+      // als Textlink. Die Sprungleiste nennt ihn "Original". Die strukturierten Daten nennen das Buch; die Adresse
+      // endet mit dem Jahr.
+      const block = html.match(/<section class="r-teil r-original[\s\S]*?<\/section>/)?.[0];
+      if (Boolean(alt) !== Boolean(block)) melde(adresse, alt ? 'Block „Aus dem Original“ fehlt' : 'Block „Aus dem Original“ gehört nur auf Rezepte aus alten Kochbüchern');
+      if (alt && block) {
+        const quelle = alt.digitalisat ?? alt.abschrift;
+        for (const teil of [`<p class="ueberzeile">${alt.buch_kurz} · ${alt.jahr}</p>`, '<h2 id="original">Aus dem Original</h2>', alt.buch, alt.verfasser, `${alt.ort} ${alt.jahr}`, alt.auszug_alt, alt.auszug_heute, `<blockquote lang="${alt.sprache_kennung}"`, `href="${quelle}"`, `href="${ALTE}"`]) {
+          if (!klar(block).includes(teil)) melde(adresse, `Block „Aus dem Original“: ${teil.slice(0, 80)} fehlt`);
+        }
+        if (!adresse.endsWith(`-${alt.jahr}/`)) melde(adresse, `die Adresse endet nicht mit dem Jahr ${alt.jahr}`);
+        const saetze = alt.auszug_alt.split(/(?<=[.!?])\s+(?=\p{Lu})/u).length;
+        if (saetze > 3) melde(adresse, `der Auszug aus dem Buch hat ${saetze} Sätze (höchstens drei)`);
+        if (/<img\b/.test(block)) melde(adresse, 'Block „Aus dem Original“ zeigt ein Seitenbild (vorgesehen ist nur der Link)');
+        if (/class="knopf/.test(block)) melde(adresse, 'Block „Aus dem Original“: Der Link zum Digitalisat ist ein Textlink, kein Knopf');
+        if (!html.includes('<li><a href="#original">Original</a></li>')) melde(adresse, 'Sprungleiste ohne den Eintrag „Original“');
+        if (html.indexOf(block) > html.indexOf('id="passt"')) melde(adresse, 'Block „Aus dem Original“ steht nicht direkt nach dem Kopf');
+        const buch = rezept.isBasedOn;
+        if (buch?.['@type'] !== 'Book' || buch.name !== alt.buch || buch.datePublished !== String(alt.jahr) || buch.url !== quelle) melde(adresse, 'isBasedOn nennt nicht das Buch mit Titel, Jahr und Adresse');
+        if (Boolean(alt.todesjahr) !== (buch?.author?.name === alt.verfasser)) melde(adresse, 'isBasedOn: Verfasserin oder Verfasser stimmt nicht mit den Angaben zum Buch überein');
+        if (alt.gleiches_gericht && !html.includes(`href="/rezepte/${alt.gleiches_gericht}/"`)) melde(adresse, `Link zur heutigen Fassung /rezepte/${alt.gleiches_gericht}/ fehlt`);
+        if (alt.gleiches_gericht && !(seiten.get(`/rezepte/${alt.gleiches_gericht}/`) ?? '').includes(`href="${adresse}"`)) melde(`/rezepte/${alt.gleiches_gericht}/`, `Link zur Fassung aus dem alten Kochbuch ${adresse} fehlt`);
       }
     }
     if (liste) {
@@ -427,6 +478,41 @@ for (const datei of dateien.filter((d) => /\.(js|css)$/.test(d))) {
 // Knopf "Rezept teilen": Jede Seite mit einem Rezept in den strukturierten Daten hat ihn.
 const rezeptSeiten = [...seiten.values()].filter((html) => IST_REZEPT.test(html)).length;
 if (teilenKnoepfe !== rezeptSeiten || rezeptSeiten === 0) melde('/rezepte/', `Knopf „${TEILEN_NAME}“ auf ${teilenKnoepfe} von ${rezeptSeiten} Rezeptseiten`);
+// Rezepte, die es in der App noch nicht gibt (AP-25): Jedes hat seine Seite. Die Sammelseite "Aus alten Kochbüchern"
+// zeigt am Zeitstrahl genau die Rezepte aus alten Kochbüchern, je Karte mit Bild, Titel, Jahr und Buch; ihre ItemList
+// nennt nur, was auf der Seite steht. Titel, Beschreibung und Text tragen die drei Suchbegriffe. Die Startseite und
+// die Übersicht der Rezepte verlinken die Seite (der Fuß jeder Seite auch: FUSS_LINKS).
+for (const slug of ZUSATZ.keys()) if (!IST_REZEPT.test(seiten.get(`/rezepte/${slug}/`) ?? '')) melde(`/rezepte/${slug}/`, 'Rezeptseite fehlt');
+if (spaeterSeiten !== ZUSATZ.size) melde('/rezepte/', `der Satz „${SPAETER}“ ist auf ${spaeterSeiten} von ${ZUSATZ.size} Seiten geprüft`);
+const alteSeite = seiten.get(ALTE);
+const alteSlugs = [...ZUSATZ.values()].filter((rezept) => rezept.original).map((rezept) => rezept.slug);
+if (!alteSeite) melde(ALTE, 'Seite fehlt');
+else {
+  const sammlung = alle(alteSeite, /<script type="application\/ld\+json">([\s\S]*?)<\/script>/g).map(([, roh]) => { try { return JSON.parse(roh); } catch { return {}; } }).find((block) => block['@type'] === 'ItemList');
+  const ziele = (sammlung?.itemListElement ?? []).map((punkt) => punkt.url);
+  if (!sammlung) melde(ALTE, 'ItemList fehlt in den strukturierten Daten');
+  else {
+    if ([...ziele].sort().join(' ') !== alteSlugs.map((slug) => `${HOST}/rezepte/${slug}/`).sort().join(' ')) melde(ALTE, `ItemList nennt nicht genau die ${alteSlugs.length} Rezepte aus alten Kochbüchern`);
+    if (sammlung.numberOfItems !== ziele.length || sammlung.itemListElement.some((punkt, nummer) => punkt.position !== nummer + 1)) melde(ALTE, 'ItemList: Anzahl oder position stimmt nicht');
+    listeSichtbar(ALTE, alteSeite, ziele);
+  }
+  const karten = alle(alteSeite, /<li\b[^>]*\bclass="r-karte[^"]*"[^>]*>[\s\S]*?<\/li>/g).map(([karte]) => karte);
+  for (const slug of alteSlugs) {
+    const { titel, original } = ZUSATZ.get(slug);
+    const karte = karten.find((eine) => eine.includes(`href="/rezepte/${slug}/"`));
+    const text = entschluesselt((karte ?? '').replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ');
+    if (!karte) melde(ALTE, `Karte für ${slug} fehlt`);
+    else for (const teil of [titel.replace(/\s*\(\d{4}\)$/, ''), `${original.jahr} · ${original.buch_kurz}`]) if (!text.includes(teil)) melde(ALTE, `Karte ${slug}: ${teil} fehlt`);
+    if (karte && !/<img\b/.test(karte)) melde(ALTE, `Karte ${slug} ohne Bild`);
+  }
+  if (!/<ol class="stationen a-zeitstrahl">/.test(alteSeite)) melde(ALTE, 'Zeitstrahl fehlt');
+  for (const zeitraum of new Set(alteSlugs.map((slug) => ZUSATZ.get(slug).original.zeitraum))) {
+    if (!new RegExp(`<h3 id="[^"]+">${zeitraum}</h3>`).test(alteSeite)) melde(ALTE, `Zeitraum „${zeitraum}“ fehlt am Zeitstrahl`);
+  }
+  const kopfdaten = `${alteSeite.match(/<title>([^<]*)<\/title>/)?.[1] ?? ''} ${inhaltVon(alteSeite, 'description') ?? ''} ${sichtbar(alteSeite.match(/<main[\s\S]*<\/main>/)?.[0] ?? '')}`.toLowerCase();
+  for (const begriff of ['alte rezepte', 'historische rezepte', 'kochbüchern']) if (!kopfdaten.includes(begriff)) melde(ALTE, `Suchbegriff „${begriff}“ fehlt in Titel, Beschreibung und Text`);
+  for (const adresse of ['/', '/rezepte/']) if (!(seiten.get(adresse)?.match(/<main[\s\S]*<\/main>/)?.[0] ?? '').includes(`href="${ALTE}"`)) melde(adresse, `Link auf ${ALTE} fehlt im Inhalt der Seite`);
+}
 // Schalter für helle und dunkle Darstellung (AP-18 Teil C): Jede Seite liest die gemerkte Wahl schon im Kopf, vor dem
 // ersten Zeichnen, und hat genau einen Schalter (ein echter Knopf mit der Rolle Schalter und einem Namen). Der
 // Eintrag wird auf jeder Seite höchstens an einer Stelle geschrieben. Die Farben hängen nur noch an data-modus, nie
@@ -459,7 +545,7 @@ for (const [adresse, html] of seiten) {
 
 // Fußzeile A (AP-18 Teil D): auf jeder Seite Logo mit Satz und Hinweis, drei Spalten mit ihren Links, die schmale
 // Zeile mit dem Vermerk. Facebook und Instagram sind einfache Links; eingebettet wird nichts.
-const FUSS_LINKS = ['/datenschutz.html', '/offenlegung/', '/lizenzen/', '/quellen-und-lizenzen/', '/so-gehts/', '/rezepte/', '/fragen/', '/daten-und-quellen/', '/ueber-foodasu/'];
+const FUSS_LINKS = ['/datenschutz.html', '/offenlegung/', '/lizenzen/', '/quellen-und-lizenzen/', '/so-gehts/', '/rezepte/', ALTE, '/fragen/', '/daten-und-quellen/', '/ueber-foodasu/'];
 const FUSS_TEXTE = [
   'Lebensmittel-Scanner und Einkaufsliste für den ganzen Haushalt.', 'Maßgeblich ist die Verpackung.', 'Rechtliches', 'Folge uns',
   '© 2026 FoodAsu · Eine App von Ali',
@@ -855,7 +941,8 @@ if (!/<div class="einkauf" aria-hidden="true">/.test(startseite)) melde('/', 'di
 // - Datenschutzerklärung und Offenlegung: der Rechtstext selbst (Anschrift und Behörde sind Pflicht), nicht die
 //   Kopfdaten und der Rahmen der Seite;
 // - die Länder der Rezepte: "aus Österreich" auf den Seiten unter /rezepte/ und in llms.txt in der Zeile einer solchen
-//   Seite;
+//   Seite; seit AP-25 ebenso die Länder und Orte der alten Kochbücher auf /alte-rezepte/ und unter "Quellen und
+//   Lizenzen";
 // - og:locale:alternate "de_AT" (Sprache ohne Region: de_DE, dazu de_AT und de_CH als gleichwertige Angaben);
 // - der Satz zur Verfügbarkeit, der als einziger die Plattform nennt;
 // - die Adresse des Eintrags bei Google Play (der Paketname at.tonc.einkauf lässt sich nicht ändern);
@@ -897,7 +984,7 @@ for (const datei of dateien.filter((pfad) => /\.(?:html|txt|xml|json|webmanifest
     teil = teil.replaceAll(VERFUEGBAR, ' ').replaceAll(PLAY_EINTRAG, ' ').replace(WEITERE_SPRACHE, ' ');
     const inAnleitung = adresse.startsWith(BEREICH) || (name === '/llms.txt' && teil.includes(`](${HOST}${BEREICH}`));
     if (inAnleitung) for (const wortlaut of ANLEITUNG_ANDROID) teil = teil.replaceAll(wortlaut, ' ');
-    const beiRezepten = adresse.startsWith('/rezepte/') || (name === '/llms.txt' && teil.includes(`](${HOST}/rezepte/`));
+    const beiRezepten = adresse.startsWith('/rezepte/') || adresse === ALTE || adresse === QUELLEN || (name === '/llms.txt' && (teil.includes(`](${HOST}/rezepte/`) || teil.includes(`](${HOST}${ALTE}`)));
     for (const [wort, ausdruck] of nurHerkunft ? HERKUNFT : [...HERKUNFT, ...PLATTFORM]) {
       if (wort === 'aus Österreich' && beiRezepten) continue;
       for (const fund of alle(teil, ausdruck)) {
@@ -949,7 +1036,7 @@ if (gruppenTitel.join(' | ') !== 'Die Daten | Deine Angaben | Die App') melde('/
 const fragenTitel = alle(fragenInhalt, /<h3 id="[^"]+">([\s\S]*?)<\/h3>/g).map(([, titel]) => entschluesselt(titel.replace(/<[^>]+>/g, '')));
 const faqDaten = alle(fragenSeite, /<script type="application\/ld\+json">([\s\S]*?)<\/script>/g).map(([, roh]) => { try { return JSON.parse(roh); } catch { return {}; } }).find((einer) => einer['@type'] === 'FAQPage');
 const faqNamen = (faqDaten?.mainEntity ?? []).map((eintrag) => eintrag.name);
-if (fragenTitel.length !== 6 || fragenTitel.join(' | ') !== faqNamen.join(' | ')) melde('/fragen/', `FAQPage folgt nicht der Reihenfolge der Seite: Seite „${fragenTitel.join(' | ')}“, Daten „${faqNamen.join(' | ')}“`);
+if (fragenTitel.length !== 7 || fragenTitel.join(' | ') !== faqNamen.join(' | ')) melde('/fragen/', `FAQPage folgt nicht der Reihenfolge der Seite: Seite „${fragenTitel.join(' | ')}“, Daten „${faqNamen.join(' | ')}“`);
 if ((faqDaten?.mainEntity ?? []).find((eintrag) => eintrag.name === 'Wo bekomme ich FoodAsu?')?.acceptedAnswer?.text !== STAND) melde('/fragen/', 'FAQPage: Die Antwort auf „Wo bekomme ich FoodAsu?“ ist nicht der Satz zur Verfügbarkeit');
 if (!/<p class="kasten">FoodAsu ist kein Medizinprodukt/.test(fragenInhalt)) melde('/fragen/', 'der Satz zum Medizinprodukt steht nicht als Lavendel-Kasten da');
 if (/<details/.test(fragenInhalt)) melde('/fragen/', 'eine Antwort ist zugeklappt (auf dieser Seite stehen alle Antworten offen)');
@@ -973,6 +1060,44 @@ if (/<nav class="s-toc"/.test(seiten.get('/offenlegung/') ?? '')) melde('/offenl
 for (const [adresse, html] of seiten) {
   for (const [motiv] of alle(html, /<svg[^>]*class="motiv[^"]*"[^>]*>/g)) if (!/aria-hidden="true"/.test(motiv)) melde(adresse, 'ein Linienmotiv ist für Bildschirmleser nicht ausgeblendet');
 }
+
+// Zahlen der Website, getrennt von den Zahlen der App (AP-25 Teil F Nr. 2 und 3). Gezählt wird am Bau: jede Seite mit
+// einem Rezept in den strukturierten Daten, davon die Rezepte, die es in der App noch nicht gibt (aus alten Kochbüchern
+// und neue). Jede Stelle, die Rezepte der Website zählt, nennt genau diese Zahlen. Was die App hat (über 300 Rezepte),
+// bleibt für sich; kein Satz schreibt die Rezepte aus alten Kochbüchern oder die neuen der App zu.
+const websiteZahlen = { gesamt: rezeptSeiten, alt: alteSlugs.length, neu: ZUSATZ.size - alteSlugs.length, app: rezeptSeiten - ZUSATZ.size };
+const ZAHL_SAETZE = [
+  ['/rezepte/', `Auf der Website stehen ${websiteZahlen.gesamt} Rezepte mit Hinweisen zu den Zutaten. ${websiteZahlen.app} davon sind aus der App, ${websiteZahlen.alt} aus alten Kochbüchern und ${websiteZahlen.neu} neue, die später in die App kommen.`],
+  ['/', `Über 300 Rezepte gibt es in der App, ${websiteZahlen.app} davon stehen hier. Dazu kommen ${websiteZahlen.alt} Rezepte aus alten Kochbüchern und ${websiteZahlen.neu} neue, die später in die App kommen.`],
+  ['/', `${websiteZahlen.gesamt} Rezepte auf der Website ansehen`],
+  [ALTE, `${websiteZahlen.alt} historische Rezepte aus Kochbüchern`],
+  ['/fragen/', `Das sind ${websiteZahlen.alt} Rezepte aus gedruckten Kochbüchern`],
+];
+for (const [adresse, satz] of ZAHL_SAETZE) if (!fliesstext(adresse).includes(satz)) melde(adresse, `Zahlen der Website: „${satz}“ fehlt oder nennt andere Zahlen`);
+if (websiteZahlen.app <= 0 || websiteZahlen.alt + websiteZahlen.neu !== ZUSATZ.size) melde('/rezepte/', 'Zahlen der Website lassen sich nicht aus dem Bau zählen');
+for (const [adresse, html] of seiten) {
+  const text = fliesstext(adresse);
+  // Menü und Verweise: "Alle 65 Rezepte", "65 Rezepte auf der Website", "65 Rezepte anzeigen" (Filter ohne Auswahl).
+  for (const [ganz, zahl] of alle(text, /Alle (\d+) Rezepte|(?<=\s)(\d+) Rezepte auf der Website/g).map((fund) => [fund[0], Number(fund[1] ?? fund[2])])) {
+    if (zahl !== websiteZahlen.gesamt) melde(adresse, `Zahlen der Website: „${ganz}“, auf der Website stehen ${websiteZahlen.gesamt} Rezepte`);
+  }
+  // Kein Satz schreibt die Rezepte aus alten Kochbüchern der App zu: Wo beides in einem Satz steht, steht "später".
+  // Gelesen werden die Absätze, Überschriften und Listenpunkte im Inhalt der Seite und die Beschreibung im Kopf.
+  const inhalt = ohneSprachangabe(html.match(/<main[\s\S]*<\/main>/)?.[0] ?? '').replace(/<script[\s\S]*?<\/script>/g, ' ');
+  const stuecke = alle(inhalt, /<(p|h[1-6]|dd|figcaption|summary)\b[^>]*>([\s\S]*?)<\/\1>/g).map(([, , innen]) => entschluesselt(innen.replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' '));
+  for (const satz of [...stuecke, inhaltVon(html, 'description') ?? ''].flatMap((stueck) => stueck.split(/(?<=[.!?])\s+/))) {
+    if (/\bApp\b/.test(satz) && /alten? Kochb|historische|Aus dem Original/.test(satz) && !/später/.test(satz)) melde(adresse, `schreibt die Rezepte aus alten Kochbüchern der App zu: „${satz.trim().slice(0, 160)}“`);
+  }
+}
+// Auf den Rezepten, die es in der App noch nicht gibt, steht im Kasten am Ende der Satz zu den anderen Rezepten der App,
+// nicht der Verweis auf dieses Rezept in der App.
+for (const slug of ZUSATZ.keys()) {
+  const text = fliesstext(`/rezepte/${slug}/`);
+  if (!text.includes('In der App gibt es schon über 300 andere Rezepte.')) melde(`/rezepte/${slug}/`, 'Kasten am Ende: der Satz zu den anderen Rezepten der App fehlt');
+  for (const wendung of ['Dieses Rezept in FoodAsu', 'Dort findest du über 300 Rezepte.']) if (text.includes(wendung)) melde(`/rezepte/${slug}/`, `schreibt das Rezept der App zu: „${wendung}“`);
+}
+// llms.txt nennt die Rubrik in einem eigenen Abschnitt, mit der Zahl aus den Daten.
+if (!llms.includes('## Aus alten Kochbüchern\n') || !llms.includes(`(${websiteZahlen.alt} Rezepte, `)) melde('llms.txt', 'Abschnitt „Aus alten Kochbüchern“ fehlt oder nennt eine andere Zahl');
 
 // Tabelle aller Titel und Beschreibungen, wie sie auf den gebauten Seiten stehen (Aufruf mit --meta <Datei>).
 const metaZiel = process.argv.includes('--meta') ? process.argv[process.argv.indexOf('--meta') + 1] : null;

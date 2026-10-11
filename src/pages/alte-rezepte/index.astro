@@ -1,0 +1,84 @@
+---
+// Sammelseite "Aus alten Kochbüchern" (AP-25 Teil C Nr. 1): Rezepte aus alten Kochbüchern an einem Zeitstrahl nach
+// Zeiträumen; je Rezept Bild, Titel, Jahr und Buch. Texte und Zeiträume stehen in src/daten/alte_rezepte.mjs, die
+// Rezepte in src/daten/rezepte_zusatz.json. Die strukturierten Daten (ItemList) nennen nur, was auf der Seite steht;
+// die BreadcrumbList kommt aus den Brotkrumen.
+import Basis from '../../layouts/Basis.astro';
+import Seitenkopf from '../../components/Seitenkopf.astro';
+import Rezeptkarte from '../../components/Rezeptkarte.astro';
+import '../../styles/rezepte.css';
+import { seite } from '../../daten/seite.mjs';
+import { alteSeite, zeitraeume, jahreVonBis } from '../../daten/alte_rezepte.mjs';
+import { alteRezepte, rezeptAdresse, texte, LAND } from '../../daten/rezeptseiten.mjs';
+
+const t = alteSeite;
+const [von, bis] = jahreVonBis();
+const gereiht = zeitraeume.flatMap((zeitraum) => zeitraum.rezepte);
+const aufzaehlung = (liste) => (liste.length < 2 ? liste.join('') : `${liste.slice(0, -1).join(', ')} und ${liste.at(-1)}`);
+// Land des Buchs, wie es nach "aus" steht ("aus den USA").
+const laenderVon = (rezepte) => [...new Set(rezepte.map((rezept) => (rezept.original.land === 'USA' ? 'den USA' : rezept.original.land)))];
+const daten = [{
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: t.titel,
+  numberOfItems: gereiht.length,
+  itemListElement: gereiht.map((rezept, nummer) => ({
+    '@type': 'ListItem', position: nummer + 1, name: rezept.titel, url: seite.adresse + rezeptAdresse(rezept),
+  })),
+}];
+---
+<Basis daten={daten}>
+  <Seitenkopf
+    krumen={[{ titel: t.name, ziel: t.adresse }]}
+    titel={t.titel}
+    vorzeile={t.name}
+    vorspann={t.vorspann(alteRezepte.length, von, bis)}
+    klein
+    motive={[
+      { art: 'aehre', breite: 120, lage: 'top: 10px; right: 120px', nurBreit: true },
+      { art: 'blatt', breite: 130, lage: 'bottom: -40px; right: 360px', ecke: true },
+    ]}
+  />
+
+  <div class="s-inhalt innen a-inhalt">
+    <nav class="a-sprung" aria-label={t.sprung}>
+      <ul class="chips">
+        {zeitraeume.map((zeitraum) => <li><a class="chip" href={`#${zeitraum.anker}`}>{zeitraum.kennung}<span class="a-zahl">{zeitraum.rezepte.length}</span></a></li>)}
+      </ul>
+    </nav>
+
+    <section class="s-teil" aria-labelledby="zeitstrahl">
+      <h2 id="zeitstrahl" class="vh">{t.zeitstrahl}</h2>
+      <ol class="stationen a-zeitstrahl">
+        {zeitraeume.map((zeitraum, nummer) => (
+          <li class="station a-zeitraum" data-ein>
+            <span class="station-kreis" aria-hidden="true">{zeitraum.kreis}</span>
+            <div class="a-zeitraum-inhalt">
+              <div class="a-zeitraum-kopf">
+                <h3 id={zeitraum.anker}>{zeitraum.kennung}</h3>
+                <p class="a-jahre">{zeitraum.jahre} · {t.anzahl(zeitraum.rezepte.length)} · {t.aus(aufzaehlung(laenderVon(zeitraum.rezepte)))}</p>
+              </div>
+              <p class="a-zeitraum-text">{zeitraum.text}</p>
+              <ul class="r-karten flach a-karten">{zeitraum.rezepte.map((rezept) => <Rezeptkarte rezept={rezept} vorn={nummer === 0} alt />)}</ul>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </section>
+
+    <section class="s-teil a-so" aria-labelledby="so">
+      <h2 id="so">{t.so.titel}</h2>
+      <dl class="a-so-liste">
+        {t.so.punkte.map(([name, text]) => <div data-ein><dt>{name}</dt><dd>{text}</dd></div>)}
+      </dl>
+    </section>
+
+    <section class="s-teil" aria-labelledby="mehr">
+      <h2 id="mehr">{t.mehr.titel}</h2>
+      <p class="a-mehr">
+        <a class="knopf voll" href="/rezepte/">{t.mehr.alle}</a>
+        <a class="knopf rand" href={texte.quelle.seite.adresse}>{t.mehr.quellen}</a>
+      </p>
+    </section>
+  </div>
+</Basis>

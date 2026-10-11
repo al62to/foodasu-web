@@ -1,5 +1,6 @@
 // "So geht's", Kapitel "Rezepte": Bereich "Rezepte" der App (Stand 0.14.3). Ein ganzes Rezept mit Zutaten oder
-// Schritten zeigen die Bilder nur von "Pizza Margherita", einem der 40 Rezepte dieser Website.
+// Schritten zeigen die Bilder nur von "Pizza Margherita", einem der Rezepte aus der App, die auch auf dieser
+// Website stehen.
 import { foto, link } from './hilfen.mjs';
 
 export default {

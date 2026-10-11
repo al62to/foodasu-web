@@ -10,10 +10,11 @@ import Basis from '../../layouts/Basis.astro';
 import Seitenkopf from '../../components/Seitenkopf.astro';
 import Rezeptkarte from '../../components/Rezeptkarte.astro';
 import '../../styles/rezepte.css';
+import { alteSeite, jahreVonBis } from '../../daten/alte_rezepte.mjs';
 import { seite } from '../../daten/seite.mjs';
 import {
-  rezepte, texte, KATEGORIE, LAND, LAND_REIHENFOLGE, EINTRAEGE, FILTER_PASST, FILTER_ZUERST, rezeptAdresse, ziel,
-  filterAngaben, themenMitSeite,
+  rezepte, alteRezepte, texte, KATEGORIE, LAND, LAND_REIHENFOLGE, EINTRAEGE, FILTER_PASST, FILTER_ZUERST,
+  rezeptAdresse, ziel, filterAngaben, themenMitSeite, websiteZahlen,
 } from '../../daten/rezeptseiten.mjs';
 
 const t = texte.alle;
@@ -61,7 +62,8 @@ const themenZeilen = ['ohne', 'passt', 'land', 'kategorie'].map((art) => ({
     .map((thema) => ({ name: art === 'ohne' ? t.ohne(thema.menue) : thema.menue, ziel: thema.adresse, titel: thema.titel }))
     .sort((a, b) => a.name.localeCompare(b.name, 'de')),
 })).filter((zeile) => zeile.themen.length > 0);
-const text = t.text(rezepte.length);
+const text = t.text(websiteZahlen);
+const [altVon, altBis] = alteRezepte.length ? jahreVonBis() : [];
 const daten = [{
   '@context': 'https://schema.org',
   '@type': 'ItemList',
@@ -82,6 +84,7 @@ const daten = [{
     ]}
   >
     <p class="klein">{t.grundlage}</p>
+    {alteRezepte.length > 0 && <p class="r-rubrik"><a class="chip" href={alteSeite.adresse}><i aria-hidden="true"></i>{t.rubrik(alteRezepte.length, altVon, altBis)}</a></p>}
   </Seitenkopf>
 
   <div class="s-inhalt innen">

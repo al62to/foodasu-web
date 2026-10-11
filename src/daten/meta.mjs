@@ -21,7 +21,9 @@ import { kopfdaten, fuss } from './startseite.mjs';
 import { BEREICH, adresse as kapitelAdresse, kapitel } from './sogehts.mjs';
 import {
   AUFWAND, KATEGORIE, LAND, ausLand, dauer, portionen, rezeptAdresse, rezeptSeiten, suchtitel, themen,
+  alteRezepte,
 } from './rezeptseiten.mjs';
+import { alteSeite, jahreVonBis } from './alte_rezepte.mjs';
 
 const MARKE = ` | ${seite.name}`;
 export const OHNE_INDEX = ['/offenlegung/', '/quellen-und-lizenzen/', '/404.html'];
@@ -144,6 +146,7 @@ const ERDTEIL = {
   DE: 'Europa', AT: 'Europa', IT: 'Europa', FR: 'Europa', CH: 'Europa', ES: 'Europa', GR: 'Europa', HU: 'Europa',
   CZ: 'Europa', LI: 'Europa', TR: 'Asien', SY: 'Asien', IN: 'Asien', LB: 'Asien', JO: 'Asien', TH: 'Asien', PS: 'Asien',
   JP: 'Asien', KR: 'Asien', IL: 'Asien', IR: 'Asien', VN: 'Asien', MX: 'Amerika', PE: 'Amerika', MA: 'Afrika',
+  GB: 'Europa', IE: 'Europa', SE: 'Europa', US: 'Amerika', EG: 'Afrika', SD: 'Afrika', ID: 'Asien',
 };
 for (const kuerzel of Object.keys(LAND)) if (!ERDTEIL[kuerzel]) fehler.push(`Erdteil fehlt für ${kuerzel}`);
 for (const kategorie of Object.keys(KATEGORIE)) if (!MEHRZAHL[kategorie]) fehler.push(`Mehrzahl fehlt für ${kategorie}`);
@@ -181,6 +184,11 @@ const BEISPIELE = {
   '/rezepte/land/italien/': { rezepte: ['pizza-margherita', 'tiramisu'], text: 'von der Pizza Margherita bis zum Tiramisu' },
   '/rezepte/land/spanien/': { rezepte: ['gazpacho-andaluz', 'paella-valenciana'], text: 'vom Gazpacho andaluz bis zur Paella valenciana' },
   '/rezepte/kategorie/hauptgericht/': { rezepte: ['bibimbap', 'wiener-schnitzel'] },
+  // Seit AP-25 zeigen diese Seiten mehr Rezepte, als die Beschreibung beim Namen nennt.
+  '/rezepte/kategorie/suppe/': { rezepte: ['gazpacho-andaluz', 'gulyas'] },
+  '/rezepte/kategorie/suessspeise/': { rezepte: ['apfelstrudel', 'tiramisu'] },
+  '/rezepte/kategorie/gebaeck/': { rezepte: ['croissants', 'sachertorte'] },
+  '/rezepte/land/frankreich/': { rezepte: ['croissants', 'ratatouille'] },
 };
 const VERPACKUNG = 'Beim Einkauf zählt trotzdem die Verpackung.';
 const ENDEN = [', jeweils mit Zutaten, Zubereitung und Hinweisen zu den Zutaten.', ', jeweils mit Hinweisen zu den Zutaten.'];
@@ -271,6 +279,33 @@ const REZEPT = {
   'tortilla-espanola': { text: 'Tortilla española aus Spanien: Kartoffelomelett aus Kartoffeln, Zwiebel, Eiern und Olivenöl. In {zeit}, mit Hinweisen zu den Zutaten.', zutaten: ['Kartoffel', 'Zwiebel', 'Ei', 'Olivenöl'] },
   tsatsiki: { text: 'Tsatsiki aus Griechenland: Sauce aus griechischem Joghurt, Gurke, Knoblauch und Olivenöl. Für {portionen}, mit Hinweisen zu den Zutaten.', zutaten: ['Griechischer Joghurt', 'Gurke', 'Knoblauch', 'Olivenöl'] },
   'wiener-schnitzel': { text: 'Wiener Schnitzel aus Österreich: Kalbsschnitzel mit Mehl, Ei, Semmelbröseln und Butterschmalz. In {zeit}, mit Hinweisen zu den Zutaten.', zutaten: ['Kalbsschnitzel', 'Weizenmehl', 'Ei', 'Semmelbrösel', 'Butterschmalz'] },
+  // Rezepte, die später in die App kommen (src/daten/rezepte_zusatz.json).
+  'american-pancakes': { text: 'American Pancakes aus den USA: Pfannkuchen mit Sauerrahm, Eiern und Backpulver. In {zeit} für {portionen}, mit Hinweisen zu den Zutaten.', zutaten: ['Sauerrahm', 'Ei', 'Backpulver'] },
+  'cottage-pie': { text: 'Cottage Pie: Auflauf aus Rinderhackfleisch mit Karotte und Tomate unter Kartoffeln und Cheddar. Für {portionen}, mit Hinweisen zu den Zutaten.', zutaten: ['Rinderhackfleisch', 'Karotte', 'Tomate', 'Kartoffel', 'Cheddar'] },
+  'ful-medames': { text: 'Ful Medames: Püree aus Dicken Bohnen mit Tahin, Zitrone, Knoblauch und Kreuzkümmel. In {zeit} für {portionen}, mit Hinweisen zu den Zutaten.', zutaten: ['Saubohnen', 'Tahin', 'Zitrone', 'Knoblauch', 'Kreuzkümmel'] },
+  kladdkaka: { text: 'Kladdkaka aus Schweden: Schokoladenkuchen aus Butter, Schokolade, Zucker, Mehl und Eiern. In {zeit} fertig, mit Hinweisen zu den Zutaten.', zutaten: ['Butter', 'Schokolade', 'Zucker', 'Weizenmehl', 'Ei'] },
+  'lomo-saltado': { text: 'Lomo saltado aus Peru: Rindfleisch aus der Pfanne mit Zwiebel, Tomaten und frittierten Kartoffeln. In {zeit}, mit Hinweisen zu den Zutaten.', zutaten: ['Rindfleisch', 'Gemüsezwiebel', 'Tomate', 'Kartoffel'] },
+  // Rezepte aus alten Kochbüchern (Paket "historisch"): Jahr, Land, Buch oder Verfasser und die Zutaten.
+  'apfelauflauf-1688': { text: 'Apfelauflauf von 1688 aus Österreich: Äpfel mit Eiern, Sahne, Semmelbröseln und Zimt, nach einem Grazer Kochbuch. Mit Auszug aus dem Buch.', zutaten: ['Apfel', 'Ei', 'Sahne', 'Semmelbrösel', 'Zimt'] },
+  'brownies-1910': { text: 'Brownies von 1910 aus den USA, nach Fannie Farmer: Schokolade, Butter, Zucker, Mehl und Walnüsse. Mit Auszug aus dem Kochbuch.', zutaten: ['Zartbitterschokolade', 'Butter', 'Zucker', 'Weizenmehl', 'Walnüsse'] },
+  'erbsensuppe-1706': { text: 'Erbsensuppe von 1706 aus Deutschland: gelbe Erbsen mit Zwiebel, Butter und geröstetem Weißbrot. Mit Auszug aus dem Nürnberger Kochbuch.', zutaten: ['Erbsen', 'Zwiebel', 'Butter', 'Weißbrot'] },
+  'gazpacho-1875': { text: 'Gazpacho von 1875 aus Spanien, noch ohne Tomate: Weißbrot, Olivenöl, Knoblauch, Kreuzkümmel und Essig. Mit Auszug aus dem Original.', zutaten: ['Weißbrot', 'Olivenöl', 'Knoblauch', 'Kreuzkümmel', 'Weinessig'] },
+  'gefuellte-eier-1598': { text: 'Gefüllte Eier von 1598 aus Deutschland, nach Anna Wecker: Eier mit Parmesan und Pfeffer, in Butterschmalz gebacken. Mit Auszug aus dem Buch.', zutaten: ['Ei', 'Parmesan', 'Pfeffer', 'Butterschmalz'] },
+  'gnocchi-1570': { text: 'Gnocchi von 1570 aus Italien, nach Bartolomeo Scappi: Mehl und Semmelbrösel, dazu Parmesan, Zucker und Zimt. Mit Auszug aus dem Original.', zutaten: ['Weizenmehl', 'Semmelbrösel', 'Parmesan', 'Zucker', 'Zimt'] },
+  'kaiserschmarrn-1890': { text: 'Kaiserschmarrn von 1890 aus Österreich, nach Katharina Prato: Sahne, Eier, Mehl und Rosinen. In {zeit}, mit Auszug aus dem Original.', zutaten: ['Sahne', 'Ei', 'Weizenmehl', 'Rosinen'] },
+  'kartoffelpuffer-1905': { text: 'Kartoffelpuffer von 1905 aus Deutschland, nach Hedwig Heyl: Kartoffeln, Eier und Milch, in Butterschmalz gebacken. Mit Auszug aus dem Original.', zutaten: ['Kartoffel', 'Ei', 'Milch', 'Butterschmalz'] },
+  'koenigsberger-klopse-1905': { text: 'Königsberger Klopse von 1905 aus Deutschland, nach Hedwig Heyl: Rind- und Schweinehack in Heringssauce. Mit Auszug aus dem Buch.', zutaten: ['Rinderhackfleisch', 'Schweinehackfleisch', 'Matjes'] },
+  'lammeintopf-1597': { text: 'Lammeintopf von 1597 aus Großbritannien: Lammschulter mit Zwiebeln, Petersilie und einer Sauce aus Brühe und Brot. Mit Auszug aus dem Buch.', zutaten: ['Lammschulter', 'Zwiebel', 'Petersilie', 'Weißbrot'] },
+  'lebkuchen-1706': { text: 'Lebkuchen von 1706 aus Deutschland: Zucker, Honig, Rosenwasser, Mehl, Zimt und Pfeffer. Für {portionen}, mit Auszug aus dem Kochbuch.', zutaten: ['Zucker', 'Honig', 'Rosenwasser', 'Weizenmehl', 'Zimt', 'Pfeffer'] },
+  'linzer-torte-1849': { text: 'Linzer Torte von 1849, nach dem Kochbuch von Henriette Davidis aus Deutschland: Mandelteig mit Butter und Johannisbeerkonfitüre, mit Auszug.', zutaten: ['Mandeln', 'Butter', 'Johannisbeerkonfitüre'] },
+  'maccheroni-alla-bolognese-1895': { text: 'Maccheroni alla bolognese von 1895 aus Italien, nach Artusi: Makkaroni mit Kalbfleisch, Pancetta und Parmesan. Mit Auszug aus dem Buch.', zutaten: ['Makkaroni', 'Kalbfleisch', 'Pancetta', 'Parmesan'] },
+  'marzipan-1598': { text: 'Marzipan von 1598 aus Deutschland, nach Anna Wecker: Mandeln, Puderzucker und Rosenwasser, auf Oblaten. Mit Auszug aus dem Buch.', zutaten: ['Mandeln', 'Puderzucker', 'Rosenwasser', 'Oblaten'] },
+  'nasi-goreng-1902': { text: 'Nasi Goreng von 1902 aus Indonesien: gebratener Reis mit Huhn, Garnelen, Schalotten und Ei. Mit Auszug aus einem Kochbuch aus Semarang.', zutaten: ['Reis', 'Hähnchenkeule', 'Garnelen', 'Schalotte', 'Ei'] },
+  'omelett-1746': { text: 'Omelett von 1746 aus Frankreich, nach Menon: Eier, Butter, Petersilie und Schnittlauch. In {zeit} fertig, mit Auszug aus dem Original.', zutaten: ['Ei', 'Butter', 'Petersilie', 'Schnittlauch'] },
+  'pfannkuchen-1597': { text: 'Pfannkuchen von 1597 aus Großbritannien: hauchdünn, aus Sahne, Eigelb, Mehl, Bier, Zimt und Ingwer. Mit Auszug aus dem Original.', zutaten: ['Sahne', 'Eigelb', 'Weizenmehl', 'Bier', 'Zimt', 'Ingwer'] },
+  'pfirsich-melba-1907': { text: 'Pfirsich Melba von 1907 aus Frankreich, nach Auguste Escoffier: pochierte Pfirsiche auf Vanilleeis mit Himbeerpüree. Mit Auszug aus dem Original.', zutaten: ['Pfirsich', 'Speiseeis', 'Himbeere'] },
+  'toad-in-the-hole-1861': { text: 'Toad in the Hole von 1861 aus Großbritannien, nach Isabella Beeton: Rumpsteak in einem Teig aus Mehl, Milch und Eiern, mit Auszug.', zutaten: ['Rumpsteak', 'Weizenmehl', 'Milch', 'Ei'] },
+  'yorkshire-pudding-1774': { text: 'Yorkshire Pudding von 1774 aus Großbritannien, nach Hannah Glasse: Teig aus Mehl, Eiern und Milch, in heißem Öl gebacken, mit Auszug.', zutaten: ['Weizenmehl', 'Ei', 'Milch', 'Sonnenblumenöl'] },
   'zuercher-geschnetzeltes': { text: 'Zürcher Geschnetzeltes aus der Schweiz: Kalbfleisch mit Champignons, Weißwein und Sahne. In {zeit}, mit Hinweisen zu den Zutaten.', zutaten: ['Kalbfleisch', 'Champignons', 'Weißwein', 'Sahne'] },
 };
 
@@ -280,7 +315,10 @@ function rezeptMeta(rezept) {
   // Rezepte aus genau einem Land nennen es im Titel. Kürzen: zuerst " aus {Land}", dann die Marke. Bei mehreren
   // Ländern stünde nur eines davon im Titel; dort steht stattdessen, was die Seite bietet.
   const lang = rezept.laender.length === 1 ? `${name}: Rezept ${ausLand(rezept.laender[0])}` : `${name}: Rezept mit Hinweisen zu den Zutaten`;
-  const titel = erste(pfad, 'titel', [lang + MARKE, `${name}: Rezept${MARKE}`, `${name}: Rezept`]);
+  // Rezepte aus alten Kochbüchern heißen im Titel "altes Rezept" (AP-25); das Jahr steht schon im Namen.
+  const titel = rezept.original
+    ? erste(pfad, 'titel', [`${name}: altes Rezept ${ausLand(rezept.laender[0])}${MARKE}`, `${name}: altes Rezept${MARKE}`, `${name}: altes Rezept`])
+    : erste(pfad, 'titel', [lang + MARKE, `${name}: Rezept${MARKE}`, `${name}: Rezept`]);
   const eintrag = REZEPT[rezept.slug];
   if (!eintrag) { fehler.push(`${pfad}: Beschreibung fehlt (REZEPT in meta.mjs)`); return { titel, beschreibung: '' }; }
   const vorhanden = new Set(rezept.zutaten.map((zutat) => zutat.grundbegriff));
@@ -312,12 +350,20 @@ const uebersicht = {
   titel: mitMarke('/rezepte/', `${rezeptSeiten.length} Rezepte mit Hinweisen zu den Zutaten`),
   beschreibung: `${rezeptSeiten.length} Rezepte aus ${new Set(rezeptSeiten.flatMap((rezept) => rezept.laender)).size} Ländern mit Hinweisen zu den Zutaten. Suche nach Rezept oder Zutat und filtere nach Kategorie, Land und „Passt für“.`,
 };
+// Sammelseite der Rezepte aus alten Kochbüchern (AP-25): Titel und Beschreibung mit den Suchbegriffen „alte Rezepte“,
+// „historische Rezepte“ und „Rezepte aus alten Kochbüchern“; Zahl und Jahre kommen aus den Daten.
+const [altVon, altBis] = jahreVonBis();
+const alteMeta = {
+  pfad: alteSeite.adresse,
+  titel: mitMarke(alteSeite.adresse, 'Alte Rezepte: historische Rezepte aus alten Kochbüchern'),
+  beschreibung: `${alteRezepte.length} alte Rezepte aus Kochbüchern von ${altVon} bis ${altBis}: historische Rezepte mit Auszug aus dem Original und einer heutigen Fassung mit Mengen.`,
+};
 const REIHE = ['ohne', 'passt', 'kategorie', 'land'];
 const themenSeiten = [...themen].sort((a, b) => REIHE.indexOf(a.art) - REIHE.indexOf(b.art)).map((thema) => ({ pfad: thema.adresse, ...themaMeta(thema), imIndex: thema.imIndex }));
 const rezeptListe = rezeptSeiten.map((rezept) => ({ pfad: rezeptAdresse(rezept), ...rezeptMeta(rezept) }));
 
 export const alleMeta = [
-  fest('/'), fest(BEREICH), ...anleitung, uebersicht, ...themenSeiten, ...rezeptListe, fest('/fragen/'),
+  fest('/'), fest(BEREICH), ...anleitung, uebersicht, alteMeta, ...themenSeiten, ...rezeptListe, fest('/fragen/'),
   fest('/daten-und-quellen/'), fest('/ueber-foodasu/'), fest('/datenschutz.html'), fest('/lizenzen/'), fest('/offenlegung/'), fest('/quellen-und-lizenzen/'), fest('/404.html'),
 ].map(({ imIndex = true, ...eintrag }) => ({ art: 'website', bild: GEMEINSAM, ...eintrag, index: imIndex && !OHNE_INDEX.includes(eintrag.pfad) }));
 

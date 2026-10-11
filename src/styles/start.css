@@ -238,3 +238,14 @@
 @keyframes knall { from { opacity: 0; scale: 0.6; } }
 @keyframes schweben { from { translate: 0 -0.45rem; } to { translate: 0 0.45rem; } }
 @keyframes puls { from { box-shadow: 0 0 0 0 color-mix(in srgb, var(--main) 45%, transparent); } to { box-shadow: 0 0 0 0.6rem transparent; } }
+
+/* Karte zur Rubrik "Aus alten Kochbüchern" (AP-25): unter den vier Rezeptkarten, führt als Ganzes zur Sammelseite. */
+.alt-karte { position: relative; display: grid; gap: 1.25rem; align-items: center; margin: 2rem 0 0; padding: clamp(1.1rem, 3vw, 1.75rem); border-radius: clamp(1.75rem, 3vw, 2.25rem); background: var(--karte); }
+.alt-karte-text h3 { margin: 0; font-size: clamp(1.2rem, 2.6vw, 1.45rem); letter-spacing: -0.01em; }
+.alt-karte-text h3 a { color: var(--text); text-decoration: none; }
+.alt-karte-text h3 a::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+.alt-karte-text p { margin: 0.5rem 0 0; line-height: 1.6; }
+.alt-karte:hover .alt-karte-link { text-decoration: underline; }
+.alt-karte .alt-karte-link { display: inline-flex; align-items: center; gap: 0.5rem; margin-top: 0.75rem; font-weight: 700; color: var(--main); }
+.alt-karte-link svg { flex: none; width: 1.1rem; height: 1.1rem; }
+@media (min-width: 40rem) { .alt-karte { grid-template-columns: minmax(0, 17rem) minmax(0, 1fr); gap: clamp(1.5rem, 4vw, 2.75rem); } }

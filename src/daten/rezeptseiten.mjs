@@ -2,6 +2,7 @@
 // Daten Seiten werden. Kein Text wird je Seite von Hand geschrieben. Wörter mit dem Vermerk (App) stehen so in den
 // Texten der App (strings_rezept_teile.xml, strings_rezept_seite.xml, strings_urteil.xml, strings_karte.xml).
 import daten from './rezepte.json' with { type: 'json' };
+import zusatz from './rezepte_zusatz.json' with { type: 'json' };
 import { auswahl, muster, HOECHSTENS } from './auswahl.mjs';
 import { THEMEN_TEXTE } from './themen_texte.mjs';
 
@@ -16,7 +17,28 @@ if (auswahl.length > HOECHSTENS) throw new Error(`Auswahl hat ${auswahl.length} 
 const nachSlug = new Map(daten.rezepte.map((rezept) => [rezept.slug, rezept]));
 for (const slug of auswahl) if (!nachSlug.has(slug)) throw new Error(`Auswahl nennt ein Rezept, das in rezepte.json fehlt (neu exportieren): ${slug}`);
 if (daten.rezepte.length !== auswahl.length) throw new Error(`rezepte.json hat ${daten.rezepte.length} Rezepte, die Auswahl ${auswahl.length} (neu exportieren)`);
-export const rezepte = auswahl.map((slug) => nachSlug.get(slug)).sort((a, b) => a.nr - b.nr);
+// Die Rezepte aus der App (höchstens 40, src/daten/auswahl.mjs).
+export const appRezepte = auswahl.map((slug) => nachSlug.get(slug)).sort((a, b) => a.nr - b.nr);
+// Rezepte, die es auf der Website schon gibt und die später in die App kommen (AP-25): "historisch" (aus alten
+// Kochbüchern, in einer heutigen Fassung) und "neu". Sie liegen in rezepte_zusatz.json (tools/zusatz_exportieren.py),
+// tragen "paket" und zählen nicht zu den 40 der Auswahl.
+export const zusatzRezepte = zusatz.rezepte;
+for (const rezept of zusatzRezepte) {
+  if (nachSlug.has(rezept.slug)) throw new Error(`rezepte_zusatz.json: Adresse doppelt (${rezept.slug})`);
+  nachSlug.set(rezept.slug, rezept);
+}
+export const rezepte = [...appRezepte, ...zusatzRezepte];
+export const kommtSpaeter = (rezept) => Boolean(rezept.paket);
+// Wie viele Rezepte auf der Website stehen und woher sie kommen. Jede Zahl im Text, die Rezepte der Website zählt,
+// kommt von hier (AP-25 Teil F); tools/pruefe_seiten.mjs zählt unabhängig davon nach.
+export const websiteZahlen = {
+  gesamt: rezepte.length,
+  app: appRezepte.length,
+  alt: zusatzRezepte.filter((rezept) => rezept.paket === 'historisch').length,
+  neu: zusatzRezepte.filter((rezept) => rezept.paket === 'neu').length,
+};
+export const alteRezepte = zusatzRezepte.filter((rezept) => rezept.paket === 'historisch');
+export const neueRezepte = zusatzRezepte.filter((rezept) => rezept.paket === 'neu');
 
 // ---- Wörter (App) ----
 export const LAND = {
@@ -25,13 +47,17 @@ export const LAND = {
   MX: 'Mexiko', PS: 'Palästina', JP: 'Japan', MA: 'Marokko', KR: 'Südkorea', IL: 'Israel', IR: 'Iran', VN: 'Vietnam',
   HU: 'Ungarn', CZ: 'Tschechien', LI: 'Liechtenstein', PE: 'Peru',
 };
+// Länder der App: Nur sie bekommen eine Themenseite "Rezepte aus ..." (und damit einen Eintrag im Menü).
+const LAND_APP = Object.keys(LAND);
+// Länder, die erst mit den Rezepten aus rezepte_zusatz.json dazukommen (Angaben und Filter, keine Themenseite).
+Object.assign(LAND, { GB: 'Großbritannien', IE: 'Irland', SE: 'Schweden', EG: 'Ägypten', SD: 'Sudan', US: 'USA', ID: 'Indonesien' });
 // Reihenfolge der Länder im Filter der Übersicht: zuerst Österreich, Deutschland und die Schweiz, dann die Nachbarn
 // und der Rest (wie im Mega-Menü, src/daten/navigation.mjs).
 export const LAND_REIHENFOLGE = [
   'AT', 'DE', 'CH', 'IT', 'FR', 'ES', 'GR', 'TR', 'IN', 'HU', 'CZ', 'LI', 'SY', 'LB', 'JO', 'PS', 'IL', 'IR', 'MA', 'TH',
-  'VN', 'JP', 'KR', 'MX', 'PE',
+  'VN', 'JP', 'KR', 'ID', 'MX', 'PE', 'GB', 'IE', 'SE', 'US', 'EG', 'SD',
 ];
-const ARTIKEL = { TR: 'der Türkei', CH: 'der Schweiz', LB: 'dem Libanon', IR: 'dem Iran' };
+const ARTIKEL = { TR: 'der Türkei', CH: 'der Schweiz', LB: 'dem Libanon', IR: 'dem Iran', US: 'den USA', SD: 'dem Sudan' };
 export const ausLand = (kuerzel) => `aus ${ARTIKEL[kuerzel] ?? LAND[kuerzel]}`;
 // Kategorie (App) und die Form für den Einleitungssatz.
 export const KATEGORIE = {
@@ -122,7 +148,7 @@ export const texte = {
   zutaten: { titel: 'Zutaten', fuer: 'Für', hinweise: (zahl) => (zahl === 1 ? '1 Hinweis' : `${zahl} Hinweise`) },
   // Sprungleiste unter dem Kopf der Rezeptseite (AP-23 Teil C Nr. 2): Zutaten, Zubereitung, Hinweise, Nährwerte, In
   // der App. "titel" ist der Name der Leiste für Bildschirmleser; die übrigen Namen stehen bei ihren Abschnitten.
-  sprung: { titel: 'Auf dieser Seite', hinweise: 'Hinweise', app: 'In der App' },
+  sprung: { titel: 'Auf dieser Seite', original: 'Original', hinweise: 'Hinweise', app: 'In der App' },
   hinweise: {
     titel: 'Hinweise zu den Zutaten',
     einleitung: 'FoodAsu prüft jede Zutat gegen 20 Einträge zum Meiden. Bei diesem Rezept gibt es diese Hinweise:',
@@ -177,6 +203,22 @@ export const texte = {
     naehrwerte: ['Nährwerte', 'Eigene Berechnung auf Grundlage von Max Rubner-Institut (2025): Bundeslebensmittelschlüssel (BLS), Version 4.0, DOI ', '. Lizenz: ', '. Das Max Rubner-Institut hat die Berechnung nicht geprüft.'],
     bls: { doi: '10.25826/Data20251217-134202-0', doiZiel: 'https://doi.org/10.25826/Data20251217-134202-0', lizenz: 'CC BY 4.0', lizenzZiel: 'https://creativecommons.org/licenses/by/4.0/deed.de' },
     gleicheLizenz: (kurz) => `Titel, Zutaten und Zubereitung dieses Rezepts stehen unter der Lizenz ${kurz}. Die Hinweise zu den Zutaten und der Abschnitt „Passt für“ stammen von FoodAsu.`,
+    // Rezepte aus alten Kochbüchern (AP-25): Buch, Verfasser mit Todesjahr, Digitalisat, Abschrift mit Lizenz und die
+    // eigene heutige Fassung.
+    alt: {
+      buch: 'Buch',
+      verfasser: 'Verfasserin oder Verfasser',
+      gestorben: (jahr) => `gestorben ${jahr}`,
+      erschienen: 'Erschienen',
+      stelle: 'Stelle im Buch',
+      digitalisat: 'Digitalisat',
+      digitalisatLink: 'Seite im Digitalisat',
+      abschrift: 'Abschrift',
+      abschriftLink: 'Abschrift des Buchs',
+      eigeneAbschrift: 'Eigene Abschrift aus dem Digitalisat.',
+      fassung: ['Heutige Fassung', 'Zutaten, Mengen und Schritte sind eine eigene Fassung von FoodAsu: neu geschrieben, alte Maße umgerechnet, Mengen, Zeiten und Temperaturen mit heutigen Rezepten abgeglichen. Der Auszug aus dem Buch ist gemeinfrei, die Übertragung in heutiges Deutsch stammt von FoodAsu.'],
+      hinweise: 'Die Hinweise zu den Zutaten und der Abschnitt „Passt für“ stammen von FoodAsu.',
+    },
   },
   app: {
     titel: 'Dieses Rezept in FoodAsu',
@@ -192,6 +234,28 @@ export const texte = {
     kopiert: 'Link kopiert',
     fehler: 'Link nicht kopiert',
   },
+  // Rezepte, die es auf der Website schon gibt und die später in die App kommen (AP-25). "titel" ist die Überschrift
+  // des Kastens am Ende der Rezeptseite, der sonst „Dieses Rezept in FoodAsu“ heißt (AP-25 Teil H Nr. 4 und 5); als
+  // Überschrift steht sie ohne Punkt (Ali, 11.10.2026).
+  spaeter: {
+    titel: 'Dieses Rezept kommt später in die App',
+    appText: 'In der App gibt es schon über 300 andere Rezepte. Dort rechnest du die Mengen auf deine Portionen um und setzt die fehlenden Zutaten auf deine Einkaufsliste.',
+  },
+  // Block "Aus dem Original" auf den Seiten der Rezepte aus alten Kochbüchern (AP-25 Teil C Nr. 2).
+  original: {
+    titel: 'Aus dem Original',
+    quelle: 'Quelle',
+    auszugAlt: 'So steht es im Buch',
+    auszugHeute: (sprache) => (sprache === 'Deutsch' ? 'In heutigem Deutsch' : `Aus dem ${sprache}en übersetzt`),
+    digitalisat: 'Die Seite im Digitalisat ansehen',
+    abschrift: 'Die Abschrift des Buchs ansehen',
+    fassung: 'Zutaten, Mengen und Schritte auf dieser Seite sind eine heutige Fassung von FoodAsu. Alte Maße sind umgerechnet, Mengen, Zeiten und Temperaturen mit heutigen Rezepten abgeglichen.',
+    heute: 'Dasselbe Gericht in einer Fassung von heute',
+    alt: (jahr) => `Dieses Gericht nach einem Kochbuch von ${jahr}`,
+    rubrik: 'Aus alten Kochbüchern',
+    rubrikZiel: '/alte-rezepte/',
+    rubrikLink: 'Alle Rezepte aus alten Kochbüchern',
+  },
   aehnlich: 'Ähnliche Rezepte',
   themenTitel: 'Mehr Rezepte',
   // Übersicht "Rezepte" (AP-17 Teil E3; seit AP-23 nach Entwurf "Filter in der Seitenleiste"): Suche, drei Gruppen mit
@@ -200,7 +264,11 @@ export const texte = {
   alle: {
     titel: 'Rezepte',
     seitentitel: 'Rezepte mit Hinweisen zu den Zutaten',
-    text: (zahl) => `${zahl} Rezepte mit Hinweisen zu den Zutaten. In der App sind es über 300.`,
+    // Zahlen der Website, getrennt von den Zahlen der App (AP-25 Teil F Nr. 3): Kein Satz schreibt die Rezepte aus
+    // alten Kochbüchern oder die neuen Rezepte der App zu. "zahlen" ist websiteZahlen (unten).
+    text: (zahlen) => `Auf der Website stehen ${zahlen.gesamt} Rezepte mit Hinweisen zu den Zutaten. ${zahlen.app} davon sind aus der App, ${zahlen.alt} aus alten Kochbüchern und ${zahlen.neu} neue, die später in die App kommen. In der App sind es über 300.`,
+    // Hinweis auf die Rubrik "Aus alten Kochbüchern" im Kopf der Übersicht (AP-25).
+    rubrik: (zahl, von, bis) => `Aus alten Kochbüchern: ${zahl} Rezepte von ${von} bis ${bis}`,
     grundlage: 'Grundlage ist die Zutatenliste des Rezepts. Was in einem Produkt aus dem Laden steckt, steht auf der Packung. Maßgeblich ist die Verpackung.',
     suche: 'Rezept oder Zutat suchen',
     gruppen: { kategorie: 'Kategorie', land: 'Land', passt: 'Passt für' },
@@ -275,7 +343,9 @@ export function einleitung(rezept) {
   if (portionen(rezept)) teile.push(`für ${portionen(rezept)}`);
   const enthaelt = EINTRAEGE.filter((eintrag) => eintrag.adresse && rezept.hinweise[eintrag.schluessel] === 'IST').map((eintrag) => eintrag.enthaelt);
   const form = ernaehrung(rezept, 'en:vegan') === 'voll' ? 'vegan' : ernaehrung(rezept, 'en:vegetarian') === 'voll' ? 'vegetarisch' : null;
-  const saetze = [`${rezept.kurztitel}: ${KATEGORIE[rezept.kategorie][1]} aus ${laender}. ${teile.join(', ')}.`];
+  // Bei einem Rezept aus einem alten Kochbuch ist das Land das Land des Buchs, nicht die Herkunft des Gerichts.
+  const saetze = [`${rezept.kurztitel}: ${KATEGORIE[rezept.kategorie][1]} ${rezept.original ? 'nach einem Kochbuch aus' : 'aus'} ${laender}. ${teile.join(', ')}.`];
+  if (rezept.original) saetze.push(`Die Vorlage: ${rezept.original.buch_kurz}, ${rezept.original.jahr}. Zutaten, Mengen und Schritte stehen hier in einer heutigen Fassung.`);
   if (enthaelt.length) saetze.push(`Laut Zutatenliste enthält das Rezept ${aufzaehlung(enthaelt)}.`);
   if (form) saetze.push(`Laut Zutatenliste ist es ${form}.`);
   return saetze.join(' ');
@@ -310,7 +380,7 @@ function themenBauen() {
       inDerApp: GESAMT - (zahlenApp.mitHinweis[schluessel] ?? 0),
     });
   }
-  for (const kuerzel of Object.keys(LAND)) {
+  for (const kuerzel of LAND_APP) {
     themen.push({
       art: 'land', schluessel: kuerzel, adresse: landAdresse(kuerzel), menue: LAND[kuerzel],
       titel: `Rezepte ${ausLand(kuerzel)}`,
@@ -364,7 +434,8 @@ export const INDEX_AB = 6;
     }
     if (thema.art === 'ohne' && !eintrag.text.toLocaleLowerCase('de').includes(`ohne ${thema.menue} als zutat laut zutatenliste`.toLocaleLowerCase('de'))) fehler.push(`${adresse}: Die Wendung „ohne ${thema.menue} als Zutat laut Zutatenliste“ fehlt`);
     if (thema.art === 'passt' && !eintrag.text.includes('laut Zutatenliste')) fehler.push(`${adresse}: „laut Zutatenliste“ fehlt`);
-    if (/\d/.test(eintrag.text)) fehler.push(`${adresse}: Zahl im Text (Zahlen kommen aus den Daten)`);
+    // Das Jahr im Namen eines Rezepts aus einem alten Kochbuch ("Omelett (1746)") ist keine Zahl von Hand.
+    if (/\d/.test(eintrag.text.replace(/ \(\d{4}\)/g, ''))) fehler.push(`${adresse}: Zahl im Text (Zahlen kommen aus den Daten)`);
     thema.einleitung = eintrag.text;
   }
   if (fehler.length) throw new Error(`Einleitungstexte der Themenseiten (src/daten/themen_texte.mjs):\n- ${fehler.join('\n- ')}`);

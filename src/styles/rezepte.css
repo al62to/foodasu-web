@@ -303,3 +303,52 @@ html:not(.js) .f-blatt, html:not(.js) .f-leiste { display: none; }
   .blatt-offen .f-blatt { transition: translate 0.22s cubic-bezier(0.22, 1, 0.36, 1); }
   @starting-style { .blatt-offen .f-blatt { translate: 0 2rem; } }
 }
+
+/* Block "Aus dem Original" auf den Seiten der Rezepte aus alten Kochbüchern: Buch, Auszug in alter Schreibweise und
+   in heutigem Deutsch. Der alte Auszug steht in der Serifenschrift des Geräts (keine geladene Schrift). */
+.r-original { margin-top: 0; padding: clamp(1.5rem, 4.5vw, 3rem); border-radius: clamp(1.75rem, 3vw, 2.25rem); }
+.r-original > * { position: relative; z-index: 1; }
+.r-original > h2 { color: var(--deep); }
+.r-original .ueberzeile { margin: 0 0 0.5rem; }
+.r-original cite { font-style: normal; }
+.r-auszug { margin: 0 0 1rem; padding: 1.25rem 1.4rem 1.4rem; border-radius: 1.5rem; background: var(--karte); box-shadow: 0 1px 2px rgb(var(--schatten) / 0.06); }
+.r-auszug figcaption { font-size: 0.82rem; font-weight: 700; letter-spacing: 0.02em; color: var(--muted); }
+.r-auszug blockquote { margin: 0.6rem 0 0; }
+.r-auszug blockquote p { margin: 0; font-size: clamp(1.05rem, 2.2vw, 1.2rem); font-weight: 500; line-height: 1.7; color: var(--text); hyphens: manual; overflow-wrap: anywhere; }
+.r-auszug.heute blockquote p { font-size: 1rem; font-weight: 400; line-height: 1.75; }
+.r-original .klein { max-width: 68ch; margin: 1.25rem 0 0; color: var(--deep); }
+.r-original .klein + .klein { margin-top: 0.5rem; }
+.r-original-links { display: flex; flex-wrap: wrap; gap: 0.4rem 1.5rem; margin: 1.1rem 0 0; font-size: 0.95rem; font-weight: 600; }
+.r-original-links a { display: inline-block; padding: 0.4rem 0; }
+.r-original + .r-passt { margin-top: clamp(2.25rem, 5vw, 3.5rem); }
+.r-alt-link { margin-top: 0.4rem; }
+
+/* Hinweis auf die Rubrik im Kopf der Rezeptübersicht. */
+.r-rubrik { margin: 1rem 0 0; }
+.r-rubrik .chip { background: var(--karte); font-weight: 700; color: var(--deep); }
+
+/* Sammelseite "Aus alten Kochbüchern" (AP-25): Zeitstrahl nach Zeiträumen. Die Linie und die Kreise sind die Stationen
+   aus basis.css; im Kreis stehen die ersten zwei Ziffern des Jahrhunderts. */
+.a-sprung .chip { gap: 0.6rem; font-weight: 700; }
+.a-zahl { display: inline-grid; place-items: center; min-width: 1.6rem; height: 1.6rem; padding: 0 0.4rem; border-radius: 999px; background: var(--tone); color: var(--deep); font-size: 0.8rem; font-weight: 800; }
+.a-zeitstrahl { --kreis: 3.5rem; --abstand: clamp(2.75rem, 6vw, 4.5rem); }
+.a-zeitstrahl .station-kreis { font-size: 1.15rem; letter-spacing: -0.02em; }
+.a-zeitraum-kopf { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 1rem; min-height: var(--kreis); align-content: center; }
+.a-zeitraum-kopf h3 { margin: 0; font-size: clamp(1.5rem, 3.4vw, 2.1rem); letter-spacing: -0.02em; scroll-margin-top: 6rem; }
+.a-jahre { margin: 0; font-size: 0.95rem; color: var(--muted); }
+.a-zeitraum-text { max-width: 62ch; margin: 0.5rem 0 1.5rem; line-height: 1.75; }
+/* Karten in der Form der Rezeptübersicht. Am Laptop stehen die fünf Rezepte eines Zeitraums in einer Reihe, am
+   Handy in einer Spalte. */
+.r-karten.flach.a-karten { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem 1.1rem; }
+@media (min-width: 75rem) { .r-karten.flach.a-karten { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1.5rem 1rem; } }
+.a-so-liste { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 1rem; margin: 0; }
+.a-so-liste div { padding: 1.4rem 1.5rem; border-radius: 1.5rem; background: var(--flaeche); }
+.a-so-liste dt { font-weight: 800; color: var(--deep); }
+.a-so-liste dd { margin: 0.5rem 0 0; line-height: 1.7; }
+.a-mehr { display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 0; }
+@media (max-width: 39.99rem) {
+  .a-zeitstrahl { --kreis: 2.75rem; }
+  .a-zeitstrahl .station { column-gap: 0.75rem; }
+  .a-zeitstrahl .station-kreis { font-size: 0.95rem; }
+  .r-karten.flach.a-karten { grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
+}

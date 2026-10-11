@@ -10,7 +10,8 @@ import '../styles/start.css';
 import { seite, auftritte, store } from '../daten/seite.mjs';
 import { kopf, wort, schritte, lagen, funktionen, einblick, zahlen, vorschau, fragen, geruest } from '../daten/startseite.mjs';
 import { fotoDaten } from '../daten/sogehts.mjs';
-import { ziel } from '../daten/rezeptseiten.mjs';
+import { ziel, alteRezepte, websiteZahlen, texte as rezeptTexte } from '../daten/rezeptseiten.mjs';
+import { jahreVonBis } from '../daten/alte_rezepte.mjs';
 
 const organisation = `${seite.adresse}/#organisation`;
 // Strukturierte Daten: nur WebSite und Organization. MobileApplication steht hier seit AP-22 nicht mehr (Entscheidung Ali
@@ -39,6 +40,10 @@ const daten = [
   },
 ];
 
+// Karte zur Rubrik "Aus alten Kochbüchern" (AP-25): drei Bilder, je eines aus den ersten drei Zeiträumen.
+// Bild der Karte zur Rubrik: das Rezept, das src/daten/startseite.mjs nennt, sonst das erste alte Rezept.
+const altBild = alteRezepte.find((rezept) => rezept.slug === vorschau.alt.bild) ?? alteRezepte[0];
+const [altVon, altBis] = alteRezepte.length ? jahreVonBis() : [];
 const quellen = (datei, endung) => [360, 720].map((breite) => `/bilder/rezepte/${datei}-${breite}.${endung} ${breite}w`).join(', ');
 const linien = { fill: 'none', stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' };
 const urteilZeichen = 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM9 9l6 6M15 9l-6 6';
@@ -299,15 +304,31 @@ if (amTisch.length !== 4 || !woche) throw new Error('Startseite: Der Tisch brauc
           );
         })}
       </ul>
-      <p class="vorschau-hinweis">{vorschau.hinweis}</p>
-      <div class="knoepfe"><a class="knopf rand" href="/rezepte/">{vorschau.link}</a></div>
+      {alteRezepte.length > 0 && (
+        <div class="alt-karte">
+          <div class="rezeptbild">
+            <picture>
+              <source type="image/avif" srcset={`/bilder/rezepte/${altBild.slug}-karte-360.avif 360w, /bilder/rezepte/${altBild.slug}-karte-720.avif 720w`} sizes="(min-width: 56rem) 17rem, 88vw" />
+              <img src={`/bilder/rezepte/${altBild.slug}-karte-720.webp`} srcset={`/bilder/rezepte/${altBild.slug}-karte-360.webp 360w, /bilder/rezepte/${altBild.slug}-karte-720.webp 720w`} sizes="(min-width: 56rem) 17rem, 88vw" alt={`${rezeptTexte.symbolbild}: ${altBild.titel}`} width="720" height="540" loading="lazy" decoding="async" />
+            </picture>
+            <span class="symbolbild" aria-hidden="true">{vorschau.kennzeichnung}</span>
+          </div>
+          <div class="alt-karte-text">
+            <h3><a href={vorschau.alt.ziel}>{vorschau.alt.titel}</a></h3>
+            <p>{vorschau.alt.text(alteRezepte.length, altVon, altBis)}</p>
+            <p class="alt-karte-link" aria-hidden="true">{vorschau.alt.link}<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...linien}><path d="M5 12h14M13 6l6 6-6 6" /></svg></p>
+          </div>
+        </div>
+      )}
+      <p class="vorschau-hinweis">{vorschau.hinweis(websiteZahlen)}</p>
+      <div class="knoepfe"><a class="knopf rand" href="/rezepte/">{vorschau.link(websiteZahlen)}</a></div>
     </div>
   </section>
 
   <section class="faq" id="fragen">
     <div class="innen schmal">
       <h2 class="titel mittig">{fragen.ueberschrift}</h2>
-      {fragen.liste.map((eintrag) => (
+      {fragen.liste.filter((eintrag) => !eintrag.nurSeite).map((eintrag) => (
         <details>
           <summary>{eintrag.frage}</summary>
           <div>
