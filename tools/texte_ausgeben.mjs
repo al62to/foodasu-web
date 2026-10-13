@@ -120,7 +120,7 @@ punkt('Satz unter dem Logo', t.fuss.satz);
 punkt('Hinweis darunter', `${t.fuss.hinweis} (stand bisher als eigene Zeile im Fuß und bleibt auf jeder Seite)`);
 punkt(`Spalte „${t.fuss.spalten.recht}“`, [t.fuss.links.datenschutz, t.fuss.links.offenlegung, t.fuss.links.lizenzen, t.fuss.links.quellen].join(', '));
 punkt(`Spalte „${t.fuss.spalten.foodasu}“`, [...t.fuss.seiten.map((eintrag) => eintrag.titel), t.fuss.links.kontakt].join(', '));
-punkt(`Spalte „${t.fuss.spalten.folgen}“`, `Knöpfe mit Symbol: ${t.fuss.auftritte.facebook}, ${t.fuss.auftritte.instagram}`);
+punkt(`Spalte „${t.fuss.spalten.folgen}“`, `der Satz „${t.fuss.auftritte.dabei}“ als Text, darunter Knöpfe mit Symbol: ${t.fuss.auftritte.facebook}, ${t.fuss.auftritte.instagram}`);
 punkt('Zeile unten', `links „${t.fuss.rechte}“; rechts bis zum öffentlichen Start „${t.fuss.auftritte.storeBald}“ in Mint mit Handy-Symbol, danach der Link „${t.fuss.auftritte.storeLink}“`);
 punkt('Schalter in der Kopfzeile (am Handy im Menü)', `„${t.geruest.modus}“, mit Sonne und Mond; aus = hell, an = dunkel`);
 punkt('Bild beim Teilen (Open Graph)', `Logo auf Indigo mit dem Satz „${t.fuss.satz}“; Bildbeschreibung „FoodAsu: ${t.fuss.satz}“. Rezeptseiten zeigen ihr Symbolbild.`);

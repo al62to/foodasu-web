@@ -638,7 +638,7 @@ for (const [adresse, html] of seiten) {
 const FUSS_LINKS = ['/datenschutz.html', '/offenlegung/', '/lizenzen/', '/quellen-und-lizenzen/', '/so-gehts/', '/rezepte/', ALTE, '/fragen/', '/daten-und-quellen/', '/ueber-foodasu/'];
 const FUSS_TEXTE = [
   'Lebensmittel-Scanner und Einkaufsliste für den ganzen Haushalt.', 'Maßgeblich ist die Verpackung.', 'Rechtliches', 'Folge uns',
-  '© 2026 FoodAsu · Eine App von Ali',
+  'Von Anfang an dabei sein.', '© 2026 FoodAsu · Eine App von Ali',
 ];
 for (const [adresse, html] of seiten) {
   const fuss = alle(html, /<footer class="fuss"[\s\S]*?<\/footer>/g);

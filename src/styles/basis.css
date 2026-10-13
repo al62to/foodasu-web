@@ -297,6 +297,7 @@ a.chip:hover, button.chip:hover { border-color: var(--main); }
 .fuss ul { list-style: none; margin: 0; padding: 0; }
 .fuss-spalte li a { display: inline-flex; align-items: center; min-height: 2.75rem; color: var(--text); text-decoration: none; }
 .fuss-spalte li a:hover { color: var(--main); text-decoration: underline; }
+.fuss .fuss-dabei { margin: 0.35rem 0 0.5rem; color: var(--text); }
 .fuss .fuss-knoepfe { display: flex; flex-wrap: wrap; gap: 0.6rem; padding-top: 0.25rem; }
 .fuss-spalte .fuss-knopf { gap: 0.55rem; padding: 0 1.05rem 0 0.85rem; border: 1px solid var(--line); border-radius: 999px; background: var(--bg); font-weight: 700; }
 .fuss-spalte .fuss-knopf:hover { border-color: var(--main); text-decoration: none; }

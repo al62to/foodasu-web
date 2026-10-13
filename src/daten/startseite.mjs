@@ -295,6 +295,8 @@ export const fuss = {
   auftritte: {
     facebook: 'Facebook',
     instagram: 'Instagram',
+    // Satz neben den zwei Auftritten (Entscheidung Ali und Projektleitung vom 13.10.2026), als Text ohne Link.
+    dabei: 'Von Anfang an dabei sein.',
     storeBald: 'Bald im Play Store',
     storeLink: 'FoodAsu bei Google Play',
   },
