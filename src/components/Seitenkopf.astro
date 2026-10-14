@@ -13,11 +13,13 @@ import { geruest } from '../daten/startseite.mjs';
 // "vorzeile" (AP-22, Überschriften mit Suchwort): eine kleine Zeile über dem Titel, die zur h1 gehört, zum Beispiel
 // "Rezept" über dem Namen des Gerichts. Bildschirmleser lesen sie mit Doppelpunkt vor dem Titel.
 // "etikett" ist eine kleine Zeile über der h1, die nicht zu ihr gehört (zum Beispiel "Kapitel 3 von 8").
+// "vorspannLink" ({ vor, text, nach, ziel }) hängt einen Satz mit Link an den Vorspann an, im selben Absatz (Auftrag SEO 1
+// neu, Teil 4 Nr. 1: Link mit dem Ankertext "Einkaufslisten-App" zur Startseite).
 const STANDARD = [
   { art: 'aehre', breite: 120, lage: 'top: 14px; right: 8%', nurBreit: true },
   { art: 'zitrone', breite: 130, lage: 'bottom: -50px; right: 32%', ecke: true },
 ];
-const { krumen, titel, vorspann, etikett, vorzeile, mittig = false, klein = false, motive = STANDARD } = Astro.props;
+const { krumen, titel, vorspann, vorspannLink, etikett, vorzeile, mittig = false, klein = false, motive = STANDARD } = Astro.props;
 const zwei = Astro.slots.has('seite');
 ---
 <button type="button" class="bewegung-knopf" data-bewegung-seite data-anhalten={geruest.bewegung.anhalten} data-fortsetzen={geruest.bewegung.fortsetzen} hidden>
@@ -34,7 +36,7 @@ const zwei = Astro.slots.has('seite');
         {vorzeile
           ? <h1><span class="s-vorzeile">{vorzeile}<span class="vh">: </span></span><span data-titel-kern><slot name="titel">{titel}</slot></span></h1>
           : <h1><slot name="titel">{titel}</slot></h1>}
-        {vorspann && <p class="s-vorspann">{vorspann}</p>}
+        {vorspann && <p class="s-vorspann">{vorspann}{vorspannLink && <>{' '}{vorspannLink.vor}<a href={vorspannLink.ziel}>{vorspannLink.text}</a>{vorspannLink.nach}</>}</p>}
         <slot />
       </div>
       {zwei && <slot name="seite" />}

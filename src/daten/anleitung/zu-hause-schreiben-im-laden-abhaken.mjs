@@ -8,7 +8,7 @@ export default {
   leitbild: 'liste_eintraege_03',
   titel: 'Zu Hause schreiben, im Laden abhaken',
   kurz: 'Die Einkaufsliste ohne Scannen, vom Aufschreiben bis zum Abhaken.',
-  vorspann: 'Für die Einkaufsliste in FoodAsu musst du nichts scannen: Du schreibst zu Hause auf, was du brauchst, und hakst im Laden mit dem Finger ab.',
+  vorspann: 'Für die Einkaufsliste in FoodAsu musst du nichts scannen: Du schreibst zu Hause auf, was du brauchst, und hakst im Laden mit dem Finger ab. So ersetzt die Liste den Einkaufszettel aus Papier.',
   teile: [
     {
       titel: 'Zu Hause: aufschreiben',

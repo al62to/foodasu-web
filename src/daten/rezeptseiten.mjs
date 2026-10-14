@@ -152,7 +152,8 @@ export const texte = {
   sprung: { titel: 'Auf dieser Seite', original: 'Original', hinweise: 'Hinweise', app: 'In der App' },
   hinweise: {
     titel: 'Hinweise zu den Zutaten',
-    einleitung: 'FoodAsu prüft jede Zutat gegen 20 Einträge zum Meiden. Bei diesem Rezept gibt es diese Hinweise:',
+    // Rezepte prüft die App gegen die festen Einträge (appZahlen.eintraegeFest, aus der Fassung der App).
+    einleitung: `FoodAsu prüft jede Zutat gegen ${appZahlen.eintraegeFest} Einträge zum Meiden. Bei diesem Rezept gibt es diese Hinweise:`,
     spalten: ['Eintrag', 'Hinweis', 'Zutaten'],
     stufen: [
       ['Enthält', 'Die Zutat ist der Eintrag oder enthält ihn.'],
@@ -223,7 +224,9 @@ export const texte = {
   },
   app: {
     titel: 'Dieses Rezept in FoodAsu',
-    text: 'In der App rechnest du die Mengen auf deine Portionen um und setzt die fehlenden Zutaten auf deine Einkaufsliste. Die Hinweise richten sich nach deinem Haushalt.',
+    // Auftrag SEO 1 neu (14.10.2026), Teil 4 Nr. 1: "Einkaufslisten-App" ist ein Link zur Startseite ("link").
+    text: 'In der Einkaufslisten-App rechnest du die Mengen auf deine Portionen um und setzt die fehlenden Zutaten auf deine Einkaufsliste. Die Hinweise richten sich nach deinem Haushalt.',
+    link: { text: 'Einkaufslisten-App', ziel: '/' },
     mehr: `Dort findest du über ${appZahlen.ueber} Rezepte.`,
     soGehts: "So geht's: Anleitung zu FoodAsu",
   },

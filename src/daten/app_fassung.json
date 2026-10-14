@@ -1,0 +1,30 @@
+{
+  "fassung": "0.14.4",
+  "versionCode": 1404,
+  "commit": "afd7e8f",
+  "eintraegeFest": 20,
+  "festeSchluessel": [
+    "en:gluten",
+    "en:crustaceans",
+    "en:eggs",
+    "en:fish",
+    "en:peanuts",
+    "en:soybeans",
+    "en:milk",
+    "en:nuts",
+    "en:celery",
+    "en:mustard",
+    "en:sesame-seeds",
+    "en:sulphur-dioxide-and-sulphites",
+    "en:lupin",
+    "en:molluscs",
+    "en:vegan",
+    "en:vegetarian",
+    "en:pork",
+    "en:alcohol",
+    "en:e428",
+    "en:palm-oil"
+  ],
+  "weitereLebensmittel": 0,
+  "zutatenliste": null
+}

@@ -2,6 +2,7 @@
 // Zeitstrahls. Die Rezepte selbst kommen aus src/daten/rezepte_zusatz.json (Paket "historisch"); jedes nennt seinen
 // Zeitraum. Ein Zeitraum ohne Rezept bricht den Bau ab, ebenso ein Rezept mit einem Zeitraum, den es hier nicht gibt.
 import { alteRezepte } from './rezeptseiten.mjs';
+import { appZahlen } from './app_zahlen.mjs';
 
 export const alteSeite = {
   adresse: '/alte-rezepte/',
@@ -18,7 +19,7 @@ export const alteSeite = {
       ['Das Buch', 'Jedes Rezept stammt aus einem gedruckten Kochbuch, dessen Verfasserin oder Verfasser seit mehr als 70 Jahren tot ist oder das ohne Namen erschien. Buch, Jahr und Ort stehen beim Rezept, dazu ein Link zur Seite im Digitalisat oder zur Abschrift des Buchs.'],
       ['Der Auszug', 'Ein kurzer Auszug zeigt den Wortlaut in der alten Schreibweise, darunter steht er in heutigem Deutsch. Bei Büchern in einer anderen Sprache ist das eine eigene Übersetzung.'],
       ['Die heutige Fassung', 'Zutaten, Mengen und Schritte sind neu geschrieben. Alte Maße wie Pfund, Lot oder Pint sind umgerechnet; Mengen, Zeiten und Temperaturen sind mit heutigen Rezepten abgeglichen.'],
-      ['Die Hinweise', 'Wie bei allen Rezepten auf FoodAsu steht bei jeder Zutat, ob sie einen der 20 Einträge zum Meiden betrifft. Maßgeblich ist die Verpackung.'],
+      ['Die Hinweise', `Wie bei allen Rezepten auf FoodAsu steht bei jeder Zutat, ob sie einen der ${appZahlen.eintraegeFest} Einträge zum Meiden betrifft. Maßgeblich ist die Verpackung.`],
     ],
   },
   mehr: { titel: 'Mehr Rezepte', alle: 'Alle Rezepte ansehen', quellen: 'Quellen und Lizenzen der Rezepte' },

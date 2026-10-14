@@ -14,9 +14,9 @@ const z = [];
 const zeile = (text = '') => z.push(text);
 const punkt = (name, text) => zeile(`- **${name}:** ${text}`);
 
-zeile('# Website foodasu.com: Texte der Startseite und des Gerüsts (Stand AP-18)');
+zeile('# Website foodasu.com: Texte der Startseite und des Gerüsts (Stand Auftrag SEO 1 neu, 14.10.2026)');
 zeile();
-zeile('Texte der Startseite: von Ali am 09.10.2026 freigegeben (Karte B), mit den Entscheidungen am Ende. Mit AP-16 dazugekommen: die Texte, die eindeutig die App meinen (Entscheidungen 18 bis 20), die 404-Seite nach dem Entwurf der Projektleitung, die Seiten Fragen, Lizenzen, Quellen und Lizenzen und die festen Texte des Rezeptbereichs; diese prüft die Projektleitung nach der Veröffentlichung.');
+zeile('Texte der Startseite: seit dem Auftrag SEO 1 neu vom 14.10.2026 nach dem freigegebenen Entwurf (docs/vorgaben/SEO_Startseite_neu_2026-10-14.md im Repo einkauf-app); davor von Ali am 09.10.2026 freigegeben (Karte B), mit den Entscheidungen am Ende. Mit AP-16 dazugekommen: die Texte, die eindeutig die App meinen (Entscheidungen 18 bis 20), die 404-Seite nach dem Entwurf der Projektleitung, die Seiten Fragen, Lizenzen, Quellen und Lizenzen und die festen Texte des Rezeptbereichs; diese prüft die Projektleitung nach der Veröffentlichung.');
 zeile('Erzeugt aus `foodasu-web/src/daten/startseite.mjs` und `rezeptseiten.mjs` mit `npm run texte`; geändert wird dort, nicht hier.');
 zeile('Grundlage: AP-15 Teil B, Nachtrag SEO vom 09.10.2026 (Punkt 7 und Punkt 8), Konzept v4 Abschnitt 1. Die Wortprüfung läuft über diese Datei (`texte_pruefen.py`) und über die gebauten Seiten (`npm run pruefen`).');
 zeile();
@@ -40,73 +40,89 @@ punkt('Mega-Menü am Handy, Ebene einer Gruppe', `„${mega.zurueck}“`);
 punkt('Für Bildschirmleser', `„${t.geruest.sprung}“, „${t.geruest.marke}“, „${t.geruest.navigation}“, „${t.geruest.menue}“, „${t.geruest.menueZu}“, „${t.geruest.brotkrumen}“; Knopf der Startseite „${t.geruest.bewegung.anhalten}“ und „${t.geruest.bewegung.fortsetzen}“ (sichtbar, unten rechts); vor den Einträgen des Mega-Menüs unsichtbar „Rezepte aus: …“, „Rezepte der Kategorie …“, „Rezepte ohne …“, „Rezepte, passt für: …“`);
 zeile();
 
-zeile('## Abschnitt 1: Kopf mit Scan-Geschichte');
-punkt('Überschrift', `${t.kopf.ueberschrift.join('')} („${t.kopf.ueberschrift[1]}“ mit Unterstreichung in Mint; Überschrift des LinkedIn-Bildes)`);
-punkt('Text (Satz zur Beschreibung, AP-22; auch in Organization und WebSite und auf der Seite Über FoodAsu)', seite.beschreibung);
-punkt('Früherer Vorspann (steht nur noch in llms.txt)', t.kopf.text);
+zeile('## Abschnitt 1: Kopf (Auftrag SEO 1 neu, 14.10.2026)');
+punkt('Überschrift (H1, ein Element in drei Teilen)', `${t.kopf.ueberschrift.join(' ')} („${t.kopf.ueberschrift[1]}“ in Indigo, „${t.kopf.ueberschrift[2]}“ kleiner darunter)`);
+punkt('Satz (höchstens 15 Wörter)', `${t.kopf.satz.vor}${t.kopf.satz.betont}${t.kopf.satz.nach} („${t.kopf.satz.betont}“ in Indigo)`);
 punkt('Aufruf', `${t.kopf.aufruf} (Text ohne Link)`);
-punkt('Zweiter Knopf', `${t.kopf.zweiterKnopf} (springt zu Abschnitt 3)`);
-punkt('Zeile darunter', `${t.kopf.stand} (Satz zur Verfügbarkeit, Nachtrag zu AP-23 vom 11.10.2026; wörtlich gleich in der Antwort „Wo bekomme ich FoodAsu?“ und unter „Wo FoodAsu steht“; nur sein letzter Satz nennt die Plattform)`);
+punkt('Zweiter Knopf', `${t.kopf.zweiterKnopf} (springt zur Einkaufswoche)`);
+punkt('Zeile darunter (nur am Laptop; am Handy im Abschluss)', `${t.kopf.stand} (Satz zur Verfügbarkeit wörtlich)`);
 punkt('Im Handy, Produkt', `${t.kopf.handy.produkt}, ${t.kopf.handy.zusatz} (erfunden, ohne Marke)`);
 punkt('Im Handy, Urteil', `${t.kopf.handy.urteil} (App)`);
 punkt('Im Handy, Personen', t.kopf.handy.personen.map((p) => `${p.name}: ${p.ergebnis}`).join('; '));
-punkt('Im Handy, Knopf', `${t.kopf.handy.knopf} (App; allein in der Zeile, ohne Mengenwähler)`);
+punkt('Im Handy, Knopf', `${t.kopf.handy.knopf} (App)`);
 punkt('Beschreibung des Handys für Bildschirmleser', t.kopf.handy.beschreibung);
-punkt('Schwebende Begriffe', t.kopf.begriffe.join(', '));
+punkt('Schwebende Begriffe', t.kopf.begriffe.map((b) => b.wort).join(', '));
+punkt('GEO-Satz (erste Antwort, SoftwareApplication, llms.txt)', t.GEO_SATZ);
 zeile();
 
 zeile('## Abschnitt 2: Wechselndes Wort');
 punkt('Große Zeile', `${t.wort.vorsatz} [${t.wort.woerter.join(' / ')}]`);
-punkt('Absatz 1', `${t.wort.absaetze[0]} (Alis Wortlaut von „Über FoodAsu“, ohne Doppelpunkt; AP-23)`);
-punkt('Absatz 2', `${t.wort.absaetze[1]} (Beitrag)`);
+t.wort.absaetze.forEach((absatz, nummer) => punkt(`Absatz ${nummer + 1}`, absatz));
 punkt('Unterschrift', `${t.wort.unterschrift} (der Name in der Schrift des Logos)`);
 punkt('Link darunter', `${t.wort.link.text} (${t.wort.link.ziel})`);
 zeile();
 
-zeile('## Abschnitt 2b: Alltagslagen (AP-22; seit AP-23 um einen runden Tisch)');
-punkt('Überschrift', t.lagen.ueberschrift);
-punkt('Satz darunter (für wen FoodAsu ist)', t.lagen.text);
-t.lagen.karten.forEach((k) => punkt(k.titel, k.text));
-punkt('Schildchen am Tisch (schmücken nur, für Bildschirmleser ausgeblendet)', t.lagen.karten.filter((k) => k.schild).map((k) => k.schild).join('; '));
-punkt('Kleine Einkaufsliste beim Wocheneinkauf (schmückt nur)', `${t.lagen.liste.titel}: ${t.lagen.liste.offen.join(', ')}; ${t.lagen.liste.erledigtTitel}: ${t.lagen.liste.erledigt.join(', ')}`);
-punkt('Hinweis darunter', t.lagen.hinweis);
-zeile();
-
 zeile('## Abschnitt 3: Eine Einkaufswoche (Anker #schritte)');
 punkt('Überschrift', t.schritte.ueberschrift);
-t.schritte.liste.forEach((s, i) => punkt(`Schritt ${i + 1}, „${s.titel}“`, s.text));
-punkt('Link darunter', `${t.schritte.link.text} (${t.schritte.link.ziel})`);
+punkt('Unterzeile', t.schritte.unterzeile);
+t.schritte.liste.forEach((s, i) => punkt(`Schritt ${i + 1}, „${s.titel}“`, `${s.text} Link „${t.schritte.mehr}“ (für Bildschirmleser „${t.schritte.mehr} ${s.ort}“) auf ${s.ziel}. Bild \`${s.bild}\`: ${s.alt}`));
+punkt('Knopf darunter', `${t.schritte.link.text} (${t.schritte.link.ziel})`);
 zeile();
 
-zeile('## Abschnitt 4: Sechs Funktionen (ohne Kästen, je ein Zeichen)');
-punkt('Überschrift', `${t.funktionen.ueberschrift} (Store)`);
-for (const k of t.funktionen.karten) punkt(`Funktion „${k.titel}“`, k.text);
+zeile('## Abschnitt 4: Video (Platzhalter) und „Mehr als ein Einkaufszettel“');
+punkt('Video', `Standbild \`${t.video.standbild}\` im Handy-Rahmen, bis das Video kommt; Beschreibung: ${t.video.alt}`);
+punkt('Überschrift', t.funktionen.ueberschrift);
+for (const k of t.funktionen.karten) punkt(`Karte „${k.titel}“`, `${k.kurz} Aufgeklappt: ${k.text.join(' ')}`);
 zeile();
 
-zeile('## Abschnitt 4b: FoodAsu im Bild (AP-19 Teil G)');
+zeile('## Abschnitt 5: Einfache Einkaufsliste oder FoodAsu?');
+punkt('Überschrift', t.vergleich.ueberschrift);
+punkt('Tabelle', `${t.vergleich.spalten.join(' | ')}; ${t.vergleich.zeilen.map((z) => z.join(' | ')).join('; ')}`);
+punkt('Satz', t.vergleich.satz);
+zeile();
+
+zeile('## Abschnitt 6: FoodAsu im Bild (AP-19 Teil G)');
 punkt('Überschrift', t.einblick.ueberschrift);
 punkt('Text', t.einblick.text);
-t.einblick.karten.forEach((karte, nummer) => punkt(`Karte ${nummer + 1}`, `${karte.titel}. ${karte.text} Bild: \`${karte.datei}.png\`. Link der Überschrift: ${karte.ziel}`));
+t.einblick.karten.forEach((karte, nummer) => punkt(`Karte ${nummer + 1}`, `${karte.titel}. ${karte.text} Link „${t.einblick.mehr}“ (am Laptop die ganze Karte) auf ${karte.ziel}. Bild \`${karte.datei}\`: ${karte.alt}`));
 punkt('Satz unter den Karten', t.einblick.hinweis);
 punkt('Link', `${t.einblick.link} (${t.einblick.ziel})`);
 zeile();
 
-zeile('## Abschnitt 5: Zahlen, darunter Einträge und Rezepte als ruhende Chips');
+zeile('## Abschnitt 7: Zahlen, darunter Einträge und Rezepte als ruhende Chips');
 punkt('Überschrift (nur für Bildschirmleser)', t.zahlen.ueberschrift);
 punkt('Zähler', t.zahlen.zaehler.map((e) => `${e.zahl} ${e.wort}`).join('; '));
 punkt('Chips 1, Einträge wie in der App', t.zahlen.zutatenband.join(', '));
 punkt('Chips 2, Rezepte', t.zahlen.rezeptband.join(', '));
 zeile();
 
-zeile('## Abschnitt 6: Rezepte-Vorschau');
+zeile('## Abschnitt 8: Rezepte-Vorschau');
 punkt('Überschrift', t.vorschau.ueberschrift);
 punkt('Text', t.vorschau.text);
 punkt('Karten', `${t.vorschau.karten.map((k) => k.titel).join(', ')}; jede mit Bild, Kennzeichnung „${t.vorschau.kennzeichnung}“ und Bildbeschreibung „Symbolbild: Titel“ (App); jede führt zu ihrer Rezeptseite`);
-punkt('Satz vor dem Link', t.vorschau.hinweis(websiteZahlen));
+punkt('Sätze vor dem Link (zwei Absätze)', t.vorschau.hinweis(websiteZahlen).join(' '));
 punkt('Link', t.vorschau.link(websiteZahlen));
 zeile();
 
-zeile('## Abschnitt 7: Fragen und Antworten');
+zeile('## Abschnitt 9: Fragen zur Einkaufslisten-App (FAQPage wortgleich)');
+punkt('Überschrift', t.fragenStart.ueberschrift);
+for (const f of t.fragenStart.liste) punkt(f.frage, f.antwort.join(' '));
+zeile();
+
+zeile('## Abschnitt 10: Abschluss');
+punkt('Überschrift', t.abschluss.ueberschrift);
+punkt('Satz', t.abschluss.satz);
+punkt('Knopf', `${t.abschluss.knopf} (Text ohne Link, wie im Kopf)`);
+punkt('Darunter, nur am Handy', t.abschluss.beta);
+zeile();
+
+zeile('## Leiste unten am Handy (nach dem ersten Bildschirm)');
+punkt('Name für Bildschirmleser', t.kurzleiste.name);
+punkt('Logo', `Link „${t.kurzleiste.logo}“ (#start)`);
+punkt('Knopf', `${t.kurzleiste.knopf} (${t.kurzleiste.ziel}; mit dem öffentlichen Start „${t.kurzleiste.storeKnopf}“ mit Link zum Eintrag)`);
+zeile();
+
+zeile('## Fragen auf der Seite /fragen/ (unverändert)');
 punkt('Überschrift', t.fragen.ueberschrift);
 for (const f of t.fragen.liste) {
   const verweis = f.verweis ? ` ${f.verweis.vor}${f.verweis.text}${f.verweis.nach}` : '';
@@ -114,7 +130,7 @@ for (const f of t.fragen.liste) {
 }
 zeile();
 
-zeile('## Abschnitt 8: Fuß');
+zeile('## Fuß');
 punkt('Aufbau', 'Fußzeile A (Entscheidung Ali vom 10.10.2026): links Logo und Satz, daneben drei Spalten, unten eine schmale Zeile');
 punkt('Satz unter dem Logo', t.fuss.satz);
 punkt('Hinweis darunter', `${t.fuss.hinweis} (stand bisher als eigene Zeile im Fuß und bleibt auf jeder Seite)`);
@@ -132,7 +148,7 @@ punkt("Bereich „So geht's“", 'sieben Seiten, alle Texte in der Datei Website
 const n = t.geruest.nichtGefunden;
 punkt('Seite 404 (Entwurf der Projektleitung, von Ali freigegeben)', `Etikett „${n.etikett}“, Zahl „${n.zahl}“, Überschrift „${n.titel.join('')}“. ${n.text} Knöpfe: „${n.start}“, „${n.rezepte}“. Zwischenüberschrift „${n.themenTitel}“ mit ${n.themen.map((e) => `„${e.titel}“`).join(', ')}. Karte „${n.karte.titel}“: ${n.karte.text} Knopf „${n.karte.knopf}“. Die Null der Zahl ist eine Zitronenscheibe (schmückt nur); Handys zeigt die Seite seit AP-23 nicht mehr. Titel der Seite: ${n.seitentitel}.`);
 const f = t.geruest.fragenSeite;
-punkt('Seite Fragen und Antworten', `Titel „${f.titel}“, Vorspann: ${f.beschreibung} Fragen und Antworten wie in Abschnitt 7.`);
+punkt('Seite Fragen und Antworten', `Titel „${f.titel}“, Vorspann: ${f.beschreibung} Fragen und Antworten wie unter „Fragen auf der Seite /fragen/“.`);
 punkt('Seite Daten und Quellen (AP-22)', `Vorspann: ${datenquellen.vorspann} ${datenquellen.teile.map((teil) => `${teil.titel}: ${teil.absaetze.map((absatz) => (typeof absatz === 'string' ? absatz : absatz.vor + absatz.text + absatz.nach)).join(' ')}`).join(' | ')}`);
 punkt('Seite Über FoodAsu (AP-22)', `Vorspann: ${ueber.vorspann} ${ueber.teile.map((teil) => `${teil.titel}: ${[...teil.absaetze, teil.unterschrift, teil.kontakt, teil.verweis ? teil.verweis.vor + teil.verweis.text + teil.verweis.nach : null].filter(Boolean).join(' ')}`).join(' | ')}`);
 const l = t.geruest.lizenzen;
@@ -150,7 +166,7 @@ punkt('Rezeptseite, Titel der Seite', '<Name>: Rezept aus <Land> | FoodAsu; bei 
 punkt('Rezeptseite, „Passt für“', `${r.passt.titel} ${r.passt.zusatz}; ${r.passt.erklaerung} ${r.passt.moeglichText('vegetarisch', '...')}`);
 punkt('Rezeptseite, Hinweise', `${r.hinweise.titel}: ${r.hinweise.einleitung} ${r.hinweise.stufen.map(([wort, text]) => `${wort}: ${text}`).join(' ')} ${r.hinweise.app} Aufklappen: „${r.hinweise.tabelle}“`);
 punkt('Rezeptseite, Nährwerte', `${r.naehrwerte.proPortion}; ${r.naehrwerte.energieText} ${r.naehrwerte.energieHinweis} ${r.naehrwerte.grundlage} Aufklappen: „${r.naehrwerte.tabelle}“`);
-punkt('Rezeptseite, Hinweis auf die App', `${r.app.titel}: ${r.app.text} ${r.app.mehr} Link: „${r.app.soGehts}“`);
+punkt('Rezeptseite, Hinweis auf die App', `${r.app.titel}: ${r.app.text} ${r.app.mehr} („${r.app.link.text}“ ist ein Link auf ${r.app.link.ziel}) Link: „${r.app.soGehts}“`);
 punkt('Rezeptseite, Link am Ende', `„${r.quelle.link}“ (führt zum Abschnitt des Rezepts auf der Seite „${r.quelle.seite.titel}“)`);
 const q = r.quelle;
 punkt('Seite Quellen und Lizenzen', `${q.seite.einleitung} Überschrift der Liste: „${q.seite.uebersicht}“. Je Rezept: Quelle, ${q.urheber}, ${q.lizenz}, ${q.aenderungen} („${q.veraendert}“ und der Vermerk des Rezeptpakets), ${q.bild[0]} („${q.bild[1]}“), ${q.naehrwerte[0]} („${q.naehrwerte[1]}${q.bls.doi}${q.naehrwerte[2]}${q.bls.lizenz}${q.naehrwerte[3]}“), der Satz „${q.gleicheLizenz('CC BY-SA 4.0')}“ und der Link „${q.seite.zumRezept}“. Beschreibung: ${q.seite.beschreibung}`);

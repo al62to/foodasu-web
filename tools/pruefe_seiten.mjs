@@ -8,7 +8,9 @@ import { begriffe } from '../src/daten/sprachen.mjs';
 import { AUSDRUCK, durchlaufe } from './sprache_setzen.mjs';
 import { muster as nurMuster } from '../src/daten/auswahl.mjs';
 import { BEREICH, adresse as kapitelAdresse, fotosVon, kapitel } from '../src/daten/sogehts.mjs';
-import { einblick } from '../src/daten/startseite.mjs';
+import { einblick, schritte as startSchritte, zahlen as startZahlen } from '../src/daten/startseite.mjs';
+import { EINTRAEGE } from '../src/daten/rezeptseiten.mjs';
+import { store } from '../src/daten/seite.mjs';
 import { GRENZEN, grenzBefunde, masse } from '../src/daten/breite.mjs';
 import { alleRezepte, zutatenBefunde } from './zutaten_pruefen.mjs';
 import { sogehtsLinks } from './sogehts_links.mjs';
@@ -35,6 +37,11 @@ const ZEITRAEUME = ['1500er', '1600er und 1700er', '1800er', '1900 bis 1955'];
 // Im Fließtext steht "über N": die Zahl der Rezepte der App, abgerundet auf volle 50 und immer kleiner als die echte
 // Zahl (306 ergibt 300, 376 ergibt 350, 350 ergibt 300).
 const APP = JSON.parse(readFileSync('src/daten/rezepte.json', 'utf8')).zahlen;
+// Einträge zum Meiden der öffentlich verfügbaren Fassung der App (feste Vorgabe, Ali, 14.10.2026): gelesen wird
+// src/daten/app_fassung.json selbst (tools/app_fassung_exportieren.py aus dem Repository der App).
+const FASSUNG = JSON.parse(readFileSync('src/daten/app_fassung.json', 'utf8'));
+const EINTRAEGE_FEST = FASSUNG.eintraegeFest;
+const EINTRAEGE_ALLE = FASSUNG.eintraegeFest + FASSUNG.weitereLebensmittel;
 const UEBER = Math.floor((APP.gesamt - 1) / 50) * 50;
 let spaeterSeiten = 0;
 
@@ -174,6 +181,11 @@ for (const [adresse, html] of seiten) {
   }
 }
 const TITEL_ZEICHEN = /^[\p{L}\p{N} :|()'-]+$/u;
+// Auftrag SEO 1 neu (Projektleitung, 14.10.2026): Der Titel der Startseite beginnt mit "Einkaufslisten-App" und bleibt
+// in diesem Wortlaut ohne Marke, obwohl er 67 Zeichen und 628 Pixel hat. Nur genau dieser Titel auf genau dieser Seite
+// ist von den Grenzen ausgenommen; die Prüfung wertet ihn nicht als Fehler. Den Namen tragen og:site_name und
+// WebSite.name (beides unten geprüft).
+const TITEL_START = 'Einkaufslisten-App und Lebensmittel-Scanner für den ganzen Haushalt';
 const META_WORTE = [['LADEN-WORT', muster('herunterladen|herunter\\s+laden|download|jetzt\\s+laden|jetzt\\s+holen')]];
 const TEILEN = { breite: 1200, hoehe: 630, gemeinsam: '/bilder/foodasu-teilen.jpg' };
 const inhaltVon = (html, name) => {
@@ -202,7 +214,8 @@ for (const [adresse, html] of seiten) {
   if (!beschreibung.trim()) melde(adresse, 'genau eine Beschreibung erwartet');
   for (const [art, text] of [['titel', titel], ['beschreibung', beschreibung]]) {
     if (!text.trim()) continue;
-    for (const befund of grenzBefunde(text, art)) melde(adresse, `${art === 'titel' ? 'Titel' : 'Beschreibung'} „${text}“: ${befund}`);
+    const ausnahme = art === 'titel' && adresse === '/' && text === TITEL_START;
+    if (!ausnahme) for (const befund of grenzBefunde(text, art)) melde(adresse, `${art === 'titel' ? 'Titel' : 'Beschreibung'} „${text}“: ${befund}`);
     if (gesehen[art].has(text)) melde(adresse, `${art === 'titel' ? 'Titel' : 'Beschreibung'} doppelt, auch auf ${gesehen[art].get(text)}`);
     gesehen[art].set(text, adresse);
     // Auch die Kopfdaten der Rechtstexte laufen durch alle Wortlisten.
@@ -305,10 +318,15 @@ for (const [adresse, html] of seiten) {
       melde(adresse, 'JSON-LD ist kein gültiges JSON');
     }
   }
-  const erwartet = adresse === '/' ? ['WebSite', 'Organization'] : OHNE_EINGANG.has(adresse) ? [] : ['BreadcrumbList'];
+  const erwartet = adresse === '/' ? ['WebSite', 'Organization', 'Person', 'SoftwareApplication', 'FAQPage'] : OHNE_EINGANG.has(adresse) ? [] : ['BreadcrumbList'];
   for (const art of erwartet) if (!arten.includes(art)) melde(adresse, `strukturierte Daten fehlen: ${art}`);
-  // AP-22, Entscheidung Ali vom 10.10.2026: keine Software-App in den strukturierten Daten, auf keiner Seite.
-  for (const art of arten.flat()) if (/Application$/.test(art)) melde(adresse, `strukturierte Daten: ${art} ist nicht vorgesehen`);
+  // Software-App: seit dem Auftrag SEO 1 neu (14.10.2026) genau eine SoftwareApplication, nur auf der Startseite (ohne
+  // Angebot, Preis und Bewertung; die Einzelheiten prüft der Abschnitt zur Startseite unten). Jede andere Art, die auf
+  // "Application" endet, und jede Software-App auf einer anderen Seite bleibt ein Befund (AP-22, Ali, 10.10.2026).
+  for (const art of arten.flat()) {
+    if (/Application$/.test(art) && !(adresse === '/' && art === 'SoftwareApplication')) melde(adresse, `strukturierte Daten: ${art} ist nicht vorgesehen`);
+  }
+  if (adresse === '/' && arten.flat().filter((art) => art === 'SoftwareApplication').length !== 1) melde(adresse, 'strukturierte Daten: genau eine SoftwareApplication erwartet');
   // Brotkrumen: Die strukturierten Daten nennen dieselben Stufen wie die sichtbare Zeile, die letzte ist die Seite.
   const krumenZeile = html.match(/<nav class="krumen[\s\S]*?<\/nav>/)?.[0];
   if (krumenZeile) {
@@ -781,7 +799,14 @@ for (const karte of einblick.karten) {
   if (!startseite.includes(`href="${karte.ziel}"`)) melde('/', `Abschnitt „${einblick.ueberschrift}“: Link fehlt: ${karte.ziel}`);
   if (!startseite.includes(`/bilder/sogehts/${karte.datei.replaceAll('_', '-')}-720.webp`)) melde('/', `Abschnitt „${einblick.ueberschrift}“: Bild fehlt: ${karte.datei}`);
 }
-if (alle(startseite, /<div class="geraet-rahmen"/g).length !== einblick.karten.length) melde('/', `Abschnitt „${einblick.ueberschrift}“: jedes Bild im Handy-Rahmen erwartet`);
+const einblickTeil = startseite.match(/<section class="einblick" id="einblick">[\s\S]*?<\/section>/)?.[0] ?? '';
+if (alle(einblickTeil, /<div class="geraet-rahmen"/g).length !== einblick.karten.length) melde('/', `Abschnitt „${einblick.ueberschrift}“: jedes Bild im Handy-Rahmen erwartet`);
+// Auftrag SEO 1 neu, Teil 1 Nr. 9 und Teil 2 Nr. 12: am Handy eine Zeitleiste, je Karte der Link „In der Anleitung“
+// mit einem Zusatz nur für Bildschirmleser, der das Ziel nennt; kein seitliches Wischen mehr.
+for (const karte of einblick.karten) {
+  if (!new RegExp(`<a href="${karte.ziel}"><span class="mehr-wort">${einblick.mehr}</span><span class="vh"> zu „${karte.titel.replace(/[?]/g, '\\?')}“</span>`).test(einblickTeil)) melde('/', `„${einblick.ueberschrift}“: Link „${einblick.mehr}“ mit Zusatz für Bildschirmleser fehlt bei „${karte.titel}“`);
+}
+if (!/<span class="einblick-linie" aria-hidden="true">/.test(einblickTeil)) melde('/', `„${einblick.ueberschrift}“: Linie der Zeitleiste fehlt oder ist für Bildschirmleser nicht ausgeblendet`);
 if (kapitel.filter((eintrag) => eintrag.film).length > 3) melde(BEREICH, 'höchstens drei Schleifen (Karte C)');
 // Kein Link nach außen in "So geht's" (Ali, 11.10.2026; AP-27 Teil B): dieselbe Sperre wie am Ende des Baus
 // (tools/sogehts_links.mjs). Erlaubt sind relative Links, Anker und Links auf https://foodasu.com/.
@@ -879,7 +904,7 @@ if (OHNE_INDEX.has('/daten-und-quellen/')) melde('/daten-und-quellen/', 'steht a
 // "Zu Hause schreiben, im Laden abhaken"; beschrieben ist nur, was 0.14.3 kann.
 const KERNSATZ = 'FoodAsu verbindet Lebensmittel-Scanner und Einkaufsliste in einer App für den ganzen Haushalt.';
 const BESCHREIBUNG = `${KERNSATZ} Beim Scannen zeigt die App für jede Person einzeln, ob laut den Angaben zum Produkt etwas drin ist, das sie meidet. Dazu kommen über ${UEBER} Rezepte. Ohne Konto, ohne Werbung.`;
-for (const adresse of ['/', '/ueber-foodasu/']) {
+for (const adresse of ['/ueber-foodasu/']) {
   if (!seiten.has(adresse)) { melde(adresse, 'Seite fehlt'); continue; }
   if (!textVon(adresse).includes(BESCHREIBUNG)) melde(adresse, 'Satz zur Beschreibung fehlt oder weicht ab');
 }
@@ -894,8 +919,18 @@ if (!organisation?.logo || !(organisation.sameAs ?? []).some((ziel) => ziel.incl
 const wochenTeil = startseite.match(/<section class="schritte" id="schritte">[\s\S]*?<\/section>/)?.[0] ?? '';
 if (!wochenTeil) melde('/', 'Abschnitt mit dem Anker #schritte fehlt');
 else {
-  if (alle(wochenTeil, /<li class="schritt">/g).length !== 4) melde('/', 'Einkaufswoche: vier Schritte erwartet');
-  if (!wochenTeil.includes('href="/so-gehts/zu-hause-schreiben-im-laden-abhaken/"')) melde('/', 'Einkaufswoche: Link auf „Zu Hause schreiben, im Laden abhaken“ fehlt');
+  // Auftrag SEO 1 neu, Teil 1 Nr. 5: drei Schritte (bis dahin vier).
+  if (alle(wochenTeil, /<li class="schritt">/g).length !== 3) melde('/', 'Einkaufswoche: drei Schritte erwartet');
+  if (alle(wochenTeil, /<h3>[^<]+<\/h3>/g).length !== 3) melde('/', 'Einkaufswoche: je Schritt ein Titel als h3 erwartet');
+  if (!wochenTeil.includes('href="/so-gehts/zu-hause-schreiben-im-laden-abhaken/')) melde('/', 'Einkaufswoche: Link auf „Zu Hause schreiben, im Laden abhaken“ fehlt');
+  for (const schritt of startSchritte.liste) {
+    if (!schritt.ziel.startsWith(BEREICH)) melde('/', `Einkaufswoche: „${schritt.titel}“ führt nicht in die Anleitung`);
+    if (!wochenTeil.includes(`<a href="${schritt.ziel}"><span class="mehr-wort">${startSchritte.mehr}</span><span class="vh"> ${schritt.ort}</span>`)) melde('/', `Einkaufswoche: Link „${startSchritte.mehr}“ mit Zusatz für Bildschirmleser fehlt bei „${schritt.titel}“`);
+  }
+  if (!entschluesselt(wochenTeil).includes(`<p class="unterzeile">${startSchritte.unterzeile}</p>`) || !/Einkaufslisten-App/.test(startSchritte.unterzeile)) melde('/', 'Einkaufswoche: Unterzeile mit „Einkaufslisten-App“ fehlt');
+  if (!wochenTeil.includes('href="/so-gehts/"')) melde('/', 'Einkaufswoche: Knopf zur ganzen Anleitung fehlt');
+  if (alle(wochenTeil, /<div class="geraet-rahmen"/g).length !== 3) melde('/', 'Einkaufswoche: je Schritt ein Bildschirmfoto im Handy-Rahmen erwartet');
+  if (!/<span class="weg-linie" aria-hidden="true"><i data-linie="schritte"><\/i><\/span>/.test(wochenTeil)) melde('/', 'Einkaufswoche: Linie der Zeitleiste fehlt');
 }
 // Nichts aus dem Fahrplan: kein Abhaken beim Scannen, kein Teilen von Rezepten in der App.
 for (const adresse of ['/', '/ueber-foodasu/']) {
@@ -909,7 +944,10 @@ if (!/als Text teilen/.test(textVon('/'))) melde('/', 'die Karte zur Einkaufslis
 for (const adresse of ['/', '/fragen/']) {
   if (/Daten können fehlen oder veraltet sein\. Maßgeblich ist immer die Verpackung\. FoodAsu ist kein Medizinprodukt/.test(textVon(adresse))) melde(adresse, 'Antwort „Ersetzt FoodAsu die Verpackung?“: „Maßgeblich ist immer die Verpackung.“ steht doppelt');
 }
-if (wochenTeil && !entschluesselt(wochenTeil).includes('„Warum?“')) melde('/', 'Einkaufswoche: Schritt 3 nennt „Warum?“ nicht');
+// Seit dem Auftrag SEO 1 neu nennt der kurze Satz der Karte „Scannen und sofort sehen“ das „Warum?“ (Entscheidung 5 vom
+// 10.10.2026: Die Startseite erklärt, dass „Warum?“ die Zutat oder Spurenangabe zeigt).
+const funktionTeil = startseite.match(/<section class="mehr" id="funktionen">[\s\S]*?<\/section>/)?.[0] ?? '';
+if (!entschluesselt(funktionTeil).includes('„Warum?“')) melde('/', 'Funktionen: die Karte zum Scannen nennt „Warum?“ nicht');
 for (const adresse of ['/', '/ueber-foodasu/']) {
   for (const wort of ['bleib', 'Erledigt', 'schon einmal aufgeschrieben', 'laut Daten']) if (!textVon(adresse).includes(wort)) melde(adresse, `Einkaufsliste im Alltag: Angabe fehlt: ${wort}`);
   for (const fund of alle(textVon(adresse), /whatsapp|telegram|signal|messenger|threema/gi)) melde(adresse, `nennt einen anderen Dienst: ${fund[0]}`);
@@ -1006,10 +1044,12 @@ for (const datei of dateien.filter((pfad) => /\.(?:html|css|js|svg|txt|xml)$/.te
 // Startseite: der Absatz mit Unterschrift im Wortlaut der Projektleitung (ohne Doppelpunkt), darunter die Unterschrift
 // und der Link auf "Über FoodAsu"; die Bänder stehen still (kein laufendes Band); der Tisch und die kleine
 // Einkaufsliste schmücken nur; die Anker #schritte und #fragen bleiben.
-// Wortlaut seit der Änderung 2 zum Nachtrag zu AP-23 (Ali, 11.10.2026); seit der Änderung 3 "ohne Abtippen".
+// Wortlaut seit dem Auftrag SEO 1 neu (14.10.2026, Teil 1 Nr. 3): kürzer wie im Entwurf, mit dem Satz zum
+// Einkaufszettel aus dem Vorschlag; "laut den Angaben" bleibt. Je Satz ein Absatz (am Handy höchstens drei Zeilen).
 const ABSATZ_START = [
-  'Ehrlich gesagt war mir die Einkaufsliste jede Woche eine Qual. Neu schreiben, etwas vergessen, im Chatverlauf suchen.',
-  'Mit FoodAsu habe ich mir das leichter gemacht. Meine Listen bleiben gespeichert, die Zutaten aus dem Rezept kommen ohne Abtippen dazu, und beim Scannen sehe ich, was laut den Angaben im Produkt ist.',
+  'Ehrlich gesagt war mir die Einkaufsliste jede Woche eine Qual.',
+  'Mit FoodAsu bleiben meine Listen gespeichert, und beim Scannen sehe ich, was laut den Angaben im Produkt ist.',
+  'Den Einkaufszettel aus Papier brauche ich dafür nicht mehr.',
 ];
 // Die wechselnden Wörter nach "Einkaufen ohne", in dieser Reihenfolge; die letzten zwei sind keine Einträge zum Meiden.
 const WORT_MARKEN = ['Nüsse', 'Gluten', 'Eier', 'Alkohol', 'Palmöl', 'Sesam', 'Milch', 'Zettel', 'Rätselraten'];
@@ -1026,16 +1066,16 @@ else {
   if (wortMarken.join(' | ') !== WORT_MARKEN.join(' | ')) melde('/', `„Einkaufen ohne …“: Wörter „${WORT_MARKEN.join(', ')}“ erwartet, gefunden „${wortMarken.join(', ')}“`);
   // Der Absatz selbst (die Absätze vor der Unterschrift): genau der Wortlaut, kein Doppelpunkt, kein Strichpunkt.
   const wortAbsaetze = alle(wortTeil, /<p>([\s\S]*?)<\/p>/g).map(([, absatz]) => entschluesselt(absatz.replace(/<[^>]+>/g, '')).replace(/\s+/g, ' ').trim());
-  if (wortAbsaetze.join(' | ') !== ABSATZ_START.join(' | ')) melde('/', 'neben der Unterschrift stehen nicht genau die zwei Absätze des Wortlauts');
+  if (wortAbsaetze.join(' | ') !== ABSATZ_START.join(' | ')) melde('/', 'neben der Unterschrift stehen nicht genau die drei Absätze des Wortlauts');
   if (wortAbsaetze.some((absatz) => /[:;]/.test(absatz))) melde('/', 'der Absatz mit Unterschrift enthält einen Doppelpunkt oder Strichpunkt');
 }
 if (/data-band\b|band-spur/.test(startseite)) melde('/', 'die Bänder der Startseite laufen noch (sie stehen seit AP-23 still, als Chips in Reihen)');
 if (!/id="fragen"/.test(startseite)) melde('/', 'Abschnitt mit dem Anker #fragen fehlt');
-const tischTeil = startseite.match(/<div class="tisch" aria-hidden="true">[\s\S]*?<\/div>/)?.[0] ?? '';
-if (!tischTeil) melde('/', 'der Tisch im Abschnitt „Wenn nicht alle dasselbe essen“ fehlt oder ist für Bildschirmleser nicht ausgeblendet');
-else for (const schild of ['Kind · Milch', 'Partner · Vegetarisch', 'Gäste · Schweinefleisch', 'Oma · Gluten']) if (!entschluesselt(tischTeil).includes(schild)) melde('/', `Schildchen am Tisch fehlt: ${schild}`);
-if (alle(startseite, /<li class="lage(?: woche)?">/g).length !== 5) melde('/', '„Wenn nicht alle dasselbe essen“: fünf Lagen erwartet');
-if (!/<div class="einkauf" aria-hidden="true">/.test(startseite)) melde('/', 'die kleine Einkaufsliste beim Wocheneinkauf fehlt oder ist für Bildschirmleser nicht ausgeblendet');
+// Auftrag SEO 1 neu (14.10.2026): Der Abschnitt „Wenn nicht alle dasselbe essen“ ist ersatzlos entfallen (Alis Ja); er
+// zieht auf keine andere Seite um, und kein Link zeigt mehr auf seinen Anker #alltag (die Linkprüfung oben meldet
+// jede fehlende Sprungmarke).
+if (/id="alltag"|class="tisch"|class="lage|Wenn nicht alle dasselbe essen/.test(startseite)) melde('/', 'der Abschnitt „Wenn nicht alle dasselbe essen“ steht noch auf der Startseite');
+for (const [adresse, html] of seiten) if (/href="\/#alltag"/.test(html)) melde(adresse, 'Link auf den entfallenen Anker /#alltag');
 // Nachtrag zu AP-23 (Ali, 11.10.2026): FoodAsu tritt ohne regionale Herkunft auf (kein Ort, keine Region, kein Land als
 // Herkunft) und wird ohne Plattform beschrieben. Geprüft wird der fertige Bau, nicht der Quelltext: jede HTML-, TXT-,
 // XML- und JSON-Datei als Ganzes, also auch Titel, Beschreibungen, Open Graph, Twitter-Karte, strukturierte Daten,
@@ -1063,6 +1103,11 @@ const PLATTFORM = [['Android', /Android/giu]];
 const VERFUEGBAR = 'Zuerst kommt die App für Android in den Play Store, danach folgt die Version fürs iPhone.';
 const STAND = `FoodAsu ist in der Beta. Wir bauen laufend neue Funktionen ein und freuen uns über dein Feedback. ${VERFUEGBAR}`;
 const PLAY_EINTRAG = 'https://play.google.com/store/apps/details?id=at.tonc.einkauf';
+// GEO-Satz (Auftrag SEO 1 neu, Teil 2 Nr. 6; seit Alis Entscheidung vom 14.10.2026 ohne Plattform, die Regel vom
+// 11.10.2026 gilt ohne Ausnahme). Nur auf der Startseite steht die Angabe "operatingSystem" der SoftwareApplication.
+// Die Zahl der Rezepte kommt aus den Daten.
+const GEO = `FoodAsu ist eine Einkaufslisten-App mit Lebensmittel-Scanner: Einkaufsliste, über ${UEBER} Rezepte und ein Scanner, der für jede Person im Haushalt zeigt, ob laut den Angaben zum Produkt etwas drin ist, das sie meidet.`;
+const BETRIEBSSYSTEM = '"operatingSystem":"Android"';
 const WEITERE_SPRACHE = /<meta property="og:locale:alternate" content="de_AT"\s*\/?>/g;
 const ANLEITUNG_ANDROID = [
   'FoodAsu gibt es zuerst für Android und kommt über Google Play auf dein Handy.',
@@ -1085,6 +1130,7 @@ for (const datei of dateien.filter((pfad) => /\.(?:html|txt|xml|json|webmanifest
   for (const roh of name === '/llms.txt' ? inhalt.split('\n') : [inhalt]) {
     let teil = entschluesselt(ohneSprachangabe(roh)).replace(/\s+/g, ' ');
     teil = teil.replaceAll(VERFUEGBAR, ' ').replaceAll(PLAY_EINTRAG, ' ').replace(WEITERE_SPRACHE, ' ');
+    if (adresse === '/') teil = teil.replaceAll(BETRIEBSSYSTEM, ' ');
     const inAnleitung = adresse.startsWith(BEREICH) || (name === '/llms.txt' && teil.includes(`](${HOST}${BEREICH}`));
     if (inAnleitung) for (const wortlaut of ANLEITUNG_ANDROID) teil = teil.replaceAll(wortlaut, ' ');
     const beiRezepten = adresse.startsWith('/rezepte/') || adresse === ALTE || adresse === QUELLEN || (name === '/llms.txt' && (teil.includes(`](${HOST}/rezepte/`) || teil.includes(`](${HOST}${ALTE}`)));
@@ -1101,10 +1147,18 @@ for (const datei of dateien.filter((pfad) => /\.(?:html|txt|xml|json|webmanifest
 for (const adresse of ['/', '/fragen/', '/ueber-foodasu/']) if (!fliesstext(adresse).includes(STAND)) melde(adresse, 'Satz zur Verfügbarkeit fehlt oder weicht ab');
 for (const [adresse, html] of seiten) if (/iPhone ist geplant|iPhone ist in Arbeit/.test(html)) melde(adresse, 'der frühere Satz zum iPhone steht noch da');
 // llms.txt: Kernsatz, dann der Satz mit der Plattform; der Absatz darunter wiederholt ihn nicht.
-if (!llms.split('\n').some((zeile) => zeile.startsWith(`> ${KERNSATZ} ${VERFUEGBAR} `))) melde('llms.txt', 'Einleitung: der Kernsatz und danach der Satz zur Plattform erwartet');
+// Seit dem Auftrag SEO 1 neu (Teil 3 Nr. 3): zuerst der GEO-Satz als Zitat, darunter der Absatz mit dem Kernsatz, dem
+// Hinweis zur Beta und dem Satz zur Verfügbarkeit; der Link zum Eintrag bei Google Play erst mit dem öffentlichen Start.
+{
+  const zeilen = llms.split('\n');
+  if (zeilen[2] !== `> ${GEO}`) melde('llms.txt', 'Einleitung: der GEO-Satz als erstes Zitat erwartet');
+  if (!(zeilen[4] ?? '').startsWith(`${KERNSATZ} `) || !(zeilen[4] ?? '').includes(` ${VERFUEGBAR} `)) melde('llms.txt', 'Einleitung: der Absatz mit dem Kernsatz und dem Satz zur Verfügbarkeit erwartet');
+  if (!store.oeffentlich && llms.includes('play.google.com')) melde('llms.txt', 'Link zum Eintrag bei Google Play vor dem öffentlichen Start');
+  for (const ziel of ['/', BEREICH, '/fragen/', '/datenschutz.html']) if (!llms.includes(`(${HOST}${ziel})`)) melde('llms.txt', `Link fehlt: ${ziel}`);
+}
 if (llms.split(VERFUEGBAR).length !== 2) melde('llms.txt', 'der Satz zur Plattform steht nicht genau einmal in der Datei');
 // Titel der Startseite, Überschrift von "Über FoodAsu", Satz der Fußzeile als Beschreibung des Bildes zum Teilen.
-if (!startseite.includes('<title>FoodAsu: Lebensmittel-Scanner und Einkaufsliste</title>')) melde('/', 'Titel „FoodAsu: Lebensmittel-Scanner und Einkaufsliste“ erwartet');
+if (!startseite.includes(`<title>${TITEL_START}</title>`)) melde('/', `Titel „${TITEL_START}“ erwartet`);
 if (!fliesstext('/ueber-foodasu/').includes(' Über FoodAsu: Lebensmittel-Scanner und Einkaufsliste für den ganzen Haushalt ') || !/<h1[^>]*>Über FoodAsu: /.test(seiten.get('/ueber-foodasu/') ?? '')) melde('/ueber-foodasu/', 'Überschrift „Über FoodAsu: Lebensmittel-Scanner und Einkaufsliste für den ganzen Haushalt“ fehlt');
 if (inhaltVon(startseite, 'og:image:alt') !== 'FoodAsu: Lebensmittel-Scanner und Einkaufsliste für den ganzen Haushalt.') melde('/', 'Beschreibung des Bildes zum Teilen: der Satz der Fußzeile erwartet');
 // /favicon.ico (Nachtrag zu AP-23 Teil C): eine ICO-Datei mit 16, 32 und 48 Pixeln (tools/favicon_bauen.mjs); die
@@ -1127,6 +1181,88 @@ if (alle(ueberInhalt, /<li class="station"/g).length !== 6) melde('/ueber-foodas
 if (!/Ali Tonc,\s*Entwickler von FoodAsu/.test(entschluesselt(ueberInhalt.replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' '))) melde('/ueber-foodasu/', 'Unterschrift „Ali Tonc, Entwickler von FoodAsu“ fehlt');
 if (!/<a class="knopf voll" href="(?:&#\d+;)+">/.test(ueberInhalt)) melde('/ueber-foodasu/', 'Knopf „E-Mail schreiben“: Adresse aus HTML-Entitäten erwartet');
 if (/mailto:/.test(ueberInhalt)) melde('/ueber-foodasu/', 'die Adresse des Kontakts steht im Klartext');
+// Startseite nach dem Auftrag SEO 1 neu (Projektleitung, 14.10.2026) und dem von Ali freigegebenen Entwurf.
+{
+  const s = startseite;
+  const daten = alle(s, /<script type="application\/ld\+json">([\s\S]*?)<\/script>/g).map(([, roh]) => { try { return JSON.parse(roh); } catch { return {}; } });
+  const block = (art) => daten.find((einer) => einer['@type'] === art);
+  // H1 in drei Teilen, ein einziges Element; Pflichtstellen des Fokus-Keywords (Teil 2 Nr. 2).
+  const h1 = entschluesselt((s.match(/<h1[^>]*>([\s\S]*?)<\/h1>/)?.[1] ?? '').replace(/<[^>]+>/g, '')).replace(/\s+/g, ' ').trim();
+  if (h1 !== 'Einkaufslisten-App und Lebensmittel-Scanner für den ganzen Haushalt') melde('/', `H1 „Einkaufslisten-App und Lebensmittel-Scanner für den ganzen Haushalt“ erwartet, gefunden „${h1}“`);
+  if (alle(s.match(/<h1[^>]*>[\s\S]*?<\/h1>/)?.[0] ?? '', /<span class="h-/g).length !== 3) melde('/', 'H1: drei Teile erwartet');
+  if (!(inhaltVon(s, 'description') ?? '').startsWith('Einkaufslisten-App')) melde('/', 'Beschreibung beginnt nicht mit „Einkaufslisten-App“');
+  if (inhaltVon(s, 'og:site_name') !== 'FoodAsu' || block('WebSite')?.name !== 'FoodAsu') melde('/', 'Websitename „FoodAsu“ fehlt in og:site_name oder WebSite.name');
+  // Satz im Kopf: höchstens 15 Wörter, mit "Einkaufsliste"; die Vorzeile von früher ist entfallen.
+  const satz = entschluesselt((s.match(/<p class="held-satz">([\s\S]*?)<\/p>/)?.[1] ?? '').replace(/<[^>]+>/g, '')).trim();
+  if (!satz || satz.split(/\s+/).length > 15 || !satz.includes('Einkaufsliste')) melde('/', `Satz im Kopf: höchstens 15 Wörter mit „Einkaufsliste“ erwartet, gefunden „${satz}“`);
+  if (/held-vorzeile|held-vorspann/.test(s)) melde('/', 'Vorzeile oder langer Absatz im Kopf stehen noch da');
+  // Knöpfe im Kopf wie bisher; der Hinweis zu Beta und Verfügbarkeit unter den Knöpfen (am Laptop) und im Abschluss.
+  if (!/<a class="knopf voll" href="#schritte">/.test(s)) melde('/', 'Knopf „Eine Einkaufswoche“ zu #schritte fehlt');
+  if (!new RegExp(`<p class="held-stand">${STAND}</p>`).test(entschluesselt(ohneSprachangabe(s)))) melde('/', 'Hinweis zu Beta und Verfügbarkeit unter den Knöpfen fehlt');
+  // Schwebende Begriffe ohne "Schweinefleisch" (Teil 1 Nr. 2e).
+  const begriffe = alle(s, /<span class="chip ruht schwebt s\d"[^>]*><i><\/i>([^<]+)<\/span>/g).map(([, wort]) => entschluesselt(wort));
+  if (begriffe.join(', ') !== 'Nüsse, Gluten, Palmöl') melde('/', `Begriffe am Handy im Kopf: „Nüsse, Gluten, Palmöl“ erwartet, gefunden „${begriffe.join(', ')}“`);
+  // Video (Teil 1 Nr. 6): Standbild mit festen Maßen, erst beim Scrollen geladen; ein Video nur ohne Ton, in Schleife
+  // und per Skript (nie fest im Quelltext, nie autoplay).
+  const videoTeil = s.match(/<figure class="video-feld[^"]*" data-video>[\s\S]*?<\/figure>/)?.[0] ?? '';
+  if (!/<img\b[^>]*width="\d+"[^>]*height="\d+"[^>]*loading="lazy"/.test(videoTeil)) melde('/', 'Video: Standbild mit festen Maßen und spätem Laden fehlt');
+  if (/<video\b|autoplay/.test(s)) melde('/', 'Video: steht fest im Quelltext oder spielt von selbst');
+  // "Mehr als ein Einkaufszettel" (Teil 1 Nr. 7): sechs Karten zum Aufklappen, die erste offen, Titel als h3.
+  const karten = alle(funktionTeil, /<details class="funktion"( open)?>/g);
+  if (karten.length !== 6 || !karten[0][1] || karten.slice(1).some((karte) => karte[1])) melde('/', 'Funktionen: sechs Karten zum Aufklappen erwartet, nur die erste offen');
+  if (alle(funktionTeil, /<summary>[\s\S]*?<h3>[^<]+<\/h3>[\s\S]*?<\/summary>/g).length !== 6) melde('/', 'Funktionen: je Karte ein Titel (h3) im Kopf der Karte erwartet');
+  if (!/<h2 class="titel">Mehr als ein Einkaufszettel<\/h2>/.test(funktionTeil)) melde('/', 'Überschrift „Mehr als ein Einkaufszettel“ fehlt');
+  // Vergleich (Teil 1 Nr. 8): echte Tabelle mit vier Zeilen und dem Satz darunter, keine Namen anderer Apps.
+  const vergleichTeil = s.match(/<section class="vergleich" id="vergleich">[\s\S]*?<\/section>/)?.[0] ?? '';
+  if (alle(vergleichTeil, /<tr>\s*<th scope="row">/g).length !== 4 || !/<table class="vergleich-tabelle" aria-labelledby="vergleich-titel">/.test(vergleichTeil)) melde('/', 'Vergleich: Tabelle mit vier Zeilen erwartet');
+  if (!/reicht eine einfache Liste/.test(vergleichTeil)) melde('/', 'Vergleich: Satz, wann eine einfache Liste reicht, fehlt');
+  for (const fund of alle(textVon('/'), /\b(?:Bring|Listonic|OurGroceries|Yuka|CodeCheck|AnyList|Todoist|Keep)\b/g)) melde('/', `nennt eine andere App: ${fund[0]}`);
+  // Fragen (Teil 1 Nr. 12 und Teil 2 Nr. 9): sieben Fragen in fester Reihenfolge, FAQPage wortgleich.
+  const fragenTeil = s.match(/<section class="faq" id="fragen">[\s\S]*?<\/section>/)?.[0] ?? '';
+  const FRAGEN = ['Was kann die Einkaufslisten-App FoodAsu?', 'Ist FoodAsu auch eine Einkaufszettel-App?', 'Brauche ich ein Konto?', 'Wie kommt ein Rezept auf die Einkaufsliste?', 'Woher weiß die App, was im Produkt steckt?', 'Funktioniert FoodAsu ohne Internet?', 'Gibt es FoodAsu fürs iPhone?'];
+  if (!/<h2 class="titel mittig">Fragen zur Einkaufslisten-App<\/h2>/.test(fragenTeil)) melde('/', 'Überschrift „Fragen zur Einkaufslisten-App“ fehlt');
+  const sichtbareFragen = alle(fragenTeil, /<details>\s*<summary>([\s\S]*?)<\/summary>\s*<div>([\s\S]*?)<\/div>\s*<\/details>/g).map(([, frage, antwort]) => ({
+    frage: entschluesselt(ohneSprachangabe(frage).replace(/<[^>]+>/g, '')).trim(),
+    antwort: alle(antwort, /<p>([\s\S]*?)<\/p>/g).map(([, absatz]) => entschluesselt(ohneSprachangabe(absatz).replace(/<[^>]+>/g, '')).trim()).join(' '),
+  }));
+  if (sichtbareFragen.map((eintrag) => eintrag.frage).join(' | ') !== FRAGEN.join(' | ')) melde('/', `Fragen: Reihenfolge oder Wortlaut weicht ab: ${sichtbareFragen.map((eintrag) => eintrag.frage).join(' | ')}`);
+  const faq = block('FAQPage');
+  const faqTexte = (faq?.mainEntity ?? []).map((eintrag) => ({ frage: eintrag.name, antwort: eintrag.acceptedAnswer?.text }));
+  if (JSON.stringify(faqTexte) !== JSON.stringify(sichtbareFragen)) melde('/', 'FAQPage gibt die sichtbaren Fragen und Antworten nicht wortgleich wieder');
+  if (!sichtbareFragen[0]?.antwort.startsWith(GEO)) melde('/', 'die erste Antwort beginnt nicht mit dem GEO-Satz');
+  const woher = sichtbareFragen.find((eintrag) => eintrag.frage.startsWith('Woher weiß'))?.antwort ?? '';
+  if (!/fehlen oder veraltet/.test(woher) || !woher.includes('Maßgeblich ist immer die Verpackung.')) melde('/', 'Antwort „Woher weiß die App …“: fehlende oder veraltete Daten und die Verpackung als Maßstab fehlen');
+  if (!(sichtbareFragen.find((eintrag) => eintrag.frage === 'Gibt es FoodAsu fürs iPhone?')?.antwort ?? '').startsWith(VERFUEGBAR)) melde('/', 'Antwort „Gibt es FoodAsu fürs iPhone?“ beginnt nicht mit dem Satz zur Verfügbarkeit');
+  // Absätze der Antworten und der aufgeklappten Texte der Funktionen: je ein oder zwei Sätze (Alis Entscheidung vom
+  // 14.10.2026). Ein Satz endet mit Punkt, Fragezeichen oder Ausrufezeichen vor einem Leerzeichen oder am Ende.
+  const saetze = (absatz) => alle(absatz.trim(), /[.?!](?=\s|$)/g).length;
+  const absaetze = [
+    ...alle(fragenTeil, /<details>\s*<summary>[\s\S]*?<\/summary>\s*<div>([\s\S]*?)<\/div>/g).flatMap(([, antwort]) => alle(antwort, /<p>([\s\S]*?)<\/p>/g)),
+    ...alle(funktionTeil, /<div class="funktion-text">([\s\S]*?)<\/div>/g).flatMap(([, text]) => alle(text, /<p>([\s\S]*?)<\/p>/g)),
+  ].map(([, absatz]) => entschluesselt(ohneSprachangabe(absatz).replace(/<[^>]+>/g, '')).replace(/\s+/g, ' ').trim());
+  if (absaetze.length < 13) melde('/', `Absätze der Fragen und Funktionen: nur ${absaetze.length} gefunden (die Prüfung liest nichts)`);
+  for (const absatz of absaetze) if (saetze(absatz) < 1 || saetze(absatz) > 2) melde('/', `Absatz mit ${saetze(absatz)} Sätzen (erwartet ein oder zwei): „${absatz.slice(0, 80)}“`);
+  if (!/Einkaufsapp/.test(fragenTeil)) melde('/', 'eine Antwort nennt „Einkaufsapp“ nicht');
+  // SoftwareApplication und Person (Teil 3 Nr. 1).
+  const app = block('SoftwareApplication');
+  if (app) {
+    if (app.operatingSystem !== 'Android' || app.applicationCategory !== 'ShoppingApplication' || app.description !== GEO || app.url !== `${HOST}/` || app.name !== 'FoodAsu') melde('/', 'SoftwareApplication: Name, Betriebssystem, Kategorie, Beschreibung (GEO-Satz) oder Adresse weicht ab');
+    if (/offers|price|aggregateRating|review|isAccessibleForFree/i.test(JSON.stringify(app))) melde('/', 'SoftwareApplication: Angebot, Preis oder Bewertung gehören nicht hinein');
+    if (!store.oeffentlich && JSON.stringify(app).includes('play.google.com')) melde('/', 'SoftwareApplication: Eintrag bei Google Play vor dem öffentlichen Start');
+  }
+  const person = block('Person');
+  if (person && (person.name !== 'Ali Tonc' || Object.keys(person).some((schluessel) => !['@context', '@type', '@id', 'name', 'url'].includes(schluessel)))) melde('/', 'Person: nur Name und Website von Ali Tonc erwartet');
+  // Pflichtstellen des Fokus-Keywords (Teil 2 Nr. 2): Titel, H1, Beschreibung, Unterzeile, H2 der Fragen, Fragen, ein
+  // Bild; dazu "Einkaufszettel" in der H2 der Funktionen, in Alis Absatz und in einer Frage (Teil 2 Nr. 3).
+  if (!alle(s, /<img\b[^>]*alt="[^"]*Einkaufslisten-App[^"]*"/g).length) melde('/', 'kein Bild mit „Einkaufslisten-App“ in der Beschreibung');
+  if (!/Einkaufszettel/.test(wortTeil)) melde('/', 'Alis Absatz nennt den Einkaufszettel nicht');
+  // Abschluss (Teil 1 Nr. 13) und Leiste unten am Handy (Teil 1 Nr. 15).
+  const schlussTeil = s.match(/<section class="abschluss" id="abschluss">[\s\S]*?<\/section>/)?.[0] ?? '';
+  if (!/<h2>Passt es für alle\? Schau einfach nach\.<\/h2>/.test(schlussTeil) || !entschluesselt(ohneSprachangabe(schlussTeil)).includes(VERFUEGBAR) || !/class="bald"/.test(schlussTeil)) melde('/', 'Abschluss: Überschrift, Satz zur Verfügbarkeit oder Knopf fehlt');
+  const leiste = s.match(/<aside class="kurzleiste"[^>]*>[\s\S]*?<\/aside>/)?.[0] ?? '';
+  if (!/<aside class="kurzleiste" aria-label="[^"]+" data-kurzleiste hidden>/.test(leiste) || alle(leiste, /<a\b[^>]*href="[^"]+"/g).length !== 2) melde('/', 'Leiste unten: Bereich mit Namen, zwei Links und anfangs ausgeblendet erwartet');
+  if (/herunterladen|download/i.test(textVon('/'))) melde('/', 'Aufforderung zum Herunterladen auf der Startseite');
+}
 // 404-Seite: Karte im Wortlaut der Projektleitung, keine Handys mehr, die Null als Zitronenscheibe.
 if (!sichtbar(nichtGefunden).includes('Lebensmittel-Scanner und Einkaufsliste in einer App: Du scannst beim Einkauf und siehst sofort, ob laut den Angaben etwas drin ist, das du meidest.')) melde('/404.html', 'Karte „Was ist FoodAsu?“ weicht vom Wortlaut ab');
 if (/<img\b/.test(nichtGefunden.match(/<main[\s\S]*<\/main>/)?.[0] ?? '')) melde('/404.html', 'die Handys stehen noch auf der Seite');
@@ -1144,7 +1280,7 @@ if ((faqDaten?.mainEntity ?? []).find((eintrag) => eintrag.name === 'Wo bekomme 
 if (!/<p class="kasten">FoodAsu ist kein Medizinprodukt/.test(fragenInhalt)) melde('/fragen/', 'der Satz zum Medizinprodukt steht nicht als Lavendel-Kasten da');
 if (/<details/.test(fragenInhalt)) melde('/fragen/', 'eine Antwort ist zugeklappt (auf dieser Seite stehen alle Antworten offen)');
 for (const [adresse, html] of seiten) {
-  if (adresse !== '/fragen/' && /"@type":\s*"FAQPage"/.test(html)) melde(adresse, 'FAQPage gehört nur auf /fragen/');
+  if (adresse !== '/fragen/' && adresse !== '/' && /"@type":\s*"FAQPage"/.test(html)) melde(adresse, 'FAQPage gehört nur auf /fragen/ und auf die Startseite');
 }
 // Daten und Quellen: zwei Gruppen (h2), die Abschnitte als h3 mit ihren Ankern, die Nachweise am Ende.
 const gruppenDaten = alle(datenInhalt, /<h2 class="ueberzeile" id="[^"]+">([^<]*)<\/h2>/g).map(([, titel]) => entschluesselt(titel));
@@ -1218,9 +1354,32 @@ for (const [name, roh] of [...seiten, ['llms.txt', llms]]) {
 if (ueberStellen === 0) melde('/', 'Zahlen der App: keine Stelle mit „über N Rezepte“ gefunden (die Prüfung liest nichts)');
 {
   const block = (seiten.get('/') ?? '').match(/<ul class="zaehler">[\s\S]*?<\/ul>/)?.[0] ?? '';
-  const zaehler = new Map(alle(block, /<li><span class="vh">(\d+)<\/span><b[^>]*data-zahl="(\d+)"[^>]*>(\d+)<\/b><span class="wortlaut">([^<]+)<\/span><\/li>/g).map(([, a, b, c, wort]) => [wort, a === b && b === c ? Number(a) : NaN]));
+  const zahl = (text) => Number(text.replaceAll('.', ''));
+  const zaehler = new Map(alle(block, /<li><span class="vh">([\d.]+)<\/span><b[^>]*data-zahl="(\d+)"[^>]*>([\d.]+)<\/b><span class="wortlaut">([^<]+)<\/span><\/li>/g).map(([, a, b, c, wort]) => [wort, zahl(a) === zahl(b) && zahl(b) === zahl(c) ? zahl(a) : NaN]));
+  if (zaehler.get('Einträge zum Meiden') !== EINTRAEGE_ALLE) melde('/', `Zahlenblock: „Einträge zum Meiden“ nennt ${zaehler.get('Einträge zum Meiden')}, die Fassung ${FASSUNG.fassung} der App hat ${EINTRAEGE_ALLE}`);
   if (zaehler.get('Rezepte in der App') !== APP.gesamt) melde('/', `Zahlenblock: „Rezepte in der App“ nennt ${zaehler.get('Rezepte in der App')}, in den Daten stehen ${APP.gesamt}`);
   if (zaehler.get('Länder') !== APP.laender) melde('/', `Zahlenblock: „Länder“ nennt ${zaehler.get('Länder')}, in den Daten stehen ${APP.laender}`);
+}
+// Einträge zum Meiden (feste Vorgabe, Ali, 14.10.2026): Die festen Schlüssel der App-Fassung sind genau die der
+// Website (EINTRAEGE in src/daten/rezeptseiten.mjs, auch die Hinweise der Rezepte), jeder Hinweis im Rezeptpaket
+// gehört zu einem festen Eintrag, die Chips „Einträge wie in der App“ zählen die festen Einträge, und jede Zahl vor
+// „Einträge zum Meiden“ im Bau ist die Zahl der festen Einträge (Rezepte) oder aller Einträge der Fassung.
+{
+  const fest = new Set(FASSUNG.festeSchluessel);
+  const website = new Set(EINTRAEGE.map((eintrag) => eintrag.schluessel));
+  if (fest.size !== EINTRAEGE_FEST || website.size !== fest.size || [...website].some((schluessel) => !fest.has(schluessel))) melde('src/daten/app_fassung.json', `feste Einträge der Fassung ${FASSUNG.fassung} passen nicht zu EINTRAEGE der Website`);
+  for (const schluessel of Object.keys(APP.mitHinweis ?? {})) if (!fest.has(schluessel)) melde('src/daten/rezepte.json', `Hinweis „${schluessel}“ gehört zu keinem festen Eintrag der App`);
+  if (startZahlen.zutatenband.length !== EINTRAEGE_FEST) melde('/', `Chips „Einträge wie in der App“: ${startZahlen.zutatenband.length}, die App hat ${EINTRAEGE_FEST} feste Einträge`);
+  let stellen = 0;
+  for (const [name, roh] of [...seiten, ['llms.txt', llms]]) {
+    const ganz = entschluesselt(ohneSprachangabe(roh)).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+    for (const fund of alle(ganz, /(\d[\d.]*) Einträge(?:n)? zum Meiden/g)) {
+      stellen++;
+      const wert = Number(fund[1].replaceAll('.', ''));
+      if (wert !== EINTRAEGE_FEST && wert !== EINTRAEGE_ALLE) melde(name, `„${fund[0]}“: die Fassung ${FASSUNG.fassung} der App hat ${EINTRAEGE_FEST} feste und ${EINTRAEGE_ALLE} Einträge insgesamt`);
+    }
+  }
+  if (stellen === 0) melde('/', 'Einträge zum Meiden: keine Stelle im Bau gefunden (die Prüfung liest nichts)');
 }
 // Im Quelltext: keine Zahl von Rezepten oder Ländern von Hand, weder für die Website noch für die App. Gelesen werden
 // die Texte unter src/ und die festen Seiten unter public/, ohne Kommentare und ohne die zwei Dateien mit den Rezepten
@@ -1231,7 +1390,7 @@ const VON_HAND_ERLAUBT = [
   ['src/daten/sogehts_fotos.json', '„3 Rezepte ausgeblendet'],
 ];
 const ZAHLWORT = 'zwei|drei|vier|fünf|sechs|sieben|acht|neun|zehn|elf|zwölf|zwanzig|dreißig|vierzig|fünfzig|sechzig|siebzig|achtzig|neunzig|hundert|zweihundert|dreihundert|vierhundert|fünfhundert';
-const VON_HAND = new RegExp(`(?<![\\p{L}\\p{N}.,])(?:\\d{1,4}|(?:${ZAHLWORT}))\\s+(?:[\\p{L}-]+\\s+){0,3}(?:Rezepte?n?|Ländern?)(?![\\p{L}])`, 'giu');
+const VON_HAND = new RegExp(`(?<![\\p{L}\\p{N}.,])(?:\\d{1,4}|(?:${ZAHLWORT}))\\s+(?:[\\p{L}-]+\\s+){0,3}(?:Rezepte?n?|Ländern?|Einträgen? zum Meiden)(?![\\p{L}])`, 'giu');
 const quelltexte = [];
 const sammle = (ordner, endungen) => {
   for (const name of readdirSync(ordner)) {

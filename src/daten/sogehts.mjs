@@ -77,7 +77,8 @@ export const rahmen = {
 export const KAPITEL_H1 = {
   'erste-schritte': 'Erste Schritte mit FoodAsu',
   'haushalt-und-meiden': 'Haushalt anlegen und festlegen, wer was meidet',
-  'scannen-und-urteil': 'Lebensmittel scannen und das Urteil verstehen',
+  // Seit dem Auftrag SEO 1 neu (14.10.2026, Teil 4 Nr. 4): Vorschlag 1 zu „Lebensmittel Scanner“ der SEO-Analyse.
+  'scannen-und-urteil': 'Lebensmittel-Scanner: scannen und das Urteil verstehen',
   produktkarte: 'Die Produktkarte: Zutaten, Nährwerte und Nutri-Score',
   einkaufslisten: 'Einkaufsliste als App: schreiben, abhaken, teilen',
   'zu-hause-schreiben-im-laden-abhaken': 'Einkaufsliste: zu Hause schreiben, im Laden abhaken',

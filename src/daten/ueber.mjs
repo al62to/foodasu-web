@@ -38,6 +38,8 @@ export const ueber = {
         'Dazu gehört die Einkaufsliste. Deine Listen bleiben gespeichert, und du verwendest sie immer wieder, zum Beispiel für den Wocheneinkauf. Was abgehakt ist, steht unter „Erledigt“, und von dort holst du zurück, was du wieder brauchst.',
         'Beim Schreiben schlägt FoodAsu Wörter vor, auch solche, die du schon einmal aufgeschrieben hast. Kein Zettel, kein Suchen im Chatverlauf.',
       ],
+      // Auftrag SEO 1 neu (14.10.2026), Teil 4 Nr. 1: Link mit dem Ankertext "Einkaufslisten-App" zur Startseite.
+      verweis: { vor: 'Wie eine Einkaufswoche mit der ', text: 'Einkaufslisten-App', nach: ' aussieht, zeigt die Startseite.', ziel: '/' },
     },
     {
       // Entscheidung 4: offene Quellen, "laut Daten", die Verpackung ist maßgeblich.

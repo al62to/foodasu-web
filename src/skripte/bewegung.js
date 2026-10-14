@@ -79,27 +79,35 @@ function wort() {
   return () => setze(0);
 }
 
-// 3 Der Tisch: Die Lagen erscheinen nacheinander.
-function tisch() {
-  zeige(alle('.lage'), { y: 40, stagger: 0.1 });
+// Senkrechte Linie einer Zeitleiste (am Handy): wächst mit dem Scrollen durch ihren Abschnitt. Am Laptop gibt es
+// die Linie nicht (start.css blendet sie aus).
+function linie(name, abschnitt) {
+  const element = document.querySelector(`[data-linie="${name}"]`);
+  if (!element || !element.offsetParent) return;
+  gsap.fromTo(element, { scaleY: 0, transformOrigin: 'center top' }, { scaleY: 1, ease: 'none', scrollTrigger: { trigger: abschnitt, start: 'top 75%', end: 'bottom 70%', scrub: true } });
 }
 
-// 4 Einkaufswoche: Die feine Linie wächst mit dem Scrollen, am Laptop waagrecht, am Handy senkrecht.
+// 3 Einkaufswoche: Am Handy wächst die Linie mit dem Scrollen; Karten und Handys kommen herein wie die Karten von
+// "FoodAsu im Bild", am Laptop die drei Handys nacheinander.
 function schritte() {
-  const quer = window.matchMedia('(min-width: 56rem)').matches;
-  const von = quer ? { scaleX: 0, transformOrigin: 'left center' } : { scaleY: 0, transformOrigin: 'center top' };
-  const bis = quer ? { scaleX: 1 } : { scaleY: 1 };
-  gsap.fromTo('[data-linie]', von, { ...bis, ease: 'none', scrollTrigger: { trigger: '#schritte', start: 'top 75%', end: 'bottom 70%', scrub: true } });
-  zeige(alle('.schritt'), { stagger: 0.18 });
+  linie('schritte', '#schritte');
+  zeige(alle('.schritt'), { y: 50, stagger: 0.12 });
 }
 
-// 5 Funktionen erscheinen nacheinander.
+// 4 Video und Funktionen: Die Fläche des Videos und die Karten erscheinen nacheinander.
 function funktionen() {
+  zeige(alle('.video-feld'), { y: 50 });
   zeige(alle('.funktion'), { y: 50, stagger: 0.08 });
 }
 
-// 6 FoodAsu im Bild: Die Handys erscheinen nacheinander.
+// 5 Vergleich: die Tabelle erscheint.
+function vergleich() {
+  zeige(alle('.vergleich-tabelle'), { y: 40 });
+}
+
+// 6 FoodAsu im Bild: Am Handy wächst die Linie mit dem Scrollen; die Handys erscheinen nacheinander.
 function einblick() {
+  linie('einblick', '#einblick');
   zeige(alle('.einblick-karte'), { y: 50, stagger: 0.07 });
 }
 
@@ -123,7 +131,7 @@ function zaehler() {
   return () => zahlen.forEach((element) => (element.textContent = element.dataset.zahl));
 }
 
-// 8 Rezeptkarten kommen leicht gedreht herein. 9 Fragen erscheinen nacheinander.
+// 8 Rezeptkarten kommen leicht gedreht herein. 9 Fragen erscheinen nacheinander. 10 Der Abschluss erscheint.
 function vorschau() {
   const karten = alle('.rezeptkarte').filter(unterhalb);
   karten.forEach((karte, stelle) => {
@@ -138,6 +146,7 @@ function vorschau() {
     });
   });
   zeige(alle('.faq details'), { y: 24, stagger: 0.06 });
+  zeige(alle('.abschluss-karte'), { y: 40 });
 }
 
 let abfrage;
@@ -147,7 +156,7 @@ export function starte() {
   // Die Abschnitte werden nacheinander in eigenen Schritten eingerichtet, damit das Handy dabei bedienbar bleibt.
   if (abfrage) return;
   const lauf = (abfrage = gsap.matchMedia());
-  [kopf, wort, tisch, schritte, funktionen, einblick, zaehler, vorschau].forEach((abschnitt, nummer) => {
+  [kopf, wort, schritte, funktionen, vergleich, einblick, zaehler, vorschau].forEach((abschnitt, nummer) => {
     setTimeout(() => {
       if (abfrage === lauf) lauf.add('(prefers-reduced-motion: no-preference)', () => abschnitt());
     }, nummer * 40);

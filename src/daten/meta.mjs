@@ -15,6 +15,11 @@
 // - Wortwahl (AP-22 Teil 1 Nr. 7): Wo es ohne Bruch der Wortregeln geht, steht das Wort, nach dem laut Keyword-Planer
 //   gesucht wird (Stand 10.10.2026: "einkaufsliste app", "lebensmittel scanner app"). Der Titel der Startseite steht in
 //   src/daten/startseite.mjs (kopfdaten.titel).
+// - Ausnahme Startseite (Auftrag SEO 1 neu, Projektleitung, 14.10.2026): Ihr Titel heißt wörtlich
+//   "Einkaufslisten-App und Lebensmittel-Scanner für den ganzen Haushalt", ohne Marke. Er ist 67 Zeichen und 628 Pixel
+//   breit; der Auftrag legt fest, dass er trotzdem so bleibt (Google kürzt ihn voraussichtlich nach "… für den
+//   ganzen"). Nur genau dieser Wortlaut auf genau dieser Seite ist von den Grenzen des Titels ausgenommen; den Namen
+//   "FoodAsu" tragen WebSite.name und og:site_name.
 import { grenzBefunde } from './breite.mjs';
 import { seite } from './seite.mjs';
 import { kopfdaten, fuss } from './startseite.mjs';
@@ -26,6 +31,9 @@ import {
 import { alteSeite, jahreVonBis } from './alte_rezepte.mjs';
 
 const MARKE = ` | ${seite.name}`;
+// Der eine Titel, der die Grenzen überschreiten darf (siehe oben, Ausnahme Startseite).
+export const TITEL_START = 'Einkaufslisten-App und Lebensmittel-Scanner für den ganzen Haushalt';
+if (kopfdaten.titel !== TITEL_START) throw new Error(`Titel der Startseite: „${TITEL_START}“ erwartet, gefunden „${kopfdaten.titel}“`);
 export const OHNE_INDEX = ['/offenlegung/', '/quellen-und-lizenzen/', '/404.html'];
 const TITEL_ZEICHEN = /^[\p{L}\p{N} :|()'-]+$/u;
 
@@ -43,11 +51,13 @@ const namen = (liste) => aufzaehlung(liste.map((rezept) => rezept.kurztitel));
 
 // ---- Feste Seiten ----
 const FEST = [
-  // Startseite: Titel aus kopfdaten.titel (seit dem Nachtrag zu AP-23 mit Scanner und Einkaufsliste).
+  // Startseite: Titel aus kopfdaten.titel (seit dem Auftrag SEO 1 neu vom 14.10.2026 mit dem Fokus-Keyword vorne).
+  // Die Beschreibung beginnt mit "Einkaufslisten-App" (Auftrag Teil 2 Nr. 8; der Vorschlag dort war 160 Zeichen und
+  // 1.009 Pixel breit, deshalb gekürzt).
   {
     pfad: '/',
     titel: kopfdaten.titel,
-    beschreibung: 'Lebensmittel-Scanner und Einkaufsliste in einer App: FoodAsu zeigt, ob ein Produkt laut den Angaben für alle im Haushalt passt. Ohne Konto.',
+    beschreibung: 'Einkaufslisten-App mit Lebensmittel-Scanner: Einkaufsliste erstellen, Rezeptzutaten mit einem Tipp hinzufügen und sehen, was für alle passt.',
   },
   {
     pfad: BEREICH,
@@ -106,9 +116,11 @@ const KAPITEL = {
     thema: 'Haushalt anlegen und Meiden',
     beschreibung: 'Personen im Haushalt anlegen, Einträge bei „Meiden“ wählen und die drei Stufen verstehen: von „Lieber nicht“ bis „Auf keinen Fall“.',
   },
+  // Seit dem Auftrag SEO 1 neu (14.10.2026, Teil 4 Nr. 4) nach Vorschlag 1 zu „Lebensmittel Scanner“ der SEO-Analyse:
+  // Die Startseite geht auf die Einkaufsliste, diese Seite übernimmt den Scanner.
   'scannen-und-urteil': {
-    titel: 'Lebensmittel scannen und das Urteil verstehen | FoodAsu',
-    beschreibung: 'Lebensmittel scannen und das Urteil für den Haushalt lesen: was „Angaben unvollständig“ und „Kein Konflikt laut Daten“ auf der Karte bedeuten.',
+    titel: 'Lebensmittel-Scanner: scannen und das Urteil verstehen',
+    beschreibung: 'Der Lebensmittel-Scanner von FoodAsu zeigt für jede Person, ob laut den Angaben etwas im Produkt ist, das sie meidet. So liest du das Urteil.',
   },
   produktkarte: {
     thema: 'Die Produktkarte',
@@ -372,7 +384,8 @@ const gesehen = { titel: new Map(), beschreibung: new Map() };
 for (const eintrag of alleMeta) {
   for (const art of ['titel', 'beschreibung']) {
     const text = eintrag[art];
-    for (const befund of grenzBefunde(text, art)) fehler.push(`${eintrag.pfad}: ${art} „${text}“: ${befund}`);
+    const ausnahme = art === 'titel' && eintrag.pfad === '/' && text === TITEL_START;
+    if (!ausnahme) for (const befund of grenzBefunde(text, art)) fehler.push(`${eintrag.pfad}: ${art} „${text}“: ${befund}`);
     if (gesehen[art].has(text)) fehler.push(`${eintrag.pfad}: ${art} doppelt, auch auf ${gesehen[art].get(text)}`);
     gesehen[art].set(text, eintrag.pfad);
   }

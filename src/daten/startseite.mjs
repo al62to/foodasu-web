@@ -1,30 +1,53 @@
-// Alle Texte der Startseite an einer Stelle (AP-15 Teil B, Abschnitte 1 bis 8). Von Ali am 09.10.2026 freigegeben.
+// Alle Texte der Startseite an einer Stelle. Seit dem Auftrag SEO 1 neu (Projektleitung, 14.10.2026,
+// docs/vorgaben/SEO_Startseite_neu_2026-10-14.md im Repo einkauf-app) steht die Startseite unter dem Fokus-Keyword
+// "Einkaufslisten App" und folgt dem von Ali am 14.10.2026 freigegebenen Entwurf (foodasu-play/seo/entwurf_startseite).
 // Die Datei Website_Texte_Startseite.md entsteht daraus mit tools/texte_ausgeben.mjs.
-// Titel der Startseite. Die Beschreibung steht mit denen aller Seiten in src/daten/meta.mjs.
-// Titel seit dem Nachtrag zu AP-23 (Änderung Ali vom 11.10.2026): Scanner und Einkaufsliste zusammen. Die längere
-// Fassung "FoodAsu: Lebensmittel-Scanner und Einkaufsliste für den Haushalt" ist in der Vorschau der Suche 595 Pixel
-// breit (Grenze 580) und hat 64 Zeichen (Grenze 60); deshalb gilt die kurze.
+// Feste Regel seit 14.10.2026 (Ali): Werden Texte geändert, bleiben Design, Layout und Animationen gleich; Abschnitte
+// werden nur mit Alis Ja gelöscht, verschoben oder umgestaltet.
+// Der Titel der Startseite steht hier, die Beschreibung mit denen aller Seiten in src/daten/meta.mjs.
 import { appZahlen } from './app_zahlen.mjs';
 import { lizenzen } from './lizenzen.mjs';
+import { MEDIZIN } from './fragen.mjs';
 
+// Der Satz zum Medizinprodukt in Absätzen zu höchstens zwei Sätzen (zusammen wieder genau MEDIZIN).
+const MEDIZIN_ABSAETZE = (() => {
+  const saetze = MEDIZIN.split(/(?<=\.) (?=[A-ZÄÖÜ])/);
+  const absaetze = [saetze.slice(0, 2).join(' '), ...saetze.slice(2)];
+  if (absaetze.join(' ') !== MEDIZIN || saetze.length !== 3) throw new Error('MEDIZIN: drei Sätze erwartet');
+  return absaetze;
+})();
+
+// Titel (Auftrag SEO 1 neu, "Entschieden"): beginnt immer mit "Einkaufslisten-App". Mit der Marke ist er 77 Zeichen
+// und 725 Pixel lang, ohne Marke 67 Zeichen und 628 Pixel; beides liegt über der Grenze von 60 Zeichen und 580 Pixeln. Der Auftrag
+// legt fest, dass es dann bei diesem Wortlaut ohne Marke bleibt. src/daten/meta.mjs und tools/pruefe_seiten.mjs nehmen
+// genau diesen Wortlaut auf der Startseite von den Grenzen aus; den Namen "FoodAsu" tragen WebSite.name und
+// og:site_name.
 export const kopfdaten = {
-  titel: 'FoodAsu: Lebensmittel-Scanner und Einkaufsliste',
+  titel: 'Einkaufslisten-App und Lebensmittel-Scanner für den ganzen Haushalt',
 };
 
+// GEO-Satz (Auftrag Teil 2 Nr. 6): eine Aussage, die Google und KI-Systeme übernehmen können. Er steht als erster
+// Satz der ersten Antwort, gleichlautend in SoftwareApplication.description und in llms.txt. Die Zahl der Rezepte
+// kommt aus den Daten. Seit der Entscheidung von Ali vom 14.10.2026 (Auftrag „Veröffentlichung“, Nr. 5) ohne
+// Plattform: Die Regel vom 11.10.2026 gilt ohne Ausnahme; die Plattform steht maschinenlesbar in operatingSystem und
+// im Satz zur Verfügbarkeit.
+export const GEO_SATZ = `FoodAsu ist eine Einkaufslisten-App mit Lebensmittel-Scanner: Einkaufsliste, über ${appZahlen.ueber} Rezepte und ein Scanner, der für jede Person im Haushalt zeigt, ob laut den Angaben zum Produkt etwas drin ist, das sie meidet.`;
+
+// Satz zur Verfügbarkeit (Projektleitung, 11.10.2026), wörtlich: der einzige Satz, der die Plattform nennt. "stand" ist der Hinweis zu Beta und Verfügbarkeit unter den Knöpfen (am Laptop), wörtlich gleich
+// in fragen.mjs und ueber.mjs.
+export const VERFUEGBAR = 'Zuerst kommt die App für Android in den Play Store, danach folgt die Version fürs iPhone.';
+const BETA = 'FoodAsu ist in der Beta. Wir bauen laufend neue Funktionen ein und freuen uns über dein Feedback.';
+
 export const kopf = {
-  // Vorzeile (AP-22, Wunsch Ali vom 10.10.2026: jede h1 mit Suchwort; freigegeben am 10.10.2026): steht klein über
-  // der Überschrift und gehört zur h1. Die Überschrift selbst bleibt.
-  vorzeile: 'Lebensmittel-Scanner und Einkaufsliste in einer App',
-  ueberschrift: ['Passt es für ', 'alle', '?'],
-  // Seit AP-22 Teil 2 steht im Kopf der Startseite der Satz zur Beschreibung (seite.beschreibung in seite.mjs). Dieser
-  // frühere Vorspann sagt dasselbe kürzer und steht nur noch in llms.txt.
-  text: 'Du scannst den Strichcode und siehst, ob laut den Angaben etwas drin ist, das jemand bei dir zu Hause meidet. Für jede Person einzeln.',
+  // H1 in drei Teilen (Teil 1 Nr. 2a), ein einziges Element: der erste Teil groß, der zweite groß in Indigo, der dritte
+  // kleiner darunter. Die Vorzeile von früher ist entfallen, weil die H1 sie enthält.
+  ueberschrift: ['Einkaufslisten-App', 'und Lebensmittel-Scanner', 'für den ganzen Haushalt'],
+  // Satz statt des langen Absatzes (Teil 2 Nr. 5): höchstens 15 Wörter, mit "Einkaufsliste". "betont" steht in Indigo
+  // wie "alle" im Entwurf.
+  satz: { vor: 'Einkaufsliste, Rezepte und Scanner in einer App. Du siehst, ob es für ', betont: 'alle', nach: ' passt.' },
   aufruf: 'Bald im Play Store',
   zweiterKnopf: 'Eine Einkaufswoche',
-  // Satz zur Verfügbarkeit (Projektleitung, 11.10.2026, Nachtrag zu AP-23 Teil A Nr. 2), wörtlich und gleich an drei
-  // Stellen: hier, in der Antwort "Wo bekomme ich FoodAsu?" (fragen.mjs) und unter "Wo FoodAsu steht" (ueber.mjs). Nur
-  // sein letzter Satz nennt die Plattform; sonst wird FoodAsu ohne Plattform beschrieben.
-  stand: 'FoodAsu ist in der Beta. Wir bauen laufend neue Funktionen ein und freuen uns über dein Feedback. Zuerst kommt die App für Android in den Play Store, danach folgt die Version fürs iPhone.',
+  stand: `${BETA} ${VERFUEGBAR}`,
   handy: {
     beschreibung:
       'Beispiel aus der App: Ein Müsli wird gescannt. Das Urteil lautet „Nicht für Mia: enthält Schalenfrüchte“. Für Jonas und Elif steht „Kein Konflikt laut Daten“.',
@@ -38,185 +61,206 @@ export const kopf = {
     ],
     knopf: 'Warum?',
   },
-  begriffe: ['Nüsse', 'Gluten', 'Schweinefleisch', 'Palmöl'],
+  // Schwebende Begriffe neben dem Handy. "Schweinefleisch" ist entfallen (Teil 1 Nr. 2e, Wortregel); die übrigen drei
+  // stehen an ihren Plätzen von früher ("platz" ist die Lage s1 bis s4 in start.css).
+  begriffe: [
+    { wort: 'Nüsse', platz: 1 },
+    { wort: 'Gluten', platz: 2 },
+    { wort: 'Palmöl', platz: 4 },
+  ],
 };
 
 export const wort = {
   vorsatz: 'Einkaufen ohne',
-  // "Eier" statt "Schweinefleisch" (Projektleitung, 11.10.2026, Nachtrag zu AP-23 Teil B Nr. 6): Die Wörter stehen
-  // als Chips neben dem Absatz mit Alis Unterschrift. Am Ende "Zettel" und "Rätselraten" (Änderung 2 zum Nachtrag,
-  // Ali, 11.10.2026): Die beiden sind keine Einträge zum Meiden und passen zum Absatz über die Einkaufsliste. Jedes
-  // Wort muss nach "Einkaufen ohne" grammatisch stimmen.
+  // Die wechselnden Wörter (Ali, 11.10.2026); jedes muss nach "Einkaufen ohne" grammatisch stimmen.
   woerter: ['Nüsse', 'Gluten', 'Eier', 'Alkohol', 'Palmöl', 'Sesam', 'Milch', 'Zettel', 'Rätselraten'],
-  // Absatz mit Alis Unterschrift (Änderung 2 zum Nachtrag zu AP-23, Ali, 11.10.2026; seit Änderung 3 "ohne Abtippen";
-  // wörtlich): in der Ich-Form, ohne Doppelpunkt, nur was die App kann (gespeicherte Listen, Zutaten aus dem Rezept
-  // auf die Liste, Scannen). Darunter die Unterschrift und ein Link auf "Warum es FoodAsu gibt".
+  // Absatz mit Alis Unterschrift, kürzer wie im Entwurf (Teil 1 Nr. 3), mit dem Satz zum Einkaufszettel aus dem
+  // Vorschlag. Ich-Form, ohne Doppelpunkt; je Satz ein Absatz, damit kein Absatz am Handy länger als drei Zeilen ist.
+  // "laut den Angaben" bleibt (Wortregel), auch wo der Entwurf kürzt.
   absaetze: [
-    'Ehrlich gesagt war mir die Einkaufsliste jede Woche eine Qual. Neu schreiben, etwas vergessen, im Chatverlauf suchen.',
-    'Mit FoodAsu habe ich mir das leichter gemacht. Meine Listen bleiben gespeichert, die Zutaten aus dem Rezept kommen ohne Abtippen dazu, und beim Scannen sehe ich, was laut den Angaben im Produkt ist.',
+    'Ehrlich gesagt war mir die Einkaufsliste jede Woche eine Qual.',
+    'Mit FoodAsu bleiben meine Listen gespeichert, und beim Scannen sehe ich, was laut den Angaben im Produkt ist.',
+    'Den Einkaufszettel aus Papier brauche ich dafür nicht mehr.',
   ],
   unterschrift: 'Ali Tonc, Entwickler von FoodAsu',
   link: { text: 'Warum es FoodAsu gibt', ziel: '/ueber-foodasu/#warum' },
 };
 
-// Der Ablauf einer Einkaufswoche (AP-22 Teil 2 Nr. 2, von Ali am 10.10.2026 freigegeben): vier Schritte statt
-// "FoodAsu in drei Schritten" (Scannen, Warum?, Kochen; freigegeben am 09.10.2026). Der Anker #schritte bleibt.
-// Beschrieben ist nur, was 0.14.3 kann: Abgehakt wird mit dem Finger, nicht beim Scannen. Schritt 3 nennt "Warum?"
-// (Entscheidung 5). Seit AP-23 stehen die Schritte als Nummern im Kreis an einer feinen Linie, ohne Zeichen.
+// Eine Einkaufswoche (Anker #schritte bleibt; Teil 1 Nr. 5): drei Schritte, je mit Nummernkreis, Titel (h3), einem Satz
+// und dem Link "Mehr dazu" auf die passende Stelle von "So geht's". "bild" ist ein Bildschirmfoto aus
+// public/bilder/sogehts, "alt" seine Beschreibung (Teil 2 Nr. 11, Grundlage sogehts_fotos.json), "ziel" der Link,
+// "ort" der Zusatz nur für Bildschirmleser, der das Ziel nennt (Teil 2 Nr. 12). Beschrieben ist nur, was die
+// Play-Fassung kann: Abgehakt wird mit dem Finger, gescannt wird für das Urteil.
 export const schritte = {
   ueberschrift: 'Eine Einkaufswoche mit FoodAsu',
+  unterzeile: 'So funktioniert die Einkaufslisten-App, vom Rezept zur Einkaufsliste.',
+  mehr: 'Mehr dazu',
   liste: [
     {
       titel: 'Rezept aussuchen',
-      text: `Such dir in der App aus über ${appZahlen.ueber} Rezepten aus, was es geben soll. Die fehlenden Zutaten setzt du aus dem Rezept auf eine Einkaufsliste.`,
+      text: 'Ein Tipp, und die fehlenden Zutaten stehen auf deiner Einkaufsliste.',
+      bild: 'rezepte_ansehen_01',
+      alt: 'Rezepte in FoodAsu: oben das Suchfeld, darunter Länder, Kategorien und die ersten Rezeptkarten mit Symbolbild',
+      ziel: '/so-gehts/rezepte/#fehlende-zutaten-auf-die-liste',
+      ort: 'in der Anleitung: Fehlende Zutaten auf die Liste',
     },
     {
       titel: 'Zu Hause schreiben',
-      text: 'Schreib dazu, was sonst noch fehlt, zum Beispiel „2 Zwiebeln“. FoodAsu ordnet die Liste nach Warengruppen.',
+      text: 'Schreib dazu, was fehlt, und die Liste ordnet sich nach Warengruppen.',
+      bild: 'liste_rezeptliste_01',
+      alt: 'Einkaufsliste „Pizza Margherita“ in der Einkaufslisten-App FoodAsu: oben die Zeile zum Rezept, darunter die Zutaten mit Menge, nach Warengruppen geordnet',
+      ziel: '/so-gehts/zu-hause-schreiben-im-laden-abhaken/#zu-hause',
+      ort: 'in der Anleitung: Zu Hause schreiben',
     },
     {
-      titel: 'Im Laden abhaken und scannen',
-      text: 'Ein Tipp mit dem Finger hakt ab, was im Wagen liegt. Bei einem Produkt scannst du den Strichcode und siehst für jede Person einzeln, was die Daten zum Produkt sagen. Ein Tipp auf „Warum?“ zeigt, welche Zutat oder Spurenangabe dahintersteckt.',
-    },
-    {
-      titel: 'Kochen',
-      text: 'Gekocht wird für alle am Tisch: Im Rezept steht bei den Zutaten, wen in deinem Haushalt etwas betrifft.',
+      titel: 'Im Laden scannen',
+      text: 'Abhaken, was im Wagen liegt, und für jede Person sehen, ob es passt.',
+      bild: 'karte_auf_die_liste_02',
+      alt: 'Produktkarte beim Einkauf: oben „Nicht für Mia: enthält Schalenfrüchte“, unten die Meldung „Auf ‚Wocheneinkauf‘ gesetzt“ mit „Rückgängig“',
+      ziel: '/so-gehts/zu-hause-schreiben-im-laden-abhaken/#im-laden',
+      ort: 'in der Anleitung: Im Laden abhaken',
     },
   ],
-  link: { text: 'Zu Hause schreiben, im Laden abhaken: so geht das', ziel: '/so-gehts/zu-hause-schreiben-im-laden-abhaken/' },
+  link: { text: "Die ganze Anleitung: So geht's", ziel: '/so-gehts/' },
 };
 
-// Alltagslagen (AP-22 Teil 2 Nr. 3, von Ali am 10.10.2026 freigegeben): vier Lagen aus einem Haushalt, je mit dem, was
-// FoodAsu dann zeigt. Die Einträge heißen wie in der App; keine Namen, keine Aussagen zur Gesundheit. Dazu nach
-// Entscheidung 9 der Satz, für wen FoodAsu ist, und als fünfte Lage der Wocheneinkauf ("breit": Karte über die ganze
-// Zeile): Listen bleiben gespeichert, Erledigtes lässt sich zurückholen (LISTE-04), Vorschläge beim Tippen (LISTE-03).
-// Seit AP-23 stehen die ersten vier Lagen um einen runden Tisch: "schild" ist das Schildchen am Teller (schmückt nur,
-// für Bildschirmleser ausgeblendet). "liste" ist die kleine Einkaufsliste neben dem Wocheneinkauf (ebenso).
-export const lagen = {
-  ueberschrift: 'Wenn nicht alle dasselbe essen',
-  text: 'FoodAsu ist für alle, die wissen wollen, was sie einkaufen, statt blind zuzugreifen.',
-  karten: [
-    {
-      titel: 'Das Kind trinkt keine Milch',
-      schild: 'Kind · Milch',
-      text: 'Du trägst beim Kind „Milch“ ein. Beim Scannen steht dann oben auf der Karte, wenn laut den Angaben Milch im Produkt ist.',
-    },
-    {
-      titel: 'Der Partner isst vegetarisch',
-      schild: 'Partner · Vegetarisch',
-      text: 'Mit „Vegetarisch“ weist FoodAsu auf Zutaten hin, die laut den Angaben nicht vegetarisch sind: beim Produkt und bei den Zutaten der Rezepte.',
-    },
-    {
-      titel: 'Gäste essen kein Schweinefleisch',
-      schild: 'Gäste · Schweinefleisch',
-      text: 'Leg für den Besuch eine Person an und wähl „Schweinefleisch“ mit der Stufe „Auf keinen Fall“. Rezepte mit Schweinefleisch blendet FoodAsu dann aus und nennt ihre Zahl.',
-    },
-    {
-      titel: 'Die Oma meidet Gluten',
-      schild: 'Oma · Gluten',
-      text: 'Steht „Gluten“ bei ihr, siehst du es schon auf der Einkaufsliste: Betrifft ein Eintrag jemanden im Haushalt, steht ein Hinweis dabei.',
-    },
-    {
-      titel: 'Der Wocheneinkauf ist jede Woche fast derselbe',
-      text: 'Deine Liste bleibt gespeichert. Was abgehakt ist, steht unter „Erledigt“, und von dort holst du zurück, was du wieder brauchst. Beim Schreiben schlägt FoodAsu Wörter vor, auch solche, die du schon einmal aufgeschrieben hast. Kein Zettel, kein Suchen im Chatverlauf.',
-      breit: true,
-    },
-  ],
-  liste: { titel: 'Wocheneinkauf', offen: ['2 Zwiebeln', 'Brot', 'Tomaten'], erledigtTitel: 'Erledigt', erledigt: ['Mozzarella', 'Basilikum'] },
-  hinweis: 'FoodAsu zeigt, was laut Daten im Produkt ist. Daten können fehlen oder veraltet sein. Maßgeblich ist immer die Verpackung.',
+// Video (Teil 1 Nr. 6): Platz wie im Entwurf, am Handy unter den Schritten, am Laptop links neben den Funktionen. Bis
+// das Video mit einem eigenen Auftrag kommt, steht dort ein Standbild mit festen Maßen: das Standbild der Schleife
+// "Scannen" aus "So geht's". "film" nennt die Videodatei unter public/bilder/sogehts; solange sie fehlt (null), bleibt
+// es beim Standbild. Mit Datei lädt das Video erst beim Scrollen, spielt ohne Ton in Schleife und bei "Bewegung
+// reduzieren" nicht von selbst.
+export const video = {
+  standbild: 'film-scannen',
+  breite: 720,
+  hoehe: 1620,
+  alt: 'Scanner von FoodAsu: Die Kamera erfasst einen Strichcode, dann erscheint die Produktkarte eines Müslis mit dem Ergebnis für die drei Personen des Haushalts.',
+  film: null,
 };
 
-// Sechs Funktionen (seit AP-23 ohne Kästen: je ein Zeichen im Lavendel-Quadrat, Titel und Text). "symbol" nennt das
-// Zeichen in index.astro.
+// "Mehr als ein Einkaufszettel" (Teil 1 Nr. 7): die sechs Funktionen von heute als Karten mit ihrem Zeichen ("symbol",
+// gezeichnet in index.astro), Titel (h3) und kurzem Satz ("kurz"); der ausführliche Text ("text") klappt auf und steht
+// vollständig im HTML. Die erste Karte ist offen.
 export const funktionen = {
-  ueberschrift: 'Scanner, Einkaufsliste und Rezepte in einer App',
+  ueberschrift: 'Mehr als ein Einkaufszettel',
   karten: [
     {
       kennung: 'scanner',
       symbol: 'scan',
       titel: 'Scannen und sofort sehen',
-      text: 'FoodAsu prüft Zutaten und Spurenangaben für jede Person einzeln. Das Ergebnis heißt „enthält“, „Spuren“, „Angaben unvollständig“ oder „Kein Konflikt laut Daten“.',
+      kurz: 'Für jede Person einzeln, mit „Warum?“.',
+      text: ['Beim Einkauf prüft FoodAsu Zutaten und Spurenangaben. Das Ergebnis heißt „enthält“, „Spuren“, „Angaben unvollständig“ oder „Kein Konflikt laut Daten“.'],
     },
     {
       kennung: 'haushalt',
       symbol: 'haushalt',
       titel: 'Dein Haushalt',
-      text: 'Für jede Person eigene Einträge. Drei Stufen von „Lieber nicht“ bis „Auf keinen Fall“; die strengste warnt auch bei Spuren.',
+      kurz: 'Für jede Person eigene Einträge.',
+      text: ['Du legst für jede Person in der Familie fest, was sie meidet. Drei Stufen reichen von „Lieber nicht“ bis „Auf keinen Fall“.'],
     },
     {
       kennung: 'liste',
       symbol: 'liste',
       titel: 'Einkaufsliste, sortiert wie im Supermarkt',
-      // AP-22 Teil 2 Nr. 4 und Entscheidung 9: Neu sind der zweite Satz (Listen bleiben gespeichert, Vorschläge) und der
-      // letzte ("als Text teilen").
-      text: 'Schreib auf, was du brauchst, oder setz die fehlenden Zutaten eines Rezepts auf die Liste. Deine Listen bleiben gespeichert, und beim Schreiben schlägt FoodAsu vor, was du schon einmal aufgeschrieben hast. Betrifft ein Eintrag jemanden im Haushalt, steht ein Hinweis dabei. Die Liste kannst du als Text teilen, zum Beispiel mit jemandem, der einkaufen geht.',
+      kurz: 'Mit Vorschlägen beim Schreiben.',
+      text: [
+        'Du kannst so viele Einkaufslisten erstellen, wie du brauchst, und sie bleiben gespeichert. Jeden Artikel tippst du einfach ein, und FoodAsu ordnet ihn nach Warengruppen, also nach Kategorien wie im Supermarkt.',
+        'Vorgeschlagen wird auch, was du schon einmal aufgeschrieben hast. Was abgehakt ist, steht unter „Erledigt“, und von dort holst du es zurück.',
+        'Die Liste kannst du als Text teilen, etwa mit jemandem aus der Familie; Personen und Hinweise teilt FoodAsu dabei nicht.',
+      ],
     },
     {
       kennung: 'rezepte',
       symbol: 'buch',
+      // "In der App:" wie bisher (Ali, 09.10.2026, Entscheidung 18): Die Zahl ist die der App, nicht die der Website.
       titel: `In der App: über ${appZahlen.ueber} Rezepte aus ${appZahlen.laender} Ländern`,
-      text: 'Jedes mit einem Symbolbild. Bei den Zutaten steht, wen sie betreffen.',
+      kurz: 'Bei den Zutaten steht, wen sie betreffen.',
+      text: ['Die fehlenden Zutaten fügst du mit einem Tipp einer Einkaufsliste hinzu. So kannst du Essen und Einkauf zusammen planen.'],
     },
     {
       kennung: 'kochen',
       symbol: 'topf',
       titel: 'Was kann ich damit kochen?',
-      text: 'Rezepte zu deiner Einkaufsliste: FoodAsu zeigt Gerichte, für die schon Zutaten auf der Liste stehen, und was noch fehlt.',
+      kurz: 'Rezepte zu deiner Einkaufsliste.',
+      text: ['FoodAsu zeigt Gerichte, für die schon vieles auf deiner Liste steht, und sagt, was noch fehlt. Das Fehlende fügst du mit einem Tipp hinzu.'],
     },
     {
       kennung: 'daten',
       symbol: 'handy',
-      titel: 'Kein Konto, keine Werbung, kein Verkauf von Daten.',
-      text: 'Was dein Haushalt meidet, bleibt nur auf deinem Handy, außer du exportierst es selbst.',
+      titel: 'Ohne Konto, ohne Werbung',
+      // Der freigegebene Datenschutzsatz vollständig (der Entwurf kürzt ihn; die Kurzform wäre eine andere Aussage).
+      kurz: 'Was dein Haushalt meidet, bleibt nur auf deinem Handy, außer du exportierst es selbst.',
+      text: ['Kein Konto, keine Werbung, kein Verkauf von Daten.'],
     },
   ],
 };
 
-// Abschnitt "FoodAsu im Bild" (AP-19 Teil G, Entscheidung Ali vom 10.10.2026): sechs Bildschirmfotos der App, je mit
-// einem Satz zum Nutzen und einem Link auf die passende Stelle von "So geht's". "datei" nennt das Bildschirmfoto wie in
-// src/daten/anleitung (gebaut mit tools/sogehts_fotos.py); die Bildbeschreibung kommt aus sogehts_fotos.json.
+// "Einfache Einkaufsliste oder FoodAsu?" (Teil 1 Nr. 8): Tabelle mit vier Zeilen wie im Entwurf, darunter der ehrliche
+// Satz, wann eine einfache Liste reicht. Keine Namen anderer Apps. "ja" steht in Indigo, nie in Grün.
+export const vergleich = {
+  ueberschrift: 'Einfache Einkaufsliste oder FoodAsu?',
+  spalten: ['Was du brauchst', 'Einfache Liste', 'FoodAsu'],
+  zeilen: [
+    ['Notieren und abhaken', 'ja', 'ja'],
+    ['Rezept mit einem Tipp auf die Liste', 'selten', 'ja'],
+    ['Sehen, für wen ein Produkt passt', 'nein', 'ja'],
+    ['Ohne Konto', 'je nach App', 'ja'],
+  ],
+  satz: 'Notierst du nur schnell ein paar Dinge, reicht eine einfache Liste. FoodAsu hilft, wenn im Haushalt jeder etwas anderes meidet.',
+};
+
+// Abschnitt "FoodAsu im Bild" (AP-19 Teil G): sechs Bildschirmfotos der App, je mit einem Link auf die passende Stelle
+// von "So geht's". Überschrift, Text, Hinweis und Knopf wie bisher; die Sätze der Karten so kurz wie im Entwurf. "alt"
+// beschreibt das Foto (Teil 2 Nr. 11), "ort" ergänzt "In der Anleitung" für Bildschirmleser (Teil 2 Nr. 12).
 export const einblick = {
   ueberschrift: 'FoodAsu im Bild',
   text: 'Sechs Bildschirmfotos aus der App. Jedes führt zu der Stelle der Anleitung, die es erklärt.',
+  mehr: 'In der Anleitung',
   karten: [
     {
       datei: 'karte_urteil_01',
       titel: 'Das Urteil für den Haushalt',
-      text: 'Oben auf der Produktkarte steht, für wen ein Produkt laut Daten nicht passt. Darunter steht jede Person einzeln.',
+      text: 'Oben auf der Karte steht, für wen ein Produkt laut Daten nicht passt.',
+      alt: 'Produktkarte in FoodAsu: oben „Nicht für Mia: enthält Schalenfrüchte“ mit „Warum?“, darunter jede Person einzeln und die Nährwerte',
       ziel: '/so-gehts/scannen-und-urteil/#das-urteil',
     },
     {
       datei: 'liste_eintraege_02',
       titel: 'Zu Hause aufschreiben',
-      text: 'Schreib auf, was du brauchst, zum Beispiel „2 Zwiebeln“. Scannen musst du dafür nichts.',
+      text: 'Schreib auf, was du brauchst, zum Beispiel „2 Zwiebeln“.',
+      alt: 'Einkaufsliste in FoodAsu: im Feld „Hinzufügen“ steht „2 Zwiebeln“, darunter der Vorschlag „Zwiebeln“',
       ziel: '/so-gehts/zu-hause-schreiben-im-laden-abhaken/#zu-hause',
     },
     {
       datei: 'liste_abhaken_02',
       titel: 'Im Laden abhaken',
-      text: 'Ein Tipp auf das Kästchen hakt ab. Erledigtes rutscht nach unten, oben bleibt, was noch fehlt.',
+      text: 'Ein Tipp hakt ab. Oben bleibt, was noch fehlt.',
+      alt: 'Einkaufsliste nach dem Tipp auf das Kästchen: Meldung „Bananen erledigt“ mit „Rückgängig“',
       ziel: '/so-gehts/einkaufslisten/#abhaken',
     },
     {
       datei: 'liste_kochen_01',
       titel: 'Was kann ich damit kochen?',
-      text: 'FoodAsu zeigt Rezepte, für die schon vieles auf deiner Liste steht, und sagt, was noch fehlt.',
+      text: 'Rezepte, für die schon vieles auf deiner Liste steht.',
+      alt: '„Was kann ich damit kochen?“: Rezepte zur Einkaufsliste „Wocheneinkauf“, je mit den Zutaten, die schon auf der Liste stehen',
       ziel: '/so-gehts/einkaufslisten/#was-kann-ich-damit-kochen',
     },
     {
       datei: 'rezepte_hinweise_01',
       titel: 'Hinweise bei den Zutaten',
-      text: 'Im Rezept steht bei den Zutaten, wen in deinem Haushalt etwas betrifft.',
+      text: 'Im Rezept steht, wen eine Zutat betrifft.',
+      alt: 'Zutaten der Pizza Margherita in FoodAsu: bei Weizenmehl der Hinweis zu Jonas, bei Mozzarella die Hinweise zu Mia und Elif',
       ziel: '/so-gehts/rezepte/#hinweise-bei-zutaten',
     },
     {
       datei: 'haushalt_stufen_01',
       titel: 'Drei Stufen je Eintrag',
-      text: 'Für jeden Eintrag wählst du, wie deutlich FoodAsu hinweist: von „Lieber nicht“ bis „Auf keinen Fall“.',
+      text: 'Von „Lieber nicht“ bis „Auf keinen Fall“.',
+      alt: 'Abschnitt „Wie streng?“ in FoodAsu: bei Milch ist „Meiden“ gewählt, bei Schalenfrüchten „Auf keinen Fall“',
       ziel: '/so-gehts/haushalt-und-meiden/#die-drei-stufen',
     },
   ],
-  hinweis: 'Die Bildschirmfotos zeigen die App mit einem erfundenen Beispielhaushalt. Namen, Marken und Fotos von Produkten sind unkenntlich gemacht.',
+  // Hinweis so kurz wie im Entwurf (Teil 2 Nr. 1; am Handy höchstens drei Zeilen, Teil 3 Nr. 6).
+  hinweis: 'Erfundener Beispielhaushalt. Namen, Marken und Fotos von Produkten sind unkenntlich gemacht.',
   link: "Die ganze Anleitung: So geht's",
   ziel: '/so-gehts/',
 };
@@ -232,18 +276,20 @@ export const zahlen = {
     'Wiener Schnitzel', 'Pizza Margherita', 'Ratatouille', 'Baklava', 'Bibimbap', 'Massaman-Curry',
     'Mercimek çorbası',
   ],
-  // Die ersten zwei Zahlen sind die der App aus den Daten (src/daten/app_zahlen.mjs), nie von Hand.
+  // Die Zahlen der App kommen aus den Daten (src/daten/app_zahlen.mjs), nie von Hand; die Einträge zum Meiden aus der
+  // öffentlich verfügbaren Fassung der App (app_fassung.json).
   zaehler: [
     { zahl: appZahlen.rezepte, wort: 'Rezepte in der App' },
     { zahl: appZahlen.laender, wort: 'Länder' },
-    { zahl: 20, wort: 'Einträge zum Meiden' },
+    { zahl: appZahlen.eintraege, wort: 'Einträge zum Meiden' },
     { zahl: 0, wort: 'Werbung' },
   ],
 };
 
 export const vorschau = {
   ueberschrift: 'Kochen für alle am Tisch',
-  text: 'Bei den Zutaten steht, wen sie betreffen. Enthält ein Rezept etwas, das jemand auf keinen Fall will, blendet FoodAsu es aus und nennt die Zahl der ausgeblendeten Rezepte.',
+  // Text so kurz wie im Entwurf (Teil 2 Nr. 1; am Handy höchstens drei Zeilen, Teil 3 Nr. 6).
+  text: 'Bei den Zutaten steht, wen sie betreffen.',
   // "datei" ist der Name des Bildes unter public/bilder/rezepte (gebaut mit tools/bilder_bauen.py).
   karten: [
     { titel: 'Wiener Schnitzel', datei: 'wiener-schnitzel' },
@@ -255,13 +301,14 @@ export const vorschau = {
   // Auf der Website steht nur eine Auswahl aus der App, alle anderen gibt es nur in der App (Ali, 09.10.2026). Seit
   // AP-25 kommen Rezepte dazu, die es in der App noch nicht gibt; die Zahlen kommen aus den Daten
   // (websiteZahlen in src/daten/rezeptseiten.mjs).
-  // Seit AP-25 stehen dazu Rezepte hier, die später in die App kommen (aus alten Kochbüchern und weitere).
-  hinweis: (zahlen) => `Über ${appZahlen.ueber} Rezepte gibt es in der App, ${zahlen.app} davon stehen hier. Dazu kommen ${zahlen.alt} Rezepte aus alten Kochbüchern und ${zahlen.neu} neue, die später in die App kommen.`,
+  // Zwei Sätze, je ein Absatz (am Handy höchstens drei Zeilen); Wortlaut unverändert.
+  hinweis: (zahlen) => [`Über ${appZahlen.ueber} Rezepte gibt es in der App, ${zahlen.app} davon stehen hier.`, `Dazu kommen ${zahlen.alt} Rezepte aus alten Kochbüchern und ${zahlen.neu} neue, die später in die App kommen.`],
   link: (zahlen) => `${zahlen.gesamt} Rezepte auf der Website ansehen`,
   // Kleine Karte, die zur Rubrik "Aus alten Kochbüchern" führt (AP-25 Teil C Nr. 5). Die Zahlen kommen aus den Daten.
   alt: {
     titel: 'Aus alten Kochbüchern',
-    text: (zahl, von, bis) => `${zahl} Rezepte aus Kochbüchern von ${von} bis ${bis}: ein Auszug aus dem Original, dazu eine heutige Fassung mit Mengen.`,
+    // So kurz wie im Entwurf (Laptop) und am Handy höchstens drei Zeilen.
+    text: (zahl, von, bis) => `${zahl} Rezepte von ${von} bis ${bis}, mit Auszug aus dem Original und heutiger Fassung.`,
     link: 'Alte Rezepte ansehen',
     ziel: '/alte-rezepte/',
     // Adresse des Rezepts, dessen Symbolbild die Karte zeigt.
@@ -269,7 +316,88 @@ export const vorschau = {
   },
 };
 
-// Fragen und Antworten stehen seit AP-22 in src/daten/fragen.mjs.
+// Fragen der Startseite (Teil 1 Nr. 12, Teil 2 Nr. 9): sieben Fragen zur Einkaufslisten-App in dieser Reihenfolge,
+// Gestaltung wie bisher. Jede Antwort beginnt mit einem Satz, der für sich allein verständlich ist und die Frage
+// beantwortet; die erste beginnt mit dem GEO-Satz. Jeder Eintrag in "antwort" ist ein Absatz mit ein oder zwei Sätzen
+// (Alis Entscheidung vom 14.10.2026). FAQPage gibt die Fragen und Antworten wortgleich wieder (index.astro). Die früheren Fragen der
+// Startseite stehen weiter auf /fragen/ (src/daten/fragen.mjs).
+export const fragenStart = {
+  ueberschrift: 'Fragen zur Einkaufslisten-App',
+  liste: [
+    {
+      // Korrektur der Projektleitung vom 14.10.2026 (a): Frage und erster Satz der Antwort passen zusammen.
+      frage: 'Was kann die Einkaufslisten-App FoodAsu?',
+      antwort: [
+        GEO_SATZ,
+        'Die Einkaufsliste erstellst und teilst du schnell, und jeden Artikel ordnet sie nach Kategorien, damit du beim Einkauf nichts suchst.',
+      ],
+    },
+    {
+      frage: 'Ist FoodAsu auch eine Einkaufszettel-App?',
+      antwort: [
+        'Ja, FoodAsu ist eine Einkaufsapp, die den Zettel aus Papier durch eine digitale Einkaufsliste auf dem Handy ersetzt.',
+        'Du schreibst zu Hause auf, was fehlt, und die Liste ordnet sich nach Kategorien. Beim Einkauf hakst du jeden Artikel ab, der im Wagen liegt.',
+      ],
+    },
+    {
+      frage: 'Brauche ich ein Konto?',
+      antwort: [
+        'Nein, FoodAsu funktioniert ohne Konto und ohne Registrierung. Was dein Haushalt meidet, bleibt nur auf deinem Handy, außer du exportierst es selbst.',
+      ],
+    },
+    {
+      frage: 'Wie kommt ein Rezept auf die Einkaufsliste?',
+      antwort: [
+        'In FoodAsu setzt du die fehlenden Zutaten eines Rezepts mit einem Tipp auf eine Einkaufsliste, die so heißt wie das Rezept; gibt es sie noch nicht, wird sie dafür erstellt.',
+        'Grundzutaten wie Salz und Öl sind dabei abgewählt, du kannst sie aber hinzufügen. Kleine Mengen wie „1 EL“ stehen als Notiz beim Eintrag.',
+      ],
+    },
+    {
+      frage: 'Woher weiß die App, was im Produkt steckt?',
+      antwort: [
+        'FoodAsu liest die Angaben zu einem Produkt aus der offenen Datenbank Open Food Facts. Diese Daten können fehlen oder veraltet sein.',
+        // Der Satz zum Medizinprodukt (wörtlich, src/daten/fragen.mjs) in zwei Absätzen: zwei Sätze und einer.
+        ...MEDIZIN_ABSAETZE,
+      ],
+    },
+    {
+      // Ehrliche Antwort aus der Funktionsliste (KARTE-10: Meldung ohne Verbindung, gespeicherte Angaben) und dem Code
+      // der App (Listen, Haushalt und Rezepte liegen auf dem Handy).
+      frage: 'Funktioniert FoodAsu ohne Internet?',
+      antwort: [
+        'Zum Scannen braucht FoodAsu eine Verbindung zum Internet, weil die App bei Open Food Facts nachfragt. Schon gescannte Produkte zeigt sie auch ohne Verbindung, mit den gespeicherten Angaben.',
+        'Einkaufslisten, Haushalt und Rezepte liegen auf deinem Handy und gehen ohne Internet.',
+      ],
+    },
+    {
+      // Korrektur der Projektleitung vom 14.10.2026 (b): zuerst der Satz zur Verfügbarkeit, der die Frage beantwortet.
+      frage: 'Gibt es FoodAsu fürs iPhone?',
+      antwort: [VERFUEGBAR, BETA],
+    },
+  ],
+};
+
+// Abschluss (Teil 1 Nr. 13): gepunktete Lavendel-Fläche, H2, der Satz zur Verfügbarkeit, weißer Knopf "Bald im Play
+// Store" mit Punkt. Am Handy steht darunter klein der Hinweis zur Beta (am Laptop steht er unter den Knöpfen im Kopf).
+export const abschluss = {
+  ueberschrift: 'Passt es für alle? Schau einfach nach.',
+  satz: VERFUEGBAR,
+  knopf: 'Bald im Play Store',
+  beta: BETA,
+};
+
+// Leiste unten am Handy (Teil 1 Nr. 15): erscheint nach dem ersten Bildschirm, nur am Handy. Das Logo führt an den
+// Anfang der Seite. Der Knopf führt, solange der Eintrag bei Google Play nicht öffentlich ist, zum Abschluss mit dem
+// Satz zur Verfügbarkeit, danach zum Eintrag (store.oeffentlich in seite.mjs).
+export const kurzleiste = {
+  name: 'FoodAsu im Play Store',
+  logo: 'FoodAsu, zum Anfang der Seite',
+  knopf: 'Bald im Play Store',
+  ziel: '#abschluss',
+  storeKnopf: 'FoodAsu bei Google Play',
+};
+
+// Fragen und Antworten der Seite /fragen/ stehen seit AP-22 in src/daten/fragen.mjs.
 export { fragen } from './fragen.mjs';
 
 // Fußzeile A (Entscheidung Ali vom 10.10.2026, AP-18 Teil D): links Logo und Satz, daneben drei Spalten, unten eine

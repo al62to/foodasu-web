@@ -25,7 +25,9 @@ export const QUELLEN = {
 };
 const REZEPT = ['src/daten/rezepte.json', 'src/daten/rezepte_zusatz.json', 'src/daten/rezeptseiten.mjs', 'src/components/Rezeptseite.astro'];
 const THEMA = ['src/daten/rezepte.json', 'src/daten/rezepte_zusatz.json', 'src/daten/auswahl.mjs', 'src/daten/rezeptseiten.mjs', 'src/daten/themen_texte.mjs', 'src/components/Themenseite.astro'];
-const KAPITEL = (slug) => [`src/daten/anleitung/${slug}.mjs`, 'src/pages/so-gehts/[kapitel]/index.astro'];
+// Die Überschrift (h1) jedes Kapitels steht in src/daten/sogehts.mjs (KAPITEL_H1); deshalb zählt die Datei mit (Befund im
+// Auftrag SEO 1 neu vom 14.10.2026: Die neue h1 von „Scannen und das Urteil verstehen“ hätte den Tag sonst nicht geändert).
+const KAPITEL = (slug) => [`src/daten/anleitung/${slug}.mjs`, 'src/daten/sogehts.mjs', 'src/pages/so-gehts/[kapitel]/index.astro'];
 
 export function quellenVon(pfad) {
   if (QUELLEN[pfad]) return QUELLEN[pfad];

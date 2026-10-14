@@ -8,6 +8,8 @@ export default {
   titel: 'Einkaufslisten',
   kurz: 'Aufschreiben, abhaken, sortieren, teilen und in die Liste scannen.',
   vorspann: 'Listen anlegen, aufschreiben, was du brauchst, im Laden abhaken und die Liste als Text teilen.',
+  // Auftrag SEO 1 neu (14.10.2026), Teil 4 Nr. 1: Link mit dem Ankertext "Einkaufslisten-App" zur Startseite.
+  vorspannLink: { vor: 'Was die ', text: 'Einkaufslisten-App', nach: ' sonst noch kann, zeigt die Startseite.', ziel: '/' },
   film: { datei: 'auf-die-liste', alt: 'Auf der Produktseite wird „Auf die Liste“ angetippt, die Seite meldet „Auf ‚Wocheneinkauf‘ gesetzt“, dann steht das Produkt auf der Einkaufsliste „Wocheneinkauf“ mit ihren Warengruppen.', unterschrift: 'Von der Produktkarte auf die Liste' },
   teile: [
     {
@@ -15,7 +17,7 @@ export default {
       anker: 'liste-anlegen',
       symbol: 'plus',
       funktionen: ['LISTE-01'],
-      nutzen: 'Du legst eine oder mehrere Einkaufslisten an, ganz ohne Scannen, zum Beispiel eine für den Wocheneinkauf und eine für das Fest am Wochenende.',
+      nutzen: 'Du erstellst eine oder mehrere Einkaufslisten, ganz ohne Scannen, zum Beispiel eine für den Wocheneinkauf und eine für das Fest am Wochenende.',
       wo: 'Listen > „Liste anlegen“, bei jeder weiteren „Neue Liste“',
       fotos: [foto('liste_anlegen_03', 'Die Übersicht „Deine Listen“')],
     },
@@ -53,7 +55,7 @@ export default {
       anker: 'warengruppen',
       symbol: 'stapel',
       funktionen: ['LISTE-05'],
-      nutzen: 'Die Liste ordnet sich von selbst nach Warengruppen wie im Laden. So gehst du Gruppe für Gruppe durch und musst nicht zurücklaufen.',
+      nutzen: 'Die Einkaufsliste ordnet sich von selbst nach Warengruppen, wie Kategorien im Supermarkt. So gehst du Gruppe für Gruppe durch und musst nicht zurücklaufen.',
       wo: 'Liste; die Gruppe eines Eintrags änderst du unter „Eintrag bearbeiten“',
       fotos: [foto('liste_warengruppen_01', 'Einträge unter ihrer Warengruppe')],
     },

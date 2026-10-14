@@ -1,8 +1,11 @@
 // /llms.txt nach dem Format von llmstxt.org: Überschrift, ein Absatz zu FoodAsu, Abschnitte mit Links. Genannt ist
 // jede Seite, die im Index steht, mit ihrer Beschreibung aus src/daten/meta.mjs (AP-18 Nachtrag Meta); Seiten mit
 // noindex fehlen. Der Absatz stammt aus den freigegebenen Texten der Startseite.
-import { seite } from '../daten/seite.mjs';
-import { kopf, fuss, geruest } from '../daten/startseite.mjs';
+// Seit dem Auftrag SEO 1 neu (14.10.2026, Teil 3 Nr. 3): Oben steht der GEO-Satz (gleichlautend auf der Startseite und
+// in SoftwareApplication.description), darunter eine kurze sachliche Beschreibung auf Deutsch; der Link zum Eintrag bei
+// Google Play kommt erst mit dem öffentlichen Start (store.oeffentlich).
+import { seite, store } from '../daten/seite.mjs';
+import { kopf, fuss, geruest, GEO_SATZ, VERFUEGBAR } from '../daten/startseite.mjs';
 import { rezeptSeiten, alteRezepte, texte, themen } from '../daten/rezeptseiten.mjs';
 import { alteSeite } from '../daten/alte_rezepte.mjs';
 import { BEREICH, adresse, kapitel, uebersicht } from '../daten/sogehts.mjs';
@@ -14,10 +17,8 @@ const link = (titel, pfad) => `- [${titel}](${seite.adresse + pfad}): ${metaVon(
 const gruppe = (art) => themen.filter((thema) => thema.art === art && thema.imIndex).sort((a, b) => a.titel.localeCompare(b.titel, 'de'));
 const nachName = [...rezeptSeiten].sort((a, b) => a.titel.localeCompare(b.titel, 'de'));
 
-// Einleitung (Nachtrag zu AP-23 Teil A Nr. 7 in der Fassung der Änderung vom 11.10.2026): der erste Satz des Satzes zur
-// Beschreibung (FoodAsu ohne Plattform), dann der Satz, der die Plattform nennt, danach wie bisher kopf.text und
-// fuss.hinweis. Der Absatz darunter ist kopf.stand ohne diesen Satz, damit er in der Datei nicht zweimal steht.
-const VERFUEGBAR = 'Zuerst kommt die App für Android in den Play Store, danach folgt die Version fürs iPhone.';
+// Einleitung: der GEO-Satz als Zitat, darunter der Satz zur Beschreibung, der Hinweis zur Beta mit dem Satz zur
+// Verfügbarkeit (er steht in der Datei genau einmal) und der Hinweis auf die Verpackung.
 
 export function GET() {
   if (!kopf.stand.endsWith(` ${VERFUEGBAR}`)) throw new Error('llms.txt: kopf.stand endet nicht mit dem Satz zur Plattform');
@@ -26,12 +27,13 @@ export function GET() {
   const zeilen = [
     `# ${seite.name}`,
     '',
-    `> ${kernsatz} ${VERFUEGBAR} ${kopf.text} ${fuss.hinweis}`,
+    `> ${GEO_SATZ}`,
     '',
-    kopf.stand.slice(0, -VERFUEGBAR.length - 1),
+    `${seite.beschreibung} ${kopf.stand} ${fuss.hinweis}`,
     '',
     '## Website',
     link('Startseite', '/'),
+    ...(store.oeffentlich ? [`- [${fuss.auftritte.storeLink}](${store.adresse}): Eintrag von ${seite.name} bei Google Play`] : []),
     link(geruest.fragenSeite.titel, '/fragen/'),
     link(datenquellen.titel, '/daten-und-quellen/'),
     link(ueber.titel, '/ueber-foodasu/'),

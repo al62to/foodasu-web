@@ -32,7 +32,7 @@ for (const eintrag of kapitel) {
   punkt('Beschreibung', `${kopfdaten.beschreibung} (${kopfdaten.beschreibung.length} Zeichen)`);
   punkt('Etikett', `${uebersicht.kapitelWort} ${eintrag.nummer} von ${kapitel.length}`);
   punkt('Überschrift', eintrag.titel);
-  punkt('Vorspann', eintrag.vorspann);
+  punkt('Vorspann', eintrag.vorspann + (eintrag.vorspannLink ? ` ${eintrag.vorspannLink.vor}${eintrag.vorspannLink.text}${eintrag.vorspannLink.nach} (Link „${eintrag.vorspannLink.text}“ auf ${eintrag.vorspannLink.ziel})` : ''));
   zeile();
   for (const teil of eintrag.teile) {
     zeile(`### ${teil.titel} (#${teil.anker}${teil.funktionen ? `; ${teil.funktionen.join(', ')}` : ''})`);

@@ -8,6 +8,8 @@
 //   2f. Kontrast der Texte, hell und dunkel, auf allen Seitenarten
 //   2g. Knopf "Rezept teilen": echter Knopf, Tastatur, Größe, Kontrast; ein Klick löst keine Anfrage und keinen
 //       Eintrag im Speicher des Browsers aus; ohne JavaScript nicht zu sehen; dazu ein Blatt mit Bildschirmfotos
+//   2h. Startseite am Handy (Auftrag SEO 1 neu): erster Bildschirm, H1, Zeitleisten, Leiste unten, Tippflächen,
+//       Absätze, Kontrast hell und dunkel, Video
 //   3. kein waagrechtes Scrollen bei 360, 390, 768, 1024 und 1440 Pixel
 //   4. Mega-Menü mit Tastatur, ohne JavaScript und so, wie es ein Bildschirmleser gemeldet bekommt
 //   4a. "Zum Ausprobieren" im Menü: je Seite eine eigene Auswahl im HTML, beim Besuch eine zufällige
@@ -129,7 +131,7 @@ sage('## 2 "Bewegung reduzieren"');
     });
     return {
       laufend: document.getAnimations().filter((bewegung) => bewegung.playState === 'running').length,
-      sichtbar: sichtbar('.held h1, .held-vorspann, .handy-rahmen, [data-urteil], [data-person], .schwebt, .lage, .schritt, .funktion, .zaehler li, .band-liste li, .rezeptkarte, .faq details, .wort-text'),
+      sichtbar: sichtbar('.held-titel, .held-satz, .handy-rahmen, [data-urteil], [data-person], .schwebt, .schritt, .video-feld, .funktion, .vergleich-tabelle, .einblick-karte, .zaehler li, .band-liste li, .rezeptkarte, .faq details, .abschluss-karte, .wort-text'),
       zahlen: [...document.querySelectorAll('[data-zahl]')].map((element) => element.textContent === element.dataset.zahl),
       // Seit AP-23 stehen die Einträge und Rezepte still, als Chips in Reihen: kein Laufband, keine Kopien.
       baender: document.querySelectorAll('[data-band], .band-spur, .band-liste[aria-hidden="true"]').length,
@@ -140,7 +142,7 @@ sage('## 2 "Bewegung reduzieren"');
   });
   pruefe(!anfragen.some((adresse) => /bewegung/.test(adresse)), 'GSAP wird nicht geladen');
   pruefe(stand.laufend === 0, `laufende Animationen: ${stand.laufend}`);
-  pruefe(stand.sichtbar, 'alle Inhalte sofort sichtbar (Kopf, Handy, Lagen am Tisch, Schritte, Funktionen, Zähler, Chips, Rezepte, Fragen)');
+  pruefe(stand.sichtbar, 'alle Inhalte sofort sichtbar (Kopf, Handy, Schritte, Video, Funktionen, Vergleich, Bilder, Zähler, Chips, Rezepte, Fragen, Abschluss)');
   pruefe(stand.zahlen.every(Boolean), 'Zähler zeigen die Endzahl');
   pruefe(stand.baender === 0 && stand.chips === 27, `Einträge und Rezepte stehen als ruhende Chips, ohne Laufband (${stand.chips} Chips)`);
   pruefe(stand.linie === 'none' || stand.linie === 'matrix(1, 0, 0, 1, 0, 0)', 'Linie der Einkaufswoche ist ganz gezeichnet');
@@ -163,10 +165,11 @@ sage('## 2b Bewegung läuft (ohne "Bewegung reduzieren", Laptop)');
   const woerter = new Set();
   for (let nummer = 0; nummer < 6; nummer++) { woerter.add(await seite.evaluate(() => document.querySelector('[data-wort]').textContent)); await warte(1000); }
   pruefe(woerter.size >= 3, `Wechselndes Wort: ${[...woerter].join(', ')}`);
-  await seite.evaluate(() => { const ziel = document.querySelector('#schritte'); window.scrollTo({ top: ziel.offsetTop - window.innerHeight * 0.45, behavior: 'instant' }); });
-  await warte(600);
-  const linie = await seite.evaluate(() => new DOMMatrixReadOnly(getComputedStyle(document.querySelector('[data-linie]')).transform).a);
-  pruefe(linie > 0.05 && linie < 0.95, `Einkaufswoche: Linie wächst mit dem Scrollen (Stand ${linie.toFixed(2)})`);
+  // Seit dem Auftrag SEO 1 neu gibt es die Linie der Einkaufswoche nur am Handy (gemessen in 2h); am Laptop kommen die
+  // drei Handys herein.
+  await seite.evaluate(() => document.querySelector('#schritte').scrollIntoView({ behavior: 'instant' }));
+  await warte(1600);
+  pruefe(await seite.evaluate(() => [...document.querySelectorAll('.schritt')].every((element) => getComputedStyle(element).opacity === '1')), 'Einkaufswoche: alle drei Schritte sind nach dem Einblenden sichtbar');
   await seite.evaluate(() => document.querySelector('#funktionen').scrollIntoView({ behavior: 'instant' }));
   await warte(1600);
   pruefe(await seite.evaluate(() => [...document.querySelectorAll('.funktion')].every((element) => getComputedStyle(element).opacity === '1')), 'Funktionen: alle sechs sind nach dem Einblenden sichtbar');
@@ -239,7 +242,7 @@ sage('## 2c Knopf "Bewegung anhalten" (ohne "Bewegung reduzieren")');
       return stil.opacity === '1' && stil.visibility === 'visible' && stil.display !== 'none';
     });
     return {
-      sichtbar: sichtbar('.held h1, .held-vorspann, .handy-rahmen, [data-urteil], [data-person], .schwebt, .lage, .schritt, .funktion, .zaehler li, .band-liste li, .rezeptkarte, .faq details, .wort-text'),
+      sichtbar: sichtbar('.held-titel, .held-satz, .handy-rahmen, [data-urteil], [data-person], .schwebt, .schritt, .video-feld, .funktion, .vergleich-tabelle, .einblick-karte, .zaehler li, .band-liste li, .rezeptkarte, .faq details, .abschluss-karte, .wort-text'),
       zahlen: [...document.querySelectorAll('[data-zahl]')].every((element) => element.textContent === element.dataset.zahl),
       linie: getComputedStyle(document.querySelector('[data-linie]')).transform,
       speicher: document.cookie.length + localStorage.length + sessionStorage.length,
@@ -598,6 +601,176 @@ sage('## 2f Kontrast der Texte (mindestens 4,5:1), hell und dunkel');
       await umgebung.close();
     }
   }
+}
+
+// 2h Startseite am Handy (Auftrag SEO 1 neu der Projektleitung, 14.10.2026). Bei 360 und 412 Pixeln: Der erste
+// Bildschirm zeigt ohne Scrollen H1, Satz, Knöpfe und den Beginn der Handy-Grafik, zusammen etwa 40 Wörter; der große
+// Teil der H1 braucht bei 360 Pixeln höchstens drei Zeilen. Die Einkaufswoche und "FoodAsu im Bild" sind senkrechte
+// Zeitleisten (Karten abwechselnd links und rechts); die Linie der Einkaufswoche wächst mit dem Scrollen. Die Leiste
+// unten erscheint erst nach dem ersten Bildschirm, ist mit der Tastatur erreichbar, verdeckt am Seitenende nichts und
+// erscheint am Laptop nicht. Tippflächen im Inhalt mindestens 48 Pixel (Kopf und Fuß sind unverändert wie bisher und
+// werden nur gezählt); Absätze höchstens drei Zeilen (Texte, die aufklappen, und Karten der Zeitleisten werden nur
+// gezählt). Kontrast hell und dunkel mit der sichtbaren Leiste. Das Video ist bis zu seinem eigenen Auftrag ein
+// Standbild, das erst beim Scrollen lädt.
+sage();
+sage('## 2h Startseite am Handy (Auftrag SEO 1 neu)');
+for (const breite of [360, 412]) {
+  const ansicht = { width: breite, height: breite === 360 ? 740 : 915, deviceScaleFactor: 1, isMobile: true, hasTouch: true };
+  {
+    const { umgebung, seite } = await neueSeite({ ansicht, ruhig: true });
+    await seite.goto(BASIS + '/', { waitUntil: 'networkidle0' });
+    const oben = await seite.evaluate(() => {
+      const unten = (auswahl) => document.querySelector(auswahl).getBoundingClientRect().bottom;
+      const zeilen = [...document.querySelectorAll('.h-gross')].reduce((summe, teil) => summe + Math.round(teil.getBoundingClientRect().height / parseFloat(getComputedStyle(teil).lineHeight)), 0);
+      // Wörter im ersten Bildschirm: sichtbare Texte, die ganz oder teilweise im Fenster liegen (ohne Kopfzeile). Getrennt
+      // gezählt: Texte der gezeichneten Abbildung (für Bildschirmleser ausgeblendet, die Abbildung hat ihre Beschreibung).
+      const kopf = document.querySelector('.kopf').getBoundingClientRect().bottom;
+      let woerter = 0;
+      let bild = 0;
+      const lauf = document.createTreeWalker(document.querySelector('main'), NodeFilter.SHOW_TEXT);
+      for (let knoten = lauf.nextNode(); knoten; knoten = lauf.nextNode()) {
+        const element = knoten.parentElement;
+        if (!knoten.textContent.trim() || element.closest('.vh, [hidden], script')) continue;
+        if (!element.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })) continue;
+        const kasten = element.getBoundingClientRect();
+        if (!(kasten.top < window.innerHeight && kasten.bottom > kopf)) continue;
+        if (element.closest('[aria-hidden="true"]')) bild += knoten.textContent.trim().split(/\s+/).length;
+        else woerter += knoten.textContent.trim().split(/\s+/).length;
+      }
+      return {
+        h1: unten('.held-titel'), satz: unten('.held-satz'), knoepfe: unten('.held-knoepfe'),
+        grafik: document.querySelector('.handy-rahmen').getBoundingClientRect().top, fenster: window.innerHeight,
+        zeilen, woerter, bild, stand: getComputedStyle(document.querySelector('.held-stand')).display,
+        leiste: document.querySelector('[data-kurzleiste]').hidden,
+      };
+    });
+    pruefe(oben.h1 < oben.fenster && oben.satz < oben.fenster && oben.knoepfe < oben.fenster && oben.grafik < oben.fenster - 40,
+      `${breite} px: erster Bildschirm mit H1, Satz, Knöpfen und dem Beginn der Handy-Grafik (Knöpfe enden bei ${Math.round(oben.knoepfe)} px, Grafik beginnt bei ${Math.round(oben.grafik)} px, Fenster ${oben.fenster} px)`);
+    pruefe(oben.woerter <= 40, `${breite} px: ${oben.woerter} Wörter im ersten Bildschirm (höchstens etwa 40), dazu ${oben.bild} Wörter in der gezeichneten Abbildung und den schwebenden Begriffen (für Bildschirmleser ausgeblendet)`);
+    if (breite === 360) pruefe(oben.zeilen <= 3, `360 px: großer Teil der H1 in ${oben.zeilen} Zeilen (höchstens drei)`);
+    pruefe(oben.stand === 'none', `${breite} px: Hinweis zu Beta und Verfügbarkeit nicht im ersten Bildschirm (steht im Abschluss)`);
+    pruefe(oben.leiste, `${breite} px: Leiste unten im ersten Bildschirm noch nicht da`);
+    // Zeitleisten: Karten abwechselnd links und rechts, die Linie in der Mitte.
+    const leisten = await seite.evaluate(() => [['.schritt', '.schritt-karte', '.weg-linie'], ['.einblick-karte', '.einblick-wort', '.einblick-linie']].map(([zeile, karte, linie]) => {
+      const mitte = document.querySelector(linie).getBoundingClientRect();
+      const seiten = [...document.querySelectorAll(zeile)].map((element) => element.querySelector(karte).getBoundingClientRect().left < mitte.left ? 'links' : 'rechts');
+      return { seiten, mitte: Math.abs((mitte.left + mitte.right) / 2 - window.innerWidth / 2) < 24 };
+    }));
+    pruefe(leisten.every((leiste) => leiste.mitte && leiste.seiten.every((seite, nummer) => seite === (nummer % 2 ? 'rechts' : 'links'))),
+      `${breite} px: Einkaufswoche (${leisten[0].seiten.join(', ')}) und „FoodAsu im Bild“ (${leisten[1].seiten.join(', ')}) als Zeitleiste mit Linie in der Mitte`);
+    pruefe(await seite.evaluate(() => getComputedStyle(document.querySelector('.einblick-karten')).overflowX !== 'auto' && document.querySelector('.einblick-karten').scrollWidth <= document.querySelector('.einblick-karten').clientWidth + 1), `${breite} px: „FoodAsu im Bild“ ohne seitliches Wischen`);
+    // Tippflächen im Inhalt (ohne Kopf und Fuß): Links, Knöpfe und Zeilen zum Aufklappen.
+    const tippen = await seite.evaluate(() => {
+      const klein = [];
+      for (const element of document.querySelectorAll('main a, main button, main summary')) {
+        if (!element.checkVisibility({ checkVisibilityCSS: true }) || element.closest('[hidden]')) continue;
+        const kasten = element.getBoundingClientRect();
+        // Ein Link, der über seiner ganzen Karte liegt, zählt mit der Fläche der Karte.
+        const flaeche = getComputedStyle(element, '::after').position === 'absolute' ? element.closest('li, .alt-karte, .schritt-karte, .einblick-wort')?.getBoundingClientRect() ?? kasten : kasten;
+        if (flaeche.height < 47.5) klein.push(`${element.tagName.toLowerCase()} „${element.textContent.trim().slice(0, 30)}“ ${Math.round(flaeche.height)} px`);
+      }
+      return klein;
+    });
+    pruefe(tippen.length === 0, `${breite} px: Tippflächen im Inhalt mindestens 48 px (zu klein: ${tippen.length})`);
+    for (const fund of tippen.slice(0, 10)) sage(`    ${fund}`);
+    // Absätze: sichtbare Absätze im Inhalt höchstens drei Zeilen.
+    const absaetze = await seite.evaluate(() => {
+      const lang = [];
+      const gezaehlt = [];
+      for (const element of document.querySelectorAll('main p')) {
+        if (!element.checkVisibility({ checkVisibilityCSS: true }) || !element.textContent.trim()) continue;
+        const zeilen = Math.round(element.getBoundingClientRect().height / parseFloat(getComputedStyle(element).lineHeight));
+        if (zeilen <= 3) continue;
+        const text = `${zeilen} Zeilen: „${element.textContent.trim().slice(0, 50)}“`;
+        if (element.closest('details, .schritt-karte, .einblick-wort')) gezaehlt.push(text); else lang.push(text);
+      }
+      return { lang, gezaehlt };
+    });
+    pruefe(absaetze.lang.length === 0, `${breite} px: Absätze im Inhalt höchstens drei Zeilen (länger: ${absaetze.lang.length})`);
+    for (const fund of absaetze.lang) sage(`    ${fund}`);
+    sage(`    nur gezählt (aufklappende Texte und Karten der Zeitleisten): ${absaetze.gezaehlt.length}`);
+    for (const fund of absaetze.gezaehlt) sage(`      ${fund}`);
+    await umgebung.close();
+  }
+  // Leiste unten: erscheint nach dem ersten Bildschirm, Tastatur, verdeckt am Seitenende nichts.
+  for (const [wort, dunkel] of [['hell', false], ['dunkel', true]]) {
+    const { umgebung, seite } = await neueSeite({ ansicht, ruhig: true, dunkel });
+    await seite.goto(BASIS + '/', { waitUntil: 'networkidle0' });
+    await seite.evaluate(() => window.scrollTo({ top: window.innerHeight * 1.5, behavior: 'instant' }));
+    await warte(300);
+    const leiste = await seite.evaluate(() => {
+      const element = document.querySelector('[data-kurzleiste]');
+      const kasten = element.getBoundingClientRect();
+      const links = [...element.querySelectorAll('a')].map((link) => ({ name: link.getAttribute('aria-label') ?? link.textContent.trim(), hoehe: Math.round(link.getBoundingClientRect().height), ziel: link.getAttribute('href') }));
+      return { da: !element.hidden && kasten.height > 0, unten: Math.round(window.innerHeight - kasten.bottom), links, name: element.getAttribute('aria-label') };
+    });
+    pruefe(leiste.da && leiste.unten >= 0 && leiste.links.length === 2 && leiste.links.every((link) => link.hoehe >= 48),
+      `${breite} px, ${wort}: Leiste unten nach dem ersten Bildschirm da („${leiste.name}“; ${leiste.links.map((link) => `${link.name} ${link.hoehe} px nach ${link.ziel}`).join(', ')})`);
+    // Tastatur: Die zwei Links der Leiste sind mit Tab erreichbar.
+    let erreicht = 0;
+    for (let nummer = 0; nummer < 120 && erreicht < 2; nummer++) {
+      await seite.keyboard.press('Tab');
+      if (await seite.evaluate(() => Boolean(document.activeElement.closest('[data-kurzleiste]')))) erreicht++;
+    }
+    pruefe(erreicht === 2, `${breite} px, ${wort}: beide Links der Leiste mit Tab erreichbar`);
+    // Seitenende: Weder Leiste noch Knopf "Bewegung anhalten" verdecken Text oder Links des Fußes.
+    await seite.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }));
+    await warte(300);
+    const verdeckt = await seite.evaluate(() => {
+      const decken = [...document.querySelectorAll('[data-kurzleiste], [data-bewegung]')].filter((element) => !element.hidden).map((element) => element.getBoundingClientRect());
+      // Die Leiste steht im main; ihre eigenen Links verdecken sich nicht selbst und zählen deshalb nicht mit.
+      return [...document.querySelectorAll('footer a, footer p, footer h2, main a, main p')].filter((element) => !element.closest('[data-kurzleiste], [data-bewegung]')).filter((element) => {
+        const f = element.getBoundingClientRect();
+        return f.width > 0 && decken.some((d) => f.bottom > d.top && f.top < d.bottom && f.right > d.left && f.left < d.right);
+      }).map((element) => element.textContent.trim().slice(0, 30));
+    });
+    pruefe(verdeckt.length === 0, `${breite} px, ${wort}: am Seitenende verdeckt die Leiste nichts (${verdeckt.join(', ') || 'keine Überdeckung'})`);
+    // Kontrast der Leiste und des Abschlusses (am Handy sichtbar, am Laptop nicht).
+    const kontrast = await seite.evaluate(() => {
+      const zahlen = (wert) => { const teile = wert.match(/[\d.]+/g).map(Number); return { r: teile[0], g: teile[1], b: teile[2], a: teile.length > 3 ? teile[3] : 1 }; };
+      const hell = ({ r, g, b }) => { const kanal = (wert) => { const anteil = wert / 255; return anteil <= 0.03928 ? anteil / 12.92 : ((anteil + 0.055) / 1.055) ** 2.4; }; return 0.2126 * kanal(r) + 0.7152 * kanal(g) + 0.0722 * kanal(b); };
+      const grund = (element) => { for (let teil = element; teil; teil = teil.parentElement) { const farbe = zahlen(getComputedStyle(teil).backgroundColor); if (farbe.a === 1) return farbe; } return { r: 255, g: 255, b: 255 }; };
+      return ['.kurzleiste-knopf span', '.abschluss-beta', '.abschluss-text p', '.abschluss .bald span'].map((auswahl) => {
+        const element = document.querySelector(auswahl);
+        const [a, b] = [hell(zahlen(getComputedStyle(element).color)), hell(grund(element))].sort((x, y) => y - x);
+        return { auswahl, wert: (a + 0.05) / (b + 0.05) };
+      });
+    });
+    pruefe(kontrast.every((eintrag) => eintrag.wert >= 4.5), `${breite} px, ${wort}: Kontrast der Leiste und des Abschlusses (${kontrast.map((eintrag) => `${eintrag.auswahl} ${eintrag.wert.toFixed(1)}:1`).join(', ')})`);
+    // Schriftzug in der Leiste in denselben Farben wie im Kopf (sonst bleibt er im dunklen Modus dunkel auf dunkel).
+    const schriftzug = await seite.evaluate(() => ['.wort', '.schrift'].map((teil) => [document.querySelector(`[data-kurzleiste] ${teil}`), document.querySelector(`header .marke ${teil}`)].map((element) => getComputedStyle(element).fill)));
+    pruefe(schriftzug.every(([leiste, kopf]) => leiste === kopf), `${breite} px, ${wort}: Schriftzug der Leiste in den Farben des Kopfs (${schriftzug.map(([leiste]) => leiste).join(', ')})`);
+    await umgebung.close();
+  }
+}
+{
+  // Am Laptop gibt es die Leiste nicht, auch nicht nach dem Scrollen.
+  const { umgebung, seite } = await neueSeite({ ansicht: LAPTOP, ruhig: true });
+  await seite.goto(BASIS + '/', { waitUntil: 'networkidle0' });
+  await seite.evaluate(() => window.scrollTo({ top: 3000, behavior: 'instant' }));
+  await warte(300);
+  pruefe(await seite.evaluate(() => getComputedStyle(document.querySelector('[data-kurzleiste]')).display === 'none'), 'Laptop: keine Leiste unten');
+  await umgebung.close();
+}
+{
+  // Mit Bewegung am Handy: Die Linie der Einkaufswoche wächst mit dem Scrollen; das Standbild des Videos lädt erst beim
+  // Scrollen, und ohne Videodatei entsteht kein Video.
+  const { umgebung, seite } = await neueSeite({ ansicht: HANDY });
+  const geladen = [];
+  seite.on('request', (anfrage) => geladen.push(anfrage.url()));
+  await seite.goto(BASIS + '/', { waitUntil: 'networkidle0' });
+  await warte(2500);
+  const vorher = geladen.filter((adresse) => /film-scannen/.test(adresse)).length;
+  await seite.evaluate(() => { const ziel = document.querySelector('#schritte'); window.scrollTo({ top: ziel.offsetTop + ziel.offsetHeight * 0.3 - window.innerHeight * 0.5, behavior: 'instant' }); });
+  await warte(800);
+  const linie = await seite.evaluate(() => new DOMMatrixReadOnly(getComputedStyle(document.querySelector('[data-linie="schritte"]')).transform).d);
+  pruefe(linie > 0.05 && linie < 0.95, `Handy: Linie der Einkaufswoche wächst mit dem Scrollen (Stand ${linie.toFixed(2)})`);
+  await seite.evaluate(() => document.querySelector('[data-video]').scrollIntoView({ behavior: 'instant' }));
+  await warte(1500);
+  const nachher = geladen.filter((adresse) => /film-scannen/.test(adresse)).length;
+  pruefe(vorher === 0 && nachher > 0, `Handy: Standbild des Videos lädt erst beim Scrollen (vorher ${vorher}, nachher ${nachher} Anfragen)`);
+  pruefe(await seite.evaluate(() => !document.querySelector('main video')), 'Handy: ohne Videodatei kein Video auf der Seite');
+  await umgebung.close();
 }
 
 // 2g Knopf "Rezept teilen" (AP-18 Nacharbeiten Teil J): ein echter Knopf oben bei den Angaben zum Rezept, mit der
@@ -1102,7 +1275,7 @@ for (const [name, ansicht] of [['Handy', HANDY], ['Laptop', LAPTOP]]) {
   const themen = stand.gruppen.every((zahl, nummer) => zahl === stand.gruppenLinks[nummer]);
   pruefe(themen, `Ohne JavaScript, ${name}: alle Themen des Menüs sichtbar (${stand.gruppen.join(' + ')} Links)${fokus}`);
   if (name === 'Handy') {
-    const inhalt = await seite.evaluate(() => [...document.querySelectorAll('.held h1, [data-person], .schritt, .glaskarte, .zaehler li, .rezeptkarte')].every((element) => getComputedStyle(element).opacity === '1'));
+    const inhalt = await seite.evaluate(() => [...document.querySelectorAll('.held-titel, [data-person], .schritt, .funktion, .vergleich-tabelle, .einblick-karte, .zaehler li, .rezeptkarte, .abschluss-karte')].every((element) => getComputedStyle(element).opacity === '1'));
     pruefe(inhalt, 'Ohne JavaScript: Inhalte der Startseite sichtbar');
   }
   await umgebung.close();

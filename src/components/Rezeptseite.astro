@@ -371,7 +371,9 @@ const daten = [{
         <Motive liste={[{ art: 'zitrone', breite: 160, lage: 'right: -36px; bottom: -44px' }]} />
         <div class="r-app-text">
           <h2 id="app">{spaeter ? texte.spaeter.titel : texte.app.titel}</h2>
-          <p>{spaeter ? texte.spaeter.appText : `${texte.app.text} ${texte.app.mehr}`}</p>
+          {spaeter
+            ? <p>{texte.spaeter.appText}</p>
+            : <p>{texte.app.text.split(texte.app.link.text)[0]}<a href={texte.app.link.ziel}>{texte.app.link.text}</a>{texte.app.text.split(texte.app.link.text)[1]} {texte.app.mehr}</p>}
         </div>
         <p class="r-app-zeile">
           <a class="knopf voll" href="/so-gehts/">{texte.app.soGehts}</a>
