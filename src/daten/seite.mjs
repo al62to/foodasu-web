@@ -11,10 +11,11 @@ export const seite = {
   // ihr eigenes Bild in denselben Maßen (tools/rezeptbilder_bauen.py).
   teilen: { pfad: '/bilder/foodasu-teilen.jpg', breite: 1200, hoehe: 630 },
   // Der Satz zur Beschreibung (Nachtrag zu AP-23 Teil A Nr. 1 in der Fassung der Änderung vom 11.10.2026; Entscheidung
-  // Ali vom 11.10.2026: ohne regionale Herkunft, ohne Plattform, Scanner und Einkaufsliste zusammen), wörtlich. Er
+  // Ali vom 11.10.2026: ohne regionale Herkunft, ohne Plattform, Scanner und Einkaufsliste zusammen; seit Nachtrag 2
+  // der PL vom 14.10.2026 die Einkaufsliste zuerst), wörtlich. Er
   // steht sichtbar oben auf der Startseite und auf der Seite "Über FoodAsu" und ist die Beschreibung in Organization
   // und WebSite. Die Zahl der Rezepte steht als "über N" aus den Daten da (src/daten/app_zahlen.mjs).
-  beschreibung: `FoodAsu verbindet Lebensmittel-Scanner und Einkaufsliste in einer App für den ganzen Haushalt. Beim Scannen zeigt die App für jede Person einzeln, ob laut den Angaben zum Produkt etwas drin ist, das sie meidet. Dazu kommen über ${appZahlen.ueber} Rezepte. Ohne Konto, ohne Werbung.`,
+  beschreibung: `FoodAsu verbindet Einkaufsliste und Lebensmittel-Scanner in einer App für den ganzen Haushalt. Beim Scannen zeigt die App für jede Person einzeln, ob laut den Angaben zum Produkt etwas drin ist, das sie meidet. Dazu kommen über ${appZahlen.ueber} Rezepte. Ohne Konto, ohne Werbung.`,
 };
 
 // Auftritte. Eine leere Adresse blendet Symbol und Eintrag in sameAs aus.

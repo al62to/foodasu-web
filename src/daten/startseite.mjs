@@ -403,7 +403,8 @@ export { fragen } from './fragen.mjs';
 // Fußzeile A (Entscheidung Ali vom 10.10.2026, AP-18 Teil D): links Logo und Satz, daneben drei Spalten, unten eine
 // schmale Zeile. Der Hinweis zur Verpackung steht weiter auf jeder Seite, jetzt unter dem Satz.
 export const fuss = {
-  satz: 'Lebensmittel-Scanner und Einkaufsliste für den ganzen Haushalt.',
+  // Seit Nachtrag 2 der PL vom 14.10.2026 wie die H1 der Startseite: die Einkaufsliste zuerst.
+  satz: 'Einkaufslisten-App und Lebensmittel-Scanner für den ganzen Haushalt.',
   hinweis: 'Maßgeblich ist die Verpackung.',
   spalten: { recht: 'Rechtliches', foodasu: 'FoodAsu', folgen: 'Folge uns' },
   links: { datenschutz: 'Datenschutz', offenlegung: 'Offenlegung', lizenzen: 'Lizenzen', quellen: 'Quellen und Lizenzen', kontakt: 'Kontakt per E-Mail' },
@@ -473,7 +474,7 @@ export const geruest = {
     karte: {
       titel: 'Was ist FoodAsu?',
       // Wortlaut vom 11.10.2026 (Nachtrag zu AP-23 Teil A Nr. 6 in der Fassung der Änderung), ohne Plattform.
-      text: 'Lebensmittel-Scanner und Einkaufsliste in einer App: Du scannst beim Einkauf und siehst sofort, ob laut den Angaben etwas drin ist, das du meidest.',
+      text: 'Einkaufsliste und Lebensmittel-Scanner in einer App: Du scannst beim Einkauf und siehst sofort, ob laut den Angaben etwas drin ist, das du meidest.',
       // Der Knopf führt zur Anleitung (bis AP-18 zu den drei Schritten der Startseite).
       knopf: "So geht's",
       ziel: '/so-gehts/',

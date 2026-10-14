@@ -9,7 +9,7 @@ import { seite } from './seite.mjs';
 export const ueber = {
   titel: 'Über FoodAsu',
   // Überschrift der Seite (h1); "titel" bleibt für Brotkrumen und Fuß.
-  h1: 'Über FoodAsu: Lebensmittel-Scanner und Einkaufsliste für den ganzen Haushalt',
+  h1: 'Über FoodAsu: Einkaufslisten-App und Lebensmittel-Scanner für den ganzen Haushalt',
   // Derselbe Satz wie oben auf der Startseite und in Organization und WebSite.
   vorspann: seite.beschreibung,
   // Jeder Abschnitt ist seit AP-23 eine Station an einer feinen Linie; "symbol" nennt das Zeichen im Kreis
@@ -24,7 +24,7 @@ export const ueber = {
       absaetze: [
         'In vielen Haushalten isst nicht jeder alles. Der eine isst kein Gluten, die andere keine Nüsse, das Kind trinkt keine Milch. Im Laden heißt das Packung umdrehen, Kleingedrucktes lesen, und beim nächsten Produkt wieder von vorn.',
         'Dazu kam bei mir die Einkaufsliste. Jedes Mal eine neue zu schreiben, war mir ehrlich gesagt eine Qual. Ich dachte mir, das muss doch leichter gehen.',
-        'Also habe ich FoodAsu gebaut und mehrere Dinge in einer App zusammengebracht, den Scanner, die Einkaufsliste und die Rezepte. Du legst einmal fest, was jede Person bei dir zu Hause meidet. Danach reicht ein Scan, und deine Listen schreibst du nicht jedes Mal neu.',
+        'Also habe ich FoodAsu gebaut und mehrere Dinge in einer App zusammengebracht, die Einkaufsliste, den Scanner und die Rezepte. Du legst einmal fest, was jede Person bei dir zu Hause meidet. Danach reicht ein Scan, und deine Listen schreibst du nicht jedes Mal neu.',
       ],
       unterschrift: 'Ali Tonc, Entwickler von FoodAsu',
     },

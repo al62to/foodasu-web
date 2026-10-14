@@ -321,7 +321,8 @@ for (const [adresse, html] of seiten) {
   const erwartet = adresse === '/' ? ['WebSite', 'Organization', 'Person', 'SoftwareApplication', 'FAQPage'] : OHNE_EINGANG.has(adresse) ? [] : ['BreadcrumbList'];
   for (const art of erwartet) if (!arten.includes(art)) melde(adresse, `strukturierte Daten fehlen: ${art}`);
   // Software-App: seit dem Auftrag SEO 1 neu (14.10.2026) genau eine SoftwareApplication, nur auf der Startseite (ohne
-  // Angebot, Preis und Bewertung; die Einzelheiten prüft der Abschnitt zur Startseite unten). Jede andere Art, die auf
+  // Angebot, Preis und Bewertung; die Einzelheiten prüft der Abschnitt zur Startseite unten). Sie ist Pflicht und wird
+  // nicht entfernt (Nachtrag der PL vom 14.10.2026, 13:10); AP-29 betrifft nur Preisangaben. Jede andere Art, die auf
   // "Application" endet, und jede Software-App auf einer anderen Seite bleibt ein Befund (AP-22, Ali, 10.10.2026).
   for (const art of arten.flat()) {
     if (/Application$/.test(art) && !(adresse === '/' && art === 'SoftwareApplication')) melde(adresse, `strukturierte Daten: ${art} ist nicht vorgesehen`);
@@ -655,7 +656,7 @@ for (const [adresse, html] of seiten) {
 // Zeile mit dem Vermerk. Facebook und Instagram sind einfache Links; eingebettet wird nichts.
 const FUSS_LINKS = ['/datenschutz.html', '/offenlegung/', '/lizenzen/', '/quellen-und-lizenzen/', '/so-gehts/', '/rezepte/', ALTE, '/fragen/', '/daten-und-quellen/', '/ueber-foodasu/'];
 const FUSS_TEXTE = [
-  'Lebensmittel-Scanner und Einkaufsliste für den ganzen Haushalt.', 'Maßgeblich ist die Verpackung.', 'Rechtliches', 'Folge uns',
+  'Einkaufslisten-App und Lebensmittel-Scanner für den ganzen Haushalt.', 'Maßgeblich ist die Verpackung.', 'Rechtliches', 'Folge uns',
   'Von Anfang an dabei sein.', '© 2026 FoodAsu · Eine App von Ali',
 ];
 for (const [adresse, html] of seiten) {
@@ -902,7 +903,7 @@ if (OHNE_INDEX.has('/daten-und-quellen/')) melde('/daten-und-quellen/', 'steht a
 // 11.10.2026): wörtlich und sichtbar auf der Startseite und auf "Über FoodAsu", dazu als Beschreibung in Organization
 // und WebSite. Die Einkaufswoche behält den Anker #schritte und verlinkt die Seite
 // "Zu Hause schreiben, im Laden abhaken"; beschrieben ist nur, was 0.14.3 kann.
-const KERNSATZ = 'FoodAsu verbindet Lebensmittel-Scanner und Einkaufsliste in einer App für den ganzen Haushalt.';
+const KERNSATZ = 'FoodAsu verbindet Einkaufsliste und Lebensmittel-Scanner in einer App für den ganzen Haushalt.';
 const BESCHREIBUNG = `${KERNSATZ} Beim Scannen zeigt die App für jede Person einzeln, ob laut den Angaben zum Produkt etwas drin ist, das sie meidet. Dazu kommen über ${UEBER} Rezepte. Ohne Konto, ohne Werbung.`;
 for (const adresse of ['/ueber-foodasu/']) {
   if (!seiten.has(adresse)) { melde(adresse, 'Seite fehlt'); continue; }
@@ -1159,8 +1160,8 @@ for (const [adresse, html] of seiten) if (/iPhone ist geplant|iPhone ist in Arbe
 if (llms.split(VERFUEGBAR).length !== 2) melde('llms.txt', 'der Satz zur Plattform steht nicht genau einmal in der Datei');
 // Titel der Startseite, Überschrift von "Über FoodAsu", Satz der Fußzeile als Beschreibung des Bildes zum Teilen.
 if (!startseite.includes(`<title>${TITEL_START}</title>`)) melde('/', `Titel „${TITEL_START}“ erwartet`);
-if (!fliesstext('/ueber-foodasu/').includes(' Über FoodAsu: Lebensmittel-Scanner und Einkaufsliste für den ganzen Haushalt ') || !/<h1[^>]*>Über FoodAsu: /.test(seiten.get('/ueber-foodasu/') ?? '')) melde('/ueber-foodasu/', 'Überschrift „Über FoodAsu: Lebensmittel-Scanner und Einkaufsliste für den ganzen Haushalt“ fehlt');
-if (inhaltVon(startseite, 'og:image:alt') !== 'FoodAsu: Lebensmittel-Scanner und Einkaufsliste für den ganzen Haushalt.') melde('/', 'Beschreibung des Bildes zum Teilen: der Satz der Fußzeile erwartet');
+if (!fliesstext('/ueber-foodasu/').includes(' Über FoodAsu: Einkaufslisten-App und Lebensmittel-Scanner für den ganzen Haushalt ') || !/<h1[^>]*>Über FoodAsu: /.test(seiten.get('/ueber-foodasu/') ?? '')) melde('/ueber-foodasu/', 'Überschrift „Über FoodAsu: Lebensmittel-Scanner und Einkaufsliste für den ganzen Haushalt“ fehlt');
+if (inhaltVon(startseite, 'og:image:alt') !== 'FoodAsu: Einkaufslisten-App und Lebensmittel-Scanner für den ganzen Haushalt.') melde('/', 'Beschreibung des Bildes zum Teilen: der Satz der Fußzeile erwartet');
 // /favicon.ico (Nachtrag zu AP-23 Teil C): eine ICO-Datei mit 16, 32 und 48 Pixeln (tools/favicon_bauen.mjs); die
 // Angaben im Kopf jeder Seite bleiben.
 const ico = existsSync(join(DIST, 'favicon.ico')) ? readFileSync(join(DIST, 'favicon.ico')) : null;
@@ -1247,6 +1248,7 @@ if (/mailto:/.test(ueberInhalt)) melde('/ueber-foodasu/', 'die Adresse des Konta
   const app = block('SoftwareApplication');
   if (app) {
     if (app.operatingSystem !== 'Android' || app.applicationCategory !== 'ShoppingApplication' || app.description !== GEO || app.url !== `${HOST}/` || app.name !== 'FoodAsu') melde('/', 'SoftwareApplication: Name, Betriebssystem, Kategorie, Beschreibung (GEO-Satz) oder Adresse weicht ab');
+    if (app.author?.['@id'] !== `${HOST}/#ali-tonc` || block('Person')?.['@id'] !== `${HOST}/#ali-tonc`) melde('/', 'SoftwareApplication: der Entwickler (author, Person „Ali Tonc“) fehlt');
     if (/offers|price|aggregateRating|review|isAccessibleForFree/i.test(JSON.stringify(app))) melde('/', 'SoftwareApplication: Angebot, Preis oder Bewertung gehören nicht hinein');
     if (!store.oeffentlich && JSON.stringify(app).includes('play.google.com')) melde('/', 'SoftwareApplication: Eintrag bei Google Play vor dem öffentlichen Start');
   }
@@ -1264,7 +1266,7 @@ if (/mailto:/.test(ueberInhalt)) melde('/ueber-foodasu/', 'die Adresse des Konta
   if (/herunterladen|download/i.test(textVon('/'))) melde('/', 'Aufforderung zum Herunterladen auf der Startseite');
 }
 // 404-Seite: Karte im Wortlaut der Projektleitung, keine Handys mehr, die Null als Zitronenscheibe.
-if (!sichtbar(nichtGefunden).includes('Lebensmittel-Scanner und Einkaufsliste in einer App: Du scannst beim Einkauf und siehst sofort, ob laut den Angaben etwas drin ist, das du meidest.')) melde('/404.html', 'Karte „Was ist FoodAsu?“ weicht vom Wortlaut ab');
+if (!sichtbar(nichtGefunden).includes('Einkaufsliste und Lebensmittel-Scanner in einer App: Du scannst beim Einkauf und siehst sofort, ob laut den Angaben etwas drin ist, das du meidest.')) melde('/404.html', 'Karte „Was ist FoodAsu?“ weicht vom Wortlaut ab');
 if (/<img\b/.test(nichtGefunden.match(/<main[\s\S]*<\/main>/)?.[0] ?? '')) melde('/404.html', 'die Handys stehen noch auf der Seite');
 if (!/<div class="nf-zahl" aria-hidden="true">\s*4\s*<svg/.test(nichtGefunden)) melde('/404.html', 'die Zahl mit der Zitronenscheibe fehlt oder ist für Bildschirmleser nicht ausgeblendet');
 // Fragen: drei Gruppen (h2), jede Frage eine h3 mit Sprungmarke; FAQPage nennt die Fragen in der Reihenfolge der Seite.
