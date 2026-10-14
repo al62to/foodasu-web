@@ -1,4 +1,5 @@
-// Texte der Seite /lizenzen/ (unverändert seit der Freigabe). Eigene Datei seit AP-22, damit sitemap.xml den Tag der
+// Texte der Seite /lizenzen/ (seit der Freigabe unverändert bis auf Caveat, die Schrift der Handschrift im Video der
+// Startseite; Auftrag der Projektleitung vom 14.10.2026, 13:45). Eigene Datei seit AP-22, damit sitemap.xml den Tag der
 // letzten Änderung der Seite aus dem Git-Datum dieser Datei lesen kann (src/daten/stand.mjs).
 export const lizenzen = {
   titel: 'Lizenzen',
@@ -6,6 +7,7 @@ export const lizenzen = {
   eintraege: [
     { name: 'Plus Jakarta Sans', art: 'Schrift', lizenz: 'SIL Open Font License 1.1', ziel: 'https://openfontlicense.org/open-font-license-official-text/' },
     { name: 'Pacifico', art: 'Schrift im Logo und in der Unterschrift', lizenz: 'SIL Open Font License 1.1', ziel: 'https://openfontlicense.org/open-font-license-official-text/' },
+    { name: 'Caveat', art: 'Schrift der Handschrift im Video der Startseite', lizenz: 'SIL Open Font License 1.1', ziel: 'https://openfontlicense.org/open-font-license-official-text/' },
     { name: 'Astro', art: 'Programm, mit dem die Seiten gebaut werden', lizenz: 'MIT License', ziel: 'https://raw.githubusercontent.com/withastro/astro/main/LICENSE' },
     { name: 'GSAP', art: 'Programm für die Animationen', lizenz: 'Standard „no charge“ GSAP License', ziel: 'https://gsap.com/standard-license' },
     {

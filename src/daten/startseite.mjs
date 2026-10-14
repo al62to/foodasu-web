@@ -124,17 +124,25 @@ export const schritte = {
   link: { text: "Die ganze Anleitung: So geht's", ziel: '/so-gehts/' },
 };
 
-// Video (Teil 1 Nr. 6): Platz wie im Entwurf, am Handy unter den Schritten, am Laptop links neben den Funktionen. Bis
-// das Video mit einem eigenen Auftrag kommt, steht dort ein Standbild mit festen Maßen: das Standbild der Schleife
-// "Scannen" aus "So geht's". "film" nennt die Videodatei unter public/bilder/sogehts; solange sie fehlt (null), bleibt
-// es beim Standbild. Mit Datei lädt das Video erst beim Scrollen, spielt ohne Ton in Schleife und bei "Bewegung
-// reduzieren" nicht von selbst.
+// Video (Teil 1 Nr. 6; Video der Startseite, Stufe 2, Projektleitung, 14.10.2026, 13:45): Platz wie im Entwurf, am
+// Handy unter den Schritten, am Laptop links neben den Funktionen. Alis Wahl ist Vorschlag C „Vom Zettel zur App“; der
+// Film füllt die ganze Bühne (Handy-Rahmen, Fläche und Zettel sind Teil des Films) und bleibt auch im dunklen Modus
+// hell (Alis Entscheidungen vom 14.10.2026). Die Dateien liegen unter public/bilder/start: je Format (handy unter
+// 56rem, laptop ab 56rem, wie die Bühne in start.css) "<datei>-<format>.webm" und ".mp4" ohne Ton und das Poster
+// "<datei>-<format>-360.webp" und "-720.webp". Bis zum Scrollen steht das Poster; erst dann lädt das Video, spielt
+// ohne Ton in Schleife, bei "Bewegung reduzieren" nicht von selbst. "beschreibung" gilt für Bildschirmleser und
+// VideoObject; "hochgeladen" ist der Tag der Veröffentlichung mit Zeitzone. Entstanden ist der Film in
+// foodasu-play/video_startseite (Quellen dort in quellen/).
 export const video = {
-  standbild: 'film-scannen',
-  breite: 720,
-  hoehe: 1620,
-  alt: 'Scanner von FoodAsu: Die Kamera erfasst einen Strichcode, dann erscheint die Produktkarte eines Müslis mit dem Ergebnis für die drei Personen des Haushalts.',
-  film: null,
+  name: 'Vom Einkaufszettel zur Einkaufsliste mit FoodAsu',
+  beschreibung: 'Kurzes Video ohne Ton: Ein handgeschriebener Einkaufszettel mit Tomaten, Mozzarella, Basilikum und Keksen wird zur Einkaufsliste in FoodAsu, die Einträge ordnen sich nach Warengruppen, danach zeigt ein Scan, für wen ein Produkt laut den Angaben nicht passt.',
+  datei: 'zettel-zur-app',
+  formate: {
+    handy: { breite: 660, hoehe: 840 },
+    laptop: { breite: 980, hoehe: 1120 },
+  },
+  dauer: 'PT14S',
+  hochgeladen: '2026-10-14T14:15:00+02:00',
 };
 
 // "Mehr als ein Einkaufszettel" (Teil 1 Nr. 7): die sechs Funktionen von heute als Karten mit ihrem Zeichen ("symbol",

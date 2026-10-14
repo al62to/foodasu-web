@@ -70,7 +70,7 @@ punkt('Knopf darunter', `${t.schritte.link.text} (${t.schritte.link.ziel})`);
 zeile();
 
 zeile('## Abschnitt 4: Video (Platzhalter) und „Mehr als ein Einkaufszettel“');
-punkt('Video', `Standbild \`${t.video.standbild}\` im Handy-Rahmen, bis das Video kommt; Beschreibung: ${t.video.alt}`);
+punkt('Video', `„${t.video.name}“ (Dateien \`/bilder/start/${t.video.datei}-handy\` und \`-laptop\`, WebM und MP4, ohne Ton, ${t.video.dauer}); Beschreibung: ${t.video.beschreibung}`);
 punkt('Überschrift', t.funktionen.ueberschrift);
 for (const k of t.funktionen.karten) punkt(`Karte „${k.titel}“`, `${k.kurz} Aufgeklappt: ${k.text.join(' ')}`);
 zeile();

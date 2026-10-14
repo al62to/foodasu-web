@@ -318,7 +318,7 @@ for (const [adresse, html] of seiten) {
       melde(adresse, 'JSON-LD ist kein gültiges JSON');
     }
   }
-  const erwartet = adresse === '/' ? ['WebSite', 'Organization', 'Person', 'SoftwareApplication', 'FAQPage'] : OHNE_EINGANG.has(adresse) ? [] : ['BreadcrumbList'];
+  const erwartet = adresse === '/' ? ['WebSite', 'Organization', 'Person', 'SoftwareApplication', 'VideoObject', 'FAQPage'] : OHNE_EINGANG.has(adresse) ? [] : ['BreadcrumbList'];
   for (const art of erwartet) if (!arten.includes(art)) melde(adresse, `strukturierte Daten fehlen: ${art}`);
   // Software-App: seit dem Auftrag SEO 1 neu (14.10.2026) genau eine SoftwareApplication, nur auf der Startseite (ohne
   // Angebot, Preis und Bewertung; die Einzelheiten prüft der Abschnitt zur Startseite unten). Sie ist Pflicht und wird
@@ -1109,6 +1109,12 @@ const PLAY_EINTRAG = 'https://play.google.com/store/apps/details?id=at.tonc.eink
 // Die Zahl der Rezepte kommt aus den Daten.
 const GEO = `FoodAsu ist eine Einkaufslisten-App mit Lebensmittel-Scanner: Einkaufsliste, über ${UEBER} Rezepte und ein Scanner, der für jede Person im Haushalt zeigt, ob laut den Angaben zum Produkt etwas drin ist, das sie meidet.`;
 const BETRIEBSSYSTEM = '"operatingSystem":"Android"';
+// Video der Startseite (Stufe 2, Projektleitung, 14.10.2026, 13:45): Name und Beschreibung wörtlich aus dem Auftrag,
+// die Dateien unter /bilder/start (je Format WebM, MP4 und das Poster in 360 und 720).
+const VIDEO_NAME = 'Vom Einkaufszettel zur Einkaufsliste mit FoodAsu';
+const VIDEO_BESCHREIBUNG = 'Kurzes Video ohne Ton: Ein handgeschriebener Einkaufszettel mit Tomaten, Mozzarella, Basilikum und Keksen wird zur Einkaufsliste in FoodAsu, die Einträge ordnen sich nach Warengruppen, danach zeigt ein Scan, für wen ein Produkt laut den Angaben nicht passt.';
+const VIDEO_ORT = '/bilder/start/zettel-zur-app';
+const VIDEO_GRENZE = 1.5 * 1024 * 1024;
 const WEITERE_SPRACHE = /<meta property="og:locale:alternate" content="de_AT"\s*\/?>/g;
 const ANLEITUNG_ANDROID = [
   'FoodAsu gibt es zuerst für Android und kommt über Google Play auf dein Handy.',
@@ -1203,11 +1209,46 @@ if (/mailto:/.test(ueberInhalt)) melde('/ueber-foodasu/', 'die Adresse des Konta
   // Schwebende Begriffe ohne "Schweinefleisch" (Teil 1 Nr. 2e).
   const begriffe = alle(s, /<span class="chip ruht schwebt s\d"[^>]*><i><\/i>([^<]+)<\/span>/g).map(([, wort]) => entschluesselt(wort));
   if (begriffe.join(', ') !== 'Nüsse, Gluten, Palmöl') melde('/', `Begriffe am Handy im Kopf: „Nüsse, Gluten, Palmöl“ erwartet, gefunden „${begriffe.join(', ')}“`);
-  // Video (Teil 1 Nr. 6): Standbild mit festen Maßen, erst beim Scrollen geladen; ein Video nur ohne Ton, in Schleife
-  // und per Skript (nie fest im Quelltext, nie autoplay).
+  // Video (Teil 1 Nr. 6; Stufe 2 vom 14.10.2026): Bis zum Scrollen steht das Poster mit festen Maßen, spätem Laden und
+  // der Beschreibung; das Video entsteht nur per Skript (nie fest im Quelltext, nie autoplay). Je Format (handy, laptop)
+  // WebM und MP4 unter 1,5 MB und das Poster in 360 und 720 Pixel Breite.
   const videoTeil = s.match(/<figure class="video-feld[^"]*" data-video>[\s\S]*?<\/figure>/)?.[0] ?? '';
-  if (!/<img\b[^>]*width="\d+"[^>]*height="\d+"[^>]*loading="lazy"/.test(videoTeil)) melde('/', 'Video: Standbild mit festen Maßen und spätem Laden fehlt');
+  const poster = videoTeil.match(/<img\b[^>]*>/)?.[0] ?? '';
+  if (!/width="\d+"/.test(poster) || !/height="\d+"/.test(poster) || !/loading="lazy"/.test(poster)) melde('/', 'Video: Poster mit festen Maßen und spätem Laden fehlt');
+  if (entschluesselt(poster.match(/alt="([^"]*)"/)?.[1] ?? '') !== VIDEO_BESCHREIBUNG) melde('/', 'Video: Beschreibung am Poster fehlt oder weicht ab');
+  const filmOrt = poster.match(/data-film="([^"]+)"/)?.[1];
+  if (filmOrt !== VIDEO_ORT) melde('/', `Video: data-film „${filmOrt}“ statt „${VIDEO_ORT}“`);
+  if (!videoTeil.includes(`<source media="(min-width: 56rem)" srcset="${VIDEO_ORT}-laptop-360.webp 360w, ${VIDEO_ORT}-laptop-720.webp 720w"`)) melde('/', 'Video: Poster für den Laptop (ab 56rem) fehlt');
+  for (const format of ['handy', 'laptop']) {
+    for (const endung of ['webm', 'mp4']) {
+      const datei = `${VIDEO_ORT}-${format}.${endung}`;
+      if (!vorhanden.has(datei)) { melde('/', `Video: Datei fehlt: ${datei}`); continue; }
+      const groesse = statSync(join(DIST, datei)).size;
+      if (groesse >= VIDEO_GRENZE) melde('/', `Video: ${datei} hat ${(groesse / 1048576).toFixed(2)} MB (Grenze 1,5 MB)`);
+    }
+    for (const breite of [360, 720]) if (!vorhanden.has(`${VIDEO_ORT}-${format}-${breite}.webp`)) melde('/', `Video: Poster fehlt: ${VIDEO_ORT}-${format}-${breite}.webp`);
+  }
   if (/<video\b|autoplay/.test(s)) melde('/', 'Video: steht fest im Quelltext oder spielt von selbst');
+  // VideoObject (Stufe 2, Strukturierte Daten Nr. 1 und 2): alle Pflichtfelder, Poster 720 und MP4 des Laptops im Bau,
+  // Dauer, Tag der Veröffentlichung mit Zeitzone, Sprache, Verweis auf die Organization über @id; kein Preis, keine
+  // Bewertung.
+  const film = block('VideoObject');
+  if (!film) melde('/', 'strukturierte Daten: VideoObject fehlt');
+  else {
+    const PFLICHT = ['name', 'description', 'thumbnailUrl', 'contentUrl', 'duration', 'uploadDate', 'inLanguage', 'publisher'];
+    const fehlt = PFLICHT.filter((feld) => film[feld] == null || film[feld] === '' || (Array.isArray(film[feld]) && film[feld].length === 0));
+    if (fehlt.length) melde('/', `VideoObject: Pflichtfelder fehlen: ${fehlt.join(', ')}`);
+    if (film.name !== VIDEO_NAME || film.description !== VIDEO_BESCHREIBUNG) melde('/', 'VideoObject: Name oder Beschreibung weicht vom Auftrag ab');
+    const vorschau = [film.thumbnailUrl].flat()[0];
+    if (vorschau !== `${HOST}${VIDEO_ORT}-laptop-720.webp` || film.contentUrl !== `${HOST}${VIDEO_ORT}-laptop.mp4`) melde('/', 'VideoObject: thumbnailUrl (Poster 720) oder contentUrl (MP4 Laptop) weicht ab');
+    for (const ziel of [vorschau, film.contentUrl]) if (typeof ziel === 'string' && ziel.startsWith(HOST) && !vorhanden.has(ziel.slice(HOST.length))) melde('/', `VideoObject: ${ziel} fehlt im Bau`);
+    if (film.duration !== 'PT14S') melde('/', `VideoObject: duration „${film.duration}“ statt PT14S`);
+    if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?(?:Z|[+-]\d{2}:\d{2})$/.test(film.uploadDate ?? '')) melde('/', `VideoObject: uploadDate „${film.uploadDate}“ ohne Uhrzeit und Zeitzone`);
+    if (film.inLanguage !== 'de') melde('/', 'VideoObject: inLanguage „de“ erwartet');
+    if (film.publisher?.['@id'] !== `${HOST}/#organisation` || block('Organization')?.['@id'] !== `${HOST}/#organisation`) melde('/', 'VideoObject: publisher verweist nicht über @id auf die Organization');
+    if (/offers|price|aggregateRating|review|isAccessibleForFree/i.test(JSON.stringify(film))) melde('/', 'VideoObject: Preis oder Bewertung gehören nicht hinein');
+  }
+  if (daten.filter((einer) => einer['@type'] === 'VideoObject').length !== 1) melde('/', 'strukturierte Daten: genau ein VideoObject erwartet');
   // "Mehr als ein Einkaufszettel" (Teil 1 Nr. 7): sechs Karten zum Aufklappen, die erste offen, Titel als h3.
   const karten = alle(funktionTeil, /<details class="funktion"( open)?>/g);
   if (karten.length !== 6 || !karten[0][1] || karten.slice(1).some((karte) => karte[1])) melde('/', 'Funktionen: sechs Karten zum Aufklappen erwartet, nur die erste offen');

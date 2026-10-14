@@ -70,6 +70,22 @@ const daten = [
     publisher: { '@id': organisation },
     ...(store.oeffentlich ? { installUrl: store.adresse, sameAs: [store.adresse] } : {}),
   },
+  // Video der Startseite (Stufe 2, Projektleitung, 14.10.2026, 13:45): ohne Preis und ohne Bewertung; Poster und
+  // Film im Format für den Laptop. Google zeigt ein Video meist nur als Video-Ergebnis, wenn es der Hauptinhalt einer
+  // Seite ist; hier dient die Angabe vor allem der maschinellen Lesbarkeit.
+  {
+    '@context': 'https://schema.org',
+    '@type': 'VideoObject',
+    '@id': `${seite.adresse}/#video`,
+    name: video.name,
+    description: video.beschreibung,
+    thumbnailUrl: [`${seite.adresse}/bilder/start/${video.datei}-laptop-720.webp`],
+    contentUrl: `${seite.adresse}/bilder/start/${video.datei}-laptop.mp4`,
+    duration: video.dauer,
+    uploadDate: video.hochgeladen,
+    inLanguage: seite.sprache,
+    publisher: { '@id': organisation },
+  },
   {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
@@ -106,8 +122,10 @@ if (fragenStart.liste.length !== 7) throw new Error('Startseite: sieben Fragen e
 const pfeilRechts = 'M5 12h14M13 6l6 6-6 6';
 // Zahlen im Zahlenblock mit Tausenderpunkt (ab 0.15: Einträge zum Meiden über tausend).
 const tausender = new Intl.NumberFormat('de-DE');
-// Standbild des Videos im Handy-Rahmen (dieselben Maße wie die Bildschirmfotos der Anleitung).
-const standbild = { name: video.standbild, alt: video.alt, breite: video.breite, hoehe: video.hoehe, ausschnitt: false };
+// Poster des Videos: am Handy das Bild im Format der kleinen Bühne, ab 56rem das der großen (wie start.css), je in
+// 360 und 720 Pixel Breite. Die Bühne hat ein festes Seitenverhältnis, das Poster füllt sie.
+const filmOrt = `/bilder/start/${video.datei}`;
+const posterQuellen = (format) => [360, 720].map((breite) => `${filmOrt}-${format}-${breite}.webp ${breite}w`).join(', ');
 ---
 <Basis daten={daten}>
   <button type="button" class="bewegung-knopf" data-bewegung data-anhalten={geruest.bewegung.anhalten} data-fortsetzen={geruest.bewegung.fortsetzen} hidden>
@@ -227,7 +245,20 @@ const standbild = { name: video.standbild, alt: video.alt, breite: video.breite,
     <div class="innen mehr-raster">
       <figure class="video-feld muster" data-video>
         <div class="video-buehne">
-          <Handy foto={standbild} groessen="(min-width: 56rem) 15rem, 11rem" schnitt={false} film={video.film ? `/bilder/sogehts/${video.film}` : undefined} />
+          <picture>
+            <source media="(min-width: 56rem)" srcset={posterQuellen('laptop')} sizes="31rem" width={video.formate.laptop.breite} height={video.formate.laptop.hoehe} />
+            <img
+              src={`${filmOrt}-handy-720.webp`}
+              srcset={posterQuellen('handy')}
+              sizes="calc(100vw - 3.7rem)"
+              alt={video.beschreibung}
+              width={video.formate.handy.breite}
+              height={video.formate.handy.hoehe}
+              loading="lazy"
+              decoding="async"
+              data-film={filmOrt}
+            />
+          </picture>
         </div>
       </figure>
       <div class="mehr-text">
@@ -466,12 +497,14 @@ const standbild = { name: video.standbild, alt: video.alt, breite: video.breite,
   schmal.addEventListener('change', leisteZeigen);
   leisteZeigen();
 
-  // Video (Auftrag Teil 1 Nr. 6): Solange es keine Datei gibt, steht nur das Standbild da. Gibt es eine
-  // ("data-film" am Standbild), lädt sie erst, wenn das Bild in die Nähe des Fensters kommt, läuft ohne Ton in
-  // Schleife und nur ohne "Bewegung reduzieren"; der Knopf "Bewegung anhalten" hält sie an, ebenso, solange sie nicht
-  // zu sehen ist. Wie die Schleifen der Anleitung.
+  // Video (Auftrag Teil 1 Nr. 6; Stufe 2 vom 14.10.2026): Bis zum Scrollen steht nur das Poster da ("data-film" am
+  // Poster nennt den Ort der Dateien). Kommt es in die Nähe des Fensters, lädt das Video im Format der Bühne (Handy
+  // unter 56rem, Laptop ab 56rem; WebM, sonst MP4), ersetzt das Poster, sobald es spielen kann, und läuft ohne Ton in
+  // Schleife, nur ohne "Bewegung reduzieren". Dann bleibt das Poster stehen. Der Knopf "Bewegung anhalten" hält das
+  // Video an und lässt es weiterlaufen; außerhalb des Fensters steht es ebenfalls. Wie die Schleifen der Anleitung.
   const standbild = document.querySelector('[data-video] img[data-film]');
   if (standbild && 'IntersectionObserver' in window) {
+    const breit = window.matchMedia('(min-width: 56rem)');
     let film;
     let zuSehen = true;
     const folge = () => {
@@ -479,24 +512,39 @@ const standbild = { name: video.standbild, alt: video.alt, breite: video.breite,
       if (zuSehen && !wurzel.classList.contains('angehalten') && !ruhig.matches) film.play().catch(() => {});
       else film.pause();
     };
+    // Quellen des Videos für die aktuelle Breite; wechselt die Breite über 56rem, lädt das andere Format.
+    const quellen = (ziel) => {
+      const format = breit.matches ? 'laptop' : 'handy';
+      if (ziel.dataset.format === format) return;
+      ziel.dataset.format = format;
+      ziel.replaceChildren(...[['webm', 'video/webm'], ['mp4', 'video/mp4']].map(([endung, art]) => {
+        const quelle = document.createElement('source');
+        quelle.src = `${standbild.dataset.film}-${format}.${endung}`;
+        quelle.type = art;
+        return quelle;
+      }));
+      ziel.load();
+    };
     const beobachter = new IntersectionObserver((eintraege) => {
       if (!eintraege.some((eintrag) => eintrag.isIntersecting) || ruhig.matches) return;
       beobachter.disconnect();
       const neu = document.createElement('video');
       neu.muted = true;
+      neu.defaultMuted = true;
       neu.loop = true;
       neu.playsInline = true;
       neu.preload = 'auto';
-      neu.poster = standbild.currentSrc || standbild.src;
-      neu.width = standbild.width;
-      neu.height = standbild.height;
+      neu.setAttribute('muted', '');
+      neu.setAttribute('playsinline', '');
       neu.setAttribute('aria-label', standbild.alt);
-      neu.src = standbild.dataset.film;
+      neu.poster = standbild.currentSrc || standbild.src;
+      quellen(neu);
       neu.addEventListener('canplay', () => {
-        standbild.replaceWith(neu);
+        (standbild.closest('picture') ?? standbild).replaceWith(neu);
         film = neu;
         new IntersectionObserver((stand) => { zuSehen = stand.at(-1).isIntersecting; folge(); }).observe(neu);
         folge();
+        breit.addEventListener('change', () => { quellen(neu); folge(); });
       }, { once: true });
       new MutationObserver(folge).observe(wurzel, { attributes: true, attributeFilter: ['class'] });
       ruhig.addEventListener('change', folge);

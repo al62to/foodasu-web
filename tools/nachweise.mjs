@@ -24,6 +24,7 @@ import { chromePfad } from './chrome.mjs';
 import { alleMeta } from '../src/daten/meta.mjs';
 import { rezepte, rezeptAdresse, themen } from '../src/daten/rezeptseiten.mjs';
 import { zeitraeume } from '../src/daten/alte_rezepte.mjs';
+import { video as startVideo } from '../src/daten/startseite.mjs';
 
 const werte = process.argv.slice(2).filter((wert) => !wert.startsWith('--'));
 const BASIS = (werte[0] ?? 'http://localhost:4321').replace(/\/$/, '');
@@ -752,24 +753,77 @@ for (const breite of [360, 412]) {
   pruefe(await seite.evaluate(() => getComputedStyle(document.querySelector('[data-kurzleiste]')).display === 'none'), 'Laptop: keine Leiste unten');
   await umgebung.close();
 }
+// Video der Startseite (Stufe 2, Projektleitung, 14.10.2026, 13:45): Poster und Video laden erst beim Scrollen, das
+// Video im Format der Bühne (Handy unter 56rem, Laptop ab 56rem), ohne Ton, in Schleife, mit der Beschreibung für
+// Bildschirmleser; der Knopf "Bewegung anhalten" hält es an und lässt es weiterlaufen; mit "Bewegung reduzieren"
+// entsteht kein Video, das Poster bleibt.
+const videoStand = (seite, warten = 700) => seite.evaluate(async (dauer) => {
+  const film = document.querySelector('[data-video] video');
+  if (!film) return null;
+  const vorher = film.currentTime;
+  await new Promise((fertig) => setTimeout(fertig, dauer));
+  return { stumm: film.muted, schleife: film.loop, von_selbst: film.autoplay, steht: film.paused, laeuft: film.currentTime !== vorher, quelle: film.currentSrc, name: film.getAttribute('aria-label') };
+}, warten);
+const zumVideo = async (seite) => {
+  await seite.evaluate(() => document.querySelector('[data-video]').scrollIntoView({ behavior: 'instant', block: 'center' }));
+  await seite.waitForFunction(() => { const film = document.querySelector('[data-video] video'); return film && film.readyState >= 3; }, { timeout: 15000 }).catch(() => {});
+  await warte(600);
+};
 {
-  // Mit Bewegung am Handy: Die Linie der Einkaufswoche wächst mit dem Scrollen; das Standbild des Videos lädt erst beim
-  // Scrollen, und ohne Videodatei entsteht kein Video.
+  // Mit Bewegung am Handy: Die Linie der Einkaufswoche wächst mit dem Scrollen; Poster und Video laden erst beim
+  // Scrollen, im Format für das Handy.
   const { umgebung, seite } = await neueSeite({ ansicht: HANDY });
   const geladen = [];
   seite.on('request', (anfrage) => geladen.push(anfrage.url()));
   await seite.goto(BASIS + '/', { waitUntil: 'networkidle0' });
   await warte(2500);
-  const vorher = geladen.filter((adresse) => /film-scannen/.test(adresse)).length;
+  const vorher = geladen.filter((adresse) => adresse.includes('/bilder/start/')).length;
   await seite.evaluate(() => { const ziel = document.querySelector('#schritte'); window.scrollTo({ top: ziel.offsetTop + ziel.offsetHeight * 0.3 - window.innerHeight * 0.5, behavior: 'instant' }); });
   await warte(800);
   const linie = await seite.evaluate(() => new DOMMatrixReadOnly(getComputedStyle(document.querySelector('[data-linie="schritte"]')).transform).d);
   pruefe(linie > 0.05 && linie < 0.95, `Handy: Linie der Einkaufswoche wächst mit dem Scrollen (Stand ${linie.toFixed(2)})`);
-  await seite.evaluate(() => document.querySelector('[data-video]').scrollIntoView({ behavior: 'instant' }));
+  await zumVideo(seite);
+  const nachher = geladen.filter((adresse) => adresse.includes('/bilder/start/'));
+  const poster = nachher.some((adresse) => /-handy-(?:360|720)\.webp$/.test(adresse));
+  const datei = nachher.some((adresse) => /-handy\.(?:webm|mp4)$/.test(adresse));
+  pruefe(vorher === 0 && poster && datei, `Handy: Poster und Video laden erst beim Scrollen (vorher ${vorher}, nachher ${nachher.length} Anfragen, Poster ${poster}, Video ${datei})`);
+  const stand = await videoStand(seite);
+  pruefe(Boolean(stand) && stand.stumm && stand.schleife && !stand.von_selbst && !stand.steht && stand.laeuft && /-handy\.webm$/.test(stand.quelle), `Handy: Video ohne Ton, in Schleife, per Skript gestartet, läuft (${stand ? stand.quelle.split('/').at(-1) : 'kein Video'})`);
+  pruefe(stand?.name === startVideo.beschreibung, 'Handy: Video trägt die Beschreibung für Bildschirmleser');
+  // Knopf "Bewegung anhalten": hält das Video an, ein zweiter Druck lässt es weiterlaufen.
+  await seite.evaluate(() => document.querySelector('[data-bewegung]').click());
+  await warte(300);
+  const halt = await videoStand(seite, 600);
+  await seite.evaluate(() => document.querySelector('[data-bewegung]').click());
+  await warte(300);
+  const weiter = await videoStand(seite, 600);
+  pruefe(Boolean(halt) && halt.steht && !halt.laeuft && Boolean(weiter) && !weiter.steht && weiter.laeuft, `Handy: „Bewegung anhalten“ hält das Video an (${halt?.steht}) und lässt es weiterlaufen (${weiter?.laeuft})`);
+  await umgebung.close();
+}
+{
+  // Am Laptop: dasselbe Video im Format für den Laptop, erst beim Scrollen.
+  const { umgebung, seite } = await neueSeite({ ansicht: LAPTOP });
+  const geladen = [];
+  seite.on('request', (anfrage) => geladen.push(anfrage.url()));
+  await seite.goto(BASIS + '/', { waitUntil: 'networkidle0' });
+  await warte(2500);
+  const vorher = geladen.filter((adresse) => /\/bilder\/start\/.*\.(?:webm|mp4)$/.test(adresse)).length;
+  await zumVideo(seite);
+  const stand = await videoStand(seite);
+  pruefe(vorher === 0 && Boolean(stand) && !stand.steht && stand.laeuft && /-laptop\.webm$/.test(stand.quelle), `Laptop: Video erst beim Scrollen, im Format für den Laptop, läuft (vorher ${vorher}, ${stand ? stand.quelle.split('/').at(-1) : 'kein Video'})`);
+  await umgebung.close();
+}
+for (const [ansicht, name] of [[HANDY, 'Handy'], [LAPTOP, 'Laptop']]) {
+  // "Bewegung reduzieren": kein Video, keine Anfrage nach einer Videodatei; das Poster bleibt stehen.
+  const { umgebung, seite } = await neueSeite({ ansicht, ruhig: true });
+  const geladen = [];
+  seite.on('request', (anfrage) => geladen.push(anfrage.url()));
+  await seite.goto(BASIS + '/', { waitUntil: 'networkidle0' });
+  await zumVideo(seite);
   await warte(1500);
-  const nachher = geladen.filter((adresse) => /film-scannen/.test(adresse)).length;
-  pruefe(vorher === 0 && nachher > 0, `Handy: Standbild des Videos lädt erst beim Scrollen (vorher ${vorher}, nachher ${nachher} Anfragen)`);
-  pruefe(await seite.evaluate(() => !document.querySelector('main video')), 'Handy: ohne Videodatei kein Video auf der Seite');
+  const filme = geladen.filter((adresse) => /\/bilder\/start\/.*\.(?:webm|mp4)$/.test(adresse)).length;
+  const poster = await seite.evaluate(() => { const bild = document.querySelector('[data-video] img'); return Boolean(bild && bild.complete && bild.naturalWidth > 0 && bild.getBoundingClientRect().height > 0); });
+  pruefe(filme === 0 && poster && await seite.evaluate(() => !document.querySelector('main video')), `${name}, „Bewegung reduzieren“: kein Video (${filme} Anfragen), das Poster steht (${poster})`);
   await umgebung.close();
 }
 

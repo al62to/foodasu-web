@@ -136,13 +136,16 @@
 
 /* 4 Video und "Mehr als ein Einkaufszettel": am Handy das Video unter den Schritten, darunter die Funktionen auf dem
    hellen Grund; am Laptop das Video links neben den Funktionen. Das Video steht auf einer gepunkteten Lavendel-Fläche
-   mit festen Maßen; bis es kommt, zeigt sie das Standbild im Handy-Rahmen. */
+   mit festen Maßen und füllt die Bühne ganz (Handy-Rahmen, Fläche und Zettel sind Teil des Films; Alis Entscheidung
+   vom 14.10.2026). Bis es kommt und bei "Bewegung reduzieren" steht dort sein Poster. Der Film bleibt auch im
+   dunklen Modus hell. */
 .mehr { padding: clamp(3rem, 8vw, 6.5rem) 0 0; }
 .mehr-raster { display: grid; gap: 3.5rem; }
 .mehr-raster > * { min-width: 0; }
 .video-feld { margin: 0 calc(-1 * clamp(1rem, 2.6vw, 2rem) + 0.75rem); padding: 1.1rem; border-radius: 1.75rem; }
-.video-buehne { display: grid; place-items: center; aspect-ratio: 330 / 420; padding: 0.75rem 0; border-radius: 1.4rem; }
-.video-buehne .geraet { --gb: 11rem; margin: 0; }
+.video-buehne { aspect-ratio: 330 / 420; overflow: hidden; border-radius: 1.4rem; }
+.video-buehne picture { display: contents; }
+.video-buehne img, .video-buehne video { display: block; width: 100%; height: 100%; object-fit: cover; }
 .mehr-text { margin: 0 calc(-1 * clamp(1rem, 2.6vw, 2rem)); padding: 3rem clamp(1rem, 2.6vw, 2rem); background: var(--flaeche); }
 .mehr-text .titel { margin-bottom: 1.1rem; }
 .funktion-liste { display: grid; gap: 0.75rem; margin: 0; padding: 0; list-style: none; }
@@ -170,7 +173,6 @@
   .mehr-raster { grid-template-columns: minmax(0, 33.25rem) minmax(0, 1fr); gap: 3.1rem; align-items: start; }
   .video-feld { padding: 1.4rem; }
   .video-buehne { aspect-ratio: 490 / 560; }
-  .video-buehne .geraet { --gb: 15rem; }
   .mehr-text { margin: 0; padding: 0; background: none; }
   .funktion summary { padding: 1.25rem 4rem 1.25rem 1.25rem; gap: 0.9rem; }
   .funktion summary::before { right: 1.25rem; }
