@@ -1424,13 +1424,56 @@ if (ueberStellen === 0) melde('/', 'Zahlen der App: keine Stelle mit „über N 
   }
   if (stellen === 0) melde('/', 'Einträge zum Meiden: keine Stelle im Bau gefunden (die Prüfung liest nichts)');
 }
+// Weitere Zahlen über die App (feste Vorgabe, Ali, 14.10.2026): Jedes Zahlwort oder jede Ziffer vor „Stufen“, vor
+// „Zutaten wie“ und vor „davon stehen gleich unter „Häufig gewählt““ im Bau ist die Zahl aus der Fassung der App.
+{
+  const WORT = ['null', 'ein', 'zwei', 'drei', 'vier', 'fünf', 'sechs', 'sieben', 'acht', 'neun', 'zehn', 'elf', 'zwölf'];
+  const alsZahl = (text) => (/^\d+$/.test(text) ? Number(text) : WORT.indexOf(text.toLowerCase()));
+  const regeln = [
+    ['Stufen', /(?<![\p{L}\p{N}])(\p{L}+|\d+) Stufen(?![\p{L}])/gu, FASSUNG.stufen],
+    ['Zutaten', /(?<![\p{L}\p{N}])(\d+) Zutaten wie/gu, FASSUNG.arten?.zutaten],
+    ['Häufig gewählt', /(?<![\p{L}\p{N}])(\p{L}+) davon stehen gleich unter „Häufig gewählt“/gu, FASSUNG.haeufigGewaehlt],
+  ];
+  const gezaehlt = {};
+  for (const [name, roh] of [...seiten, ['llms.txt', llms]]) {
+    const ganz = entschluesselt(ohneSprachangabe(roh)).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+    for (const [art, ausdruck, wert] of regeln) {
+      for (const fund of alle(ganz, ausdruck)) {
+        const zahl = alsZahl(fund[1]);
+        if (zahl < 0) continue;
+        gezaehlt[art] = (gezaehlt[art] ?? 0) + 1;
+        if (zahl !== wert) melde(name, `„${fund[0]}“: die Fassung ${FASSUNG.fassung} der App hat ${wert ?? 'keine'} (${art})`);
+      }
+    }
+  }
+  if (!gezaehlt.Stufen) melde('/', 'Stufen: keine Stelle im Bau gefunden (die Prüfung liest nichts)');
+}
+// Alt-Texte der Bildschirmfotos der Startseite (Alis Entscheidung vom 14.10.2026, Nr. 7): Jedes Bild steht in
+// src/daten/sogehts_fotos.json, und jeder Wortlaut in Anführungszeichen im Alt-Text steht genau so in der Beschreibung
+// „zeigt“ dieses Bildes (verglichen werden die innersten Anführungszeichen, ‚…‘ gilt wie „…“). So fällt ein Alt-Text
+// auf, der nach dem Tausch eines Bildes noch das alte beschreibt.
+{
+  const fotos = JSON.parse(readFileSync('src/daten/sogehts_fotos.json', 'utf8'));
+  const zitate = (text) => new Set(alle(text.replaceAll('‚', '„').replaceAll('‘', '“'), /„([^„“]*)“/g).map((fund) => fund[1]));
+  const bilder = [
+    ...startSchritte.liste.map((schritt) => [schritt.bild, schritt.alt]),
+    ...einblick.karten.map((karte) => [karte.datei, karte.alt]),
+  ];
+  for (const [datei, alt] of bilder) {
+    const zeigt = fotos[datei]?.zeigt;
+    if (!zeigt) { melde('/', `Bild ${datei} der Startseite fehlt in sogehts_fotos.json`); continue; }
+    const belegt = zitate(zeigt);
+    for (const zitat of zitate(alt)) if (!belegt.has(zitat)) melde('/', `Alt-Text von ${datei}: „${zitat}“ steht nicht in der Beschreibung des Bildes (sogehts_fotos.json)`);
+  }
+  if (bilder.length !== 9) melde('/', `Alt-Texte: ${bilder.length} Bilder der Startseite gelesen, erwartet 9`);
+}
 // Im Quelltext: keine Zahl von Rezepten oder Ländern von Hand, weder für die Website noch für die App. Gelesen werden
 // die Texte unter src/ und die festen Seiten unter public/, ohne Kommentare und ohne die zwei Dateien mit den Rezepten
 // selbst. Ausnahmen: die Einzahl "1 Rezept" in den Bausteinen, die eine gezählte Zahl in Worte fassen, und zwei
 // Beschreibungen von Fotos der App, die sagen, was auf dem Bild steht (VON_HAND_ERLAUBT; mit neuen Fotos nachziehen).
 const VON_HAND_ERLAUBT = [
   ['src/daten/sogehts_fotos.json', 'Filter „Österreich“ gewählt: 37 Rezepte'],
-  ['src/daten/sogehts_fotos.json', '„3 Rezepte ausgeblendet'],
+  ['src/daten/sogehts_fotos.json', '„33 Rezepte ausgeblendet'],
 ];
 const ZAHLWORT = 'zwei|drei|vier|fünf|sechs|sieben|acht|neun|zehn|elf|zwölf|zwanzig|dreißig|vierzig|fünfzig|sechzig|siebzig|achtzig|neunzig|hundert|zweihundert|dreihundert|vierhundert|fünfhundert';
 const VON_HAND = new RegExp(`(?<![\\p{L}\\p{N}.,])(?:\\d{1,4}|(?:${ZAHLWORT}))\\s+(?:[\\p{L}-]+\\s+){0,3}(?:Rezepte?n?|Ländern?|Einträgen? zum Meiden)(?![\\p{L}])`, 'giu');

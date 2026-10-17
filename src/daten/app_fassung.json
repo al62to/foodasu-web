@@ -1,8 +1,13 @@
 {
-  "fassung": "0.14.4",
-  "versionCode": 1404,
-  "commit": "afd7e8f",
+  "fassung": "0.15.4",
+  "versionCode": 1504,
+  "commit": "a5818ec",
   "eintraegeFest": 20,
+  "arten": {
+    "zutaten": 14,
+    "ernaehrungsformen": 2,
+    "weitere": 4
+  },
   "festeSchluessel": [
     "en:gluten",
     "en:crustaceans",
@@ -25,6 +30,11 @@
     "en:e428",
     "en:palm-oil"
   ],
-  "weitereLebensmittel": 0,
-  "zutatenliste": null
+  "stufen": 3,
+  "haeufigGewaehlt": 8,
+  "weitereLebensmittel": 4099,
+  "zutatenliste": {
+    "version": 4,
+    "stand": "2026-10-13"
+  }
 }

@@ -4,14 +4,14 @@
   "hoehe": 1395,
   "zeigt": "Einstellungen: „Darstellung“ mit dem Schalter „Dunkler Modus“, „Scanner“ mit „Vibration bei Treffer“, „Verlauf und Vorschläge“ mit „Verlauf löschen“ und „Vorschläge der Listen löschen“",
   "weich": false,
-  "aufnahme": "10.10.2026 14:27"
+  "aufnahme": "14.10.2026 07:31"
  },
  "haushalt_export_01": {
   "breite": 720,
   "hoehe": 1395,
   "zeigt": "Einstellungen, Abschnitt „Haushalt“: „Haushalt exportieren“, „Haushalt importieren“, „Hinweis zu den Angaben“",
   "weich": false,
-  "aufnahme": "10.10.2026 15:03"
+  "aufnahme": "14.10.2026 07:32"
  },
  "haushalt_import_01": {
   "breite": 720,
@@ -25,7 +25,7 @@
   "hoehe": 1395,
   "zeigt": "Übersicht „Deine Listen“: oben die Liste des Rezepts „Pizza Margherita“, darunter „Wocheneinkauf“, je mit „offen“ und „erledigt“, unten „Neue Liste“",
   "weich": false,
-  "aufnahme": "10.10.2026 14:57"
+  "aufnahme": "14.10.2026 07:29"
  },
  "liste_eintraege_02": {
   "breite": 720,
@@ -86,16 +86,16 @@
  "start_einfuehrung_02": {
   "breite": 720,
   "hoehe": 1365,
-  "zeigt": "Einführung, Schritt 2 von 18: „Die Startseite“",
+  "zeigt": "Einführung, Schritt 2 von 19: „Die Startseite“",
   "weich": true,
-  "aufnahme": "10.10.2026 14:54"
+  "aufnahme": "14.10.2026 07:31"
  },
  "start_startseite_01": {
   "breite": 720,
   "hoehe": 1365,
-  "zeigt": "Startseite mit Haushalt: oben Hilfe und Zahnrad, „Zuletzt gescannt“ mit Abzeichen, „Deine Listen“, der Rezept-Vorschlag „Ohne Hinweise für euren Haushalt“, unten die Leiste mit Start, Listen, Scan-Knopf, Rezepte, Haushalt",
+  "zeigt": "Startseite mit Haushalt: oben Hilfe und Zahnrad, der Hinweis zur Beta, „Zuletzt gescannt“ mit Abzeichen, „Deine Listen“, der Rezept-Vorschlag „Ohne Hinweise für euren Haushalt“, unten die Leiste mit Start, Listen, Scan-Knopf, Rezepte, Haushalt",
   "weich": true,
-  "aufnahme": "10.10.2026 14:52"
+  "aufnahme": "14.10.2026 07:30"
  },
  "start_schnellzugriff_01": {
   "breite": 720,
@@ -109,35 +109,49 @@
   "hoehe": 1395,
   "zeigt": "Einstellungen mit eingeschaltetem Schalter „Dunkler Modus“: Die App ist sofort dunkel",
   "weich": false,
-  "aufnahme": "10.10.2026 15:06"
+  "aufnahme": "14.10.2026 07:32"
  },
- "haushalt_person_05": {
+ "haushalt_person_06": {
   "breite": 720,
   "hoehe": 1395,
-  "zeigt": "Reiter Haushalt mit drei Personen: Mia, Jonas und Elif; rechts an jeder Karte der Papierkorb, oben der Hinweis zum Sortieren",
+  "zeigt": "Reiter Haushalt mit drei Personen: Mia, Jonas und Elif; oben das Fragezeichen und das Zahnrad, rechts an jeder Karte der Papierkorb, darüber der Hinweis zum Sortieren",
   "weich": false,
-  "aufnahme": "10.10.2026 14:28"
+  "aufnahme": "13.10.2026 23:33"
  },
- "haushalt_meiden_01": {
+ "haushalt_hinzufuegen_01": {
   "breite": 720,
   "hoehe": 1395,
-  "zeigt": "„Was meidet Mia?“: Zutaten zum Antippen, „Milch“ und „Schalenfrüchte“ sind angehakt",
+  "zeigt": "Seite „Hinzufügen“ für Mia: das Suchfeld „Lebensmittel suchen“, darunter „Häufig gewählt“ mit acht Einträgen, „Milch“ und „Schalenfrüchte“ sind angehakt; unten „Nicht gefunden?“ mit „Feedback geben“",
   "weich": false,
-  "aufnahme": "10.10.2026 14:26"
+  "aufnahme": "13.10.2026 23:31"
  },
- "haushalt_stufen_01": {
+ "haushalt_suche_01": {
   "breite": 720,
   "hoehe": 1395,
-  "zeigt": "Abschnitt „Wie streng?“: für „Milch“ ist „Meiden“ gewählt, für „Schalenfrüchte“ „Auf keinen Fall“",
+  "zeigt": "Suche nach „zimt“ auf der Seite „Hinzufügen“: Vorschläge wie „Zimt“, „Zimtpulver“ und „Ceylon-Zimt“, je mit der Zeile, wozu der Eintrag gehört; darunter „Nicht gefunden?“",
   "weich": false,
-  "aufnahme": "10.10.2026 15:02"
+  "aufnahme": "13.10.2026 23:32"
+ },
+ "haushalt_auswahl_01": {
+  "breite": 720,
+  "hoehe": 1395,
+  "zeigt": "Blatt „Auswahl festlegen“ für Zimt, für Mia: unter „Zählt mit“ stehen Ceylon-Zimt, Zimtkassie und Zimtpulver, unter „Wie streng?“ die drei Stufen, gewählt ist „Auf keinen Fall“; darunter „Hinzufügen“",
+  "weich": false,
+  "aufnahme": "13.10.2026 23:32"
+ },
+ "haushalt_liste_01": {
+  "breite": 720,
+  "hoehe": 1395,
+  "zeigt": "Seite „Person bearbeiten“ mit der Liste „Mia meidet“: Milch, Schalenfrüchte und Zimt, bei Zimt steht „Zählt mit: Ceylon-Zimt, Zimtkassie und mehr“; darunter „Hinzufügen“ und der Hinweis, dass weitere Lebensmittel für gescannte Produkte gelten",
+  "weich": false,
+  "aufnahme": "13.10.2026 23:32"
  },
  "scanner_mehrere_01": {
   "breite": 720,
   "hoehe": 1395,
-  "zeigt": "Produktkarte ganz nach oben gezogen: Urteil, Ergebnis je Person und die Kacheln mit Kalorien, Zucker, Verarbeitung, Fett, Salz und Nutri-Score",
+  "zeigt": "Produktkarte im Scanner ganz nach oben gezogen: Urteil, Ergebnis je Person und die Kacheln mit Kalorien, Zucker, Verarbeitung, Fett, Salz und Nutri-Score; unten „auf: Wocheneinkauf“ und „Auf die Liste“",
   "weich": true,
-  "aufnahme": "10.10.2026 14:33"
+  "aufnahme": "14.10.2026 07:35"
  },
  "karte_abzeichen_01": {
   "breite": 720,
@@ -158,7 +172,7 @@
   "hoehe": 1395,
   "zeigt": "Reiter Rezepte: Suchfeld, „Nach Ländern“, die Reihe der Kategorien und die ersten Rezeptkarten mit Symbolbild",
   "weich": false,
-  "aufnahme": "10.10.2026 14:48"
+  "aufnahme": "14.10.2026 07:20"
  },
  "rezepte_filter_01": {
   "breite": 720,
@@ -170,9 +184,9 @@
  "rezepte_merken_02": {
   "breite": 720,
   "hoehe": 1395,
-  "zeigt": "Reiter Rezepte mit dem Abschnitt „Gemerkt“: „Kaiserschmarren“, „Ratatouille“ und „Pizza Margherita“",
+  "zeigt": "Reiter Rezepte mit dem Abschnitt „Gemerkt“: „Kaiserschmarren“ und „Ratatouille“, rechts der Anfang der dritten Karte",
   "weich": false,
-  "aufnahme": "10.10.2026 14:59"
+  "aufnahme": "14.10.2026 07:27"
  },
  "rezepte_hinweise_01": {
   "breite": 720,
@@ -184,9 +198,9 @@
  "rezepte_ausblenden_01": {
   "breite": 720,
   "hoehe": 1395,
-  "zeigt": "Ende der Liste: „3 Rezepte ausgeblendet, weil sie für euren Haushalt nicht passen.“ mit „Anzeigen“",
+  "zeigt": "Ende der Liste: „33 Rezepte ausgeblendet, weil sie für euren Haushalt nicht passen.“ mit „Anzeigen“",
   "weich": false,
-  "aufnahme": "10.10.2026 15:01"
+  "aufnahme": "14.10.2026 07:21"
  },
  "rezepte_portionen_01": {
   "breite": 720,
@@ -233,16 +247,16 @@
  "karte_urteil_01": {
   "breite": 720,
   "hoehe": 1395,
-  "zeigt": "Produktseite: „Nicht für Mia: enthält Schalenfrüchte“ mit „Warum?“, darunter Mia „enthält“, Jonas und Elif „unvollständig“, dann die Nährwerte je 100 ml",
+  "zeigt": "Produktseite: „Nicht für Mia: enthält Schalenfrüchte und Milch“, darunter Mia „enthält“, Elif „Hinweis“ und Jonas „kein Konflikt“, dann die Nährwerte je 100 g; unten „auf: Wocheneinkauf“ und „Auf die Liste“",
   "weich": true,
-  "aufnahme": "10.10.2026 14:58"
+  "aufnahme": "14.10.2026 07:33"
  },
  "karte_warum_01": {
   "breite": 720,
   "hoehe": 1395,
-  "zeigt": "Dialog „Warum?“: „Laut Zutatenliste: Schalenfrüchte, betrifft Mia“, der Hinweis auf eine nicht eindeutige Zutat, die Quelle Open Food Facts und „Maßgeblich ist die Verpackung.“",
-  "weich": false,
-  "aufnahme": "10.10.2026 14:33"
+  "zeigt": "Dialog „Warum?“: „Laut Zutatenliste: Schalenfrüchte“ und „Milch“, je „Betrifft Mia“, „Laut Auswertung der Zutaten: Palmöl“, „Betrifft Elif“, darunter die Quelle Open Food Facts als Text, „Lizenz: ODbL“ und „Maßgeblich ist die Verpackung.“",
+  "weich": true,
+  "aufnahme": "14.10.2026 07:33"
  },
  "scanner_ean_03": {
   "breite": 720,

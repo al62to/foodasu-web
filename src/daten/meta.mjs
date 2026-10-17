@@ -29,6 +29,7 @@ import {
   alteRezepte,
 } from './rezeptseiten.mjs';
 import { alteSeite, jahreVonBis } from './alte_rezepte.mjs';
+import { appZahlen, zahlwort } from './app_zahlen.mjs';
 
 const MARKE = ` | ${seite.name}`;
 // Der eine Titel, der die Grenzen überschreiten darf (siehe oben, Ausnahme Startseite).
@@ -114,7 +115,7 @@ const KAPITEL = {
   },
   'haushalt-und-meiden': {
     thema: 'Haushalt anlegen und Meiden',
-    beschreibung: 'Personen im Haushalt anlegen, Einträge bei „Meiden“ wählen und die drei Stufen verstehen: von „Lieber nicht“ bis „Auf keinen Fall“.',
+    beschreibung: `Personen im Haushalt anlegen, Einträge bei „Meiden“ wählen und die ${zahlwort(appZahlen.stufen)} Stufen verstehen: von „Lieber nicht“ bis „Auf keinen Fall“.`,
   },
   // Seit dem Auftrag SEO 1 neu (14.10.2026, Teil 4 Nr. 4) nach Vorschlag 1 zu „Lebensmittel Scanner“ der SEO-Analyse:
   // Die Startseite geht auf die Einkaufsliste, diese Seite übernimmt den Scanner.

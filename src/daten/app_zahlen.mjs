@@ -21,8 +21,25 @@ export const appZahlen = {
   eintraegeFest: fassung.eintraegeFest,
   // Alles, was man in dieser Fassung beim Meiden wählen kann: feste Einträge und weitere Lebensmittel (ab 0.15).
   eintraege: fassung.eintraegeFest + fassung.weitereLebensmittel,
+  // Die festen Einträge je Art (Zutaten, Ernährungsformen, weitere wie Schweinefleisch), die Stufen eines Eintrags
+  // und, ab 0.15, die Knöpfe „Häufig gewählt“.
+  zutatenFest: fassung.arten.zutaten,
+  ernaehrungsformen: fassung.arten.ernaehrungsformen,
+  weitereFest: fassung.arten.weitere,
+  stufen: fassung.stufen,
+  haeufigGewaehlt: fassung.haeufigGewaehlt,
 };
 
+// Zahlwort für Texte („drei Stufen“), klein oder mit großem Anfangsbuchstaben; über zwölf als Ziffer.
+const ZAHLWOERTER = ['null', 'ein', 'zwei', 'drei', 'vier', 'fünf', 'sechs', 'sieben', 'acht', 'neun', 'zehn', 'elf', 'zwölf'];
+export const zahlwort = (zahl, gross = false) => {
+  const wort = ZAHLWOERTER[zahl] ?? String(zahl);
+  return gross ? wort.charAt(0).toUpperCase() + wort.slice(1) : wort;
+};
+
+if (!Number.isInteger(appZahlen.stufen) || !Number.isInteger(appZahlen.zutatenFest) || appZahlen.zutatenFest + appZahlen.ernaehrungsformen + appZahlen.weitereFest !== appZahlen.eintraegeFest) {
+  throw new Error('app_fassung.json: Stufen oder Arten der festen Einträge fehlen oder passen nicht zusammen');
+}
 if (!Number.isInteger(appZahlen.eintraegeFest) || appZahlen.eintraegeFest < 1 || fassung.festeSchluessel.length !== appZahlen.eintraegeFest || !Number.isInteger(fassung.weitereLebensmittel)) {
   throw new Error('app_fassung.json: Einträge zum Meiden fehlen oder passen nicht zusammen');
 }

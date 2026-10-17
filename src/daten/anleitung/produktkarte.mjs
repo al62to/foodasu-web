@@ -26,7 +26,7 @@ export default {
       anker: 'naehrwerte',
       symbol: 'diagramm',
       funktionen: ['KARTE-04'],
-      nutzen: 'Du siehst auf einen Blick Kalorien, Zucker, Fett, Salz, den Nutri-Score und den Grad der Verarbeitung, weiter unten weitere Nährwerte. Fehlt ein Wert, steht dort „keine Angabe“.',
+      nutzen: 'Du siehst auf einen Blick Kalorien, Zucker, Fett, Salz, den Nutri-Score und den Grad der Verarbeitung, weiter unten weitere Nährwerte. Bei Getränken stehen die Werte je 100 ml. Fehlt ein Wert, steht dort „keine Angabe“.',
       wo: 'Produktkarte > Kacheln unter dem Urteil',
     },
     {

@@ -5,8 +5,10 @@ und ähnliche) passt zur öffentlich verfügbaren Fassung der App und kommt aus 
 src/daten/app_zahlen.mjs). Rezepte und Länder kommen aus rezepte.json (tools/rezepte_exportieren.py); dieses Werkzeug
 liefert die Einträge zum Meiden:
 
-- eintraegeFest: die festen Einträge des Katalogs der App (AvoidCatalog: die 14 Zutaten aus EuAllergens und die
-  Einträge aus AvoidKeys), mit ihren Schlüsseln;
+- eintraegeFest: die festen Einträge des Katalogs der App (AvoidCatalog: die Zutaten aus EuAllergens und die
+  Einträge aus AvoidKeys), mit ihren Schlüsseln, dazu je Art (zutaten, ernaehrungsformen, weitere);
+- stufen: die Stufen eines Eintrags (enum Strictness in AvoidEntry.kt);
+- haeufigGewaehlt: ab 0.15 die Knöpfe „Häufig gewählt“ (OwnIngredientUi.frequentKeys), sonst null;
 - weitereLebensmittel: ab 0.15 die Lebensmittel aus der Zutatenliste der App (res/raw/zutaten_taxonomie.tsv), die man
   auf Deutsch wählen kann; dieselbe Regel wie TaxonomyEntry.isSelectable: deutscher Name, gültige Kennung
   (^[a-z]{2}:[a-z0-9-]+$), kein fester Eintrag. Die Zahl muss mit dem Unit-Test der App übereinstimmen
@@ -24,6 +26,8 @@ from pathlib import Path
 
 ZIEL = Path(__file__).resolve().parent.parent / 'src' / 'daten' / 'app_fassung.json'
 KATALOG = 'app/src/main/java/at/tonc/einkauf/profile/domain/AvoidCatalog.kt'
+EINTRAG = 'app/src/main/java/at/tonc/einkauf/profile/domain/AvoidEntry.kt'
+HAEUFIG = 'app/src/main/java/at/tonc/einkauf/profile/ui/OwnIngredientUi.kt'
 SCHLUESSEL = 'app/src/main/java/at/tonc/einkauf/profile/domain/AvoidKeys.kt'
 BAU = 'app/build.gradle.kts'
 LISTE = 'app/src/main/res/raw/zutaten_taxonomie.tsv'
@@ -50,11 +54,32 @@ def feste_schluessel(app, ref):
     liste = re.findall(r'"([^"]+)"', eu.group(1))
     if 'EuAllergens.all.map' not in katalog:
         sys.exit('AvoidCatalog nimmt EuAllergens.all nicht mehr auf; Werkzeug anpassen')
-    weitere = [konstanten[name] for name in re.findall(r'AvoidCatalogItem\(AvoidKeys\.([A-Z_]+)', katalog)]
+    paare = re.findall(r'AvoidCatalogItem\(AvoidKeys\.([A-Z_]+), AvoidKind\.([A-Z_]+)\)', katalog)
+    if 'EuAllergens.all.map { AvoidCatalogItem(it, AvoidKind.ZUTAT) }' not in katalog:
+        sys.exit('AvoidCatalog: die Zutaten aus EuAllergens sind nicht mehr die Art ZUTAT; Werkzeug anpassen')
+    weitere = [konstanten[name] for name, _ in paare]
     alle = liste + weitere
     if len(set(alle)) != len(alle) or not all(GUELTIG.match(eintrag) for eintrag in alle):
         sys.exit(f'feste Schlüssel doppelt oder ungültig: {alle}')
-    return alle
+    arten = {'zutaten': len(liste), 'ernaehrungsformen': sum(art == 'ERNAEHRUNGSFORM' for _, art in paare),
+             'weitere': sum(art == 'WEITERE' for _, art in paare)}
+    if sum(arten.values()) != len(alle):
+        sys.exit(f'Arten der festen Einträge: {arten} ergibt nicht {len(alle)}')
+    return alle, arten
+
+
+def stufen(app, ref):
+    eintrag = git(app, 'show', f'{ref}:{EINTRAG}')
+    werte = re.search(r'enum class Strictness \{([^;}]*);', eintrag)
+    if not werte:
+        sys.exit('enum Strictness nicht gefunden')
+    return len([wert for wert in werte.group(1).replace(',', ' ').split() if wert])
+
+
+def haeufig(app, ref):
+    text = git(app, 'show', f'{ref}:{HAEUFIG}', darf_fehlen=True)
+    liste = re.search(r'val frequentKeys: List<String> = listOf\(([^)]*)\)', text or '')
+    return len([eintrag for eintrag in liste.group(1).split(',') if eintrag.strip()]) if liste else None
 
 
 def weitere_lebensmittel(app, ref, fest):
@@ -86,15 +111,16 @@ def main():
     bau = git(argumente.app, 'show', f'{argumente.ref}:{BAU}')
     fassung = re.search(r'versionName = "([^"]+)"', bau).group(1)
     code = int(re.search(r'versionCode = (\d+)', bau).group(1))
-    fest = feste_schluessel(argumente.app, argumente.ref)
+    fest, arten = feste_schluessel(argumente.app, argumente.ref)
     weitere, liste = weitere_lebensmittel(argumente.app, argumente.ref, set(fest))
     daten = {
         'fassung': fassung, 'versionCode': code, 'commit': commit,
-        'eintraegeFest': len(fest), 'festeSchluessel': fest,
+        'eintraegeFest': len(fest), 'arten': arten, 'festeSchluessel': fest,
+        'stufen': stufen(argumente.app, argumente.ref), 'haeufigGewaehlt': haeufig(argumente.app, argumente.ref),
         'weitereLebensmittel': weitere, 'zutatenliste': liste,
     }
     ZIEL.write_text(json.dumps(daten, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
-    print(f'{ZIEL.name}: Fassung {fassung} ({code}, {commit}), {len(fest)} feste Einträge, {weitere} weitere Lebensmittel')
+    print(f'{ZIEL.name}: Fassung {fassung} ({code}, {commit}), {len(fest)} feste Einträge {arten}, {weitere} weitere Lebensmittel, {daten["stufen"]} Stufen, „Häufig gewählt“ {daten["haeufigGewaehlt"]}')
 
 
 if __name__ == '__main__':

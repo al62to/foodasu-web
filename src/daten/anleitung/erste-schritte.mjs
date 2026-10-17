@@ -32,8 +32,8 @@ export default {
       anker: 'die-einfuehrung-noch-einmal-ansehen',
       symbol: 'frage',
       funktionen: ['START-06'],
-      nutzen: 'Du siehst dir die Einführung an, wann immer du willst.',
-      wo: 'Start > Hilfe (Fragezeichen) > „Einführung erneut ansehen“; oder Einstellungen > „Hilfe und Feedback“ > „Anleitung“',
+      nutzen: 'Du siehst dir die Einführung an, wann immer du willst. Das Fragezeichen steht auch auf Listen, Rezepte, Haushalt, „Person bearbeiten“ und der Produktseite, und „Ausführliche Anleitung“ öffnet dort die passende Seite dieser Anleitung.',
+      wo: 'Hilfe (Fragezeichen) > „Einführung erneut ansehen“ oder „Ausführliche Anleitung“; oder Einstellungen > „Hilfe und Feedback“ > „Anleitung“',
     },
     {
       titel: 'Die Startseite',

@@ -1,6 +1,7 @@
 // Bereich "So geht's" (AP-15 Teil B2, Karte C, AP-18 Teil E; neu gebaut in AP-19 Teil G): eine Übersicht und eine
 // Seite je Bereich der App, dazu die Seite "Zu Hause schreiben, im Laden abhaken". Die Begriffe stehen so da, wie sie
-// in der App heißen (Stand 0.14.3); beschrieben ist nur, was die App kann. Wortregeln nach Konzept v4, Abschnitt 1:
+// in der App heißen (Stand 0.14.3, das Kapitel "Haushalt anlegen und Meiden" und die Sätze zum Fragezeichen und zu
+// Getränken Stand 0.15.2); beschrieben ist nur, was die App kann. Wortregeln nach Konzept v4, Abschnitt 1:
 // keine Versprechen, im Zweifel der Hinweis auf die Verpackung.
 // Pflege-Regel: Jedes Paket mit einer sichtbaren neuen Funktion zieht neben der Einführung in der App auch das
 // passende Kapitel hier nach. Vor jeder Änderung läuft "npm run funktionen"; er hält die Funktionsliste der App

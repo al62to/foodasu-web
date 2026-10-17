@@ -5,7 +5,7 @@
 // Feste Regel seit 14.10.2026 (Ali): Werden Texte geändert, bleiben Design, Layout und Animationen gleich; Abschnitte
 // werden nur mit Alis Ja gelöscht, verschoben oder umgestaltet.
 // Der Titel der Startseite steht hier, die Beschreibung mit denen aller Seiten in src/daten/meta.mjs.
-import { appZahlen } from './app_zahlen.mjs';
+import { appZahlen, zahlwort } from './app_zahlen.mjs';
 import { lizenzen } from './lizenzen.mjs';
 import { MEDIZIN } from './fragen.mjs';
 
@@ -116,7 +116,7 @@ export const schritte = {
       titel: 'Im Laden scannen',
       text: 'Abhaken, was im Wagen liegt, und für jede Person sehen, ob es passt.',
       bild: 'karte_auf_die_liste_02',
-      alt: 'Produktkarte beim Einkauf: oben „Nicht für Mia: enthält Schalenfrüchte“, unten die Meldung „Auf ‚Wocheneinkauf‘ gesetzt“ mit „Rückgängig“',
+      alt: 'Produktkarte beim Einkauf nach „Auf die Liste“: oben das Urteil für Mia, unten die Meldung „Auf ‚Wocheneinkauf‘ gesetzt“ mit „Rückgängig“',
       ziel: '/so-gehts/zu-hause-schreiben-im-laden-abhaken/#im-laden',
       ort: 'in der Anleitung: Im Laden abhaken',
     },
@@ -163,7 +163,7 @@ export const funktionen = {
       symbol: 'haushalt',
       titel: 'Dein Haushalt',
       kurz: 'Für jede Person eigene Einträge.',
-      text: ['Du legst für jede Person in der Familie fest, was sie meidet. Drei Stufen reichen von „Lieber nicht“ bis „Auf keinen Fall“.'],
+      text: [`Du legst für jede Person in der Familie fest, was sie meidet. ${zahlwort(appZahlen.stufen, true)} Stufen reichen von „Lieber nicht“ bis „Auf keinen Fall“.`],
     },
     {
       kennung: 'liste',
@@ -228,7 +228,7 @@ export const einblick = {
       datei: 'karte_urteil_01',
       titel: 'Das Urteil für den Haushalt',
       text: 'Oben auf der Karte steht, für wen ein Produkt laut Daten nicht passt.',
-      alt: 'Produktkarte in FoodAsu: oben „Nicht für Mia: enthält Schalenfrüchte“ mit „Warum?“, darunter jede Person einzeln und die Nährwerte',
+      alt: 'Produktkarte in FoodAsu: oben „Nicht für Mia: enthält Schalenfrüchte und Milch“, darunter Mia „enthält“, Elif „Hinweis“ und Jonas „kein Konflikt“, dann die Nährwerte je 100 g',
       ziel: '/so-gehts/scannen-und-urteil/#das-urteil',
     },
     {
@@ -260,10 +260,10 @@ export const einblick = {
       ziel: '/so-gehts/rezepte/#hinweise-bei-zutaten',
     },
     {
-      datei: 'haushalt_stufen_01',
-      titel: 'Drei Stufen je Eintrag',
+      datei: 'haushalt_auswahl_01',
+      titel: `${zahlwort(appZahlen.stufen, true)} Stufen je Eintrag`,
       text: 'Von „Lieber nicht“ bis „Auf keinen Fall“.',
-      alt: 'Abschnitt „Wie streng?“ in FoodAsu: bei Milch ist „Meiden“ gewählt, bei Schalenfrüchten „Auf keinen Fall“',
+      alt: `Blatt „Auswahl festlegen“ in FoodAsu: für Zimt stehen unter „Wie streng?“ die ${zahlwort(appZahlen.stufen)} Stufen, gewählt ist „Auf keinen Fall“`,
       ziel: '/so-gehts/haushalt-und-meiden/#die-drei-stufen',
     },
   ],
