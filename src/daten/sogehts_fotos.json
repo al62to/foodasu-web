@@ -226,9 +226,9 @@
  "scanner_scannen_01": {
   "breite": 720,
   "hoehe": 1473,
-  "zeigt": "Scanner: Rahmen mit „Strichcode in den Rahmen halten“, oben links Schließen, oben rechts die Taschenlampe, unten „EAN eintippen“ und „Zuletzt gescannt“",
+  "zeigt": "Scanner: Rahmen mit „Strichcode in den Rahmen halten“, oben links Schließen, unten „EAN eintippen“ und „Zuletzt gescannt“; im Rahmen eine Packung mit Strichcode",
   "weich": true,
-  "aufnahme": "20.10.2026 16:02"
+  "aufnahme": "20.10.2026 17:21"
  },
  "scanner_ean_01": {
   "breite": 720,
@@ -240,9 +240,9 @@
  "scanner_scannen_02": {
   "breite": 720,
   "hoehe": 1473,
-  "zeigt": "Produktkarte auf halber Höhe über dem Kamerabild: „Nicht für Mia: enthält Schalenfrüchte“, darunter Mia, Jonas und Elif einzeln; oben „Nächstes Produkt einfach scannen“, unten „auf: Wocheneinkauf“ und „Auf die Liste“ (Produkt aus „Zuletzt gescannt“ geöffnet)",
+  "zeigt": "Produktkarte auf halber Höhe über dem Kamerabild: „Nicht für Mia: enthält Schalenfrüchte und Milch“, darunter Mia, Elif und Jonas einzeln; oben „Nächstes Produkt einfach scannen“, unten „auf: Wocheneinkauf“ und „Auf die Liste“",
   "weich": true,
-  "aufnahme": "20.10.2026 15:53"
+  "aufnahme": "20.10.2026 17:28"
  },
  "karte_urteil_01": {
   "breite": 720,
@@ -261,9 +261,9 @@
  "scanner_ean_03": {
   "breite": 720,
   "hoehe": 1473,
-  "zeigt": "Produktkarte nach der Suche: „Angaben unvollständig, Verpackung prüfen“, alle drei Personen „unvollständig“, darunter der Knopf „Verpackung gelesen“",
+  "zeigt": "Produktkarte über dem Kamerabild: „Angaben unvollständig, Verpackung prüfen“, alle drei Personen „unvollständig“, darunter der Knopf „Verpackung gelesen“",
   "weich": true,
-  "aufnahme": "20.10.2026 16:13"
+  "aufnahme": "20.10.2026 17:31"
  },
  "liste_eintraege_03": {
   "breite": 720,
