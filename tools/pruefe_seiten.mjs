@@ -318,16 +318,17 @@ for (const [adresse, html] of seiten) {
       melde(adresse, 'JSON-LD ist kein gültiges JSON');
     }
   }
-  const erwartet = adresse === '/' ? ['WebSite', 'Organization', 'Person', 'SoftwareApplication', 'VideoObject', 'FAQPage'] : OHNE_EINGANG.has(adresse) ? [] : ['BreadcrumbList'];
+  const erwartet = adresse === '/' ? ['WebSite', 'Organization', 'Person', 'MobileApplication', 'VideoObject', 'FAQPage'] : OHNE_EINGANG.has(adresse) ? [] : ['BreadcrumbList'];
   for (const art of erwartet) if (!arten.includes(art)) melde(adresse, `strukturierte Daten fehlen: ${art}`);
-  // Software-App: seit dem Auftrag SEO 1 neu (14.10.2026) genau eine SoftwareApplication, nur auf der Startseite (ohne
+  // Software-App: seit dem Auftrag SEO 1 neu (14.10.2026) genau eine App-Angabe, seit AP-34 (23.10.2026) als
+  // MobileApplication (Unterart von SoftwareApplication), nur auf der Startseite (ohne
   // Angebot, Preis und Bewertung; die Einzelheiten prüft der Abschnitt zur Startseite unten). Sie ist Pflicht und wird
   // nicht entfernt (Nachtrag der PL vom 14.10.2026, 13:10); AP-29 betrifft nur Preisangaben. Jede andere Art, die auf
   // "Application" endet, und jede Software-App auf einer anderen Seite bleibt ein Befund (AP-22, Ali, 10.10.2026).
   for (const art of arten.flat()) {
-    if (/Application$/.test(art) && !(adresse === '/' && art === 'SoftwareApplication')) melde(adresse, `strukturierte Daten: ${art} ist nicht vorgesehen`);
+    if (/Application$/.test(art) && !(adresse === '/' && art === 'MobileApplication')) melde(adresse, `strukturierte Daten: ${art} ist nicht vorgesehen`);
   }
-  if (adresse === '/' && arten.flat().filter((art) => art === 'SoftwareApplication').length !== 1) melde(adresse, 'strukturierte Daten: genau eine SoftwareApplication erwartet');
+  if (adresse === '/' && arten.flat().filter((art) => art === 'MobileApplication').length !== 1) melde(adresse, 'strukturierte Daten: genau eine MobileApplication erwartet');
   // Brotkrumen: Die strukturierten Daten nennen dieselben Stufen wie die sichtbare Zeile, die letzte ist die Seite.
   const krumenZeile = html.match(/<nav class="krumen[\s\S]*?<\/nav>/)?.[0];
   if (krumenZeile) {
@@ -675,8 +676,13 @@ for (const [adresse, html] of seiten) {
   for (const dienst of ['facebook.com', 'instagram.com']) {
     if (!new RegExp(`<a class="fuss-knopf" href="https://www\\.${dienst.replace('.', '\\.')}/[^"]*" rel="me noopener">\\s*<svg`).test(inhalt)) melde(adresse, `Fußzeile: Knopf mit Symbol für ${dienst} fehlt`);
   }
-  if (/<(?:iframe|img|script|link)\b/.test(inhalt)) melde(adresse, 'Fußzeile bettet etwas ein (erlaubt sind nur Links und Zeichnungen im Quelltext)');
+  // Seit AP-34 steht im Fuß genau ein Bild: das offizielle Abzeichen von Google Play, lokal, als Link zum Eintrag.
+  const abzeichen = alle(inhalt, /<img\b[^>]*>/g);
+  if (abzeichen.length !== (store.oeffentlich ? 1 : 0) || abzeichen.some((tag) => !/src="\/bilder\/google-play-abzeichen-de\.png"/.test(tag) || !/alt="Jetzt bei Google Play"/.test(tag))) melde(adresse, 'Fußzeile: erwartet genau das Abzeichen von Google Play als einziges Bild');
+  if (store.oeffentlich && !/<a class="fuss-abzeichen" href="https:\/\/play\.google\.com\/store\/apps\/details\?id=at\.tonc\.einkauf" rel="me noopener">\s*<img\b/.test(inhalt)) melde(adresse, 'Fußzeile: Abzeichen nicht als Link zum Eintrag bei Google Play');
+  if (/<(?:iframe|script|link)\b/.test(inhalt)) melde(adresse, 'Fußzeile bettet etwas ein (erlaubt sind nur Links, Zeichnungen im Quelltext und das Abzeichen)');
   if (!text.includes('Bald im Play Store') && !inhalt.includes('play.google.com')) melde(adresse, 'Fußzeile ohne Hinweis auf den Play Store');
+  if (store.oeffentlich && text.includes('Bald im Play Store')) melde(adresse, 'Fußzeile: „Bald im Play Store“ nach dem öffentlichen Start');
 }
 
 // Symbolbilder sind mit Adobe Firefly erzeugt: Jede Datei trägt die IPTC-Angabe DigitalSourceType =
@@ -1101,7 +1107,7 @@ const HERKUNFT = [
   ['de_AT', /de_AT/g], ['de-AT', /de-AT/g],
 ];
 const PLATTFORM = [['Android', /Android/giu]];
-const VERFUEGBAR = 'Zuerst kommt die App für Android in den Play Store, danach folgt die Version fürs iPhone.';
+const VERFUEGBAR = 'FoodAsu gibt es für Android im Play Store. Die Version fürs iPhone folgt.';
 const STAND = `FoodAsu ist in der Beta. Wir bauen laufend neue Funktionen ein und freuen uns über dein Feedback. ${VERFUEGBAR}`;
 const PLAY_EINTRAG = 'https://play.google.com/store/apps/details?id=at.tonc.einkauf';
 // GEO-Satz (Auftrag SEO 1 neu, Teil 2 Nr. 6; seit Alis Entscheidung vom 14.10.2026 ohne Plattform, die Regel vom
@@ -1117,7 +1123,6 @@ const VIDEO_ORT = '/bilder/start/zettel-zur-app';
 const VIDEO_GRENZE = 1.5 * 1024 * 1024;
 const WEITERE_SPRACHE = /<meta property="og:locale:alternate" content="de_AT"\s*\/?>/g;
 const ANLEITUNG_ANDROID = [
-  'FoodAsu gibt es zuerst für Android und kommt über Google Play auf dein Handy.',
   'Backup von Android', 'backup-von-android', 'Android kann ein Backup deiner App-Daten anlegen',
   'Mit geht die Version der App und von Android, sonst nichts.',
 ];
@@ -1285,13 +1290,14 @@ if (/mailto:/.test(ueberInhalt)) melde('/ueber-foodasu/', 'die Adresse des Konta
   if (absaetze.length < 13) melde('/', `Absätze der Fragen und Funktionen: nur ${absaetze.length} gefunden (die Prüfung liest nichts)`);
   for (const absatz of absaetze) if (saetze(absatz) < 1 || saetze(absatz) > 2) melde('/', `Absatz mit ${saetze(absatz)} Sätzen (erwartet ein oder zwei): „${absatz.slice(0, 80)}“`);
   if (!/Einkaufsapp/.test(fragenTeil)) melde('/', 'eine Antwort nennt „Einkaufsapp“ nicht');
-  // SoftwareApplication und Person (Teil 3 Nr. 1).
-  const app = block('SoftwareApplication');
+  // MobileApplication und Person (Teil 3 Nr. 1; seit AP-34 MobileApplication mit installUrl).
+  const app = block('MobileApplication');
   if (app) {
-    if (app.operatingSystem !== 'Android' || app.applicationCategory !== 'ShoppingApplication' || app.description !== GEO || app.url !== `${HOST}/` || app.name !== 'FoodAsu') melde('/', 'SoftwareApplication: Name, Betriebssystem, Kategorie, Beschreibung (GEO-Satz) oder Adresse weicht ab');
-    if (app.author?.['@id'] !== `${HOST}/#ali-tonc` || block('Person')?.['@id'] !== `${HOST}/#ali-tonc`) melde('/', 'SoftwareApplication: der Entwickler (author, Person „Ali Tonc“) fehlt');
-    if (/offers|price|aggregateRating|review|isAccessibleForFree/i.test(JSON.stringify(app))) melde('/', 'SoftwareApplication: Angebot, Preis oder Bewertung gehören nicht hinein');
-    if (!store.oeffentlich && JSON.stringify(app).includes('play.google.com')) melde('/', 'SoftwareApplication: Eintrag bei Google Play vor dem öffentlichen Start');
+    if (app.operatingSystem !== 'Android' || app.applicationCategory !== 'ShoppingApplication' || app.description !== GEO || app.url !== `${HOST}/` || app.name !== 'FoodAsu') melde('/', 'MobileApplication: Name, Betriebssystem, Kategorie, Beschreibung (GEO-Satz) oder Adresse weicht ab');
+    if (app.author?.['@id'] !== `${HOST}/#ali-tonc` || block('Person')?.['@id'] !== `${HOST}/#ali-tonc`) melde('/', 'MobileApplication: der Entwickler (author, Person „Ali Tonc“) fehlt');
+    if (/offers|price|aggregateRating|review|isAccessibleForFree/i.test(JSON.stringify(app))) melde('/', 'MobileApplication: Angebot, Preis oder Bewertung gehören nicht hinein');
+    if (!store.oeffentlich && JSON.stringify(app).includes('play.google.com')) melde('/', 'MobileApplication: Eintrag bei Google Play vor dem öffentlichen Start');
+    if (store.oeffentlich && app.installUrl !== store.adresse) melde('/', 'MobileApplication: installUrl fehlt oder ist nicht der Eintrag bei Google Play');
   }
   const person = block('Person');
   if (person && (person.name !== 'Ali Tonc' || Object.keys(person).some((schluessel) => !['@context', '@type', '@id', 'name', 'url'].includes(schluessel)))) melde('/', 'Person: nur Name und Website von Ali Tonc erwartet');
@@ -1302,6 +1308,7 @@ if (/mailto:/.test(ueberInhalt)) melde('/ueber-foodasu/', 'die Adresse des Konta
   // Abschluss (Teil 1 Nr. 13) und Leiste unten am Handy (Teil 1 Nr. 15).
   const schlussTeil = s.match(/<section class="abschluss" id="abschluss">[\s\S]*?<\/section>/)?.[0] ?? '';
   if (!/<h2>Passt es für alle\? Schau einfach nach\.<\/h2>/.test(schlussTeil) || !entschluesselt(ohneSprachangabe(schlussTeil)).includes(VERFUEGBAR) || !/class="bald"/.test(schlussTeil)) melde('/', 'Abschluss: Überschrift, Satz zur Verfügbarkeit oder Knopf fehlt');
+  if (store.oeffentlich && (alle(s, /<a class="bald" href="https:\/\/play\.google\.com\/store\/apps\/details\?id=at\.tonc\.einkauf" rel="noopener">/g).length !== 2 || /Bald im Play Store/.test(entschluesselt(ohneSprachangabe(s.replace(/<script[\s\S]*?<\/script>/g, ' ')))))) melde('/', 'Startseite: Knöpfe im Kopf und im Abschluss nicht als Link zum Eintrag bei Google Play, oder „Bald im Play Store“ steht noch da');
   const leiste = s.match(/<aside class="kurzleiste"[^>]*>[\s\S]*?<\/aside>/)?.[0] ?? '';
   if (!/<aside class="kurzleiste" aria-label="[^"]+" data-kurzleiste hidden>/.test(leiste) || alle(leiste, /<a\b[^>]*href="[^"]+"/g).length !== 2) melde('/', 'Leiste unten: Bereich mit Namen, zwei Links und anfangs ausgeblendet erwartet');
   if (/herunterladen|download/i.test(textVon('/'))) melde('/', 'Aufforderung zum Herunterladen auf der Startseite');

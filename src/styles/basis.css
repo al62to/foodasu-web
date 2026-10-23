@@ -308,6 +308,9 @@ a.chip:hover, button.chip:hover { border-color: var(--main); }
 .fuss-store { min-height: 2.75rem; text-decoration: none; }
 .fuss-bald svg, .fuss-store svg { flex: none; width: 1.2rem; height: 1.2rem; }
 .fuss-store svg { fill: currentColor; }
+/* Offizielles Abzeichen von Google Play (AP-34): 2,75rem hoch, ringsum ein Viertel der Höhe frei (Vorgabe von Google). */
+.fuss-abzeichen { display: inline-block; padding: 0.6875rem; margin: -0.6875rem; line-height: 0; border-radius: 0.5rem; }
+.fuss-abzeichen img { display: block; width: auto; height: 2.75rem; }
 @media (min-width: 40rem) {
   .fuss-raster { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .fuss-marke { grid-column: 1 / -1; }

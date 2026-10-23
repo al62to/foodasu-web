@@ -33,9 +33,10 @@ export const kopfdaten = {
 // im Satz zur Verfügbarkeit.
 export const GEO_SATZ = `FoodAsu ist eine Einkaufslisten-App mit Lebensmittel-Scanner: Einkaufsliste, über ${appZahlen.ueber} Rezepte und ein Scanner, der für jede Person im Haushalt zeigt, ob laut den Angaben zum Produkt etwas drin ist, das sie meidet.`;
 
-// Satz zur Verfügbarkeit (Projektleitung, 11.10.2026), wörtlich: der einzige Satz, der die Plattform nennt. "stand" ist der Hinweis zu Beta und Verfügbarkeit unter den Knöpfen (am Laptop), wörtlich gleich
-// in fragen.mjs und ueber.mjs.
-export const VERFUEGBAR = 'Zuerst kommt die App für Android in den Play Store, danach folgt die Version fürs iPhone.';
+// Satz zur Verfügbarkeit, wörtlich: der einzige Satz, der die Plattform nennt. Seit dem öffentlichen Start (AP-34,
+// Alis Ja, 23.10.2026) ersetzt er den Satz vom 11.10.2026. "stand" ist der Hinweis zu Beta und Verfügbarkeit unter
+// den Knöpfen (am Laptop), wörtlich gleich in fragen.mjs und ueber.mjs.
+export const VERFUEGBAR = 'FoodAsu gibt es für Android im Play Store. Die Version fürs iPhone folgt.';
 const BETA = 'FoodAsu ist in der Beta. Wir bauen laufend neue Funktionen ein und freuen uns über dein Feedback.';
 
 export const kopf = {
@@ -45,7 +46,7 @@ export const kopf = {
   // Satz statt des langen Absatzes (Teil 2 Nr. 5): höchstens 15 Wörter, mit "Einkaufsliste". "betont" steht in Indigo
   // wie "alle" im Entwurf.
   satz: { vor: 'Einkaufsliste, Rezepte und Scanner in einer App. Du siehst, ob es für ', betont: 'alle', nach: ' passt.' },
-  aufruf: 'Bald im Play Store',
+  aufruf: 'Jetzt im Play Store',
   zweiterKnopf: 'Eine Einkaufswoche',
   stand: `${BETA} ${VERFUEGBAR}`,
   handy: {
@@ -385,18 +386,19 @@ export const fragenStart = {
   ],
 };
 
-// Abschluss (Teil 1 Nr. 13): gepunktete Lavendel-Fläche, H2, der Satz zur Verfügbarkeit, weißer Knopf "Bald im Play
-// Store" mit Punkt. Am Handy steht darunter klein der Hinweis zur Beta (am Laptop steht er unter den Knöpfen im Kopf).
+// Abschluss (Teil 1 Nr. 13): gepunktete Lavendel-Fläche, H2, der Satz zur Verfügbarkeit, weißer Knopf mit Punkt
+// (seit dem öffentlichen Start ein Link zum Eintrag bei Google Play). Am Handy steht darunter klein der Hinweis zur
+// Beta (am Laptop steht er unter den Knöpfen im Kopf).
 export const abschluss = {
   ueberschrift: 'Passt es für alle? Schau einfach nach.',
   satz: VERFUEGBAR,
-  knopf: 'Bald im Play Store',
+  knopf: 'Jetzt im Play Store',
   beta: BETA,
 };
 
 // Leiste unten am Handy (Teil 1 Nr. 15): erscheint nach dem ersten Bildschirm, nur am Handy. Das Logo führt an den
-// Anfang der Seite. Der Knopf führt, solange der Eintrag bei Google Play nicht öffentlich ist, zum Abschluss mit dem
-// Satz zur Verfügbarkeit, danach zum Eintrag (store.oeffentlich in seite.mjs).
+// Anfang der Seite. Der Knopf führt zum Eintrag bei Google Play (store.oeffentlich in seite.mjs; vor dem öffentlichen
+// Start führte er zum Abschluss mit dem Satz zur Verfügbarkeit).
 export const kurzleiste = {
   name: 'FoodAsu im Play Store',
   logo: 'FoodAsu, zum Anfang der Seite',
@@ -436,6 +438,8 @@ export const fuss = {
     dabei: 'Von Anfang an dabei sein.',
     storeBald: 'Bald im Play Store',
     storeLink: 'FoodAsu bei Google Play',
+    // Bildbeschreibung des offiziellen Abzeichens: der Text im Abzeichen.
+    abzeichen: 'Jetzt bei Google Play',
   },
 };
 

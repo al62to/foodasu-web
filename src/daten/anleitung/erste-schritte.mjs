@@ -14,7 +14,7 @@ export default {
       anker: 'installieren',
       symbol: 'download',
       absaetze: [
-        'FoodAsu gibt es zuerst für Android und kommt über Google Play auf dein Handy. Danach folgt die Version fürs iPhone. FoodAsu ist in der Beta: Sobald die App für alle im Play Store steht, findest du den Weg dorthin auf dieser Website.',
+        'FoodAsu gibt es für Android im Play Store. Die Version fürs iPhone folgt. Den Weg zum Eintrag findest du unten auf jeder Seite dieser Website.',
         'Ein Konto brauchst du nicht. Du gibst keinen Namen und keine E-Mail-Adresse ein, um die App zu nutzen.',
       ],
     },

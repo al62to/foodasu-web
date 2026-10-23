@@ -70,7 +70,7 @@ export const fragen = {
       anker: 'wo-bekomme-ich-foodasu',
       frage: 'Wo bekomme ich FoodAsu?',
       antwort: [
-        'FoodAsu ist in der Beta. Wir bauen laufend neue Funktionen ein und freuen uns über dein Feedback. Zuerst kommt die App für Android in den Play Store, danach folgt die Version fürs iPhone.',
+        'FoodAsu ist in der Beta. Wir bauen laufend neue Funktionen ein und freuen uns über dein Feedback. FoodAsu gibt es für Android im Play Store. Die Version fürs iPhone folgt.',
       ],
     },
   ],

@@ -24,8 +24,9 @@ import { jahreVonBis } from '../daten/alte_rezepte.mjs';
 const organisation = `${seite.adresse}/#organisation`;
 const entwickler = `${seite.adresse}/#ali-tonc`;
 // Strukturierte Daten (Auftrag Teil 3 Nr. 1): WebSite und Organization wie bisher, dazu Person (Ali Tonc als
-// Entwickler, nur Name und Website), SoftwareApplication (ohne offers, ohne Preis, ohne Bewertung; den Eintrag bei
-// Google Play erst mit store.oeffentlich) und FAQPage, wortgleich zu den sichtbaren Fragen.
+// Entwickler, nur Name und Website), seit AP-34 MobileApplication statt SoftwareApplication (eine Unterart; ohne
+// offers, ohne Preis, ohne Bewertung wegen der Wortregel, auch wenn Google dann kein Rich Result zeigt; installUrl
+// mit store.oeffentlich) und FAQPage, wortgleich zu den sichtbaren Fragen.
 const gleich = [auftritte.facebook, auftritte.instagram, store.oeffentlich ? store.adresse : ''].filter(Boolean);
 const antwortText = (eintrag) => eintrag.antwort.join(' ');
 const daten = [
@@ -58,7 +59,7 @@ const daten = [
   },
   {
     '@context': 'https://schema.org',
-    '@type': 'SoftwareApplication',
+    '@type': 'MobileApplication',
     '@id': `${seite.adresse}/#app`,
     name: seite.name,
     operatingSystem: 'Android',
@@ -143,7 +144,7 @@ const posterQuellen = (format) => [360, 720].map((breite) => `${filmOrt}-${forma
         <h1 class="held-titel"><span class="h-gross">{kopf.ueberschrift[0]}</span>{' '}<span class="h-gross h-farbe">{kopf.ueberschrift[1]}</span>{' '}<span class="h-klein">{kopf.ueberschrift[2]}</span></h1>
         <p class="held-satz">{kopf.satz.vor}<em>{kopf.satz.betont}</em>{kopf.satz.nach}</p>
         <div class="held-knoepfe">
-          <span class="bald"><i aria-hidden="true"></i><span>{kopf.aufruf}</span></span>
+          <a class="bald" href={store.adresse} rel="noopener"><i aria-hidden="true"></i><span>{kopf.aufruf}</span></a>
           <a class="knopf voll" href="#schritte">
             {kopf.zweiterKnopf}
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...linien} stroke-width="2.4"><path d="M12 5v14M6 13l6 6 6-6" /></svg>
@@ -419,7 +420,7 @@ const posterQuellen = (format) => [360, 720].map((breite) => `${filmOrt}-${forma
           <h2>{abschluss.ueberschrift}</h2>
           <p>{abschluss.satz}</p>
         </div>
-        <span class="bald"><i aria-hidden="true"></i><span>{abschluss.knopf}</span></span>
+        <a class="bald" href={store.adresse} rel="noopener"><i aria-hidden="true"></i><span>{abschluss.knopf}</span></a>
         <p class="abschluss-beta">{abschluss.beta}</p>
       </div>
     </div>

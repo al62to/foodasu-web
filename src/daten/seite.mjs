@@ -24,11 +24,12 @@ export const auftritte = {
   instagram: 'https://www.instagram.com/foodasu.app/',
 };
 
-// Store-Eintrag. Solange "oeffentlich" aus ist, steht im Fuß der Text "Bald im Play Store" ohne Link, und die
-// strukturierten Daten nennen den Store nicht. Mit "oeffentlich" kommt die Adresse in sameAs von Organization
-// (Vormerkung aus AP-22). Ein Angebot oder MobileApplication steht in den strukturierten Daten nicht mehr.
+// Store-Eintrag. Seit dem öffentlichen Start (23.10.2026, 17:51 Uhr; AP-34) ist "oeffentlich" an: Im Fuß steht das
+// offizielle deutsche Abzeichen von Google Play (public/bilder/google-play-abzeichen-de.png, unverändert von Google),
+// die Knöpfe der Startseite und der Rezeptseiten führen zum Eintrag, die Adresse steht in sameAs von Organization,
+// als installUrl der MobileApplication und in llms.txt. Ein Angebot oder ein Preis steht nirgends (Wortregel).
 export const store = {
-  oeffentlich: false,
+  oeffentlich: true,
   adresse: 'https://play.google.com/store/apps/details?id=at.tonc.einkauf',
 };
 

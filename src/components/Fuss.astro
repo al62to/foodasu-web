@@ -67,11 +67,12 @@ const kontaktLink = `<a href="${kontakt.trim()}">${fuss.links.kontakt}</a>`;
   <div class="innen">
     <div class="fuss-zeile">
       <p>{fuss.rechte}</p>
-      {/* Nach dem öffentlichen Start wird aus dem Hinweis das offizielle Abzeichen von Google Play. */}
+      {/* Seit dem öffentlichen Start (AP-34) das offizielle deutsche Abzeichen von Google Play, unverändert nach den
+          Vorgaben von Google: Höhe mindestens 28 px, ringsum frei ein Viertel der Höhe, keine Änderung an Farben oder
+          Teilen. Die Datei liegt auf foodasu.com, kein Abruf bei Google. */}
       {store.oeffentlich ? (
-        <a class="fuss-store" href={store.adresse} rel="me noopener">
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 3.6v16.8a1 1 0 0 0 1.5.9l14-8.4a1 1 0 0 0 0-1.8l-14-8.4A1 1 0 0 0 5 3.6z" /></svg>
-          {fuss.auftritte.storeLink}
+        <a class="fuss-abzeichen" href={store.adresse} rel="me noopener">
+          <img src="/bilder/google-play-abzeichen-de.png" width="646" height="250" alt={fuss.auftritte.abzeichen} loading="lazy" decoding="async" />
         </a>
       ) : (
         <p class="fuss-bald">

@@ -28,6 +28,7 @@
 .held-knoepfe { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-top: 1.25rem; }
 .held-knoepfe .knopf, .held-knoepfe .bald { min-height: 3rem; gap: 0.5rem; padding: 0 0.85rem; font-size: 0.875rem; }
 .bald { display: inline-flex; align-items: center; gap: 0.6rem; min-height: 3rem; padding: 0 1.15rem; border: 1px solid var(--tone-deep); border-radius: 999px; background: var(--karte); color: var(--deep); font-size: 0.95rem; font-weight: 700; }
+a.bald { text-decoration: none; }
 .bald i { width: 0.6rem; height: 0.6rem; border-radius: 50%; background: var(--main); box-shadow: 0 0 0 3px var(--tone-deep); }
 /* Hinweis zu Beta und Verfügbarkeit: am Laptop unter den Knöpfen, am Handy im Abschluss (Auftrag Teil 1 Nr. 2d). */
 .held-stand { display: none; max-width: 40em; margin: 1.25rem 0 0; font-size: 0.9rem; line-height: 1.7; color: var(--muted); }

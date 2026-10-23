@@ -66,7 +66,7 @@ export const ueber = {
       anker: 'stand',
       symbol: 'neu',
       titel: 'Wo FoodAsu steht',
-      absaetze: ['FoodAsu ist in der Beta. Wir bauen laufend neue Funktionen ein und freuen uns über dein Feedback. Zuerst kommt die App für Android in den Play Store, danach folgt die Version fürs iPhone.'],
+      absaetze: ['FoodAsu ist in der Beta. Wir bauen laufend neue Funktionen ein und freuen uns über dein Feedback. FoodAsu gibt es für Android im Play Store. Die Version fürs iPhone folgt.'],
       verweis: { vor: 'Was die App schon kann, zeigt die Anleitung ', text: "So geht's", nach: '.', ziel: '/so-gehts/' },
     },
     {
