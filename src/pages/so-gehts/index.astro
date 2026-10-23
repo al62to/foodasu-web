@@ -12,10 +12,11 @@ import Handy from '../../components/Handy.astro';
 import '../../styles/sogehts.css';
 import { seite } from '../../daten/seite.mjs';
 import { BEREICH, adresse, kapitel, leitbildVon, uebersicht } from '../../daten/sogehts.mjs';
+import { seitenDaten } from '../../daten/strukturiert.mjs';
 
 // Gliederung für Suchmaschinen und KI-Antworten: die Kapitel als Liste. In den Daten steht nur, was auf der Seite
-// sichtbar ist.
-const daten = [{
+// sichtbar ist. Seit AP-35A dazu die Seite als CollectionPage mit Verweis auf die App (src/daten/strukturiert.mjs).
+const daten = [seitenDaten(BEREICH, { art: 'CollectionPage' }), {
   '@context': 'https://schema.org',
   '@type': 'ItemList',
   name: uebersicht.titel,

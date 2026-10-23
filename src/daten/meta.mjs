@@ -85,6 +85,12 @@ const FEST = [
     titel: mitMarke('/datenschutz.html', 'Datenschutzerklärung'),
     beschreibung: 'Datenschutzerklärung der App FoodAsu und der Website foodasu.com: welche Daten verarbeitet werden, wozu, und welche Rechte du hast.',
   },
+  // Nutzungsbedingungen (AP-35A, 23.10.2026): im Index wie die Datenschutzerklärung.
+  {
+    pfad: '/nutzungsbedingungen.html',
+    titel: mitMarke('/nutzungsbedingungen.html', 'Nutzungsbedingungen der App'),
+    beschreibung: 'Nutzungsbedingungen der App FoodAsu und der Website foodasu.com: was die App ist, woher die Daten kommen, Haftung und deine Rechte.',
+  },
   {
     pfad: '/lizenzen/',
     titel: mitMarke('/lizenzen/', 'Lizenzen dieser Website'),
@@ -377,7 +383,7 @@ const rezeptListe = rezeptSeiten.map((rezept) => ({ pfad: rezeptAdresse(rezept),
 
 export const alleMeta = [
   fest('/'), fest(BEREICH), ...anleitung, uebersicht, alteMeta, ...themenSeiten, ...rezeptListe, fest('/fragen/'),
-  fest('/daten-und-quellen/'), fest('/ueber-foodasu/'), fest('/datenschutz.html'), fest('/lizenzen/'), fest('/offenlegung/'), fest('/quellen-und-lizenzen/'), fest('/404.html'),
+  fest('/daten-und-quellen/'), fest('/ueber-foodasu/'), fest('/datenschutz.html'), fest('/nutzungsbedingungen.html'), fest('/lizenzen/'), fest('/offenlegung/'), fest('/quellen-und-lizenzen/'), fest('/404.html'),
 ].map(({ imIndex = true, ...eintrag }) => ({ art: 'website', bild: GEMEINSAM, ...eintrag, index: imIndex && !OHNE_INDEX.includes(eintrag.pfad) }));
 
 // ---- Prüfung beim Laden: Jeder Verstoß bricht den Bau ab. ----

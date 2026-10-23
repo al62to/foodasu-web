@@ -18,6 +18,7 @@ import '../../../styles/sogehts.css';
 import { seite } from '../../../daten/seite.mjs';
 import { BEREICH, adresse, artVon, fotoDaten, kapitel, rahmen, uebersicht } from '../../../daten/sogehts.mjs';
 import { metaVon } from '../../../daten/meta.mjs';
+import { ueberApp } from '../../../daten/strukturiert.mjs';
 
 export function getStaticPaths() {
   return kapitel.map((eintrag) => ({ params: { kapitel: eintrag.slug }, props: { slug: eintrag.slug } }));
@@ -67,6 +68,8 @@ const daten = [{
   articleSection: eintrag.teile.map((teil) => teil.titel),
   isPartOf: { '@type': 'CollectionPage', name: uebersicht.titel, url: seite.adresse + BEREICH },
   publisher: { '@type': 'Organization', name: seite.name, url: seite.adresse },
+  // Seit AP-35A: Verweis auf die App (feste Kennung, vollständig nur auf der Startseite).
+  ...ueberApp,
 }];
 ---
 <Basis daten={daten}>

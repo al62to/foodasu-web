@@ -54,6 +54,7 @@ export function GET() {
     '',
     '## Rechtliches',
     link('Datenschutzerklärung', '/datenschutz.html'),
+    link(geruest.recht.nutzungsbedingungen, '/nutzungsbedingungen.html'),
     link(geruest.lizenzen.titel, '/lizenzen/'),
     '',
   ];

@@ -6,14 +6,15 @@
 // Am Wortlaut ändert dieses Gerüst nichts: Der Text kommt unverändert in die Lesespalte.
 // "inhalt": Liste aus { kennung, text, teil } ("teil": Überschrift einer Gruppe, zum Beispiel "Teil A: Die App").
 // "stand": Zeile unter der Überschrift in Grau (Version und Datum), "leistenTitel": Überschrift des Verzeichnisses.
+// "daten": strukturierte Daten der Seite (seit AP-35A für die Nutzungsbedingungen), sie gehen an das Grundlayout.
 import Basis from '../layouts/Basis.astro';
 import Seitenkopf from './Seitenkopf.astro';
 import { geruest } from '../daten/startseite.mjs';
 
-const { adresse, krumen, titel, vorspann, stand, inhalt = [], leistenTitel = geruest.recht.inhalt } = Astro.props;
+const { adresse, krumen, titel, vorspann, stand, inhalt = [], leistenTitel = geruest.recht.inhalt, daten = [] } = Astro.props;
 const mitLeiste = inhalt.length > 0;
 ---
-<Basis adresse={adresse}>
+<Basis adresse={adresse} daten={daten}>
   <Seitenkopf
     krumen={krumen}
     titel={titel}

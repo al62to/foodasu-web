@@ -417,7 +417,7 @@ export const fuss = {
   satz: 'Einkaufslisten-App und Lebensmittel-Scanner für den ganzen Haushalt.',
   hinweis: 'Maßgeblich ist die Verpackung.',
   spalten: { recht: 'Rechtliches', foodasu: 'FoodAsu', folgen: 'Folge uns' },
-  links: { datenschutz: 'Datenschutz', offenlegung: 'Offenlegung', lizenzen: 'Lizenzen', quellen: 'Quellen und Lizenzen', kontakt: 'Kontakt per E-Mail' },
+  links: { datenschutz: 'Datenschutz', nutzungsbedingungen: 'Nutzungsbedingungen', offenlegung: 'Offenlegung', lizenzen: 'Lizenzen', quellen: 'Quellen und Lizenzen', kontakt: 'Kontakt per E-Mail' },
   // Zweite Spalte: dieselben Ziele wie in der Hauptnavigation, dazu der Kontakt.
   seiten: [
     { titel: "So geht's", ziel: '/so-gehts/' },
@@ -453,7 +453,7 @@ export const geruest = {
   // Schalter in der Kopfzeile, am Handy im Menü (AP-18 Teil C): aus = hell, an = dunkel, wie in der App.
   modus: 'Dunkler Modus',
   brotkrumen: 'Brotkrumen',
-  recht: { datenschutz: 'Datenschutz', inhalt: 'Inhalt' },
+  recht: { datenschutz: 'Datenschutz', nutzungsbedingungen: 'Nutzungsbedingungen', inhalt: 'Inhalt' },
   // Eigene Seite der Offenlegung (AP-17 Teil E1). Der Wortlaut kommt aus dem Baustein src/inhalte/offenlegung.html.
   offenlegung: { titel: 'Offenlegung' },
   fragenSeite: {

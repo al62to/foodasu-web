@@ -380,11 +380,14 @@ sage('## 2d Unterseiten: ruhiger Kopfbereich, Einblenden, Knopf "Bewegung anhalt
   pruefe(stand.knopf === 'Bewegung anhalten' && stand.hoehe >= 44, `${kapitel}, Handy: Knopf ${stand.hoehe} px hoch`);
   await handy.umgebung.close();
 
-  const recht = await neueSeite({ ansicht: LAPTOP });
-  await recht.seite.goto(BASIS + '/datenschutz.html', { waitUntil: 'networkidle0' });
-  stand = await lese(recht.seite);
-  pruefe(stand.knopf === 'verborgen' && stand.schleifen === 0 && stand.muster, '/datenschutz.html: ruhiger Kopfbereich ohne Schleife und ohne Knopf');
-  await recht.umgebung.close();
+  // Seit AP-35A auch die Nutzungsbedingungen (gleiche Vorlage wie die Datenschutzerklärung).
+  for (const pfad of ['/datenschutz.html', '/nutzungsbedingungen.html']) {
+    const recht = await neueSeite({ ansicht: LAPTOP });
+    await recht.seite.goto(BASIS + pfad, { waitUntil: 'networkidle0' });
+    stand = await lese(recht.seite);
+    pruefe(stand.knopf === 'verborgen' && stand.schleifen === 0 && stand.muster, `${pfad}: ruhiger Kopfbereich ohne Schleife und ohne Knopf`);
+    await recht.umgebung.close();
+  }
 }
 
 // 2e Schalter für helle und dunkle Darstellung (AP-18 Teil C)
@@ -455,7 +458,7 @@ sage('## 2e Schalter für helle und dunkle Darstellung');
         beobachter.disconnect();
       }).observe(document, { childList: true, subtree: true });
     });
-    for (const pfad of ['/', '/rezepte/', '/rezepte/bibimbap/', '/datenschutz.html', '/404.html']) {
+    for (const pfad of ['/', '/rezepte/', '/rezepte/bibimbap/', '/datenschutz.html', '/nutzungsbedingungen.html', '/404.html']) {
       await seite.goto(BASIS + pfad, { waitUntil: 'networkidle0' });
       stand = await lese(seite);
       const vorher = await seite.evaluate(() => window.__modusVorDemInhalt);

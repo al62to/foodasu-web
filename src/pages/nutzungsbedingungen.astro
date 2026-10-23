@@ -1,0 +1,24 @@
+---
+// Nutzungsbedingungen unter /nutzungsbedingungen.html (AP-35A, 23.10.2026), im Aufbau und Stil der
+// Datenschutzerklärung (src/pages/datenschutz.astro): Der Wortlaut kommt unverändert aus dem Baustein
+// src/inhalte/nutzungsbedingungen.html (tools/rechtstexte_uebernehmen.mjs, Quelle foodasu-play/Nutzungsbedingungen_1.0.md);
+// hier entsteht nur die Gestaltung (src/components/Rechtsseite.astro): Überschrift und Stand im Kopf, die Abschnitte
+// im Inhaltsverzeichnis an der Seite. Strukturierte Daten: die Seite als WebPage mit Verweis auf die App und dem Tag
+// der letzten Änderung.
+import Rechtsseite from '../components/Rechtsseite.astro';
+import bedingungen from '../inhalte/nutzungsbedingungen.html?raw';
+import { geruest } from '../daten/startseite.mjs';
+import { seitenDaten } from '../daten/strukturiert.mjs';
+
+const ADRESSE = '/nutzungsbedingungen.html';
+const anfang = bedingungen.match(/^\s*<h1>([^<]*)<\/h1>\s*<p>([^<]*)<\/p>\s*/);
+if (!anfang) throw new Error('Nutzungsbedingungen: Überschrift und Zeile mit dem Stand am Anfang erwartet.');
+const [ganz, ueberschrift, stand] = anfang;
+const rumpf = bedingungen.slice(ganz.length);
+const abschnitte = [...bedingungen.matchAll(/<h2 id="([^"]+)">([^<]*)<\/h2>/g)].map(([, kennung, text]) => ({ kennung, text, teil: false }));
+if (abschnitte.length !== 19) throw new Error(`Nutzungsbedingungen: 19 Abschnitte erwartet (Kurzfassung und 1 bis 18), gefunden ${abschnitte.length}.`);
+const daten = [seitenDaten(ADRESSE, { geaendert: true })];
+---
+<Rechtsseite adresse={ADRESSE} krumen={[{ titel: geruest.recht.nutzungsbedingungen, ziel: ADRESSE }]} titel={ueberschrift} stand={stand} inhalt={abschnitte} daten={daten}>
+  <div class="text" set:html={rumpf} />
+</Rechtsseite>

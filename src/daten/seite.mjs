@@ -31,6 +31,9 @@ export const auftritte = {
 export const store = {
   oeffentlich: true,
   adresse: 'https://play.google.com/store/apps/details?id=at.tonc.einkauf',
+  // Entwicklerseite bei Google Play (AP-35A; live erreichbar am 23.10.2026, „Android Apps von Ali Tonc bei Google
+  // Play“ mit FoodAsu). Nur als url der Person „Ali Tonc“ in den strukturierten Daten der Startseite.
+  entwickler: 'https://play.google.com/store/apps/dev?id=6237494149245847779',
 };
 
 // Der Tag der letzten Änderung jeder Seite für sitemap.xml kommt seit AP-22 aus dem Git-Datum ihrer Quelldateien

@@ -21,6 +21,7 @@ export const QUELLEN = {
   '/fragen/': ['src/pages/fragen/index.astro', 'src/daten/fragen.mjs'],
   '/daten-und-quellen/': ['src/pages/daten-und-quellen/index.astro', 'src/daten/datenquellen.mjs'],
   '/datenschutz.html': ['src/pages/datenschutz.astro', 'src/inhalte/datenschutz.html'],
+  '/nutzungsbedingungen.html': ['src/pages/nutzungsbedingungen.astro', 'src/inhalte/nutzungsbedingungen.html'],
   '/lizenzen/': ['src/pages/lizenzen/index.astro', 'src/daten/lizenzen.mjs'],
 };
 const REZEPT = ['src/daten/rezepte.json', 'src/daten/rezepte_zusatz.json', 'src/daten/rezeptseiten.mjs', 'src/components/Rezeptseite.astro'];

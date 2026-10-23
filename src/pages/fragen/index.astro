@@ -7,6 +7,7 @@ import Basis from '../../layouts/Basis.astro';
 import Seitenkopf from '../../components/Seitenkopf.astro';
 import { geruest } from '../../daten/startseite.mjs';
 import { fragen, fragenGruppen, MEDIZIN } from '../../daten/fragen.mjs';
+import { ueberApp } from '../../daten/strukturiert.mjs';
 
 const texte = geruest.fragenSeite;
 const gruppen = fragenGruppen.gruppen.map((gruppe) => ({
@@ -23,9 +24,11 @@ if (geordnet.length !== fragen.liste.length || new Set(geordnet).size !== geordn
 }
 const antwortText = (eintrag) =>
   [...eintrag.antwort, eintrag.verweis ? `${eintrag.verweis.vor}${eintrag.verweis.text}${eintrag.verweis.nach}` : null].filter(Boolean).join(' ');
+// Seit AP-35A verweist die Seite auf die App (feste Kennung, vollständig nur auf der Startseite).
 const daten = [{
   '@context': 'https://schema.org',
   '@type': 'FAQPage',
+  ...ueberApp,
   mainEntity: geordnet.map((eintrag) => ({
     '@type': 'Question',
     name: eintrag.frage,

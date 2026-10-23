@@ -21,7 +21,20 @@ const DIST = process.env.DIST ?? 'dist';
 const HOST = 'https://foodasu.com';
 const OHNE_EINGANG = new Set(['/', '/404.html']);
 // Rechtstexte laufen wie in texte_pruefen.py nur durch die Bezahl- und Fristlisten.
-const RECHTSTEXTE = new Set(['/datenschutz.html']);
+const RECHTSTEXTE = new Set(['/datenschutz.html', '/nutzungsbedingungen.html']);
+// Nutzungsbedingungen (AP-35A, 23.10.2026; Text wortgleich aus foodasu-play/Nutzungsbedingungen_1.0.md, Alis Ja vom
+// 22.10.2026). Wie in texte_pruefen.py: In drei Wortlauten meint „Kauf“ den Einkauf von Lebensmitteln oder das
+// UN-Kaufrecht, nicht FoodAsu; nur auf dieser Seite ausgenommen. „Allergien“ steht nur im Satz zum Medizinprodukt
+// (wie im Store-Eintrag); steht es anderswo, ist es ein Befund.
+const NUTZUNG = '/nutzungsbedingungen.html';
+const NUTZUNG_KAUF = ['Lies vor dem Kauf', 'die du tatsächlich kaufst', 'UN-Kaufrechts'];
+const NUTZUNG_MEDIZIN = 'FoodAsu ist kein Medizinprodukt und ersetzt bei Allergien oder Unverträglichkeiten keine ärztliche Beratung.';
+// Strukturierte Daten zur App (AP-35A, Alis Wunsch vom 23.10.2026, 20:13): Die App steht nur auf der Startseite
+// vollständig (MobileApplication mit der Kennung /#app); diese Seiten verweisen mit "about" auf sie, je mit der Art
+// ihrer Angabe. Kapitel von "So geht's" kommen unten dazu (Article).
+const APP_ID = 'https://foodasu.com/#app';
+const SEITEN_DER_APP = new Map([['/', 'WebPage'], ['/so-gehts/', 'CollectionPage'], ['/fragen/', 'FAQPage'], ['/ueber-foodasu/', 'AboutPage'], [NUTZUNG, 'WebPage']]);
+const artDerAppSeite = (adresse) => SEITEN_DER_APP.get(adresse) ?? (/^\/so-gehts\/[a-z0-9-]+\/$/.test(adresse) ? 'Article' : null);
 // Quelle, Urheber, Lizenz und Änderungen je Rezept (nicht im Index, im Fuß verlinkt).
 const QUELLEN = '/quellen-und-lizenzen/';
 // Rezepte, die es in der App noch nicht gibt (AP-25): Rezepte aus alten Kochbüchern und neue Rezepte. Gelesen wird die
@@ -318,8 +331,18 @@ for (const [adresse, html] of seiten) {
       melde(adresse, 'JSON-LD ist kein gültiges JSON');
     }
   }
-  const erwartet = adresse === '/' ? ['WebSite', 'Organization', 'Person', 'MobileApplication', 'VideoObject', 'FAQPage'] : OHNE_EINGANG.has(adresse) ? [] : ['BreadcrumbList'];
+  const erwartet = adresse === '/' ? ['WebSite', 'Organization', 'Person', 'MobileApplication', 'VideoObject', 'FAQPage', 'WebPage'] : OHNE_EINGANG.has(adresse) ? [] : ['BreadcrumbList', ...(artDerAppSeite(adresse) ? [artDerAppSeite(adresse)] : [])];
   for (const art of erwartet) if (!arten.includes(art)) melde(adresse, `strukturierte Daten fehlen: ${art}`);
+  // Verweis auf die App (AP-35A): Auf jeder Seite, die von der App handelt, verweist die Angabe ihrer Art mit "about"
+  // genau auf die Kennung der App; keine andere Seite verweist auf sie.
+  {
+    const bloecke = alle(html, /<script type="application\/ld\+json">([\s\S]*?)<\/script>/g).map(([, roh]) => { try { return JSON.parse(roh); } catch { return {}; } });
+    const verweise = bloecke.filter((block) => block.about?.['@id'] === APP_ID);
+    const art = artDerAppSeite(adresse);
+    if (art && !verweise.some((block) => block['@type'] === art)) melde(adresse, `strukturierte Daten: ${art} ohne about mit der Kennung der App`);
+    if (!art && verweise.length) melde(adresse, 'strukturierte Daten: Verweis auf die App auf einer Seite, die nicht von ihr handelt');
+    if (art && bloecke.some((block) => block.about && block.about['@id'] !== APP_ID)) melde(adresse, 'strukturierte Daten: about zeigt nicht auf die Kennung der App');
+  }
   // Software-App: seit dem Auftrag SEO 1 neu (14.10.2026) genau eine App-Angabe, seit AP-34 (23.10.2026) als
   // MobileApplication (Unterart von SoftwareApplication), nur auf der Startseite (ohne
   // Angebot, Preis und Bewertung; die Einzelheiten prüft der Abschnitt zur Startseite unten). Sie ist Pflicht und wird
@@ -527,7 +550,15 @@ for (const [adresse, html] of seiten) {
   }
 
   // Wortlisten
-  const text = sichtbar(html);
+  let text = sichtbar(html);
+  if (adresse === NUTZUNG) {
+    for (const wortlaut of NUTZUNG_KAUF) {
+      if (!text.includes(wortlaut)) melde(adresse, `Wortlaut der Ausnahme fehlt (Liste NUTZUNG_KAUF nachziehen): „${wortlaut}“`);
+      text = text.replaceAll(wortlaut, ' '.repeat(wortlaut.length));
+    }
+    if (!text.includes(NUTZUNG_MEDIZIN)) melde(adresse, 'Satz zum Medizinprodukt fehlt oder weicht ab');
+    for (const fund of alle(text.replaceAll(NUTZUNG_MEDIZIN, ' '), muster('allergi|allergen'))) melde(adresse, `GESPERRT außerhalb des Satzes zum Medizinprodukt: ${fund[0]}`);
+  }
   const listen = RECHTSTEXTE.has(adresse) ? BEZAHL_UND_FRIST : [...GESPERRT, ...BEZAHL_UND_FRIST, ...BETA, ...WENDUNGEN];
   for (const [art, ausdruck] of listen) for (const fund of alle(text, ausdruck)) melde(adresse, `${art}: ${fund[0]}`);
 }
@@ -655,7 +686,7 @@ for (const [adresse, html] of seiten) {
 
 // Fußzeile A (AP-18 Teil D): auf jeder Seite Logo mit Satz und Hinweis, drei Spalten mit ihren Links, die schmale
 // Zeile mit dem Vermerk. Facebook und Instagram sind einfache Links; eingebettet wird nichts.
-const FUSS_LINKS = ['/datenschutz.html', '/offenlegung/', '/lizenzen/', '/quellen-und-lizenzen/', '/so-gehts/', '/rezepte/', ALTE, '/fragen/', '/daten-und-quellen/', '/ueber-foodasu/'];
+const FUSS_LINKS = ['/datenschutz.html', '/nutzungsbedingungen.html', '/offenlegung/', '/lizenzen/', '/quellen-und-lizenzen/', '/so-gehts/', '/rezepte/', ALTE, '/fragen/', '/daten-und-quellen/', '/ueber-foodasu/'];
 const FUSS_TEXTE = [
   'Einkaufslisten-App und Lebensmittel-Scanner für den ganzen Haushalt.', 'Maßgeblich ist die Verpackung.', 'Rechtliches', 'Folge uns',
   'Von Anfang an dabei sein.', '© 2026 FoodAsu · Eine App von Ali',
@@ -670,6 +701,10 @@ for (const [adresse, html] of seiten) {
     inhalt.replace(/<svg[\s\S]*?<\/svg>/g, ' ').replace(/<\/?(?:span|b|i|em|strong)\b[^>]*>/g, '').replace(/<[^>]+>/g, ' '),
   ).replace(/\s+/g, ' ');
   for (const ziel of FUSS_LINKS) if (!inhalt.includes(`href="${ziel}"`)) melde(adresse, `Fußzeile ohne Link auf ${ziel}`);
+  // AP-35A: In der Spalte „Rechtliches“ steht „Nutzungsbedingungen“ direkt unter „Datenschutz“.
+  const recht = inhalt.match(/aria-labelledby="fuss-recht">[\s\S]*?<\/nav>/)?.[0] ?? '';
+  const rechtLinks = alle(recht, /<a href="([^"]+)"[^>]*>([^<]*)<\/a>/g).map(([, ziel, wort]) => `${wort.trim()} ${ziel}`);
+  if (rechtLinks.slice(0, 2).join(' | ') !== 'Datenschutz /datenschutz.html | Nutzungsbedingungen /nutzungsbedingungen.html') melde(adresse, `Fußzeile, Rechtliches: „Nutzungsbedingungen“ direkt unter „Datenschutz“ erwartet, gefunden ${rechtLinks.join(', ')}`);
   for (const satz of FUSS_TEXTE) if (!text.includes(satz)) melde(adresse, `Fußzeile ohne den Text „${satz}“`);
   if (alle(inhalt, /<h2\b/g).length !== 3) melde(adresse, 'Fußzeile: drei Spalten mit Überschrift erwartet');
   if (!/href="mailto:|href="&#/.test(inhalt)) melde(adresse, 'Fußzeile ohne Kontakt per E-Mail');
@@ -1118,6 +1153,11 @@ const PLAY_EINTRAG = 'https://play.google.com/store/apps/details?id=at.tonc.eink
 // Die Zahl der Rezepte kommt aus den Daten.
 const GEO = `FoodAsu ist eine Einkaufslisten-App mit Lebensmittel-Scanner: Einkaufsliste, über ${UEBER} Rezepte und ein Scanner, der für jede Person im Haushalt zeigt, ob laut den Angaben zum Produkt etwas drin ist, das sie meidet.`;
 const BETRIEBSSYSTEM = '"operatingSystem":"Android"';
+// Seit AP-35A nennt die App-Angabe der Startseite die kleinste Version (minSdk 26 der App). Nur genau diese Angabe.
+const MINDESTVERSION = '"softwareRequirements":"Android 8.0 oder neuer"';
+// Beschreibung der App in den strukturierten Daten (AP-35A): wortgleich die Kurzbeschreibung des deutschen
+// Store-Eintrags (foodasu-play/Store_Eintrag.md, Fassung AP-33, live seit dem öffentlichen Start).
+const APP_KURZ = 'Einkaufsliste und Lebensmittel-Scanner für den ganzen Haushalt. Mit Rezepten.';
 // Video der Startseite (Stufe 2, Projektleitung, 14.10.2026, 13:45): Name und Beschreibung wörtlich aus dem Auftrag,
 // die Dateien unter /bilder/start (je Format WebM, MP4 und das Poster in 360 und 720).
 const VIDEO_NAME = 'Vom Einkaufszettel zur Einkaufsliste mit FoodAsu';
@@ -1129,7 +1169,7 @@ const ANLEITUNG_ANDROID = [
   'Backup von Android', 'backup-von-android', 'Android kann ein Backup deiner App-Daten anlegen',
   'Mit geht die Version der App und von Android, sonst nichts.',
 ];
-const RECHT_MIT_ANSCHRIFT = new Set(['/datenschutz.html', '/offenlegung/']);
+const RECHT_MIT_ANSCHRIFT = new Set(['/datenschutz.html', '/offenlegung/', '/nutzungsbedingungen.html']);
 // Sprachangaben um ein fremdes Wort (tools/sprache_setzen.mjs) trennen einen Wortlaut nicht.
 const ohneSprachangabe = (html) => html.replace(/<span lang="[a-z-]+">([^<]*)<\/span>/g, '$1');
 const fliesstext = (adresse) => entschluesselt(ohneSprachangabe(seiten.get(adresse) ?? '').replace(/<script[\s\S]*?<\/script>/g, ' ').replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ');
@@ -1145,7 +1185,7 @@ for (const datei of dateien.filter((pfad) => /\.(?:html|txt|xml|json|webmanifest
   for (const roh of name === '/llms.txt' ? inhalt.split('\n') : [inhalt]) {
     let teil = entschluesselt(ohneSprachangabe(roh)).replace(/\s+/g, ' ');
     teil = teil.replaceAll(VERFUEGBAR, ' ').replaceAll(PLAY_EINTRAG, ' ').replace(WEITERE_SPRACHE, ' ');
-    if (adresse === '/') teil = teil.replaceAll(BETRIEBSSYSTEM, ' ');
+    if (adresse === '/') teil = teil.replaceAll(BETRIEBSSYSTEM, ' ').replaceAll(MINDESTVERSION, ' ');
     const inAnleitung = adresse.startsWith(BEREICH) || (name === '/llms.txt' && teil.includes(`](${HOST}${BEREICH}`));
     if (inAnleitung) for (const wortlaut of ANLEITUNG_ANDROID) teil = teil.replaceAll(wortlaut, ' ');
     const beiRezepten = adresse.startsWith('/rezepte/') || adresse === ALTE || adresse === QUELLEN || (name === '/llms.txt' && (teil.includes(`](${HOST}/rezepte/`) || teil.includes(`](${HOST}${ALTE}`)));
@@ -1296,14 +1336,34 @@ if (/mailto:/.test(ueberInhalt)) melde('/ueber-foodasu/', 'die Adresse des Konta
   // MobileApplication und Person (Teil 3 Nr. 1; seit AP-34 MobileApplication mit installUrl).
   const app = block('MobileApplication');
   if (app) {
-    if (app.operatingSystem !== 'Android' || app.applicationCategory !== 'ShoppingApplication' || app.description !== GEO || app.url !== `${HOST}/` || app.name !== 'FoodAsu') melde('/', 'MobileApplication: Name, Betriebssystem, Kategorie, Beschreibung (GEO-Satz) oder Adresse weicht ab');
+    // Seit AP-35A: feste Kennung, Beschreibung wortgleich die Kurzbeschreibung des deutschen Store-Eintrags (nicht mehr
+    // der GEO-Satz; der steht weiter sichtbar auf der Seite und in llms.txt).
+    if (app['@id'] !== APP_ID || app.operatingSystem !== 'Android' || app.applicationCategory !== 'ShoppingApplication' || app.description !== APP_KURZ || app.url !== `${HOST}/` || app.name !== 'FoodAsu') melde('/', 'MobileApplication: Kennung, Name, Betriebssystem, Kategorie, Beschreibung (Kurzbeschreibung des Store-Eintrags) oder Adresse weicht ab');
     if (app.author?.['@id'] !== `${HOST}/#ali-tonc` || block('Person')?.['@id'] !== `${HOST}/#ali-tonc`) melde('/', 'MobileApplication: der Entwickler (author, Person „Ali Tonc“) fehlt');
     if (/offers|price|aggregateRating|review|isAccessibleForFree/i.test(JSON.stringify(app))) melde('/', 'MobileApplication: Angebot, Preis oder Bewertung gehören nicht hinein');
     if (!store.oeffentlich && JSON.stringify(app).includes('play.google.com')) melde('/', 'MobileApplication: Eintrag bei Google Play vor dem öffentlichen Start');
     if (store.oeffentlich && app.installUrl !== store.adresse) melde('/', 'MobileApplication: installUrl fehlt oder ist nicht der Eintrag bei Google Play');
+    // AP-35A: Symbol und Bildschirmfotos als Dateien auf foodasu.com, die es im Bau gibt; Datum, Sprachen, Länder,
+    // kleinste Version und Berechtigungen wie im Auftrag; keine Version der App (veraltet sonst), kein termsOfService
+    // (gibt es bei schema.org für diese Art nicht).
+    const bilder = [app.image, ...[app.screenshot ?? []].flat()];
+    if (!app.image || ![app.screenshot ?? []].flat().length) melde('/', 'MobileApplication: image oder screenshot fehlt');
+    for (const bild of bilder) if (typeof bild !== 'string' || !bild.startsWith(`${HOST}/`) || !vorhanden.has(bild.slice(HOST.length))) melde('/', `MobileApplication: Bild ist keine Datei auf foodasu.com: ${bild}`);
+    if (app.image !== `${HOST}/apple-touch-icon.png`) melde('/', 'MobileApplication: image ist nicht das App-Symbol');
+    if (app.datePublished !== '2026-10-23') melde('/', 'MobileApplication: datePublished 2026-10-23 erwartet');
+    if (JSON.stringify(app.inLanguage) !== '["de","en"]') melde('/', 'MobileApplication: inLanguage de und en erwartet');
+    if (JSON.stringify(app.countriesSupported) !== '["AT","DE","CH","LI"]') melde('/', 'MobileApplication: countriesSupported AT, DE, CH, LI erwartet');
+    if (app.softwareRequirements !== 'Android 8.0 oder neuer') melde('/', 'MobileApplication: softwareRequirements „Android 8.0 oder neuer“ erwartet (minSdk 26)');
+    if (app.permissions !== 'Kamera, Internet, Vibration, Netzwerkstatus') melde('/', 'MobileApplication: permissions weichen von den Berechtigungen der App ab');
+    for (const feld of ['softwareVersion', 'termsOfService']) if (feld in app) melde('/', `MobileApplication: ${feld} gehört nicht hinein`);
   }
   const person = block('Person');
   if (person && (person.name !== 'Ali Tonc' || Object.keys(person).some((schluessel) => !['@context', '@type', '@id', 'name', 'url'].includes(schluessel)))) melde('/', 'Person: nur Name und Website von Ali Tonc erwartet');
+  // AP-35A: url der Person ist die Entwicklerseite bei Google Play (nur nach dem öffentlichen Start).
+  if (person && store.oeffentlich && person.url !== store.entwickler) melde('/', 'Person: url ist nicht die Entwicklerseite bei Google Play');
+  if (person && !/^https:\/\/play\.google\.com\/store\/apps\/dev\?id=\d+$/.test(store.entwickler ?? '')) melde('/', 'Person: Adresse der Entwicklerseite bei Google Play hat nicht die erwartete Form');
+  // Die Startseite selbst als WebPage mit Verweis auf die App (der Verweis wird oben für alle Seiten geprüft).
+  if (block('WebPage')?.url !== `${HOST}/`) melde('/', 'WebPage der Startseite: url fehlt oder weicht ab');
   // Pflichtstellen des Fokus-Keywords (Teil 2 Nr. 2): Titel, H1, Beschreibung, Unterzeile, H2 der Fragen, Fragen, ein
   // Bild; dazu "Einkaufszettel" in der H2 der Funktionen, in Alis Absatz und in einer Frage (Teil 2 Nr. 3).
   if (!alle(s, /<img\b[^>]*alt="[^"]*Einkaufslisten-App[^"]*"/g).length) melde('/', 'kein Bild mit „Einkaufslisten-App“ in der Beschreibung');
@@ -1346,6 +1406,26 @@ const datenschutz = seiten.get('/datenschutz.html') ?? '';
 for (let nummer = 1; nummer <= 26; nummer++) if (!datenschutz.includes(`<h2 id="abschnitt-${nummer}">`)) melde('/datenschutz.html', `Abschnitt mit dem Anker #abschnitt-${nummer} fehlt`);
 for (const teil of ['teil-a', 'teil-b', 'teil-c', 'teil-d']) if (!datenschutz.includes(`<h2 id="${teil}">`)) melde('/datenschutz.html', `Überschrift mit dem Anker #${teil} fehlt`);
 if (alle(datenschutz, /<nav class="s-toc"/g).length !== 1) melde('/datenschutz.html', 'Inhaltsverzeichnis an der Seite: genau eines erwartet');
+// Nutzungsbedingungen (AP-35A): Kurzfassung und Abschnitte 1 bis 18 mit Anker, Verzeichnis an der Seite, Zeile mit dem
+// Stand, Kontakt nur als HTML-Entitäten; die Seite als WebPage mit Verweis auf die App und dateModified gleich lastmod
+// in sitemap.xml; Link in llms.txt.
+{
+  const nb = seiten.get(NUTZUNG) ?? '';
+  if (!nb) melde(NUTZUNG, 'Seite fehlt');
+  for (const anker of ['das-wichtigste', ...Array.from({ length: 18 }, (_, i) => `abschnitt-${i + 1}`)]) if (!nb.includes(`<h2 id="${anker}">`)) melde(NUTZUNG, `Abschnitt mit dem Anker #${anker} fehlt`);
+  if (alle(nb, /<h2 id="/g).length !== 19) melde(NUTZUNG, '19 Abschnitte mit Anker erwartet');
+  if (alle(nb, /<nav class="s-toc"/g).length !== 1 || alle(nb, /<li><a href="#(?:das-wichtigste|abschnitt-\d+)">/g).length !== 19) melde(NUTZUNG, 'Inhaltsverzeichnis an der Seite mit 19 Einträgen erwartet');
+  if (!/<p class="s-stand">Stand: \d{1,2}\. [A-ZÄÖÜ][a-zä]+ 20\d\d<\/p>/.test(nb)) melde(NUTZUNG, 'Zeile mit dem Stand fehlt');
+  if (alle(nb, /<h1[^>]*>Nutzungsbedingungen für FoodAsu<\/h1>/g).length !== 1) melde(NUTZUNG, 'Überschrift „Nutzungsbedingungen für FoodAsu“ fehlt');
+  if (/mailto:[a-z]/i.test(nb) || /\{\{[A-Z_]+\}\}/.test(nb)) melde(NUTZUNG, 'Adresse im Klartext oder offener Platzhalter');
+  const nbDaten = alle(nb, /<script type="application\/ld\+json">([\s\S]*?)<\/script>/g).map(([, roh]) => { try { return JSON.parse(roh); } catch { return {}; } });
+  const seite = nbDaten.find((block) => block['@type'] === 'WebPage');
+  const lastmod = existsSync(join(DIST, 'sitemap.xml')) ? readFileSync(join(DIST, 'sitemap.xml'), 'utf8').match(/<loc>https:\/\/foodasu\.com\/nutzungsbedingungen\.html<\/loc><lastmod>([\d-]+)<\/lastmod>/)?.[1] : null;
+  if (!seite || seite.url !== HOST + NUTZUNG || seite.about?.['@id'] !== APP_ID) melde(NUTZUNG, 'WebPage mit url und about auf die App fehlt');
+  else if (!lastmod || seite.dateModified !== lastmod) melde(NUTZUNG, `WebPage: dateModified „${seite.dateModified}“ ungleich lastmod in sitemap.xml „${lastmod}“`);
+  if (nbDaten.some((block) => /Application$/.test(block['@type']))) melde(NUTZUNG, 'die App steht nur auf der Startseite vollständig');
+  if (!llms.includes(`(${HOST}${NUTZUNG})`)) melde('llms.txt', `Link fehlt: ${NUTZUNG}`);
+}
 if (/<nav class="s-toc"/.test(seiten.get('/offenlegung/') ?? '')) melde('/offenlegung/', 'die Offenlegung hat keine Abschnitte und braucht kein Inhaltsverzeichnis');
 // Linienmotive: höchstens drei je Abschnitt (die Komponente bricht sonst den Bau ab); hier zählt die Seite als Ganzes
 // nur als Hinweis auf vergessene Kennzeichnung: Jedes Motiv ist für Bildschirmleser ausgeblendet.
