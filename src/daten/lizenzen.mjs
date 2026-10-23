@@ -1,5 +1,6 @@
 // Texte der Seite /lizenzen/ (seit der Freigabe unverändert bis auf Caveat, die Schrift der Handschrift im Video der
-// Startseite; Auftrag der Projektleitung vom 14.10.2026, 13:45). Eigene Datei seit AP-22, damit sitemap.xml den Tag der
+// Startseite; Auftrag der Projektleitung vom 14.10.2026, 13:45) und den Markenhinweis zum Abzeichen von Google Play
+// (AP-34 Fortsetzung, 23.10.2026). Eigene Datei seit AP-22, damit sitemap.xml den Tag der
 // letzten Änderung der Seite aus dem Git-Datum dieser Datei lesen kann (src/daten/stand.mjs).
 export const lizenzen = {
   titel: 'Lizenzen',
@@ -21,5 +22,6 @@ export const lizenzen = {
   saetze: [
     { name: 'Rezepte', text: 'Die Rezepte stammen aus offenen Rezeptsammlungen. Quelle, Urheber, Lizenz und Änderungen stehen für jedes Rezept auf der Seite ', link: { text: 'Quellen und Lizenzen', ziel: '/quellen-und-lizenzen/' }, nach: '.' },
     { name: 'Bilder', text: 'Symbolbilder, mit Adobe Firefly erzeugt.' },
+    { name: 'Google Play', text: 'Google Play und das Google Play-Logo sind Marken von Google LLC.' },
   ],
 };

@@ -1040,6 +1040,9 @@ for (const [adresse, html] of seiten) {
   }
 }
 // Grün und das dunkle Indigo im ganzen Bau (HTML, Stile, Skripte, Vektorbilder).
+// Einzige Ausnahme von „kein Grün, nirgends“ (Ali, 23.10.2026, AP-34 Fortsetzung): das offizielle Abzeichen von Google
+// Play, public/bilder/google-play-abzeichen-de.png (Bild von Google, Farben dürfen nicht geändert werden). Es ist eine
+// PNG und liegt damit außerhalb dieser Prüfung, die nur Textdateien liest; keine andere Datei ist ausgenommen.
 for (const datei of dateien.filter((pfad) => /\.(?:html|css|js|svg|txt|xml)$/.test(pfad))) {
   const inhalt = readFileSync(datei, 'utf8');
   const name = '/' + relative(DIST, datei).split(sep).join('/');

@@ -133,7 +133,9 @@ sage('## 2 "Bewegung reduzieren"');
     return {
       laufend: document.getAnimations().filter((bewegung) => bewegung.playState === 'running').length,
       sichtbar: sichtbar('.held-titel, .held-satz, .handy-rahmen, [data-urteil], [data-person], .schwebt, .schritt, .video-feld, .funktion, .vergleich-tabelle, .einblick-karte, .zaehler li, .band-liste li, .rezeptkarte, .faq details, .abschluss-karte, .wort-text'),
-      zahlen: [...document.querySelectorAll('[data-zahl]')].map((element) => element.textContent === element.dataset.zahl),
+      // Der Zahlenblock zeigt Zahlen ab tausend mit Tausenderpunkt ("4.119"), data-zahl ohne ("4119"); verglichen wird
+      // ohne Punkt (AP-34 Fortsetzung, 23.10.2026).
+      zahlen: [...document.querySelectorAll('[data-zahl]')].map((element) => element.textContent.replaceAll('.', '') === element.dataset.zahl),
       // Seit AP-23 stehen die Einträge und Rezepte still, als Chips in Reihen: kein Laufband, keine Kopien.
       baender: document.querySelectorAll('[data-band], .band-spur, .band-liste[aria-hidden="true"]').length,
       chips: document.querySelectorAll('.band-liste li').length,
@@ -184,7 +186,7 @@ sage('## 2b Bewegung läuft (ohne "Bewegung reduzieren", Laptop)');
     schleifen: document.querySelector('#zahlen').getAnimations({ subtree: true }).filter((lauf) => lauf.effect.getComputedTiming().iterations === Infinity).length,
   }));
   await warte(2300);
-  const amEnde = await seite.evaluate(() => [...document.querySelectorAll('[data-zahl]')].every((element) => element.textContent === element.dataset.zahl));
+  const amEnde = await seite.evaluate(() => [...document.querySelectorAll('[data-zahl]')].every((element) => element.textContent.replaceAll('.', '') === element.dataset.zahl));
   pruefe(amEnde, `Zähler laufen hoch (unterwegs ${unterwegs}, am Ende die Endzahlen)`);
   pruefe(chips.zahl === 27 && chips.baender === 0 && chips.schleifen === 0, `Einträge und Rezepte stehen still, als ${chips.zahl} Chips in Reihen (Laufbänder: ${chips.baender}, Schleifen im Abschnitt: ${chips.schleifen})`);
   await seite.evaluate(() => document.querySelector('#rezepte').scrollIntoView({ behavior: 'instant' }));
@@ -244,7 +246,7 @@ sage('## 2c Knopf "Bewegung anhalten" (ohne "Bewegung reduzieren")');
     });
     return {
       sichtbar: sichtbar('.held-titel, .held-satz, .handy-rahmen, [data-urteil], [data-person], .schwebt, .schritt, .video-feld, .funktion, .vergleich-tabelle, .einblick-karte, .zaehler li, .band-liste li, .rezeptkarte, .faq details, .abschluss-karte, .wort-text'),
-      zahlen: [...document.querySelectorAll('[data-zahl]')].every((element) => element.textContent === element.dataset.zahl),
+      zahlen: [...document.querySelectorAll('[data-zahl]')].every((element) => element.textContent.replaceAll('.', '') === element.dataset.zahl),
       linie: getComputedStyle(document.querySelector('[data-linie]')).transform,
       speicher: document.cookie.length + localStorage.length + sessionStorage.length,
     };
