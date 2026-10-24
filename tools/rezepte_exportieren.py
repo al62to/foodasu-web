@@ -5,6 +5,10 @@ höchstens 40): Das Repository ist öffentlich, alle übrigen Rezepte gibt es nu
 App sagen ("davon 216 zu diesem Thema"), rechnet der Lauf über alle Rezepte des Pakets aus und schreibt davon nur
 die Zahlen in die Datei ("zahlen").
 
+Rezeptpaket Version 2 (AP-37): Zutaten und Schritte stehen in der Fassung für Österreich (`name`, `text`), wie in der
+App mit Region Österreich; dazu `zeitGesamtHinweis` und `ofen` (feste Kennungen oder null). Die Website zeigt die
+Zeile zum Ofen noch nicht (neues Element, erst mit Alis Ja); "über Nacht" ersetzt die Gesamtzeit im Text.
+
 Von Hand gepflegt ist nur die Liste der fremdsprachigen Namen in Titeln für das lang-Attribut. Sie nennt Rezepte
 über die Auswahl hinaus und liegt deshalb außerhalb des Repositorys (--sprachen). Die Adresse eines Rezepts (slug)
 entsteht aus dem Titel vor der Klammer und bleibt fest: Der Lauf bricht ab, wenn sich eine schon vergebene Adresse
@@ -112,7 +116,13 @@ def main() -> None:
             "laender": r["laender"].split(","), "kueche": r["kueche"], "kategorie": r["kategorie"],
             "aufwand": r["aufwand"], "portionen": r["portionen"], "portionenEinheit": r["portionen_einheit"],
             "portionenText": r["portionen_text"], "zeitVorbereitung": r["zeit_vorbereitung"],
-            "zeitGesamt": r["zeit_gesamt"], "vegetarisch": bool(r["vegetarisch"]), "vegan": bool(r["vegan"]),
+            "zeitGesamt": r["zeit_gesamt"], "zeitGesamtHinweis": r["zeit_gesamt_hinweis"],
+            "ofen": None if r["ofen_temp_c"] is None else {
+                "temperatur": r["ofen_temp_c"], "hitzeart": r["ofen_hitzeart"], "umluft": r["ofen_umluft_c"],
+                "schiene": r["ofen_schiene"], "vorheizen": r["ofen_vorheizen_min"],
+                "hinweise": r["ofen_hinweis"].split(";") if r["ofen_hinweis"] else [],
+            },
+            "vegetarisch": bool(r["vegetarisch"]), "vegan": bool(r["vegan"]),
             "quelle": r["quelle"], "quelleUrl": r["quelle_url"], "urheberUrl": r["urheber_url"],
             "lizenz": r["lizenz"], "lizenzUrl": r["lizenz_url"], "uebertragen": bool(r["uebertragen"]),
             "aenderung": r["aenderung"], "hinweise": gesamt, "energiedichte": r["energiedichte"],
@@ -124,6 +134,8 @@ def main() -> None:
         })
 
     stand = dict(db.execute("select schluessel, wert from paket"))
+    if stand["version"] != "2":
+        fehler(f"Rezeptpaket Version {stand['version']}, dieser Export liest Version 2 (Schritte je Land, Ofen)")
     if len(rezepte) != int(stand["rezepte"]):
         fehler(f"{len(rezepte)} Rezepte gelesen, das Paket nennt {stand['rezepte']}")
     unbekannt = [adresse for adresse in gewaehlt if adresse not in adressen]

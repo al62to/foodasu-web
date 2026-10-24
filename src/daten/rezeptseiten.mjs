@@ -316,6 +316,9 @@ export const dauer = (minuten) => {
   const rest = minuten % 60;
   return rest ? `${Math.floor(minuten / 60)} Std. ${rest} Min.` : `${minuten / 60} Std.`;
 };
+// Gesamtzeit eines Rezepts: mit dem Hinweis "über Nacht" aus dem Rezeptpaket (Version 2) dieser statt der Minuten;
+// die Minuten bleiben in den strukturierten Daten (totalTime).
+export const gesamtzeit = (rezept) => (rezept.zeitGesamtHinweis === 'UEBER_NACHT' ? 'über Nacht' : dauer(rezept.zeitGesamt));
 export const iso = (minuten) => `PT${minuten}M`;
 export const portionen = (rezept) =>
   rezept.portionen == null ? null : rezept.portionenEinheit === 'STUECK' ? `${rezept.portionen} Stück` : `${rezept.portionen} ${rezept.portionen === 1 ? 'Portion' : 'Portionen'}`;
@@ -346,7 +349,7 @@ export const ernaehrung = (rezept, schluessel) =>
 export function einleitung(rezept) {
   const laender = aufzaehlung(rezept.laender.slice(0, 3).map((kuerzel, nummer) => (nummer === 0 ? ARTIKEL[kuerzel] ?? LAND[kuerzel] : ARTIKEL[kuerzel] ?? LAND[kuerzel])));
   const teile = [];
-  if (rezept.zeitGesamt != null) teile.push(`Gesamtzeit ${dauer(rezept.zeitGesamt)}`);
+  if (rezept.zeitGesamt != null) teile.push(`Gesamtzeit ${gesamtzeit(rezept)}`);
   teile.push(`Aufwand: ${AUFWAND[rezept.aufwand]}`);
   if (portionen(rezept)) teile.push(`für ${portionen(rezept)}`);
   const enthaelt = EINTRAEGE.filter((eintrag) => eintrag.adresse && rezept.hinweise[eintrag.schluessel] === 'IST').map((eintrag) => eintrag.enthaelt);

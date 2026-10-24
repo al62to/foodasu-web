@@ -25,7 +25,7 @@ import { seite } from './seite.mjs';
 import { kopfdaten, fuss } from './startseite.mjs';
 import { BEREICH, adresse as kapitelAdresse, kapitel } from './sogehts.mjs';
 import {
-  AUFWAND, KATEGORIE, LAND, ausLand, dauer, portionen, rezeptAdresse, rezeptSeiten, suchtitel, themen,
+  AUFWAND, KATEGORIE, LAND, ausLand, gesamtzeit, portionen, rezeptAdresse, rezeptSeiten, suchtitel, themen,
   alteRezepte,
 } from './rezeptseiten.mjs';
 import { alteSeite, jahreVonBis } from './alte_rezepte.mjs';
@@ -345,7 +345,7 @@ function rezeptMeta(rezept) {
   if (rezept.laender.length === 1 && !eintrag.text.includes(ausLand(rezept.laender[0]))) fehler.push(`${pfad}: Die Beschreibung nennt das Land nicht (${ausLand(rezept.laender[0])})`);
   const werte = {
     aufwand: AUFWAND[rezept.aufwand],
-    zeit: rezept.zeitGesamt == null ? null : dauer(rezept.zeitGesamt),
+    zeit: rezept.zeitGesamt == null ? null : gesamtzeit(rezept),
     portionen: portionen(rezept),
   };
   const beschreibung = eintrag.text.replace(/\{(\w+)\}/g, (_, feld) => {

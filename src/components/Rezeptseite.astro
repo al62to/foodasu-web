@@ -12,7 +12,7 @@ import '../styles/rezepte.css';
 import { seite, store } from '../daten/seite.mjs';
 import { fuss } from '../daten/startseite.mjs';
 import {
-  rezepte, texte, LAND, KATEGORIE, AUFWAND, ENERGIE, QUELLE, NAEHRWERT, STAND, ausLand, zahl, dauer, iso, portionen,
+  rezepte, texte, LAND, KATEGORIE, AUFWAND, ENERGIE, QUELLE, NAEHRWERT, STAND, ausLand, zahl, dauer, gesamtzeit, iso, portionen,
   zutatText, hinweiseVon, hinweisText, ohneHinweis, ernaehrung, einleitung, themaZu, ziel, aehnliche, schrittName, rezeptAdresse,
   quelleAdresse, EINTRAEGE, kommtSpaeter, alteRezepte, rezepte as alleRezepte,
 } from '../daten/rezeptseiten.mjs';
@@ -83,7 +83,7 @@ const sprung = [
 ];
 // Die drei großen Angaben im Kopf; fehlt die Gesamtzeit im Rezeptpaket, sind es zwei.
 const gross = [
-  rezept.zeitGesamt != null && ['Gesamt', dauer(rezept.zeitGesamt)],
+  rezept.zeitGesamt != null && ['Gesamt', gesamtzeit(rezept)],
   menge && [stueck ? 'Stück' : 'Portionen', String(rezept.portionen)],
   ['Aufwand', AUFWAND[rezept.aufwand]],
 ].filter(Boolean);

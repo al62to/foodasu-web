@@ -3,7 +3,7 @@
 // Mauszeiger (Skript in Seitenkopf.astro). Mit "filter" trägt sie die Angaben für Suche und Filter der Übersicht.
 // Seit AP-23 steht der kurze Name als Titel da; der Zusatz in Klammern ("Reisschale mit Gemüse, Rindfleisch und Ei")
 // steht als eigene Zeile darunter, dann Kategorie und Zeit (mit "land" das Land statt der Zeit).
-import { texte, KATEGORIE, LAND, dauer, rezeptAdresse, ziel, filterAngaben } from '../daten/rezeptseiten.mjs';
+import { texte, KATEGORIE, LAND, gesamtzeit, rezeptAdresse, ziel, filterAngaben } from '../daten/rezeptseiten.mjs';
 
 // "alt" (Sammelseite der alten Kochbücher, AP-25): Unter dem Namen stehen Jahr und Buch statt Kategorie und Zeit.
 const { rezept, vorn = false, filter = false, ein = true, land = false, alt = false } = Astro.props;
@@ -11,7 +11,7 @@ const adresse = ziel(rezeptAdresse(rezept));
 const bild = (endung, breite = 360) => `/bilder/rezepte/${rezept.slug}-karte-${breite}.${endung}`;
 const quellen = (endung) => [360, 720].map((breite) => `${bild(endung, breite)} ${breite}w`).join(', ');
 const groessen = '(min-width: 48rem) 17rem, 46vw';
-const zusatz = land ? LAND[rezept.laender[0]] : rezept.zeitGesamt != null ? dauer(rezept.zeitGesamt) : null;
+const zusatz = land ? LAND[rezept.laender[0]] : rezept.zeitGesamt != null ? gesamtzeit(rezept) : null;
 const zeile = alt ? `${rezept.original.jahr} · ${rezept.original.buch_kurz}` : [KATEGORIE[rezept.kategorie][0], zusatz].filter(Boolean).join(' · ');
 // Der Titel des Rezeptpakets ist "Kurzer Name (Zusatz)"; der Zusatz steht ohne die Klammern unter dem Namen.
 const rest = rezept.titel.startsWith(rezept.kurztitel) ? rezept.titel.slice(rezept.kurztitel.length).trim() : '';
