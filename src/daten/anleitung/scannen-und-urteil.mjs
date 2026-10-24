@@ -105,7 +105,7 @@ export default {
       anker: 'warum',
       symbol: 'frage',
       funktionen: ['KARTE-02'],
-      nutzen: 'Ein Tipp auf „Warum?“ zeigt, worauf ein Ergebnis beruht und wen es betrifft. Die Angaben stammen aus der offenen Datenbank Open Food Facts.',
+      nutzen: 'Ein Tipp auf „Warum?“ zeigt, worauf ein Ergebnis beruht und wen es betrifft. Die Angaben stammen aus der offenen Datenbank Open Food Facts; „Open Food Facts“ und die Lizenz „ODbL“ sind dort Links, die im Browser öffnen.',
       wo: 'Produktkarte > „Warum?“ in der Zeile mit dem Urteil',
       fotos: [foto('karte_warum_01', 'Die Erklärung unter „Warum?“', 'Erklärung „Warum?“ in FoodAsu: wen das Ergebnis betrifft, darunter die Quelle Open Food Facts und der Satz „Maßgeblich ist die Verpackung.“')],
     },

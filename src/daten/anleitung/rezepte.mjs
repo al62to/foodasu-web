@@ -120,7 +120,7 @@ export default {
       anker: 'beim-kochen',
       symbol: 'flamme',
       funktionen: ['REZEPT-08', 'REZEPT-12'],
-      nutzen: 'Du kochst nach der Zubereitung auf der Rezeptseite und lässt den Bildschirm dabei an. Woher ein Rezept stammt, steht ganz unten unter „Quelle und Lizenz“.',
+      nutzen: 'Du kochst nach der Zubereitung auf der Rezeptseite und lässt den Bildschirm dabei an. Bei Rezepten mit Ofen steht unter den Angaben eine Zeile zum Ofen mit Hitze, Schiene und Vorheizen, und die Schritte nennen die Begriffe deines Landes, wie schon die Zutaten. Woher ein Rezept stammt, steht ganz unten unter „Quelle und Lizenz“.',
       wo: 'Rezeptseite > „Zubereitung“ > Schalter „Bildschirm anlassen“',
     },
   ],

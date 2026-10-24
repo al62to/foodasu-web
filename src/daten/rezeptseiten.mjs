@@ -319,6 +319,37 @@ export const dauer = (minuten) => {
 // Gesamtzeit eines Rezepts: mit dem Hinweis "über Nacht" aus dem Rezeptpaket (Version 2) dieser statt der Minuten;
 // die Minuten bleiben in den strukturierten Daten (totalTime).
 export const gesamtzeit = (rezept) => (rezept.zeitGesamtHinweis === 'UEBER_NACHT' ? 'über Nacht' : dauer(rezept.zeitGesamt));
+
+// Zeile zum Ofen (AP-41, wie in der App seit 0.16.1): aus festen Kennungen des Rezeptpakets, nie aus Freitext. Reihenfolge:
+// Temperatur und Hitzeart (bei einer anderen Hitzeart als Umluft die Umluft in Klammern), "oder die höchste Stufe" ohne
+// Komma dahinter, dann "mit Pizzastein oder Backstahl", die Schiene, das Vorheizen; getrennt durch Komma. Zwischen Zahl
+// und °C steht ein geschütztes Leerzeichen.
+const NBSP = ' ';
+const OFEN_HITZE = {
+  OBER_UNTER: 'Ober- und Unterhitze', UMLUFT: 'Umluft', OBERHITZE: 'Oberhitze', UNTERHITZE: 'Unterhitze', GRILL: 'Grill',
+};
+const OFEN_SCHIENE = {
+  UNTEN: 'untere Schiene', UNTEN_ODER_MITTE: 'untere oder mittlere Schiene', MITTE: 'mittlere Schiene',
+  MITTE_ODER_OBEN: 'mittlere oder obere Schiene', OBEN: 'obere Schiene',
+};
+const vorheizenText = (minuten) => {
+  if (minuten <= 0) return 'vorheizen';
+  if (minuten >= 60 && minuten % 60 === 0) {
+    const stunden = minuten / 60;
+    return `mindestens ${stunden} ${stunden === 1 ? 'Stunde' : 'Stunden'} vorheizen`;
+  }
+  return `mindestens ${minuten} ${minuten === 1 ? 'Minute' : 'Minuten'} vorheizen`;
+};
+export const ofenText = (ofen) => {
+  let temperatur = `${ofen.temperatur}${NBSP}°C ${OFEN_HITZE[ofen.hitzeart]}`;
+  if (ofen.umluft != null && ofen.hitzeart !== 'UMLUFT') temperatur += ` (${ofen.umluft}${NBSP}°C Umluft)`;
+  if (ofen.hinweise.includes('HOECHSTE_STUFE')) temperatur += ' oder die höchste Stufe';
+  const teile = [temperatur];
+  if (ofen.hinweise.includes('STEIN_ODER_STAHL')) teile.push('mit Pizzastein oder Backstahl');
+  if (ofen.schiene) teile.push(OFEN_SCHIENE[ofen.schiene]);
+  if (ofen.vorheizen != null) teile.push(vorheizenText(ofen.vorheizen));
+  return teile.join(', ');
+};
 export const iso = (minuten) => `PT${minuten}M`;
 export const portionen = (rezept) =>
   rezept.portionen == null ? null : rezept.portionenEinheit === 'STUECK' ? `${rezept.portionen} Stück` : `${rezept.portionen} ${rezept.portionen === 1 ? 'Portion' : 'Portionen'}`;

@@ -189,7 +189,7 @@ const BEISPIELE = {
   '/rezepte/ohne-nuesse/': { rezepte: ['bibimbap', 'tsatsiki'] },
   '/rezepte/ohne-erdnuesse/': { rezepte: ['apfelstrudel', 'lahmacun'] },
   '/rezepte/ohne-gluten/': { rezepte: ['dal-tadka', 'shakshuka'] },
-  '/rezepte/ohne-milch/': { rezepte: ['ratatouille', 'spaetzle'] },
+  '/rezepte/ohne-milch/': { rezepte: ['ratatouille', 'guacamole'] },
   '/rezepte/ohne-eier/': { rezepte: ['pizza-margherita', 'samosa'] },
   '/rezepte/ohne-soja/': { rezepte: ['croissants', 'quiche-lorraine'] },
   '/rezepte/ohne-sesam/': { rezepte: ['butter-chicken', 'tiramisu'] },

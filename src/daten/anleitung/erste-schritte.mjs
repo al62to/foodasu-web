@@ -19,6 +19,14 @@ export default {
       ],
     },
     {
+      titel: 'Die Nutzungsbedingungen',
+      anker: 'nutzungsbedingungen',
+      symbol: 'haken',
+      funktionen: ['START-11'],
+      nutzen: 'Beim ersten Start stimmst du einmal den Nutzungsbedingungen zu, bevor sich die App öffnet. Ändern sie sich, fragt FoodAsu noch einmal.',
+      wo: 'erscheint von selbst beim ersten Start; nachlesen unter Einstellungen > „Über“ > „Nutzungsbedingungen“',
+    },
+    {
       titel: 'Die Einführung',
       anker: 'die-einfuehrung',
       symbol: 'stern',

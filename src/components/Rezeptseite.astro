@@ -13,7 +13,7 @@ import { seite, store } from '../daten/seite.mjs';
 import { fuss } from '../daten/startseite.mjs';
 import {
   rezepte, texte, LAND, KATEGORIE, AUFWAND, ENERGIE, QUELLE, NAEHRWERT, STAND, ausLand, zahl, dauer, gesamtzeit, iso, portionen,
-  zutatText, hinweiseVon, hinweisText, ohneHinweis, ernaehrung, einleitung, themaZu, ziel, aehnliche, schrittName, rezeptAdresse,
+  ofenText, zutatText, hinweiseVon, hinweisText, ohneHinweis, ernaehrung, einleitung, themaZu, ziel, aehnliche, schrittName, rezeptAdresse,
   quelleAdresse, EINTRAEGE, kommtSpaeter, alteRezepte, rezepte as alleRezepte,
 } from '../daten/rezeptseiten.mjs';
 
@@ -151,6 +151,7 @@ const daten = [{
         <div><dt>Kategorie</dt><dd>{kategorieThema && ziel(kategorieThema.adresse) ? <a href={kategorieThema.adresse} aria-label={kategorieThema.titel}>{KATEGORIE[rezept.kategorie][0]}</a> : KATEGORIE[rezept.kategorie][0]}</dd></div>
         {stufe > 0 && <div><dt>{texte.naehrwerte.energie}</dt><dd>{ENERGIE.wort[rezept.energiedichte]}</dd></div>}
       </dl>
+      {rezept.ofen && <dl class="r-zeile r-ofen"><div><dt>Ofen</dt><dd>{ofenText(rezept.ofen)}</dd></div></dl>}
       <p class="r-teilen">
         <button type="button" class="knopf voll r-teilen-knopf" data-teilen data-titel={rezept.titel} data-text={texte.teilen.satz(rezept.kurztitel)} data-adresse={voll} data-kopiert={texte.teilen.kopiert} data-fehler={texte.teilen.fehler}>
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><path d="M8.6 10.5l6.8-4M8.6 13.5l6.8 4" /></svg>
