@@ -3,7 +3,7 @@
 Auftrag der Projektleitung vom 25.10.2026, Alis Ja vom 24. und 25.10.2026. Gearbeitet nur in `foodasu-web` (Zweig
 `ap-44` von `main` `f8768b6`) und `foodasu-play` (Teil D). `einkauf-app` nicht angefasst. Rechtstexte unverändert.
 
-**Stand 25.10.2026: NICHT veröffentlicht, angehalten nach Teil C Nr. 4.** `main` steht weiter auf `f8768b6`, nichts
+**Stand 25.10.2026, 07:00 Uhr: ONLINE (Nachtrag „Veröffentlichung“ unten; `main` `1a3b552`). Stand davor: NICHT veröffentlicht, angehalten nach Teil C Nr. 4.** `main` steht weiter auf `f8768b6`, nichts
 gepusht. Grund: Nach dem Update der Pakete unterscheiden sich zwei fertige JavaScript-Dateien der Seiten (Abschnitt 5).
 Der Auftrag verlangt dann Anhalten und Melden. Teil A und B sind fertig und geprüft (Commit `753eda1`), Teil C ist
 eingespielt und geprüft (Commit `8e0b704`), Teil D liegt bereit.
@@ -152,6 +152,41 @@ Ofenzeile, Stand der Warnungen bei Dependabot.
 - Nach dem Veröffentlichen: Live-Prüfung (967 von 967 Dateien gleich dem Bau, drei Seiten mit Kennung, zwei Rezeptseiten
   mit Ofenzeile, Dependabot).
 - Play Console: Die Kennungen werden dort erst nach Besuchen sichtbar (Teil D nennt die Stelle).
+
+## Nachtrag: Veröffentlichung (25.10.2026)
+
+Alis Ja vom 25.10.2026: Die Änderung der zwei JS-Dateien durch den Hilfscode von Vite 8.3.5 ist in Ordnung, weil sich die
+Seiten im Browser gleich verhalten. **Das Abzeichen in der Fußzeile der vier Seiten mit Rechtstexten
+(`/datenschutz.html`, `/nutzungsbedingungen.html`, `/offenlegung/`, `/lizenzen/`) bleibt ohne Kennung** (Abschnitt 2 und
+`foodasu-web\CLAUDE.md`).
+
+1. **Vorspulen:** `main` `f8768b6` → `926b965` (glatt, `git merge --ff-only ap-44`), Push. Der erste Lauf bei GitHub
+   (40167043995) brach in „npm ci“ ab: `Missing: @emnapi/core@1.11.3 / @emnapi/runtime@1.11.3 from lock file`. `npm audit fix`
+   hatte die zwei von Hand eingetragenen Einträge in `package-lock.json` entfernt (siehe Kommentar in
+   `.github/workflows`; unter Windows lässt npm sie weg, auf dem Server werden sie gebraucht). Der Schritt „veröffentlichen“
+   lief nicht, die Website blieb unverändert. **Korrektur:** die beiden Einträge unverändert aus `f8768b6` wieder
+   eingesetzt (Commit `1a3b552`; gegenüber `f8768b6` unterscheidet sich die Sperrdatei danach nur noch in den
+   aktualisierten Paketen), Push. Lauf 40167142536: bauen und veröffentlichen erfolgreich.
+2. **Live geprüft (foodasu.com, nach der Bereitstellung):**
+   - **967 von 967 Dateien gleich dem Bau** (Vergleich nach SHA-256; Textdateien ohne Zeilenende-Unterschied, weil der Bau
+     unter Windows CRLF aus dem Arbeitsordner übernimmt).
+   - **Startseite:** vier Links zu Google Play mit den Kennungen `kopf`, `abschluss`, `kurzleiste`, `fuss`; Konsole ohne
+     Fehler, keine fehlgeschlagene Anfrage. „Bewegung anhalten“ → „Bewegung fortsetzen“ (Klasse `angehalten` an), zweiter
+     Klick zurück („Bewegung anhalten“, Klasse weg).
+   - **Rezeptseiten** `/rezepte/lahmacun/` und `/rezepte/wiener-schnitzel/`: `rezept` und `fuss`. **Weitere Seiten**
+     `/fragen/` und `/so-gehts/`: `fuss`. `/datenschutz.html`: ohne Kennung, wie vorgesehen. Konsole überall ohne Fehler.
+   - **Abruf:** jede der gefundenen Adressen mit Kennung (7 aus Startseite, Rezeptseite, Fragen) gibt 200 und den Eintrag
+     „FoodAsu: Einkaufsliste+Scanner – Apps bei Google Play“.
+   - **Ofenzeile**, Handy 390 px, `lahmacun` und `apfelstrudel`, hell und dunkel: „Ofen“ in eigener Zeile (Beschriftung bei
+     y 599 beziehungsweise 616, Text 21 px darunter), Einzug des Textes 0, kein waagrechter Überlauf, Konsole ohne Fehler.
+     Bilder: `AP-44_Bilder/live_ofen_lahmacun_handy_hell.png`, `AP-44_Bilder/live_ofen_apfelstrudel_handy_dunkel.png`.
+3. **Dependabot nach dem Push:** 0 offene Warnungen; die drei Warnungen zu `vite` (hoch, 2× mittel) stehen auf „fixed“
+   (25.10.2026, 05:51 Uhr UTC, zum Push von `926b965`, der die Sperrdatei mit vite 8.3.5 brachte). Offene Pull Requests
+   von Dependabot: keine.
+
+**Für künftige Updates:** Nach jedem `npm install`, `npm update` oder `npm audit fix` unter Windows prüfen, ob die zwei
+Einträge `node_modules/@emnapi/core` und `node_modules/@emnapi/runtime` (Version 1.11.3, `optional`) noch in
+`package-lock.json` stehen; sonst aus `f8768b6` wieder einsetzen. Das ist jetzt auch in `foodasu-web\CLAUDE.md` vermerkt.
 
 ## Für einkauf-app\CLAUDE.md
 
