@@ -6,7 +6,11 @@
 import '@fontsource-variable/plus-jakarta-sans/wght.css';
 import '../styles/basis.css';
 import '../styles/weiterleitung.css';
-import Logo from '../components/Logo.astro';
+import logo from '../inhalte/logo.svg?raw';
+// Ohne diesen Import (er wird nicht gebraucht) nennt der Bau das gemeinsame Stylesheet aller Seiten um (Motive.<Hash>.css
+// wird logo.<Hash>.css, gleicher Inhalt), und jede der 116 Seiten verweist auf einen neuen Dateinamen.
+import Motive from '../components/Motive.astro';
+void Motive;
 import { seite } from '../daten/seite.mjs';
 
 const { ziel } = Astro.props;
@@ -26,7 +30,7 @@ const { ziel } = Astro.props;
   </head>
   <body>
     <main class="wl">
-      <h1 class="wl-name" aria-label="FoodAsu"><span class="marke"><Logo /></span></h1>
+      <h1 class="wl-name" aria-label="FoodAsu"><span class="marke"><Fragment set:html={logo} /></span></h1>
       <p><a class="knopf voll" href={ziel}>Weiter zu FoodAsu bei Google Play</a></p>
     </main>
   </body>
