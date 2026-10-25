@@ -751,6 +751,9 @@ for (const kurzlink of KURZLINKS) {
   const text = entschluesselt(html.replace(/<(?:script|style|svg)[\s\S]*?<\/(?:script|style|svg)>/g, ' ').replace(/<head>[\s\S]*?<\/head>/, ' ').replace(/<[^>]+>/g, ' ').replace(/(?:aria-label)="[^"]*"/g, ' ')).replace(/\s+/g, ' ').trim();
   if (text !== KURZ_LINKTEXT) melde(kurzlink.pfad, `als sichtbarer Text nur den Link erwartet, gefunden: ${text}`);
   if (!/<h1\b[^>]*aria-label="FoodAsu"/.test(html)) melde(kurzlink.pfad, 'Überschrift mit dem Namen FoodAsu fehlt');
+  // Wortlisten wie auf jeder Seite (gesperrte Wörter, Bezahl- und Fristwörter, Beta, Wendungen) über Titel und Text.
+  const titelKurz = entschluesselt(html.match(/<title>([^<]*)<\/title>/)?.[1] ?? '');
+  for (const [art, ausdruck] of [...GESPERRT, ...BEZAHL_UND_FRIST, ...BETA, ...WENDUNGEN]) for (const fund of alle(`${titelKurz} ${text}`, ausdruck)) melde(kurzlink.pfad, `${art}: ${fund[0]}`);
   for (const [adresse, andere] of seiten) if (andere.includes(`href="${kurzlink.pfad}"`) || andere.includes(`href="${kurzlink.pfad.slice(0, -1)}"`) || andere.includes(`href="${HOST}${kurzlink.pfad}`)) melde(adresse, `verlinkt den Kurzlink ${kurzlink.pfad} (er steht in keiner Navigation und auf keiner Seite)`);
   for (const datei of ['sitemap.xml', 'llms.txt']) {
     const inDatei = existsSync(join(DIST, datei)) ? readFileSync(join(DIST, datei), 'utf8') : '';
