@@ -48,5 +48,18 @@ export const storeLink = (ort) => {
   return `${store.adresse}&referrer=utm_source%3Dwebsite%26utm_medium%3Dlink%26utm_campaign%3D${ort}`;
 };
 
+// Eigene Kurzlinks (AP-45, 25.10.2026): /fb/, /ig/ und /app/ leiten sofort (meta refresh, ohne Skript) auf den Eintrag bei
+// Google Play mit Kennung weiter, weil Facebook den langen Link mit Kennung für den Button der Seite nicht annimmt. Die
+// Seiten tragen noindex, stehen in keiner Navigation, nicht in der Sitemap und nicht in llms.txt, und robots.txt sperrt
+// sie nicht. Kampagne ist immer "kurzlink"; die Quelle sagt, wo der Kurzlink steht.
+export const KURZLINKS = [
+  { pfad: '/fb/', quelle: 'facebook', medium: 'social', wofuer: 'Button der Facebook-Seite' },
+  { pfad: '/ig/', quelle: 'instagram', medium: 'social', wofuer: 'Profil bei Instagram' },
+  { pfad: '/app/', quelle: 'nachricht', medium: 'persoenlich', wofuer: 'WhatsApp und E-Mail' },
+].map((kurzlink) => ({
+  ...kurzlink,
+  ziel: `${store.adresse}&referrer=utm_source%3D${kurzlink.quelle}%26utm_medium%3D${kurzlink.medium}%26utm_campaign%3Dkurzlink`,
+}));
+
 // Der Tag der letzten Änderung jeder Seite für sitemap.xml kommt seit AP-22 aus dem Git-Datum ihrer Quelldateien
 // (src/daten/stand.mjs) und wird nicht mehr von Hand gepflegt. Welche Seiten im Index stehen, sagt src/daten/meta.mjs.

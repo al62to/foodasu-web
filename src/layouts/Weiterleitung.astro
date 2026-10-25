@@ -1,0 +1,33 @@
+---
+// Weiterleitung für die Kurzlinks /fb/, /ig/ und /app/ (AP-45, 25.10.2026): Die Seite leitet sofort mit
+// <meta http-equiv="refresh"> auf den Eintrag bei Google Play weiter. Ohne Skript, ohne Cookies, ohne Messung, ohne
+// Anfrage an Dritte. Für den Fall, dass die Weiterleitung nicht greift, steht hier nur der Name FoodAsu und ein Link.
+// noindex, keine Navigation, keine Fußzeile; nicht in der Sitemap und nicht in llms.txt (src/daten/seite.mjs, KURZLINKS).
+import '@fontsource-variable/plus-jakarta-sans/wght.css';
+import '../styles/basis.css';
+import '../styles/weiterleitung.css';
+import Logo from '../components/Logo.astro';
+import { seite } from '../daten/seite.mjs';
+
+const { ziel } = Astro.props;
+---
+<!doctype html>
+<html lang={seite.sprache}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Weiter zu FoodAsu bei Google Play</title>
+    <meta name="robots" content="noindex, follow" />
+    <meta name="referrer" content="no-referrer" />
+    <meta http-equiv="refresh" content={`0; url=${ziel}`} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  </head>
+  <body>
+    <main class="wl">
+      <h1 class="wl-name" aria-label="FoodAsu"><span class="marke"><Logo /></span></h1>
+      <p><a class="knopf voll" href={ziel}>Weiter zu FoodAsu bei Google Play</a></p>
+    </main>
+  </body>
+</html>

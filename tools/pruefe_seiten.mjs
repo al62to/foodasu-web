@@ -10,7 +10,7 @@ import { muster as nurMuster } from '../src/daten/auswahl.mjs';
 import { BEREICH, adresse as kapitelAdresse, fotosVon, kapitel } from '../src/daten/sogehts.mjs';
 import { einblick, schritte as startSchritte, zahlen as startZahlen } from '../src/daten/startseite.mjs';
 import { EINTRAEGE } from '../src/daten/rezeptseiten.mjs';
-import { store, storeLink, STORE_ORTE } from '../src/daten/seite.mjs';
+import { store, storeLink, STORE_ORTE, KURZLINKS } from '../src/daten/seite.mjs';
 import { GRENZEN, grenzBefunde, masse } from '../src/daten/breite.mjs';
 import { alleRezepte, zutatenBefunde } from './zutaten_pruefen.mjs';
 import { sogehtsLinks } from './sogehts_links.mjs';
@@ -129,6 +129,13 @@ const adresseVon = (datei) => {
 };
 const seiten = new Map(dateien.filter((d) => d.endsWith('.html')).map((d) => [adresseVon(d), readFileSync(d, 'utf8')]));
 const vorhanden = new Set([...seiten.keys(), ...dateien.map((d) => '/' + relative(DIST, d).split(sep).join('/'))]);
+// Kurzlinks (AP-45): /fb/, /ig/ und /app/ sind reine Weiterleitungen ohne Kopfdaten einer Seite, ohne Kopf und Fuß. Sie
+// laufen nicht durch die Prüfungen der Seiten (Beschreibung, Open Graph, Überschriften ...), sondern durch eigene unten
+// (Abschnitt "Kurzlinks") und durch die Prüfung der Links zu Google Play.
+const weiterleitungen = new Map();
+for (const kurzlink of KURZLINKS) {
+  if (seiten.has(kurzlink.pfad)) { weiterleitungen.set(kurzlink.pfad, seiten.get(kurzlink.pfad)); seiten.delete(kurzlink.pfad); }
+}
 const eingang = new Map([...seiten.keys()].map((adresse) => [adresse, 0]));
 
 const alle = (text, ausdruck) => [...text.matchAll(ausdruck)];
@@ -692,22 +699,67 @@ const PLAY_OHNE_KENNUNG = new Set(['/datenschutz.html', '/nutzungsbedingungen.ht
 const PLAY_MIT_KENNUNG = new Set(STORE_ORTE.map((ort) => storeLink(ort)));
 let playLinks = 0;
 let playOhneKennung = 0;
-for (const [adresse, html] of seiten) {
+for (const [adresse, html] of [...seiten, ...weiterleitungen]) {
   const ohneDaten = html.replace(/<script\b[^>]*type="application\/ld\+json"[^>]*>[\s\S]*?<\/script>/g, ' ');
-  for (const [, roh] of alle(ohneDaten, /\bhref\s*=\s*"(https?:\/\/play\.google\.com\/store\/apps\/details[^"]*)"/g)) {
+  // AP-45: Auch das Ziel einer Weiterleitung (meta refresh) ist ein Link zu Google Play und trägt die Kennung.
+  const ziele = [
+    ...alle(ohneDaten, /\bhref\s*=\s*"(https?:\/\/play\.google\.com\/store\/apps\/details[^"]*)"/g),
+    ...alle(ohneDaten, /http-equiv="refresh"\s+content="\d+;\s*url=(https?:\/\/play\.google\.com\/store\/apps\/details[^"]*)"/g),
+  ];
+  for (const [, roh] of ziele) {
     const ziel = roh.replaceAll('&amp;', '&');
     playLinks += 1;
     if (PLAY_MIT_KENNUNG.has(ziel)) continue;
+    if (KURZLINKS.some((kurzlink) => kurzlink.pfad === adresse && kurzlink.ziel === ziel)) continue; // Kurzlink: nur auf seiner eigenen Seite
     if (ziel === store.adresse && PLAY_OHNE_KENNUNG.has(adresse)) { playOhneKennung += 1; continue; }
     melde(adresse, `Link zu Google Play ohne gültige Kennung des Kanals (erwartet utm_source=website, utm_medium=link, utm_campaign=${STORE_ORTE.join('|')}): ${ziel}`);
   }
   // Schreibweisen ohne doppelte Anführungszeichen oder mit Großbuchstaben im Schema würden die Suche oben umgehen.
-  const schreibweise = ohneDaten.replace(/\bhref\s*=\s*"https?:\/\/play\.google\.com\/store\/apps\/details[^"]*"/g, ' ');
+  const schreibweise = ohneDaten.replace(/\bhref\s*=\s*"https?:\/\/play\.google\.com\/store\/apps\/details[^"]*"/g, ' ').replace(/http-equiv="refresh"\s+content="\d+;\s*url=https?:\/\/play\.google\.com\/store\/apps\/details[^"]*"/g, ' ');
   if (/play\.google\.com\/store\/apps\/details/i.test(schreibweise.replace(/<(?:svg|style)[\s\S]*?<\/(?:svg|style)>/g, ' '))) melde(adresse, 'Verweis auf den Eintrag bei Google Play außerhalb eines href in doppelten Anführungszeichen');
 }
 for (const datei of dateien.filter((d) => /\.(txt|xml)$/.test(d))) {
   // llms.txt und Sitemap bleiben ohne Kennung (Ausnahme aus AP-44); eine Kennung dort wäre ein Befund.
   if (/play\.google\.com[^\s"]*utm_/.test(readFileSync(datei, 'utf8'))) melde(adresseVon(datei), 'Kennung des Kanals (utm_) gehört nicht in llms.txt oder die Sitemap');
+}
+
+// Kurzlinks (AP-45, 25.10.2026): Genau drei Weiterleitungen /fb/, /ig/ und /app/ auf den Eintrag bei Google Play mit
+// Kennung (utm_campaign=kurzlink). Je Seite: meta refresh "0; url=<Ziel>", noindex, genau ein Link mit dem Ziel und dem
+// Text "Weiter zu FoodAsu bei Google Play", kein Skript, kein Rahmen, kein Formular, kein Bild von Dritten, keine
+// Kopf- oder Fußzeile; als Text nur der Name und der Link. Dazu: in keiner Sitemap, nicht in llms.txt, von keiner
+// anderen Seite verlinkt, in robots.txt nicht gesperrt (sonst sieht Google das noindex nicht).
+const KURZ_LINKTEXT = 'Weiter zu FoodAsu bei Google Play';
+const KURZ_ERLAUBT = ['/fb/', '/ig/', '/app/'];
+const KURZ_KENNUNG = /^https:\/\/play\.google\.com\/store\/apps\/details\?id=at\.tonc\.einkauf&referrer=utm_source%3D(facebook|instagram|nachricht)%26utm_medium%3D(social|persoenlich)%26utm_campaign%3Dkurzlink$/;
+if (KURZLINKS.map((k) => k.pfad).join() !== KURZ_ERLAUBT.join()) melde('Kurzlinks', `erwartet ${KURZ_ERLAUBT.join(', ')}, gefunden ${KURZLINKS.map((k) => k.pfad).join(', ')}`);
+const robotsDatei = existsSync(join(DIST, 'robots.txt')) ? readFileSync(join(DIST, 'robots.txt'), 'utf8') : '';
+if (/^\s*Disallow:\s*\S/im.test(robotsDatei)) melde('/robots.txt', 'Disallow gefunden: Die Kurzlinks dürfen nicht gesperrt sein (Google sähe sonst das noindex nicht)');
+for (const kurzlink of KURZLINKS) {
+  const html = weiterleitungen.get(kurzlink.pfad);
+  if (html === undefined) { melde(kurzlink.pfad, 'Weiterleitung fehlt im Bau'); continue; }
+  if (!KURZ_KENNUNG.test(kurzlink.ziel)) melde(kurzlink.pfad, `Ziel ohne die erwartete Kennung (utm_campaign=kurzlink): ${kurzlink.ziel}`);
+  const refresh = alle(html, /<meta\b[^>]*http-equiv="refresh"[^>]*>/gi);
+  const inhalt = entschluesselt(refresh[0]?.[0].match(/content="([^"]*)"/)?.[1] ?? '');
+  if (refresh.length !== 1 || inhalt !== `0; url=${kurzlink.ziel}`) melde(kurzlink.pfad, `genau eine Weiterleitung "0; url=<Ziel>" erwartet, gefunden: ${inhalt || 'keine'}`);
+  if (!/<meta name="robots" content="noindex, follow">/.test(html)) melde(kurzlink.pfad, 'noindex fehlt');
+  if (/<(?:script|iframe|form|img|video|audio|object|embed|link\b[^>]*rel="(?:preload|prefetch|preconnect|dns-prefetch|stylesheet)[^>]*href="https?:)/i.test(html)) melde(kurzlink.pfad, 'Skript, Rahmen, Formular, Bild oder Verbindung zu Dritten gefunden (erlaubt ist nur die Weiterleitung und ein Link)');
+  if (/<(?:header|footer|nav)\b/.test(html)) melde(kurzlink.pfad, 'Kopf, Fuß oder Navigation gehören nicht auf eine Weiterleitung');
+  if (/\bcanonical\b/.test(html)) melde(kurzlink.pfad, 'kanonische Adresse gehört nicht auf eine Weiterleitung');
+  const links = alle(html, /<a\b[^>]*>([\s\S]*?)<\/a>/g);
+  const linkZiele = alle(html, /<a\b[^>]*\bhref="([^"]*)"/g).map(([, ziel]) => entschluesselt(ziel));
+  if (links.length !== 1 || linkZiele[0] !== kurzlink.ziel || links[0][1].replace(/<[^>]+>/g, '').trim() !== KURZ_LINKTEXT) melde(kurzlink.pfad, `genau ein Link „${KURZ_LINKTEXT}“ mit dem Ziel erwartet`);
+  const text = entschluesselt(html.replace(/<(?:script|style|svg)[\s\S]*?<\/(?:script|style|svg)>/g, ' ').replace(/<head>[\s\S]*?<\/head>/, ' ').replace(/<[^>]+>/g, ' ').replace(/(?:aria-label)="[^"]*"/g, ' ')).replace(/\s+/g, ' ').trim();
+  if (text !== KURZ_LINKTEXT) melde(kurzlink.pfad, `als sichtbarer Text nur den Link erwartet, gefunden: ${text}`);
+  if (!/<h1\b[^>]*aria-label="FoodAsu"/.test(html)) melde(kurzlink.pfad, 'Überschrift mit dem Namen FoodAsu fehlt');
+  for (const [adresse, andere] of seiten) if (andere.includes(`href="${kurzlink.pfad}"`) || andere.includes(`href="${kurzlink.pfad.slice(0, -1)}"`) || andere.includes(`href="${HOST}${kurzlink.pfad}`)) melde(adresse, `verlinkt den Kurzlink ${kurzlink.pfad} (er steht in keiner Navigation und auf keiner Seite)`);
+  for (const datei of ['sitemap.xml', 'llms.txt']) {
+    const inDatei = existsSync(join(DIST, datei)) ? readFileSync(join(DIST, datei), 'utf8') : '';
+    if (inDatei.includes(`${HOST}${kurzlink.pfad}`) || inDatei.includes(`${HOST}${kurzlink.pfad.slice(0, -1)}\n`)) melde(`/${datei}`, `nennt den Kurzlink ${kurzlink.pfad}`);
+  }
+}
+for (const [adresse, html] of seiten) {
+  if (/http-equiv="refresh"/i.test(html)) melde(adresse, 'Weiterleitung (meta refresh) gehört nur auf die Kurzlinks');
+  if (KURZ_ERLAUBT.includes(adresse)) melde(adresse, 'Kurzlink läuft durch die Prüfung der Seiten');
 }
 
 // Fußzeile A (AP-18 Teil D): auf jeder Seite Logo mit Satz und Hinweis, drei Spalten mit ihren Links, die schmale
@@ -1653,10 +1705,11 @@ if (metaZiel) {
   console.log(`Geschrieben: ${metaZiel} (${metaZeilen.length} Seiten)`);
 }
 
+console.log(`Kurzlinks: ${weiterleitungen.size} Weiterleitungen (${[...weiterleitungen.keys()].join(', ')}) mit meta refresh auf den Eintrag bei Google Play, noindex, ohne Skript, nicht in Sitemap, llms.txt, Navigation oder robots.txt`);
 console.log(`Geprüft: ${seiten.size} Seiten (${[...seiten.keys()].join(', ')}), ${dateien.length} Dateien`);
 console.log(`Knopf „${TEILEN_NAME}“: auf ${teilenKnoepfe} von ${rezeptSeiten} Rezeptseiten, auf keiner anderen Seite`);
 console.log(`„Zum Ausprobieren“ im Menü: ${probeWahlen.size} verschiedene Auswahlen im HTML von ${seiten.size} Seiten, je drei Rezepte aus drei Ländern, nie die Seite selbst`);
-console.log(`Links zu Google Play: ${playLinks} im HTML, davon ${playOhneKennung} ohne Kennung auf Seiten mit Rechtstexten (erlaubt), alle anderen mit utm_campaign aus ${STORE_ORTE.join(', ')}`);
+console.log(`Links zu Google Play: ${playLinks} im HTML, davon ${playOhneKennung} ohne Kennung auf Seiten mit Rechtstexten (erlaubt), alle anderen mit utm_campaign aus ${STORE_ORTE.join(', ')}; die drei Kurzlinks (Link und Weiterleitung) mit utm_campaign=kurzlink`);
 console.log(`Zahlen der App: ${APP.gesamt} Rezepte und ${APP.laender} Länder in den Daten, im Text „über ${UEBER}“ an ${ueberStellen} Stellen; ${vonHandGelesen} Quelltexte ohne Zahl von Hand`);
 console.log(`Themenseiten: ${themenSeiten.imIndex.length} im Index (ab ${INDEX_AB} Rezepten, mit Einleitungstext), ${themenSeiten.ohneIndex.length} mit noindex (${themenSeiten.ohneIndex.join(', ')})`);
 console.log(`Im Index: ${seiten.size - OHNE_INDEX.size} von ${seiten.size} Seiten`);
