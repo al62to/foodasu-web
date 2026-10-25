@@ -377,10 +377,11 @@ for (const [adresse, html] of seiten) {
     const uebersicht = alle(html, /<script type="application\/ld\+json">([\s\S]*?)<\/script>/g).map(([, roh]) => { try { return JSON.parse(roh); } catch { return {}; } }).find((block) => block['@type'] === 'ItemList');
     if (!uebersicht) melde(adresse, 'ItemList fehlt in den strukturierten Daten');
     else listeSichtbar(adresse, html, (uebersicht.itemListElement ?? []).map((punkt) => punkt.url));
-    // Kopf der Übersicht: Vorspann als reiner Text, kein Link zur Rubrik (Ali, 11.10.2026); sie steht am Ende der
-    // Seite unter "Rezepte nach Thema".
+    // Kopf der Übersicht: Vorspann ohne Link zur Rubrik (Ali, 11.10.2026); sie steht am Ende der Seite unter "Rezepte
+    // nach Thema". Einziger Link im Vorspann seit AP-46: "Einkaufslisten-App" zur Startseite (genau einer).
     const kopf = html.slice(html.indexOf('<main'), html.indexOf('<form class="f-seite"'));
-    if (kopf.includes(`href="${ALTE}"`) || /<p\b[^>]*>(?:(?!<\/p>)[\s\S])*Auf der Website stehen(?:(?!<\/p>)[\s\S])*<a\b/.test(kopf)) melde(adresse, 'Kopf der Übersicht: Link im Vorspann oder zur Rubrik „Aus alten Kochbüchern“');
+    const vorspannLinks = alle(kopf.match(/<p class="s-vorspann">[\s\S]*?<\/p>/)?.[0] ?? '', /<a\b[^>]*href="([^"]*)"[^>]*>([^<]*)<\/a>/g).map(([, ziel, text]) => `${text}>${ziel}`);
+    if (kopf.includes(`href="${ALTE}"`) || vorspannLinks.join('|') !== 'Einkaufslisten-App>/') melde(adresse, 'Kopf der Übersicht: im Vorspann genau ein Link „Einkaufslisten-App“ zur Startseite, keiner zur Rubrik „Aus alten Kochbüchern“');
     const themenTeil = html.match(/<section class="f-themen"[\s\S]*?<\/section>/)?.[0] ?? '';
     if (!themenTeil.includes(`href="${ALTE}"`)) melde(adresse, `„Rezepte nach Thema“ ohne Link auf ${ALTE}`);
     // Zeile "Nach Zeit" (Projektleitung, 11.10.2026): nach der Rubrik je Zeitraum mit Rezepten ein Chip, der zu

@@ -15,6 +15,9 @@ const { adresse } = Astro.props;
 const thema = alleThemen.find((eintrag) => eintrag.adresse === adresse);
 const zeigtZutaten = ['ohne', 'passt'].includes(thema.art);
 const text = thema.text(thema.rezepte.length);
+// AP-46: Satz zur App mit Link zur Startseite; auf den Seiten "ohne …" dahinter der Satz zum Lebensmittel-Scanner.
+const saetze = [{ text: text }, { text: texte.thema.inDerApp(thema.inDerApp), link: texte.thema.inDerAppLink }];
+if (thema.art === 'ohne') saetze.push({ text: texte.thema.scanner, link: texte.thema.scannerLink });
 const nah = verwandte(thema).filter((anderes) => ziel(anderes.adresse));
 const jeNach = thema.jeNachRezepte.filter((rezept) => ziel(rezeptAdresse(rezept)));
 const daten = [{
@@ -31,7 +34,7 @@ const daten = [{
   <Seitenkopf
     krumen={[{ titel: texte.uebersicht, ziel: '/rezepte/' }, { titel: thema.titel, ziel: adresse }]}
     titel={thema.titel}
-    vorspann={`${text} ${texte.thema.inDerApp(thema.inDerApp)}`}
+    vorspannSaetze={saetze}
     klein
     motive={[
       { art: 'aehre', breite: 120, lage: 'top: 10px; right: 120px', nurBreit: true },

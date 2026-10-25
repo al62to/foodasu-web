@@ -271,7 +271,9 @@ export const texte = {
     // Zahlen der Website, getrennt von den Zahlen der App (AP-25 Teil F Nr. 3): Kein Satz schreibt die Rezepte aus
     // alten Kochbüchern oder die neuen Rezepte der App zu. "zahlen" ist websiteZahlen (unten); die Zahl der App
     // steht als "über N" aus src/daten/app_zahlen.mjs da.
-    text: (zahlen) => `Auf der Website stehen ${zahlen.gesamt} Rezepte mit Hinweisen zu den Zutaten. ${zahlen.app} davon sind aus der App, ${zahlen.alt} aus alten Kochbüchern und ${zahlen.neu} neue, die später in die App kommen. In der App sind es über ${appZahlen.ueber}.`,
+    text: (zahlen) => `Auf der Website stehen ${zahlen.gesamt} Rezepte mit Hinweisen zu den Zutaten. ${zahlen.app} davon sind aus der App, ${zahlen.alt} aus alten Kochbüchern und ${zahlen.neu} neue, die später in die App kommen. In der Einkaufslisten-App sind es über ${appZahlen.ueber}.`,
+    // AP-46: "Einkaufslisten-App" im letzten Satz ist ein Link zur Startseite.
+    link: { text: 'Einkaufslisten-App', ziel: '/' },
     grundlage: 'Grundlage ist die Zutatenliste des Rezepts. Was in einem Produkt aus dem Laden steckt, steht auf der Packung. Maßgeblich ist die Verpackung.',
     suche: 'Rezept oder Zutat suchen',
     gruppen: { kategorie: 'Kategorie', land: 'Land', passt: 'Passt für', zeit: 'Zeit' },
@@ -302,7 +304,12 @@ export const texte = {
   },
   thema: {
     grundlage: 'Grundlage ist die Zutatenliste des Rezepts. Was in einem Produkt aus dem Laden steckt, steht auf der Packung. Maßgeblich ist die Verpackung.',
-    inDerApp: (zahl) => `In der App FoodAsu gibt es über ${appZahlen.ueber} Rezepte, davon ${zahl} zu diesem Thema.`,
+    // AP-46: "Einkaufslisten-App" ist ein Link zur Startseite; auf den Seiten "ohne …" folgt ein Satz, in dem
+    // "Lebensmittel-Scanner" zum Kapitel über das Scannen führt.
+    inDerApp: (zahl) => `In der Einkaufslisten-App FoodAsu gibt es über ${appZahlen.ueber} Rezepte, davon ${zahl} zu diesem Thema.`,
+    inDerAppLink: { text: 'Einkaufslisten-App', ziel: '/' },
+    scanner: 'Beim Einkaufen zeigt dir der Lebensmittel-Scanner der App, ob ein Produkt für alle im Haushalt passt.',
+    scannerLink: { text: 'Lebensmittel-Scanner', ziel: '/so-gehts/scannen-und-urteil/' },
     jeNachTitel: 'Je nach Produkt',
     verwandt: 'Verwandte Themen',
   },
