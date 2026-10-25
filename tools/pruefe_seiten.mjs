@@ -10,7 +10,7 @@ import { muster as nurMuster } from '../src/daten/auswahl.mjs';
 import { BEREICH, adresse as kapitelAdresse, fotosVon, kapitel } from '../src/daten/sogehts.mjs';
 import { einblick, schritte as startSchritte, zahlen as startZahlen } from '../src/daten/startseite.mjs';
 import { EINTRAEGE } from '../src/daten/rezeptseiten.mjs';
-import { store } from '../src/daten/seite.mjs';
+import { store, storeLink, STORE_ORTE } from '../src/daten/seite.mjs';
 import { GRENZEN, grenzBefunde, masse } from '../src/daten/breite.mjs';
 import { alleRezepte, zutatenBefunde } from './zutaten_pruefen.mjs';
 import { sogehtsLinks } from './sogehts_links.mjs';
@@ -537,8 +537,8 @@ for (const [adresse, html] of seiten) {
   for (const [, ziel, innen] of alle(inhalt, /<a\b[^>]*?href="([^"]*)"[^>]*>([\s\S]*?)<\/a>/g)) {
     const text = innen.replace(/<[^>]+>/g, '').trim();
     if (!text) continue;
-    if (texteZuZiel.has(text) && texteZuZiel.get(text) !== ziel) melde(adresse, `Linktext "${text}" führt zu verschiedenen Zielen`);
-    texteZuZiel.set(text, ziel);
+    if (texteZuZiel.has(text) && texteZuZiel.get(text) !== ziel.replace(/&(?:amp;)?referrer=[^"]*$/, '')) melde(adresse, `Linktext "${text}" führt zu verschiedenen Zielen`);
+    texteZuZiel.set(text, ziel.replace(/&(?:amp;)?referrer=[^"]*$/, ''));
   }
 
   // Sprache: Kein Begriff aus src/daten/sprachen.mjs darf ohne lang-Attribut im sichtbaren Text stehen.
@@ -684,6 +684,32 @@ for (const [adresse, html] of seiten) {
   if (/prefers-color-scheme/.test(html)) melde(adresse, 'Farben folgen der Einstellung des Geräts (prefers-color-scheme); hell ist der Standard');
 }
 
+// Links zum Eintrag bei Google Play mit Kennung des Kanals (AP-44, 25.10.2026): Jeder Link im HTML zum Eintrag trägt
+// referrer=utm_source%3Dwebsite%26utm_medium%3Dlink%26utm_campaign%3D<ort> mit einem Ort aus STORE_ORTE. Ohne Kennung
+// bleiben die strukturierten Daten (JSON-LD), llms.txt, die Sitemap und die vier Seiten mit Rechtstexten
+// (PLAY_OHNE_KENNUNG, dort auch die Fußzeile). Die Entwicklerseite (/store/apps/dev) ist kein Link zum Eintrag der App.
+const PLAY_OHNE_KENNUNG = new Set(['/datenschutz.html', '/nutzungsbedingungen.html', '/offenlegung/', '/lizenzen/']);
+const PLAY_MIT_KENNUNG = new Set(STORE_ORTE.map((ort) => storeLink(ort)));
+let playLinks = 0;
+let playOhneKennung = 0;
+for (const [adresse, html] of seiten) {
+  const ohneDaten = html.replace(/<script\b[^>]*type="application\/ld\+json"[^>]*>[\s\S]*?<\/script>/g, ' ');
+  for (const [, roh] of alle(ohneDaten, /\bhref\s*=\s*"(https?:\/\/play\.google\.com\/store\/apps\/details[^"]*)"/g)) {
+    const ziel = roh.replaceAll('&amp;', '&');
+    playLinks += 1;
+    if (PLAY_MIT_KENNUNG.has(ziel)) continue;
+    if (ziel === store.adresse && PLAY_OHNE_KENNUNG.has(adresse)) { playOhneKennung += 1; continue; }
+    melde(adresse, `Link zu Google Play ohne gültige Kennung des Kanals (erwartet utm_source=website, utm_medium=link, utm_campaign=${STORE_ORTE.join('|')}): ${ziel}`);
+  }
+  // Schreibweisen ohne doppelte Anführungszeichen oder mit Großbuchstaben im Schema würden die Suche oben umgehen.
+  const schreibweise = ohneDaten.replace(/\bhref\s*=\s*"https?:\/\/play\.google\.com\/store\/apps\/details[^"]*"/g, ' ');
+  if (/play\.google\.com\/store\/apps\/details/i.test(schreibweise.replace(/<(?:svg|style)[\s\S]*?<\/(?:svg|style)>/g, ' '))) melde(adresse, 'Verweis auf den Eintrag bei Google Play außerhalb eines href in doppelten Anführungszeichen');
+}
+for (const datei of dateien.filter((d) => /\.(txt|xml)$/.test(d))) {
+  // llms.txt und Sitemap bleiben ohne Kennung (Ausnahme aus AP-44); eine Kennung dort wäre ein Befund.
+  if (/play\.google\.com[^\s"]*utm_/.test(readFileSync(datei, 'utf8'))) melde(adresseVon(datei), 'Kennung des Kanals (utm_) gehört nicht in llms.txt oder die Sitemap');
+}
+
 // Fußzeile A (AP-18 Teil D): auf jeder Seite Logo mit Satz und Hinweis, drei Spalten mit ihren Links, die schmale
 // Zeile mit dem Vermerk. Facebook und Instagram sind einfache Links; eingebettet wird nichts.
 const FUSS_LINKS = ['/datenschutz.html', '/nutzungsbedingungen.html', '/offenlegung/', '/lizenzen/', '/quellen-und-lizenzen/', '/so-gehts/', '/rezepte/', ALTE, '/fragen/', '/daten-und-quellen/', '/ueber-foodasu/'];
@@ -714,7 +740,10 @@ for (const [adresse, html] of seiten) {
   // Seit AP-34 steht im Fuß genau ein Bild: das offizielle Abzeichen von Google Play, lokal, als Link zum Eintrag.
   const abzeichen = alle(inhalt, /<img\b[^>]*>/g);
   if (abzeichen.length !== (store.oeffentlich ? 1 : 0) || abzeichen.some((tag) => !/src="\/bilder\/google-play-abzeichen-de\.png"/.test(tag) || !/alt="Jetzt bei Google Play"/.test(tag))) melde(adresse, 'Fußzeile: erwartet genau das Abzeichen von Google Play als einziges Bild');
-  if (store.oeffentlich && !/<a class="fuss-abzeichen" href="https:\/\/play\.google\.com\/store\/apps\/details\?id=at\.tonc\.einkauf" rel="me noopener">\s*<img\b/.test(inhalt)) melde(adresse, 'Fußzeile: Abzeichen nicht als Link zum Eintrag bei Google Play');
+  // AP-44: Das Abzeichen führt mit der Kennung des Kanals (utm_campaign=fuss) zum Eintrag; nur auf den Seiten der
+  // Rechtstexte (PLAY_OHNE_KENNUNG) bleibt die Adresse ohne Kennung.
+  const abzeichenZiel = (PLAY_OHNE_KENNUNG.has(adresse) ? store.adresse : storeLink('fuss')).replaceAll('&', '&amp;');
+  if (store.oeffentlich && !new RegExp(`<a class="fuss-abzeichen" href="${abzeichenZiel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}" rel="me noopener">\\s*<img\\b`).test(inhalt)) melde(adresse, 'Fußzeile: Abzeichen nicht als Link zum Eintrag bei Google Play (mit Kennung utm_campaign=fuss, auf Seiten mit Rechtstexten ohne)');
   if (/<(?:iframe|script|link)\b/.test(inhalt)) melde(adresse, 'Fußzeile bettet etwas ein (erlaubt sind nur Links, Zeichnungen im Quelltext und das Abzeichen)');
   if (!text.includes('Bald im Play Store') && !inhalt.includes('play.google.com')) melde(adresse, 'Fußzeile ohne Hinweis auf den Play Store');
   if (store.oeffentlich && text.includes('Bald im Play Store')) melde(adresse, 'Fußzeile: „Bald im Play Store“ nach dem öffentlichen Start');
@@ -1371,7 +1400,7 @@ if (/mailto:/.test(ueberInhalt)) melde('/ueber-foodasu/', 'die Adresse des Konta
   // Abschluss (Teil 1 Nr. 13) und Leiste unten am Handy (Teil 1 Nr. 15).
   const schlussTeil = s.match(/<section class="abschluss" id="abschluss">[\s\S]*?<\/section>/)?.[0] ?? '';
   if (!/<h2>Passt es für alle\? Schau einfach nach\.<\/h2>/.test(schlussTeil) || !entschluesselt(ohneSprachangabe(schlussTeil)).includes(VERFUEGBAR) || !/class="bald"/.test(schlussTeil)) melde('/', 'Abschluss: Überschrift, Satz zur Verfügbarkeit oder Knopf fehlt');
-  if (store.oeffentlich && (alle(s, /<a class="bald" href="https:\/\/play\.google\.com\/store\/apps\/details\?id=at\.tonc\.einkauf" rel="noopener">/g).length !== 2 || /Bald im Play Store/.test(entschluesselt(ohneSprachangabe(s.replace(/<script[\s\S]*?<\/script>/g, ' ')))))) melde('/', 'Startseite: Knöpfe im Kopf und im Abschluss nicht als Link zum Eintrag bei Google Play, oder „Bald im Play Store“ steht noch da');
+  if (store.oeffentlich && (alle(s, /<a class="bald" href="https:\/\/play\.google\.com\/store\/apps\/details\?id=at\.tonc\.einkauf&amp;referrer=utm_source%3Dwebsite%26utm_medium%3Dlink%26utm_campaign%3D(?:kopf|abschluss)" rel="noopener">/g).length !== 2 || !/<a class="bald" href="[^"]*utm_campaign%3Dkopf"/.test(s.split('<section class="abschluss"')[0]) || !/utm_campaign%3Dabschluss"/.test(schlussTeil) || /Bald im Play Store/.test(entschluesselt(ohneSprachangabe(s.replace(/<script[\s\S]*?<\/script>/g, ' ')))))) melde('/', 'Startseite: Knöpfe im Kopf und im Abschluss nicht als Link zum Eintrag bei Google Play, oder „Bald im Play Store“ steht noch da');
   const leiste = s.match(/<aside class="kurzleiste"[^>]*>[\s\S]*?<\/aside>/)?.[0] ?? '';
   if (!/<aside class="kurzleiste" aria-label="[^"]+" data-kurzleiste hidden>/.test(leiste) || alle(leiste, /<a\b[^>]*href="[^"]+"/g).length !== 2) melde('/', 'Leiste unten: Bereich mit Namen, zwei Links und anfangs ausgeblendet erwartet');
   if (/herunterladen|download/i.test(textVon('/'))) melde('/', 'Aufforderung zum Herunterladen auf der Startseite');
@@ -1627,6 +1656,7 @@ if (metaZiel) {
 console.log(`Geprüft: ${seiten.size} Seiten (${[...seiten.keys()].join(', ')}), ${dateien.length} Dateien`);
 console.log(`Knopf „${TEILEN_NAME}“: auf ${teilenKnoepfe} von ${rezeptSeiten} Rezeptseiten, auf keiner anderen Seite`);
 console.log(`„Zum Ausprobieren“ im Menü: ${probeWahlen.size} verschiedene Auswahlen im HTML von ${seiten.size} Seiten, je drei Rezepte aus drei Ländern, nie die Seite selbst`);
+console.log(`Links zu Google Play: ${playLinks} im HTML, davon ${playOhneKennung} ohne Kennung auf Seiten mit Rechtstexten (erlaubt), alle anderen mit utm_campaign aus ${STORE_ORTE.join(', ')}`);
 console.log(`Zahlen der App: ${APP.gesamt} Rezepte und ${APP.laender} Länder in den Daten, im Text „über ${UEBER}“ an ${ueberStellen} Stellen; ${vonHandGelesen} Quelltexte ohne Zahl von Hand`);
 console.log(`Themenseiten: ${themenSeiten.imIndex.length} im Index (ab ${INDEX_AB} Rezepten, mit Einleitungstext), ${themenSeiten.ohneIndex.length} mit noindex (${themenSeiten.ohneIndex.join(', ')})`);
 console.log(`Im Index: ${seiten.size - OHNE_INDEX.size} von ${seiten.size} Seiten`);

@@ -6,7 +6,7 @@
 // in der Textfarbe, wie es die Markenrichtlinien von Meta für einfarbige Verwendung vorsehen; die Pfade stammen aus
 // der Sammlung Simple Icons (CC0 1.0), Fassung 13.21.0, und sind unverändert.
 import Logo from './Logo.astro';
-import { auftritte, store } from '../daten/seite.mjs';
+import { auftritte, store, storeLink } from '../daten/seite.mjs';
 import { fuss, geruest } from '../daten/startseite.mjs';
 import kontakt from '../inhalte/kontakt.html?raw';
 
@@ -14,6 +14,9 @@ import kontakt from '../inhalte/kontakt.html?raw';
 // Auf der Startseite trägt der Link im Fuß diese Sprungmarke.
 const alteMarke = Astro.url.pathname === '/' ? 'offenlegung' : undefined;
 // Die Adresse bleibt wie auf der veröffentlichten Seite als Zeichenfolge aus HTML-Entitäten im Quelltext.
+// Auf den vier Seiten mit Rechtstexten bleibt der Link zu Google Play ohne Kennung (AP-44): die Seiten bleiben unverändert.
+const OHNE_KENNUNG = new Set(['/datenschutz.html', '/nutzungsbedingungen.html', '/offenlegung/', '/lizenzen/']);
+const storeAdresse = OHNE_KENNUNG.has(Astro.url.pathname) ? store.adresse : storeLink('fuss');
 const kontaktLink = `<a href="${kontakt.trim()}">${fuss.links.kontakt}</a>`;
 ---
 <footer class="fuss">
@@ -72,7 +75,7 @@ const kontaktLink = `<a href="${kontakt.trim()}">${fuss.links.kontakt}</a>`;
           Vorgaben von Google: Höhe mindestens 28 px, ringsum frei ein Viertel der Höhe, keine Änderung an Farben oder
           Teilen. Die Datei liegt auf foodasu.com, kein Abruf bei Google. */}
       {store.oeffentlich ? (
-        <a class="fuss-abzeichen" href={store.adresse} rel="me noopener">
+        <a class="fuss-abzeichen" href={storeAdresse} rel="me noopener">
           <img src="/bilder/google-play-abzeichen-de.png" width="646" height="250" alt={fuss.auftritte.abzeichen} loading="lazy" decoding="async" />
         </a>
       ) : (

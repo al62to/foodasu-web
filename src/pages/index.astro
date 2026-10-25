@@ -12,7 +12,7 @@ import Logo from '../components/Logo.astro';
 import Motive from '../components/Motive.astro';
 import Unterschrift from '../components/Unterschrift.astro';
 import '../styles/start.css';
-import { seite, auftritte, store } from '../daten/seite.mjs';
+import { seite, auftritte, store, storeLink } from '../daten/seite.mjs';
 import {
   kopf, wort, schritte, video, funktionen, vergleich, einblick, zahlen, vorschau, fragenStart, abschluss, kurzleiste,
   geruest,
@@ -128,7 +128,7 @@ const posterQuellen = (format) => [360, 720].map((breite) => `${filmOrt}-${forma
         <h1 class="held-titel"><span class="h-gross">{kopf.ueberschrift[0]}</span>{' '}<span class="h-gross h-farbe">{kopf.ueberschrift[1]}</span>{' '}<span class="h-klein">{kopf.ueberschrift[2]}</span></h1>
         <p class="held-satz">{kopf.satz.vor}<em>{kopf.satz.betont}</em>{kopf.satz.nach}</p>
         <div class="held-knoepfe">
-          <a class="bald" href={store.adresse} rel="noopener"><i aria-hidden="true"></i><span>{kopf.aufruf}</span></a>
+          <a class="bald" href={storeLink('kopf')} rel="noopener"><i aria-hidden="true"></i><span>{kopf.aufruf}</span></a>
           <a class="knopf voll" href="#schritte">
             {kopf.zweiterKnopf}
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...linien} stroke-width="2.4"><path d="M12 5v14M6 13l6 6 6-6" /></svg>
@@ -404,7 +404,7 @@ const posterQuellen = (format) => [360, 720].map((breite) => `${filmOrt}-${forma
           <h2>{abschluss.ueberschrift}</h2>
           <p>{abschluss.satz}</p>
         </div>
-        <a class="bald" href={store.adresse} rel="noopener"><i aria-hidden="true"></i><span>{abschluss.knopf}</span></a>
+        <a class="bald" href={storeLink('abschluss')} rel="noopener"><i aria-hidden="true"></i><span>{abschluss.knopf}</span></a>
         <p class="abschluss-beta">{abschluss.beta}</p>
       </div>
     </div>
@@ -412,7 +412,7 @@ const posterQuellen = (format) => [360, 720].map((breite) => `${filmOrt}-${forma
 
   <aside class="kurzleiste" aria-label={kurzleiste.name} data-kurzleiste hidden>
     <a class="kurzleiste-marke" href="#start" aria-label={kurzleiste.logo}><Logo /></a>
-    <a class="knopf voll kurzleiste-knopf" href={store.oeffentlich ? store.adresse : kurzleiste.ziel}><i aria-hidden="true"></i><span>{store.oeffentlich ? kurzleiste.storeKnopf : kurzleiste.knopf}</span></a>
+    <a class="knopf voll kurzleiste-knopf" href={store.oeffentlich ? storeLink('kurzleiste') : kurzleiste.ziel}><i aria-hidden="true"></i><span>{store.oeffentlich ? kurzleiste.storeKnopf : kurzleiste.knopf}</span></a>
   </aside>
 </Basis>
 

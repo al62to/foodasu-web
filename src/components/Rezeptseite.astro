@@ -9,7 +9,7 @@ import Seitenkopf from './Seitenkopf.astro';
 import Motive from './Motive.astro';
 import Rezeptkarte from './Rezeptkarte.astro';
 import '../styles/rezepte.css';
-import { seite, store } from '../daten/seite.mjs';
+import { seite, store, storeLink } from '../daten/seite.mjs';
 import { fuss } from '../daten/startseite.mjs';
 import {
   rezepte, texte, LAND, KATEGORIE, AUFWAND, ENERGIE, QUELLE, NAEHRWERT, STAND, ausLand, zahl, dauer, gesamtzeit, iso, portionen,
@@ -378,7 +378,7 @@ const daten = [{
         </div>
         <p class="r-app-zeile">
           <a class="knopf voll" href="/so-gehts/">{texte.app.soGehts}</a>
-          {store.oeffentlich ? <a class="knopf rand" href={store.adresse} rel="noopener">{fuss.auftritte.storeLink}</a> : <span class="r-bald">{fuss.auftritte.storeBald}</span>}
+          {store.oeffentlich ? <a class="knopf rand" href={storeLink('rezept')} rel="noopener">{fuss.auftritte.storeLink}</a> : <span class="r-bald">{fuss.auftritte.storeBald}</span>}
         </p>
       </section>
 
