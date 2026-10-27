@@ -1,8 +1,8 @@
 ---
-// Kurzlinks /fb/, /ig/ und /app/ (AP-45, 25.10.2026): je eine Weiterleitung auf den Eintrag bei Google Play mit Kennung.
-// Ziele und Kennungen stehen in KURZLINKS (src/daten/seite.mjs).
+// Kurzlinks /fb/, /ig/, /app/ (AP-45, 25.10.2026) und /teilen/ (AP-48, 27.10.2026): je eine Weiterleitung auf den Eintrag bei Google Play mit Kennung.
+// Ziele und Kennungen stehen in KURZLINKS (src/daten/kurzlinks.mjs, dort aus seite.mjs und /teilen/).
 import Weiterleitung from '../../layouts/Weiterleitung.astro';
-import { KURZLINKS } from '../../daten/seite.mjs';
+import { KURZLINKS } from '../../daten/kurzlinks.mjs';
 
 export function getStaticPaths() {
   return KURZLINKS.map((kurzlink) => ({ params: { kurzlink: kurzlink.pfad.replaceAll('/', '') }, props: { ziel: kurzlink.ziel } }));

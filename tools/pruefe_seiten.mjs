@@ -10,7 +10,8 @@ import { muster as nurMuster } from '../src/daten/auswahl.mjs';
 import { BEREICH, adresse as kapitelAdresse, fotosVon, kapitel } from '../src/daten/sogehts.mjs';
 import { einblick, schritte as startSchritte, zahlen as startZahlen } from '../src/daten/startseite.mjs';
 import { EINTRAEGE } from '../src/daten/rezeptseiten.mjs';
-import { store, storeLink, STORE_ORTE, KURZLINKS } from '../src/daten/seite.mjs';
+import { store, storeLink, STORE_ORTE } from '../src/daten/seite.mjs';
+import { KURZLINKS } from '../src/daten/kurzlinks.mjs';
 import { GRENZEN, grenzBefunde, masse } from '../src/daten/breite.mjs';
 import { alleRezepte, zutatenBefunde } from './zutaten_pruefen.mjs';
 import { sogehtsLinks } from './sogehts_links.mjs';
@@ -724,21 +725,28 @@ for (const datei of dateien.filter((d) => /\.(txt|xml)$/.test(d))) {
   if (/play\.google\.com[^\s"]*utm_/.test(readFileSync(datei, 'utf8'))) melde(adresseVon(datei), 'Kennung des Kanals (utm_) gehört nicht in llms.txt oder die Sitemap');
 }
 
-// Kurzlinks (AP-45, 25.10.2026): Genau drei Weiterleitungen /fb/, /ig/ und /app/ auf den Eintrag bei Google Play mit
-// Kennung (utm_campaign=kurzlink). Je Seite: meta refresh "0; url=<Ziel>", noindex, genau ein Link mit dem Ziel und dem
+// Kurzlinks (AP-45, 25.10.2026; AP-48, 27.10.2026): Genau vier Weiterleitungen /fb/, /ig/, /app/ (utm_campaign=kurzlink)
+// und /teilen/ (utm_source=app, utm_medium=teilen, utm_campaign=empfehlung) auf den Eintrag bei Google Play mit
+// Kennung. Je Seite: meta refresh "0; url=<Ziel>", noindex, genau ein Link mit dem Ziel und dem
 // Text "Weiter zu FoodAsu bei Google Play", kein Skript, kein Rahmen, kein Formular, kein Bild von Dritten, keine
 // Kopf- oder Fußzeile; als Text nur der Name und der Link. Dazu: in keiner Sitemap, nicht in llms.txt, von keiner
 // anderen Seite verlinkt, in robots.txt nicht gesperrt (sonst sieht Google das noindex nicht).
 const KURZ_LINKTEXT = 'Weiter zu FoodAsu bei Google Play';
-const KURZ_ERLAUBT = ['/fb/', '/ig/', '/app/'];
-const KURZ_KENNUNG = /^https:\/\/play\.google\.com\/store\/apps\/details\?id=at\.tonc\.einkauf&referrer=utm_source%3D(facebook|instagram|nachricht)%26utm_medium%3D(social|persoenlich)%26utm_campaign%3Dkurzlink$/;
+const KURZ_ERLAUBT = ['/fb/', '/ig/', '/app/', '/teilen/'];
+const KURZ_KENNUNGEN = {
+  '/fb/': 'utm_source%3Dfacebook%26utm_medium%3Dsocial%26utm_campaign%3Dkurzlink',
+  '/ig/': 'utm_source%3Dinstagram%26utm_medium%3Dsocial%26utm_campaign%3Dkurzlink',
+  '/app/': 'utm_source%3Dnachricht%26utm_medium%3Dpersoenlich%26utm_campaign%3Dkurzlink',
+  '/teilen/': 'utm_source%3Dapp%26utm_medium%3Dteilen%26utm_campaign%3Dempfehlung',
+};
+const kurzZiel = (pfad) => `https://play.google.com/store/apps/details?id=at.tonc.einkauf&referrer=${KURZ_KENNUNGEN[pfad]}`;
 if (KURZLINKS.map((k) => k.pfad).join() !== KURZ_ERLAUBT.join()) melde('Kurzlinks', `erwartet ${KURZ_ERLAUBT.join(', ')}, gefunden ${KURZLINKS.map((k) => k.pfad).join(', ')}`);
 const robotsDatei = existsSync(join(DIST, 'robots.txt')) ? readFileSync(join(DIST, 'robots.txt'), 'utf8') : '';
 if (/^\s*Disallow:\s*\S/im.test(robotsDatei)) melde('/robots.txt', 'Disallow gefunden: Die Kurzlinks dürfen nicht gesperrt sein (Google sähe sonst das noindex nicht)');
 for (const kurzlink of KURZLINKS) {
   const html = weiterleitungen.get(kurzlink.pfad);
   if (html === undefined) { melde(kurzlink.pfad, 'Weiterleitung fehlt im Bau'); continue; }
-  if (!KURZ_KENNUNG.test(kurzlink.ziel)) melde(kurzlink.pfad, `Ziel ohne die erwartete Kennung (utm_campaign=kurzlink): ${kurzlink.ziel}`);
+  if (kurzlink.ziel !== kurzZiel(kurzlink.pfad)) melde(kurzlink.pfad, `Ziel ohne die erwartete Kennung (${KURZ_KENNUNGEN[kurzlink.pfad]}): ${kurzlink.ziel}`);
   const refresh = alle(html, /<meta\b[^>]*http-equiv="refresh"[^>]*>/gi);
   const inhalt = entschluesselt(refresh[0]?.[0].match(/content="([^"]*)"/)?.[1] ?? '');
   if (refresh.length !== 1 || inhalt !== `0; url=${kurzlink.ziel}`) melde(kurzlink.pfad, `genau eine Weiterleitung "0; url=<Ziel>" erwartet, gefunden: ${inhalt || 'keine'}`);
@@ -1713,7 +1721,7 @@ console.log(`Kurzlinks: ${weiterleitungen.size} Weiterleitungen (${[...weiterlei
 console.log(`Geprüft: ${seiten.size} Seiten (${[...seiten.keys()].join(', ')}), ${dateien.length} Dateien`);
 console.log(`Knopf „${TEILEN_NAME}“: auf ${teilenKnoepfe} von ${rezeptSeiten} Rezeptseiten, auf keiner anderen Seite`);
 console.log(`„Zum Ausprobieren“ im Menü: ${probeWahlen.size} verschiedene Auswahlen im HTML von ${seiten.size} Seiten, je drei Rezepte aus drei Ländern, nie die Seite selbst`);
-console.log(`Links zu Google Play: ${playLinks} im HTML, davon ${playOhneKennung} ohne Kennung auf Seiten mit Rechtstexten (erlaubt), alle anderen mit utm_campaign aus ${STORE_ORTE.join(', ')}; die drei Kurzlinks (Link und Weiterleitung) mit utm_campaign=kurzlink`);
+console.log(`Links zu Google Play: ${playLinks} im HTML, davon ${playOhneKennung} ohne Kennung auf Seiten mit Rechtstexten (erlaubt), alle anderen mit utm_campaign aus ${STORE_ORTE.join(', ')}; die vier Kurzlinks (Link und Weiterleitung) mit utm_campaign=kurzlink bzw. empfehlung (/teilen/)`);
 console.log(`Zahlen der App: ${APP.gesamt} Rezepte und ${APP.laender} Länder in den Daten, im Text „über ${UEBER}“ an ${ueberStellen} Stellen; ${vonHandGelesen} Quelltexte ohne Zahl von Hand`);
 console.log(`Themenseiten: ${themenSeiten.imIndex.length} im Index (ab ${INDEX_AB} Rezepten, mit Einleitungstext), ${themenSeiten.ohneIndex.length} mit noindex (${themenSeiten.ohneIndex.join(', ')})`);
 console.log(`Im Index: ${seiten.size - OHNE_INDEX.size} von ${seiten.size} Seiten`);
