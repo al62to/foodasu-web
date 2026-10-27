@@ -26,7 +26,8 @@ export const ueber = {
         'Dazu kam bei mir die Einkaufsliste. Jedes Mal eine neue zu schreiben, war mir ehrlich gesagt eine Qual. Ich dachte mir, das muss doch leichter gehen.',
         'Also habe ich FoodAsu gebaut und mehrere Dinge in einer App zusammengebracht, die Einkaufsliste, den Scanner und die Rezepte. Du legst einmal fest, was jede Person bei dir zu Hause meidet. Danach reicht ein Scan, und deine Listen schreibst du nicht jedes Mal neu.',
       ],
-      unterschrift: 'Ali Tonc, Entwickler von FoodAsu',
+      // Ohne Namen (AP-48 Teil G, 27.10.2026).
+      unterschrift: 'Entwickler von FoodAsu',
     },
     {
       // Entscheidung 9: für wen FoodAsu ist, und die Einkaufsliste im Alltag (LISTE-01, LISTE-03, LISTE-04).

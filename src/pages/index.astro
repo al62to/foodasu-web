@@ -20,14 +20,14 @@ import {
 import { fotoDaten } from '../daten/sogehts.mjs';
 import { ziel, alteRezepte, websiteZahlen, texte as rezeptTexte } from '../daten/rezeptseiten.mjs';
 import { jahreVonBis } from '../daten/alte_rezepte.mjs';
-import { appDaten, entwicklerDaten, seitenDaten, ORGANISATION_ID, WEBSITE_ID } from '../daten/strukturiert.mjs';
+import { appDaten, seitenDaten, ORGANISATION_ID, WEBSITE_ID } from '../daten/strukturiert.mjs';
 
 const organisation = ORGANISATION_ID;
-// Strukturierte Daten (Auftrag Teil 3 Nr. 1): WebSite und Organization wie bisher, dazu Person (Ali Tonc als
-// Entwickler, nur Name und Website), seit AP-34 MobileApplication statt SoftwareApplication (eine Unterart; ohne
+// Strukturierte Daten (Auftrag Teil 3 Nr. 1): WebSite und Organization wie bisher (seit AP-48 Teil G keine Person
+// mehr; Autor der App ist die Organisation FoodAsu), seit AP-34 MobileApplication statt SoftwareApplication (eine Unterart; ohne
 // offers, ohne Preis, ohne Bewertung wegen der Wortregel, auch wenn Google dann kein Rich Result zeigt; installUrl
 // mit store.oeffentlich) und FAQPage, wortgleich zu den sichtbaren Fragen. Seit AP-35A (23.10.2026) kommen
-// MobileApplication (mit fester Kennung /#app) und Person aus src/daten/strukturiert.mjs, dazu die Seite als WebPage
+// MobileApplication (mit fester Kennung /#app) aus src/daten/strukturiert.mjs, dazu die Seite als WebPage
 // mit Verweis auf die App.
 const gleich = [auftritte.facebook, auftritte.instagram, store.oeffentlich ? store.adresse : ''].filter(Boolean);
 const antwortText = (eintrag) => eintrag.antwort.join(' ');
@@ -53,7 +53,6 @@ const daten = [
     sameAs: gleich,
   },
   seitenDaten('/'),
-  entwicklerDaten(),
   appDaten(),
   // Video der Startseite (Stufe 2, Projektleitung, 14.10.2026, 13:45): ohne Preis und ohne Bewertung; Poster und
   // Film im Format für den Laptop. Google zeigt ein Video meist nur als Video-Ergebnis, wenn es der Hauptinhalt einer

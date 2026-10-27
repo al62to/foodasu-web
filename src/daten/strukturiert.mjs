@@ -13,7 +13,6 @@ import { standVon } from './stand.mjs';
 export const APP_ID = `${seite.adresse}/#app`;
 export const WEBSITE_ID = `${seite.adresse}/#website`;
 export const ORGANISATION_ID = `${seite.adresse}/#organisation`;
-export const ENTWICKLER_ID = `${seite.adresse}/#ali-tonc`;
 
 export const app = {
   // Wortgleich die Kurzbeschreibung des deutschen Store-Eintrags (foodasu-play/Store_Eintrag.md, Fassung AP-33 vom
@@ -59,19 +58,10 @@ export const appDaten = () => ({
   countriesSupported: app.laender,
   softwareRequirements: app.voraussetzung,
   permissions: app.berechtigungen,
-  author: { '@id': ENTWICKLER_ID },
+  // Seit AP-48 Teil G (27.10.2026): Autor ist die Organisation FoodAsu, keine Person mit Namen.
+  author: { '@id': ORGANISATION_ID },
   publisher: { '@id': ORGANISATION_ID },
   ...(store.oeffentlich ? { installUrl: store.adresse, sameAs: [store.adresse] } : {}),
-});
-
-// Der Entwickler: Person „Ali Tonc“ mit der Entwicklerseite bei Google Play (live erreichbar am 23.10.2026), ohne
-// Arbeitgeber, Ort oder weitere Profile. Vor dem öffentlichen Start die Seite „Über FoodAsu“.
-export const entwicklerDaten = () => ({
-  '@context': 'https://schema.org',
-  '@type': 'Person',
-  '@id': ENTWICKLER_ID,
-  name: 'Ali Tonc',
-  url: store.oeffentlich ? store.entwickler : `${seite.adresse}/ueber-foodasu/`,
 });
 
 // Der Verweis auf die App für eine Seite, die von ihr handelt.

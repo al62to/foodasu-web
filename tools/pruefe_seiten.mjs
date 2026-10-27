@@ -339,7 +339,7 @@ for (const [adresse, html] of seiten) {
       melde(adresse, 'JSON-LD ist kein gültiges JSON');
     }
   }
-  const erwartet = adresse === '/' ? ['WebSite', 'Organization', 'Person', 'MobileApplication', 'VideoObject', 'FAQPage', 'WebPage'] : OHNE_EINGANG.has(adresse) ? [] : ['BreadcrumbList', ...(artDerAppSeite(adresse) ? [artDerAppSeite(adresse)] : [])];
+  const erwartet = adresse === '/' ? ['WebSite', 'Organization', 'MobileApplication', 'VideoObject', 'FAQPage', 'WebPage'] : OHNE_EINGANG.has(adresse) ? [] : ['BreadcrumbList', ...(artDerAppSeite(adresse) ? [artDerAppSeite(adresse)] : [])];
   for (const art of erwartet) if (!arten.includes(art)) melde(adresse, `strukturierte Daten fehlen: ${art}`);
   // Verweis auf die App (AP-35A): Auf jeder Seite, die von der App handelt, verweist die Angabe ihrer Art mit "about"
   // genau auf die Kennung der App; keine andere Seite verweist auf sie.
@@ -779,7 +779,7 @@ for (const [adresse, html] of seiten) {
 const FUSS_LINKS = ['/datenschutz.html', '/nutzungsbedingungen.html', '/offenlegung/', '/lizenzen/', '/quellen-und-lizenzen/', '/so-gehts/', '/rezepte/', ALTE, '/fragen/', '/daten-und-quellen/', '/ueber-foodasu/'];
 const FUSS_TEXTE = [
   'Einkaufslisten-App und Lebensmittel-Scanner für den ganzen Haushalt.', 'Maßgeblich ist die Verpackung.', 'Rechtliches', 'Folge uns',
-  'Von Anfang an dabei sein.', '© 2026 FoodAsu · Eine App von Ali',
+  'Von Anfang an dabei sein.', '© 2026 FoodAsu',
 ];
 for (const [adresse, html] of seiten) {
   const fuss = alle(html, /<footer class="fuss"[\s\S]*?<\/footer>/g);
@@ -1089,7 +1089,21 @@ for (const adresse of ['/', '/ueber-foodasu/']) {
 }
 const ueberInhalt = (seiten.get('/ueber-foodasu/') ?? '').match(/<main[\s\S]*<\/main>/)?.[0] ?? '';
 if (!ueberInhalt.includes('href="/daten-und-quellen/"')) melde('/ueber-foodasu/', 'Link auf „Daten und Quellen“ fehlt');
-if (!textVon('/ueber-foodasu/').includes('Ali Tonc')) melde('/ueber-foodasu/', 'der Name Ali Tonc fehlt');
+if (/\bAli\b|Tonc/.test(textVon('/ueber-foodasu/'))) melde('/ueber-foodasu/', 'der Name steht hier nicht mehr (AP-48 Teil G)');
+
+// AP-48 Teil G (Alis Wunsch vom 27.10.2026): Alis Name steht nur noch dort, wo es gesetzlich nötig ist, also in der
+// Offenlegung, in der Datenschutzerklärung (Verantwortlicher) und in den Nutzungsbedingungen (Anbieter). In jeder
+// anderen Datei des Baus (Seiten mit Fußzeile, Unterschriften und strukturierten Daten, llms.txt, Sitemap) ist er ein
+// Befund, auch verschlüsselt.
+const NAME_ERLAUBT = new Set(['/datenschutz.html', '/nutzungsbedingungen.html', '/offenlegung/']);
+let nameGeprueft = 0;
+for (const datei of dateien.filter((d) => /\.(html|txt|xml|json|js)$/.test(d))) {
+  const adresse = adresseVon(datei);
+  if (NAME_ERLAUBT.has(adresse)) continue;
+  nameGeprueft += 1;
+  for (const fund of alle(entschluesselt(readFileSync(datei, 'utf8')), /\bAli\b|\bTonc\b/g)) melde(adresse, `Name „${fund[0]}“ außerhalb der Rechtstexte (AP-48 Teil G)`);
+}
+console.log(`Name des Entwicklers: ${nameGeprueft} Dateien ohne Namen geprüft, erlaubt nur in ${[...NAME_ERLAUBT].join(', ')}`);
 
 // AP-23 (Website neu gestalten), Teil B Nr. 10: Farbprüfung. Jede Farbe kommt aus den Variablen in
 // src/styles/basis.css. In den anderen Stildateien, in den Stilen der Komponenten und im gebauten HTML steht kein
@@ -1196,7 +1210,7 @@ if (!wortTeil) melde('/', 'Abschnitt „Einkaufen ohne …“ fehlt');
 else {
   const wortText = entschluesselt(wortTeil.replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ');
   for (const absatz of ABSATZ_START) if (!wortText.includes(absatz)) melde('/', `Absatz mit Unterschrift weicht vom Wortlaut ab: ${absatz.slice(0, 50)} …`);
-  if (!/Ali Tonc,\s*Entwickler von FoodAsu/.test(wortText)) melde('/', 'Unterschrift „Ali Tonc, Entwickler von FoodAsu“ fehlt');
+  if (!/Entwickler von FoodAsu/.test(wortText) || /\bAli\b|Tonc/.test(wortText)) melde('/', 'Unterschrift „Entwickler von FoodAsu“ (ohne Namen) fehlt');
   if (!/<a\b[^>]*href="\/ueber-foodasu\/#warum"[^>]*>\s*Warum es FoodAsu gibt/.test(wortTeil)) melde('/', 'Link „Warum es FoodAsu gibt“ auf /ueber-foodasu/#warum fehlt');
   // Nachtrag zu AP-23 Teil B Nr. 6: Die Wörter stehen als Chips neben der Unterschrift; "Eier" statt "Schweinefleisch".
   if (/Schweinefleisch/.test(entschluesselt(wortTeil))) melde('/', 'im Abschnitt mit Alis Unterschrift steht „Schweinefleisch“ (Chips und Absatz; seit dem Nachtrag zu AP-23 „Eier“)');
@@ -1326,7 +1340,7 @@ for (const [adresse, html] of seiten) {
 // HTML-Entitäten.
 for (const anker of ['warum', 'fuer-wen', 'angaben', 'bei-dir', 'stand', 'kontakt']) if (!new RegExp(`<h2 id="${anker}">`).test(ueberInhalt)) melde('/ueber-foodasu/', `Abschnitt mit dem Anker #${anker} fehlt`);
 if (alle(ueberInhalt, /<li class="station"/g).length !== 6) melde('/ueber-foodasu/', 'sechs Stationen erwartet');
-if (!/Ali Tonc,\s*Entwickler von FoodAsu/.test(entschluesselt(ueberInhalt.replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' '))) melde('/ueber-foodasu/', 'Unterschrift „Ali Tonc, Entwickler von FoodAsu“ fehlt');
+if (!/Entwickler von FoodAsu/.test(entschluesselt(ueberInhalt.replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' '))) melde('/ueber-foodasu/', 'Unterschrift „Entwickler von FoodAsu“ fehlt');
 if (!/<a class="knopf voll" href="(?:&#\d+;)+">/.test(ueberInhalt)) melde('/ueber-foodasu/', 'Knopf „E-Mail schreiben“: Adresse aus HTML-Entitäten erwartet');
 if (/mailto:/.test(ueberInhalt)) melde('/ueber-foodasu/', 'die Adresse des Kontakts steht im Klartext');
 // Startseite nach dem Auftrag SEO 1 neu (Projektleitung, 14.10.2026) und dem von Ali freigegebenen Entwurf.
@@ -1426,13 +1440,13 @@ if (/mailto:/.test(ueberInhalt)) melde('/ueber-foodasu/', 'die Adresse des Konta
   if (absaetze.length < 13) melde('/', `Absätze der Fragen und Funktionen: nur ${absaetze.length} gefunden (die Prüfung liest nichts)`);
   for (const absatz of absaetze) if (saetze(absatz) < 1 || saetze(absatz) > 2) melde('/', `Absatz mit ${saetze(absatz)} Sätzen (erwartet ein oder zwei): „${absatz.slice(0, 80)}“`);
   if (!/Einkaufsapp/.test(fragenTeil)) melde('/', 'eine Antwort nennt „Einkaufsapp“ nicht');
-  // MobileApplication und Person (Teil 3 Nr. 1; seit AP-34 MobileApplication mit installUrl).
+  // MobileApplication (Teil 3 Nr. 1; seit AP-34 mit installUrl; seit AP-48 Teil G Autor die Organisation FoodAsu).
   const app = block('MobileApplication');
   if (app) {
     // Seit AP-35A: feste Kennung, Beschreibung wortgleich die Kurzbeschreibung des deutschen Store-Eintrags (nicht mehr
     // der GEO-Satz; der steht weiter sichtbar auf der Seite und in llms.txt).
     if (app['@id'] !== APP_ID || app.operatingSystem !== 'Android' || app.applicationCategory !== 'ShoppingApplication' || app.description !== APP_KURZ || app.url !== `${HOST}/` || app.name !== 'FoodAsu') melde('/', 'MobileApplication: Kennung, Name, Betriebssystem, Kategorie, Beschreibung (Kurzbeschreibung des Store-Eintrags) oder Adresse weicht ab');
-    if (app.author?.['@id'] !== `${HOST}/#ali-tonc` || block('Person')?.['@id'] !== `${HOST}/#ali-tonc`) melde('/', 'MobileApplication: der Entwickler (author, Person „Ali Tonc“) fehlt');
+    if (app.author?.['@id'] !== `${HOST}/#organisation`) melde('/', 'MobileApplication: der Entwickler (author, Organisation FoodAsu) fehlt');
     if (/offers|price|aggregateRating|review|isAccessibleForFree/i.test(JSON.stringify(app))) melde('/', 'MobileApplication: Angebot, Preis oder Bewertung gehören nicht hinein');
     if (!store.oeffentlich && JSON.stringify(app).includes('play.google.com')) melde('/', 'MobileApplication: Eintrag bei Google Play vor dem öffentlichen Start');
     if (store.oeffentlich && app.installUrl !== store.adresse) melde('/', 'MobileApplication: installUrl fehlt oder ist nicht der Eintrag bei Google Play');
@@ -1450,11 +1464,8 @@ if (/mailto:/.test(ueberInhalt)) melde('/ueber-foodasu/', 'die Adresse des Konta
     if (app.permissions !== 'Kamera, Internet, Vibration, Netzwerkstatus') melde('/', 'MobileApplication: permissions weichen von den Berechtigungen der App ab');
     for (const feld of ['softwareVersion', 'termsOfService']) if (feld in app) melde('/', `MobileApplication: ${feld} gehört nicht hinein`);
   }
-  const person = block('Person');
-  if (person && (person.name !== 'Ali Tonc' || Object.keys(person).some((schluessel) => !['@context', '@type', '@id', 'name', 'url'].includes(schluessel)))) melde('/', 'Person: nur Name und Website von Ali Tonc erwartet');
-  // AP-35A: url der Person ist die Entwicklerseite bei Google Play (nur nach dem öffentlichen Start).
-  if (person && store.oeffentlich && person.url !== store.entwickler) melde('/', 'Person: url ist nicht die Entwicklerseite bei Google Play');
-  if (person && !/^https:\/\/play\.google\.com\/store\/apps\/dev\?id=\d+$/.test(store.entwickler ?? '')) melde('/', 'Person: Adresse der Entwicklerseite bei Google Play hat nicht die erwartete Form');
+  // AP-48 Teil G (27.10.2026): keine Person mit Namen in den strukturierten Daten.
+  if (block('Person')) melde('/', 'Person in den strukturierten Daten: seit AP-48 Teil G nicht mehr erwartet');
   // Die Startseite selbst als WebPage mit Verweis auf die App (der Verweis wird oben für alle Seiten geprüft).
   if (block('WebPage')?.url !== `${HOST}/`) melde('/', 'WebPage der Startseite: url fehlt oder weicht ab');
   // Pflichtstellen des Fokus-Keywords (Teil 2 Nr. 2): Titel, H1, Beschreibung, Unterzeile, H2 der Fragen, Fragen, ein

@@ -83,7 +83,8 @@ export const wort = {
     'Mit FoodAsu bleiben meine Listen gespeichert, und beim Scannen sehe ich, was laut den Angaben im Produkt ist.',
     'Den Einkaufszettel aus Papier brauche ich dafür nicht mehr.',
   ],
-  unterschrift: 'Ali Tonc, Entwickler von FoodAsu',
+  // Ohne Namen (AP-48 Teil G, Alis Wunsch vom 27.10.2026): Der Name steht nur noch, wo es gesetzlich nötig ist.
+  unterschrift: 'Entwickler von FoodAsu',
   link: { text: 'Warum es FoodAsu gibt', ziel: '/ueber-foodasu/#warum' },
 };
 
@@ -430,7 +431,8 @@ export const fuss = {
     // AP-22 Teil 2 Nr. 5.
     { titel: 'Über FoodAsu', ziel: '/ueber-foodasu/' },
   ],
-  rechte: '© 2026 FoodAsu · Eine App von Ali',
+  // Ohne „Eine App von Ali“ (AP-48 Teil G, 27.10.2026).
+  rechte: '© 2026 FoodAsu',
   auftritte: {
     facebook: 'Facebook',
     instagram: 'Instagram',
