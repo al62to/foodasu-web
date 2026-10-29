@@ -1,6 +1,6 @@
 // /llms.txt nach dem Format von llmstxt.org: Überschrift, ein Absatz zu FoodAsu, Abschnitte mit Links. Genannt ist
 // jede Seite, die im Index steht, mit ihrer Beschreibung aus src/daten/meta.mjs (AP-18 Nachtrag Meta); Seiten mit
-// noindex fehlen. Der Absatz stammt aus den freigegebenen Texten der Startseite.
+// noindex fehlen, seit AP-56w (29.10.2026) auch alle Seiten mit Rechtstexten. Der Absatz stammt aus den freigegebenen Texten der Startseite.
 // Seit dem Auftrag SEO 1 neu (14.10.2026, Teil 3 Nr. 3): Oben steht der GEO-Satz (gleichlautend auf der Startseite und
 // in SoftwareApplication.description), darunter eine kurze sachliche Beschreibung auf Deutsch; der Link zum Eintrag bei
 // Google Play kommt erst mit dem öffentlichen Start (store.oeffentlich).
@@ -51,11 +51,6 @@ export function GET() {
     '',
     '## Rezepte im Einzelnen',
     ...nachName.map((rezept) => link(rezept.titel, `/rezepte/${rezept.slug}/`)),
-    '',
-    '## Rechtliches',
-    link('Datenschutzerklärung', '/datenschutz.html'),
-    link(geruest.recht.nutzungsbedingungen, '/nutzungsbedingungen.html'),
-    link(geruest.lizenzen.titel, '/lizenzen/'),
     '',
   ];
   // Jede Seite im Index steht in der Datei, keine Seite mit noindex.

@@ -10,8 +10,9 @@
 //   aus den Daten der Seite, keine geraden Anführungszeichen. "Ohne ...", vegetarisch und vegan stehen immer mit
 //   "laut Zutatenliste" und dem Hinweis auf die Verpackung.
 // - Zahlen kommen aus den Daten und werden nie von Hand geschrieben.
-// - noindex tragen /offenlegung/, /quellen-und-lizenzen/ und die 404-Seite, dazu jede Themenseite der Rezepte mit
-//   weniger als sechs Rezepten oder ohne eigenen Einleitungstext (AP-22, src/daten/rezeptseiten.mjs).
+// - noindex tragen die Seiten mit Rechtstexten (/datenschutz.html, /nutzungsbedingungen.html, /lizenzen/,
+//   /offenlegung/, /quellen-und-lizenzen/; die ersten drei seit AP-56w, 29.10.2026, auf Alis Wunsch) und die
+//   404-Seite, dazu jede Themenseite der Rezepte mit weniger als sechs Rezepten oder ohne eigenen Einleitungstext (AP-22, src/daten/rezeptseiten.mjs).
 // - Wortwahl (AP-22 Teil 1 Nr. 7): Wo es ohne Bruch der Wortregeln geht, steht das Wort, nach dem laut Keyword-Planer
 //   gesucht wird (Stand 10.10.2026: "einkaufsliste app", "lebensmittel scanner app"). Der Titel der Startseite steht in
 //   src/daten/startseite.mjs (kopfdaten.titel).
@@ -35,7 +36,7 @@ const MARKE = ` | ${seite.name}`;
 // Der eine Titel, der die Grenzen überschreiten darf (siehe oben, Ausnahme Startseite).
 export const TITEL_START = 'Einkaufslisten-App und Lebensmittel-Scanner für den ganzen Haushalt';
 if (kopfdaten.titel !== TITEL_START) throw new Error(`Titel der Startseite: „${TITEL_START}“ erwartet, gefunden „${kopfdaten.titel}“`);
-export const OHNE_INDEX = ['/offenlegung/', '/quellen-und-lizenzen/', '/404.html'];
+export const OHNE_INDEX = ['/datenschutz.html', '/nutzungsbedingungen.html', '/lizenzen/', '/offenlegung/', '/quellen-und-lizenzen/', '/404.html'];
 const TITEL_ZEICHEN = /^[\p{L}\p{N} :|()'-]+$/u;
 
 const fehler = [];
@@ -85,7 +86,7 @@ const FEST = [
     titel: mitMarke('/datenschutz.html', 'Datenschutzerklärung'),
     beschreibung: 'Datenschutzerklärung der App FoodAsu und der Website foodasu.com: welche Daten verarbeitet werden, wozu, und welche Rechte du hast.',
   },
-  // Nutzungsbedingungen (AP-35A, 23.10.2026): im Index wie die Datenschutzerklärung.
+  // Nutzungsbedingungen (AP-35A, 23.10.2026); seit AP-56w (29.10.2026) wie alle Rechtstexte mit noindex.
   {
     pfad: '/nutzungsbedingungen.html',
     titel: mitMarke('/nutzungsbedingungen.html', 'Nutzungsbedingungen der App'),

@@ -169,10 +169,11 @@ function listeSichtbar(adresse, html, ziele) {
 
 // Kopfdaten je Seite (AP-18 Nachtrag Meta): Titel und Beschreibung vorhanden, eindeutig, in den Grenzen (Zeichen und
 // Pixel wie in der Vorschau der Suche, src/daten/breite.mjs) und ohne Wort aus den Wortlisten; kanonische Adresse;
-// noindex nur auf den drei genannten Seiten und auf den kleinen Themenseiten (siehe unten), sonst keine Robots-Angabe;
+// noindex nur auf den Seiten in OHNE_INDEX und auf den kleinen Themenseiten (siehe unten), sonst keine Robots-Angabe;
 // genau eine h1 und keine Sprünge in der Reihenfolge der Überschriften; Open Graph und Twitter-Karte vollständig, mit einem Bild 1200 x 630 von dieser
 // Website. Die Prüfung liest nur die gebauten Seiten, nicht src/daten/meta.mjs.
-const OHNE_INDEX = new Set(['/offenlegung/', '/quellen-und-lizenzen/', '/404.html']);
+// Seit AP-56w (29.10.2026) tragen alle Seiten mit Rechtstexten noindex; sie bleiben erreichbar und im Fuß verlinkt.
+const OHNE_INDEX = new Set(['/datenschutz.html', '/nutzungsbedingungen.html', '/lizenzen/', '/offenlegung/', '/quellen-und-lizenzen/', '/404.html']);
 // Themenseiten der Rezepte (AP-22 Teil 1 Nr. 2): Im Index steht eine Themenseite nur mit mindestens sechs Rezepten und
 // einem eigenen Einleitungstext. Jede andere trägt "noindex, follow" und fehlt in sitemap.xml und llms.txt; für
 // Besucher bleibt sie. Gelesen wird beides aus der gebauten Seite: die Zahl aus der ItemList, der Text aus dem Absatz
@@ -980,7 +981,7 @@ if (existsSync(join(DIST, 'sitemap.xml'))) {
     if (!seiten.has(adresse)) melde('sitemap.xml', `Seite fehlt: ${ort}`);
     else if (seiten.get(adresse).includes('noindex')) melde('sitemap.xml', `Seite mit noindex: ${ort}`);
   }
-  // Die Sitemap enthält genau die Seiten im Index: jede ohne noindex, keine der drei Seiten mit noindex.
+  // Die Sitemap enthält genau die Seiten im Index: jede ohne noindex, keine der Seiten mit noindex.
   for (const adresse of seiten.keys()) {
     const eingetragen = karte.includes(`<loc>${HOST + adresse}</loc>`);
     if (OHNE_INDEX.has(adresse) && eingetragen) melde('sitemap.xml', `Seite mit noindex ist eingetragen: ${adresse}`);
@@ -1316,7 +1317,7 @@ for (const [adresse, html] of seiten) if (/iPhone ist geplant|iPhone ist in Arbe
   if (zeilen[2] !== `> ${GEO}`) melde('llms.txt', 'Einleitung: der GEO-Satz als erstes Zitat erwartet');
   if (!(zeilen[4] ?? '').startsWith(`${KERNSATZ} `) || !(zeilen[4] ?? '').includes(` ${VERFUEGBAR} `)) melde('llms.txt', 'Einleitung: der Absatz mit dem Kernsatz und dem Satz zur Verfügbarkeit erwartet');
   if (!store.oeffentlich && llms.includes('play.google.com')) melde('llms.txt', 'Link zum Eintrag bei Google Play vor dem öffentlichen Start');
-  for (const ziel of ['/', BEREICH, '/fragen/', '/datenschutz.html']) if (!llms.includes(`(${HOST}${ziel})`)) melde('llms.txt', `Link fehlt: ${ziel}`);
+  for (const ziel of ['/', BEREICH, '/fragen/']) if (!llms.includes(`(${HOST}${ziel})`)) melde('llms.txt', `Link fehlt: ${ziel}`);
 }
 if (llms.split(VERFUEGBAR).length !== 2) melde('llms.txt', 'der Satz zur Plattform steht nicht genau einmal in der Datei');
 // Titel der Startseite, Überschrift von "Über FoodAsu", Satz der Fußzeile als Beschreibung des Bildes zum Teilen.
@@ -1511,8 +1512,8 @@ for (let nummer = 1; nummer <= 26; nummer++) if (!datenschutz.includes(`<h2 id="
 for (const teil of ['teil-a', 'teil-b', 'teil-c', 'teil-d']) if (!datenschutz.includes(`<h2 id="${teil}">`)) melde('/datenschutz.html', `Überschrift mit dem Anker #${teil} fehlt`);
 if (alle(datenschutz, /<nav class="s-toc"/g).length !== 1) melde('/datenschutz.html', 'Inhaltsverzeichnis an der Seite: genau eines erwartet');
 // Nutzungsbedingungen (AP-35A): Kurzfassung und Abschnitte 1 bis 18 mit Anker, Verzeichnis an der Seite, Zeile mit dem
-// Stand, Kontakt nur als HTML-Entitäten; die Seite als WebPage mit Verweis auf die App und dateModified gleich lastmod
-// in sitemap.xml; Link in llms.txt.
+// Stand, Kontakt nur als HTML-Entitäten; die Seite als WebPage mit Verweis auf die App und dateModified als Tag, der
+// nicht in der Zukunft liegt (seit AP-56w mit noindex, also ohne lastmod in sitemap.xml und ohne Link in llms.txt).
 {
   const nb = seiten.get(NUTZUNG) ?? '';
   if (!nb) melde(NUTZUNG, 'Seite fehlt');
@@ -1524,11 +1525,9 @@ if (alle(datenschutz, /<nav class="s-toc"/g).length !== 1) melde('/datenschutz.h
   if (/mailto:[a-z]/i.test(nb) || /\{\{[A-Z_]+\}\}/.test(nb)) melde(NUTZUNG, 'Adresse im Klartext oder offener Platzhalter');
   const nbDaten = alle(nb, /<script type="application\/ld\+json">([\s\S]*?)<\/script>/g).map(([, roh]) => { try { return JSON.parse(roh); } catch { return {}; } });
   const seite = nbDaten.find((block) => block['@type'] === 'WebPage');
-  const lastmod = existsSync(join(DIST, 'sitemap.xml')) ? readFileSync(join(DIST, 'sitemap.xml'), 'utf8').match(/<loc>https:\/\/foodasu\.com\/nutzungsbedingungen\.html<\/loc><lastmod>([\d-]+)<\/lastmod>/)?.[1] : null;
   if (!seite || seite.url !== HOST + NUTZUNG || seite.about?.['@id'] !== APP_ID) melde(NUTZUNG, 'WebPage mit url und about auf die App fehlt');
-  else if (!lastmod || seite.dateModified !== lastmod) melde(NUTZUNG, `WebPage: dateModified „${seite.dateModified}“ ungleich lastmod in sitemap.xml „${lastmod}“`);
+  else if (!/^\d{4}-\d{2}-\d{2}$/.test(seite.dateModified ?? '') || seite.dateModified > new Date().toISOString().slice(0, 10)) melde(NUTZUNG, `WebPage: dateModified „${seite.dateModified}“ ist kein Tag oder liegt in der Zukunft`);
   if (nbDaten.some((block) => /Application$/.test(block['@type']))) melde(NUTZUNG, 'die App steht nur auf der Startseite vollständig');
-  if (!llms.includes(`(${HOST}${NUTZUNG})`)) melde('llms.txt', `Link fehlt: ${NUTZUNG}`);
 }
 if (/<nav class="s-toc"/.test(seiten.get('/offenlegung/') ?? '')) melde('/offenlegung/', 'die Offenlegung hat keine Abschnitte und braucht kein Inhaltsverzeichnis');
 // Linienmotive: höchstens drei je Abschnitt (die Komponente bricht sonst den Bau ab); hier zählt die Seite als Ganzes
