@@ -1,7 +1,7 @@
 """Baut die Bildschirmfotos für "So geht's" und für den Abschnitt "FoodAsu im Bild" der Startseite.
 
 Quelle ist der Ordner mit den Bildschirmfotos der App aus der Play-Fassung (lokal, außerhalb jedes Repositorys):
-C:/Users/ali/foodasu-play/So_gehts_Bilder. Genommen werden nur die Dateien aus dem Hauptordner; dort sind Marken,
+~/Projekte/FoodAsu/Material/So_gehts_Bilder (am Laptop C:/Users/ali/foodasu-play/So_gehts_Bilder). Genommen werden nur die Dateien aus dem Hauptordner; dort sind Marken,
 Produktnamen, Produktfotos und EAN weichgezeichnet. Der Unterordner "original" (ohne Weichzeichnung) wird nie gelesen;
 eine Quelle, die auf "original" endet, bricht den Lauf ab.
 
@@ -29,7 +29,7 @@ WURZEL = Path(__file__).resolve().parent.parent
 ZIEL = WURZEL / "public" / "bilder" / "sogehts"
 VERZEICHNIS = WURZEL / "src" / "daten" / "sogehts_fotos.json"
 DATEN = [*sorted((WURZEL / "src" / "daten" / "anleitung").glob("*.mjs")), WURZEL / "src" / "daten" / "startseite.mjs"]
-QUELLE = Path("C:/Users/ali/foodasu-play/So_gehts_Bilder")
+QUELLE = Path.home() / "Projekte" / "FoodAsu" / "Material" / "So_gehts_Bilder"  # am Mac seit AP-54 (früher C:/Users/ali/foodasu-play/...)
 BREITEN = (360, 720)
 # Namen der neuen Bildschirmfotos: Bereich, Thema, Schritt (zum Beispiel liste_abhaken_02).
 NAME = re.compile(r"(?:datei:\s*|foto\()'([a-z]+(?:_[a-z0-9]+)+_\d\d)'")

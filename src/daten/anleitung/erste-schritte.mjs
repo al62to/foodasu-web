@@ -74,7 +74,7 @@ export default {
       anker: 'hinweise-auf-der-startseite',
       symbol: 'glocke',
       funktionen: ['START-08', 'START-09'],
-      nutzen: 'Gibt es eine neue Version, meldet es die Startseite; du aktualisierst mit einem Tipp oder verschiebst es. Solange FoodAsu in der Beta ist, steht dort auch eine kleine Karte, von der aus du Feedback gibst oder die du ausblendest.',
+      nutzen: 'Gibt es eine neue Version, meldet es die Startseite; du aktualisierst mit einem Tipp oder verschiebst es. Dazu steht dort die Karte „FoodAsu wächst.“: Über „Idee schicken“ schreibst du mir, was dir fehlt, oder du blendest sie aus.',
       wo: 'Start > Karten ganz oben',
     },
     {

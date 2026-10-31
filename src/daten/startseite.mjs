@@ -164,8 +164,11 @@ export const funktionen = {
       kennung: 'haushalt',
       symbol: 'haushalt',
       titel: 'Dein Haushalt',
-      kurz: 'Für jede Person eigene Einträge.',
-      text: [`Du legst für jede Person in der Familie fest, was sie meidet. ${zahlwort(appZahlen.stufen, true)} Stufen reichen von „Lieber nicht“ bis „Auf keinen Fall“.`],
+      kurz: 'Für jede Person das, was sie meidet.',
+      // „drei“ Personen und „ein“ Eintrag je Person: Grenzen für neue Haushalte ab 0.19.0 laut App
+      // (cohort/domain/HouseholdLimits.kt: MAX_PERSONS = 3, MAX_ENTRIES_PER_PERSON = 1). app_fassung.json führt sie
+      // nicht, deshalb hier als Wort (AP-54).
+      text: [`Du legst für bis zu drei Personen je einen Eintrag fest, frei wählbar und jederzeit änderbar. ${zahlwort(appZahlen.stufen, true)} Stufen reichen von „Lieber nicht“ bis „Auf keinen Fall“.`],
     },
     {
       kennung: 'liste',
@@ -230,7 +233,7 @@ export const einblick = {
       datei: 'karte_urteil_01',
       titel: 'Das Urteil für den Haushalt',
       text: 'Oben auf der Karte steht, für wen ein Produkt laut Daten nicht passt.',
-      alt: 'Produktkarte in FoodAsu: oben „Nicht für Mia: enthält Schalenfrüchte und Milch“, darunter Mia „enthält“, Elif „Hinweis“ und Jonas „kein Konflikt“, dann die Nährwerte je 100 g',
+      alt: 'Produktkarte in FoodAsu: oben „Nicht für Mia: enthält Schalenfrüchte“, darunter Mia „enthält“, Jonas und Elif „kein Konflikt“, dann „Geprüft für Mia: nur Schalenfrüchte“ und die Nährwerte je 100 g',
       ziel: '/so-gehts/scannen-und-urteil/#das-urteil',
     },
     {
@@ -291,7 +294,7 @@ export const zahlen = {
   zaehler: [
     { zahl: appZahlen.rezepte, wort: 'Rezepte in der App' },
     { zahl: appZahlen.laender, wort: 'Länder' },
-    { zahl: appZahlen.eintraege, wort: 'Einträge zum Meiden' },
+    { zahl: appZahlen.eintraege, wort: 'Einträge zur Auswahl' },
     { zahl: 0, wort: 'Werbung' },
   ],
 };

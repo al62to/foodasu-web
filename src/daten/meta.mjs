@@ -36,7 +36,7 @@ const MARKE = ` | ${seite.name}`;
 // Der eine Titel, der die Grenzen überschreiten darf (siehe oben, Ausnahme Startseite).
 export const TITEL_START = 'Einkaufslisten-App und Lebensmittel-Scanner für den ganzen Haushalt';
 if (kopfdaten.titel !== TITEL_START) throw new Error(`Titel der Startseite: „${TITEL_START}“ erwartet, gefunden „${kopfdaten.titel}“`);
-export const OHNE_INDEX = ['/datenschutz.html', '/nutzungsbedingungen.html', '/lizenzen/', '/offenlegung/', '/quellen-und-lizenzen/', '/404.html'];
+export const OHNE_INDEX = ['/datenschutz.html', '/nutzungsbedingungen.html', '/lizenzen/', '/offenlegung/', '/quellen-und-lizenzen/', '/404.html', '/c/'];
 const TITEL_ZEICHEN = /^[\p{L}\p{N} :|()'-]+$/u;
 
 const fehler = [];
@@ -107,6 +107,12 @@ const FEST = [
     titel: mitMarke('/quellen-und-lizenzen/', 'Quellen und Lizenzen der Rezepte'),
     beschreibung: 'Quelle, Urheber, Lizenz und Änderungen zu jedem Rezept auf foodasu.com, dazu die Angaben zu den Bildern und zur Berechnung der Nährwerte.',
   },
+  // Seite für Codes (AP-54): noindex, nicht in der Sitemap, nicht im Menü.
+  {
+    pfad: '/c/',
+    titel: mitMarke('/c/', 'Dein Code für FoodAsu einlösen'),
+    beschreibung: 'Hier steht der Code, den du für deine Hilfe beim Test von FoodAsu bekommen hast, und wie du ihn in der App unter Einstellungen einlöst.',
+  },
   {
     pfad: '/404.html',
     titel: mitMarke('/404.html', 'Seite nicht gefunden'),
@@ -122,7 +128,9 @@ const KAPITEL = {
   },
   'haushalt-und-meiden': {
     thema: 'Haushalt anlegen und Meiden',
-    beschreibung: `Personen im Haushalt anlegen, Einträge bei „Meiden“ wählen und die ${zahlwort(appZahlen.stufen)} Stufen verstehen: von „Lieber nicht“ bis „Auf keinen Fall“.`,
+    // „drei“ Personen und „einen“ Eintrag: Grenzen für neue Haushalte ab 0.19.0 (App, cohort/domain/HouseholdLimits.kt),
+    // als Wort, weil app_fassung.json sie nicht führt (AP-54).
+    beschreibung: `Bis zu drei Personen anlegen, je Person einen Eintrag bei „Meiden“ wählen und die ${zahlwort(appZahlen.stufen)} Stufen verstehen: von „Lieber nicht“ bis „Auf keinen Fall“.`,
   },
   // Seit dem Auftrag SEO 1 neu (14.10.2026, Teil 4 Nr. 4) nach Vorschlag 1 zu „Lebensmittel Scanner“ der SEO-Analyse:
   // Die Startseite geht auf die Einkaufsliste, diese Seite übernimmt den Scanner.
@@ -384,7 +392,7 @@ const rezeptListe = rezeptSeiten.map((rezept) => ({ pfad: rezeptAdresse(rezept),
 
 export const alleMeta = [
   fest('/'), fest(BEREICH), ...anleitung, uebersicht, alteMeta, ...themenSeiten, ...rezeptListe, fest('/fragen/'),
-  fest('/daten-und-quellen/'), fest('/ueber-foodasu/'), fest('/datenschutz.html'), fest('/nutzungsbedingungen.html'), fest('/lizenzen/'), fest('/offenlegung/'), fest('/quellen-und-lizenzen/'), fest('/404.html'),
+  fest('/daten-und-quellen/'), fest('/ueber-foodasu/'), fest('/datenschutz.html'), fest('/nutzungsbedingungen.html'), fest('/lizenzen/'), fest('/offenlegung/'), fest('/quellen-und-lizenzen/'), fest('/404.html'), fest('/c/'),
 ].map(({ imIndex = true, ...eintrag }) => ({ art: 'website', bild: GEMEINSAM, ...eintrag, index: imIndex && !OHNE_INDEX.includes(eintrag.pfad) }));
 
 // ---- Prüfung beim Laden: Jeder Verstoß bricht den Bau ab. ----

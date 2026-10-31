@@ -12,14 +12,16 @@ export default {
   leitbild: 'haushalt_person_06',
   titel: 'Haushalt anlegen und Meiden',
   kurz: `Personen anlegen, Einträge wählen, die ${zahlwort(appZahlen.stufen)} Stufen.`,
-  vorspann: 'Lege für jede Person fest, was sie meidet, und wie deutlich FoodAsu darauf hinweist.',
+  // „drei“ Personen: Grenze für neue Haushalte ab 0.19.0 (App, cohort/domain/HouseholdLimits.kt: MAX_PERSONS = 3,
+  // MAX_ENTRIES_PER_PERSON = 1); app_fassung.json führt sie nicht, deshalb als Wort (AP-54).
+  vorspann: 'Lege für bis zu drei Personen fest, was sie meiden, und wie deutlich FoodAsu darauf hinweist.',
   teile: [
     {
       titel: 'Wozu der Haushalt da ist',
       anker: 'wozu-der-haushalt-da-ist',
       symbol: 'personen',
       absaetze: [
-        'Im Reiter Haushalt legst du für jede Person fest, was sie meidet, etwa Milch, Erdnüsse oder Schweinefleisch. Beim Scannen zeigt die App dann, wen ein Produkt laut Daten betrifft. Ohne Haushalt zeigt sie die Angaben zu einem Produkt ohne Urteil.',
+        'Im Reiter Haushalt legst du für jede Person fest, was sie meidet, etwa Milch, Erdnüsse oder Sesam. Beim Scannen zeigt die App dann, wen ein Produkt laut Daten betrifft. Ohne Haushalt zeigt sie die Angaben zu einem Produkt ohne Urteil.',
       ],
     },
     {
@@ -33,11 +35,22 @@ export default {
       fotos: [foto('haushalt_person_06', 'Ein Haushalt mit drei Personen')],
     },
     {
+      // Neu mit 0.19.0 (AP-54): Grenzen für neue Haushalte (HAUSHALT-10). „drei“ Personen und „ein“ Eintrag aus der
+      // App (cohort/domain/HouseholdLimits.kt: MAX_PERSONS = 3, MAX_ENTRIES_PER_PERSON = 1), als Wort.
+      titel: 'Wie viele Personen und Einträge',
+      anker: 'personen-und-eintraege',
+      symbol: 'personen',
+      funktionen: ['HAUSHALT-10'],
+      nutzen: 'In FoodAsu legst du bis zu drei Personen an, jede mit einem Eintrag. Den Eintrag wählst du frei, auch ein weiteres Lebensmittel, und änderst ihn jederzeit. Willst du mehr eintragen, zeigt FoodAsu einen Hinweis; über „Idee schicken“ schreibst du mir, was dir fehlt. Hast du FoodAsu schon vorher genutzt, bleibt für dich alles so, wie du es kennst.',
+      wo: 'Haushalt > „Person hinzufügen“, Person > „Hinzufügen“',
+      fotos: [foto('haushalt_grenze_01', 'Der Hinweis an der Grenze mit „Idee schicken“ und „Verstanden“')],
+    },
+    {
       titel: 'Was du auswählen kannst',
       anker: 'was-du-auswaehlen-kannst',
       symbol: 'haken',
       funktionen: ['HAUSHALT-02'],
-      nutzen: `Unter „Hinzufügen“ stellst du für jede Person zusammen, was sie meidet. Zur Auswahl stehen ${appZahlen.zutatenFest} Zutaten wie Gluten, Milch oder Schalenfrüchte, die Ernährungsformen vegan und vegetarisch und ${zahlwort(appZahlen.weitereFest)} Einträge wie Schweinefleisch oder Palmöl. ${zahlwort(appZahlen.haeufigGewaehlt, true)} davon stehen gleich unter „Häufig gewählt“, die übrigen findest du über die Suche.`,
+      nutzen: `Unter „Hinzufügen“ wählst du für jede Person, was sie meidet. Zur Auswahl stehen ${appZahlen.zutatenFest} Zutaten wie Gluten, Milch oder Schalenfrüchte, die Ernährungsformen vegan und vegetarisch und ${zahlwort(appZahlen.weitereFest)} Einträge wie Gelatine oder Palmöl. ${zahlwort(appZahlen.haeufigGewaehlt, true)} davon stehen gleich unter „Häufig gewählt“, die übrigen findest du über die Suche.`,
       wo: 'Haushalt > Person > „Hinzufügen“',
       fotos: [foto('haushalt_hinzufuegen_01', '„Hinzufügen“ mit der Suche und „Häufig gewählt“')],
     },
@@ -77,7 +90,7 @@ export default {
       funktionen: ['HAUSHALT-04'],
       nutzen: 'Du änderst Name, Einträge und Stufen einer Person oder entfernst sie mit allem, was sie meidet. Löschen lässt sich nicht rückgängig machen.',
       wo: 'Haushalt > Karte der Person; Löschen über den Papierkorb an der Karte',
-      fotos: [foto('haushalt_liste_01', 'Die Liste „Mia meidet“ mit drei Einträgen')],
+      fotos: [foto('haushalt_liste_01', 'Die Liste „Mia meidet“ mit einem Eintrag')],
     },
     {
       titel: 'Personen sortieren',

@@ -2,14 +2,15 @@
 // (tools/nachweise.mjs, tools/teilen_bild.mjs). Es wird kein Browser heruntergeladen.
 import { existsSync } from 'node:fs';
 
+// Am Mac (seit AP-54) wird Chrome unter /Applications gefunden; die Pfade für Windows bleiben für den Laptop.
 const ORTE = [
   process.env.CHROME_PATH,
+  '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
   'C:/Program Files/Google/Chrome/Application/chrome.exe',
   'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe',
   'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
   '/usr/bin/google-chrome',
   '/usr/bin/chromium',
-  '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
 ];
 
 export function chromePfad() {

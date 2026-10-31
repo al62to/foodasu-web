@@ -1,0 +1,57 @@
+---
+// Seite für Codes (AP-54): zeigt den Code aus dem Link https://foodasu.com/c/#CODE und sagt, wie er in FoodAsu
+// eingelöst wird. noindex, nicht in der Sitemap, nicht im Menü (src/daten/meta.mjs). Den Code liest nur das eigene
+// kleine Skript public/skripte/code.js im Browser; nichts von Dritten, nichts gespeichert. Ohne Skript steht der Satz
+// ohne Code da, dazu Abzeichen und Satz zur Verfügbarkeit.
+import Basis from '../../layouts/Basis.astro';
+import Seitenkopf from '../../components/Seitenkopf.astro';
+import { codeSeite as t } from '../../daten/code_seite.mjs';
+import { storeLink } from '../../daten/seite.mjs';
+import { fuss } from '../../daten/startseite.mjs';
+
+const krumen = [{ titel: t.krume, ziel: t.adresse }];
+---
+<Basis adresse={t.adresse}>
+  <Seitenkopf krumen={krumen} titel={t.titel} vorspann={t.dank} klein />
+  <div class="s-inhalt innen c-seite">
+    <section class="s-karte c-karte" data-mit-code hidden>
+      <p class="c-zeile">{t.deinCode}</p>
+      <p class="c-code" data-code translate="no"></p>
+      <button type="button" class="knopf voll" data-kopieren data-text={t.kopieren} data-fertig={t.kopiert} aria-live="polite">{t.kopieren}</button>
+    </section>
+    <p class="s-karte c-karte c-ohne" data-ohne-code>{t.ohneCode}</p>
+
+    <h2 class="c-ueber">{t.soEinloesen}</h2>
+    <ol class="c-schritte">
+      {t.schritte.map((schritt) => <li>{schritt}</li>)}
+    </ol>
+
+    <div class="c-store">
+      <p data-fuer-play>
+        <a class="fuss-abzeichen" href={storeLink('code')} rel="noopener">
+          <img src="/bilder/google-play-abzeichen-de.png" width="646" height="250" alt={fuss.auftritte.abzeichen} decoding="async" />
+        </a>
+      </p>
+      <p data-fuer-iphone>{t.iphone}</p>
+    </div>
+
+    <p class="c-klein">{t.hinweis}</p>
+  </div>
+</Basis>
+
+<script is:inline src="/skripte/code.js" defer></script>
+
+<style>
+  .c-seite { display: grid; gap: 1.25rem; max-width: 45rem; padding-block: 2rem 3.5rem; }
+  .c-karte { display: grid; gap: 0.75rem; justify-items: start; margin: 0; }
+  .c-karte[hidden] { display: none; }
+  .c-zeile { margin: 0; font-weight: 700; }
+  .c-code { margin: 0; font-size: clamp(1.5rem, 6vw, 2.25rem); font-weight: 800; letter-spacing: 0.08em; overflow-wrap: anywhere; color: var(--deep); }
+  .c-ueber { margin: 1rem 0 0; font-size: 1.25rem; }
+  .c-schritte { display: grid; gap: 0.6rem; margin: 0; padding-left: 1.5rem; }
+  .c-store { display: grid; gap: 0.75rem; }
+  .c-store p { margin: 0; }
+  .c-store p[hidden] { display: none; }
+  .c-store .fuss-abzeichen { margin: 0; }
+  .c-klein { margin: 0; font-size: 0.85rem; color: var(--muted); }
+</style>

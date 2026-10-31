@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "at.tonc.einkauf",
+      "sha256_cert_fingerprints": [
+        "85:38:22:75:91:45:3C:FB:19:BF:36:6A:ED:B1:E2:3B:F3:06:E0:78:02:EA:3C:DC:E6:81:B2:D4:EA:D7:F3:A2"
+      ]
+    }
+  }
+]

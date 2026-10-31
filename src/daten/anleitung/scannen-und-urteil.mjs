@@ -87,7 +87,7 @@ export default {
       symbol: 'schild',
       gross: true,
       funktionen: ['KARTE-01'],
-      nutzen: 'Oben auf der Produktkarte steht, für wen im Haushalt das Produkt laut Daten nicht passt, und darunter das Ergebnis für jede Person einzeln. Maßgeblich ist immer die Verpackung.',
+      nutzen: 'Oben auf der Produktkarte steht, für wen im Haushalt das Produkt laut Daten nicht passt, darunter das Ergebnis für jede Person einzeln und wofür geprüft wurde, etwa „Geprüft für Mia: nur Schalenfrüchte“. Maßgeblich ist immer die Verpackung.',
       wo: 'Produktkarte, ganz oben',
       fotos: [foto('karte_urteil_01', 'Das Urteil und das Ergebnis je Person')],
     },

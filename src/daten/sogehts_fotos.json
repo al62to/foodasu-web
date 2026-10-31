@@ -16,9 +16,9 @@
  "haushalt_import_01": {
   "breite": 720,
   "hoehe": 1395,
-  "zeigt": "„Haushalt importieren“: Personen in der Datei und die Wahl „Ergänzen“ oder „Ersetzen“",
+  "zeigt": "„Haushalt importieren“: Mia, Jonas und Elif mit je einem Eintrag, „Ergänzen“ oder „Ersetzen“",
   "weich": false,
-  "aufnahme": "10.10.2026 14:27"
+  "aufnahme": "31.10.2026 04:54"
  },
  "liste_anlegen_03": {
   "breite": 720,
@@ -44,9 +44,9 @@
  "liste_warengruppen_01": {
   "breite": 720,
   "hoehe": 1395,
-  "zeigt": "Liste nach Warengruppen: „Obst und Gemüse“, „Brot und Gebäck“, „Milch und Käse“, je mit der Zahl der Einträge",
-  "weich": true,
-  "aufnahme": "10.10.2026 14:42"
+  "zeigt": "Liste „Wocheneinkauf“ nach Warengruppen: Obst und Gemüse, Brot und Gebäck, Milch und Käse",
+  "weich": false,
+  "aufnahme": "31.10.2026 04:58"
  },
  "liste_bearbeiten_01": {
   "breite": 720,
@@ -65,9 +65,9 @@
  "liste_hinweise_01": {
   "breite": 720,
   "hoehe": 1395,
-  "zeigt": "Hinweise in der Liste: bei „Butter“ und „Milch“ „Milch · Mia“, bei „Mozzarella“ „Milch und 1 weiteres · Mia, Elif“, beim gescannten Produkt das Ergebnis „Nicht für Mia“",
+  "zeigt": "Liste „Wocheneinkauf“ mit Hinweisen an Einträgen und einem gescannten Produkt „Nicht für Mia“",
   "weich": true,
-  "aufnahme": "10.10.2026 14:42"
+  "aufnahme": "31.10.2026 04:59"
  },
  "liste_kochen_01": {
   "breite": 720,
@@ -114,16 +114,23 @@
  "haushalt_person_06": {
   "breite": 720,
   "hoehe": 1395,
-  "zeigt": "Reiter Haushalt mit drei Personen: Mia, Jonas und Elif; oben das Fragezeichen und das Zahnrad, rechts an jeder Karte der Papierkorb, darüber der Hinweis zum Sortieren",
+  "zeigt": "Dein Haushalt mit Mia (Schalenfrüchte), Jonas (Gluten) und Elif (vegetarisch), je ein Eintrag, unten „Person hinzufügen“",
   "weich": false,
-  "aufnahme": "13.10.2026 23:33"
+  "aufnahme": "31.10.2026 04:52"
+ },
+ "haushalt_grenze_01": {
+  "breite": 720,
+  "hoehe": 1395,
+  "zeigt": "Hinweis an der Grenze für neue Haushalte mit „Idee schicken“ und „Verstanden“",
+  "weich": false,
+  "aufnahme": "31.10.2026 04:52"
  },
  "haushalt_hinzufuegen_01": {
   "breite": 720,
   "hoehe": 1395,
-  "zeigt": "Seite „Hinzufügen“ für Mia: das Suchfeld „Lebensmittel suchen“, darunter „Häufig gewählt“ mit acht Einträgen, „Milch“ und „Schalenfrüchte“ sind angehakt; unten „Nicht gefunden?“ mit „Feedback geben“",
+  "zeigt": "„Hinzufügen“ mit der Suche und „Häufig gewählt“",
   "weich": false,
-  "aufnahme": "13.10.2026 23:31"
+  "aufnahme": "31.10.2026 04:53"
  },
  "haushalt_suche_01": {
   "breite": 720,
@@ -142,16 +149,16 @@
  "haushalt_liste_01": {
   "breite": 720,
   "hoehe": 1395,
-  "zeigt": "Seite „Person bearbeiten“ mit der Liste „Mia meidet“: Milch, Schalenfrüchte und Zimt, bei Zimt steht „Zählt mit: Ceylon-Zimt, Zimtkassie und mehr“; darunter „Hinzufügen“ und der Hinweis, dass weitere Lebensmittel für gescannte Produkte gelten",
+  "zeigt": "„Person bearbeiten“: „Mia meidet“ mit einem Eintrag (Schalenfrüchte, Auf keinen Fall), „Hinzufügen“ und „Speichern“",
   "weich": false,
-  "aufnahme": "13.10.2026 23:32"
+  "aufnahme": "31.10.2026 04:52"
  },
  "scanner_mehrere_01": {
   "breite": 720,
   "hoehe": 1395,
-  "zeigt": "Produktkarte im Scanner ganz nach oben gezogen: Urteil, Ergebnis je Person und die Kacheln mit Kalorien, Zucker, Verarbeitung, Fett, Salz und Nutri-Score; unten „auf: Wocheneinkauf“ und „Auf die Liste“",
+  "zeigt": "Scanner mit ganz geöffneter Produktkarte, Ergebnis für drei Personen und Prüfhinweis",
   "weich": true,
-  "aufnahme": "14.10.2026 07:35"
+  "aufnahme": "31.10.2026 04:57"
  },
  "karte_abzeichen_01": {
   "breite": 720,
@@ -170,9 +177,9 @@
  "rezepte_ansehen_01": {
   "breite": 720,
   "hoehe": 1395,
-  "zeigt": "Reiter Rezepte: Suchfeld, „Nach Ländern“, die Reihe der Kategorien und die ersten Rezeptkarten mit Symbolbild",
+  "zeigt": "„Was kochen wir heute?“ mit Suche, Ländern, Kategorien und den Rezepten",
   "weich": false,
-  "aufnahme": "14.10.2026 07:20"
+  "aufnahme": "31.10.2026 04:59"
  },
  "rezepte_filter_01": {
   "breite": 720,
@@ -198,9 +205,9 @@
  "rezepte_ausblenden_01": {
   "breite": 720,
   "hoehe": 1395,
-  "zeigt": "Ende der Liste: „33 Rezepte ausgeblendet, weil sie für euren Haushalt nicht passen.“ mit „Anzeigen“",
+  "zeigt": "Ende der Rezepte: „33 Rezepte ausgeblendet, weil sie für euren Haushalt nicht passen.“ mit „Anzeigen“",
   "weich": false,
-  "aufnahme": "14.10.2026 07:21"
+  "aufnahme": "31.10.2026 05:00"
  },
  "rezepte_portionen_01": {
   "breite": 720,
@@ -239,24 +246,24 @@
  },
  "scanner_scannen_02": {
   "breite": 720,
-  "hoehe": 1473,
-  "zeigt": "Produktkarte auf halber Höhe über dem Kamerabild: „Nicht für Mia: enthält Schalenfrüchte und Milch“, darunter Mia, Elif und Jonas einzeln; oben „Nächstes Produkt einfach scannen“, unten „auf: Wocheneinkauf“ und „Auf die Liste“",
+  "hoehe": 1395,
+  "zeigt": "Scanner mit halb geöffneter Produktkarte über der Kamera (Emulator: Kamerabild grau)",
   "weich": true,
-  "aufnahme": "20.10.2026 17:28"
+  "aufnahme": "31.10.2026 04:56"
  },
  "karte_urteil_01": {
   "breite": 720,
   "hoehe": 1395,
-  "zeigt": "Produktseite: „Nicht für Mia: enthält Schalenfrüchte und Milch“, darunter Mia „enthält“, Elif „Hinweis“ und Jonas „kein Konflikt“, dann die Nährwerte je 100 g; unten „auf: Wocheneinkauf“ und „Auf die Liste“",
+  "zeigt": "Produktkarte: oben „Nicht für Mia: enthält Schalenfrüchte“, darunter Mia „enthält“, Jonas und Elif „kein Konflikt“, dann „Geprüft für Mia: nur Schalenfrüchte“ und die Nährwerte je 100 g",
   "weich": true,
-  "aufnahme": "14.10.2026 07:33"
+  "aufnahme": "31.10.2026 05:00"
  },
  "karte_warum_01": {
   "breite": 720,
   "hoehe": 1395,
-  "zeigt": "Dialog „Warum?“: „Laut Zutatenliste: Schalenfrüchte“ und „Milch“, je „Betrifft Mia“, „Laut Auswertung der Zutaten: Palmöl“, „Betrifft Elif“, darunter die Quelle Open Food Facts als Text, „Lizenz: ODbL“ und „Maßgeblich ist die Verpackung.“",
+  "zeigt": "„Warum?“ zur Warnung: Laut Zutatenliste Schalenfrüchte, betrifft Mia",
   "weich": true,
-  "aufnahme": "14.10.2026 07:33"
+  "aufnahme": "31.10.2026 04:57"
  },
  "scanner_ean_03": {
   "breite": 720,

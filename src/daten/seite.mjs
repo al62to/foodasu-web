@@ -40,9 +40,10 @@ export const store = {
 // Builder": referrer=utm_source=website, utm_medium=link, utm_campaign=<ort>. Die Kennung enthält nichts über
 // Besucher; die Website lädt dafür nichts nach und speichert nichts. Feste Orte (Kleinbuchstaben, ohne Umlaute):
 // kopf, abschluss, kurzleiste (Startseite), rezept (Knopf auf den Rezeptseiten), fuss (Abzeichen in der Fußzeile).
+// Seit AP-54 dazu code (Abzeichen auf der Seite für Codes /c/).
 // Ohne Kennung bleiben store.adresse in strukturierten Daten (installUrl, sameAs), llms.txt, Sitemap und die
 // Rechtstexte samt ihrer Fußzeile; `npm run pruefen` meldet jeden anderen Link zu Google Play ohne Kennung.
-export const STORE_ORTE = ['kopf', 'abschluss', 'kurzleiste', 'rezept', 'fuss'];
+export const STORE_ORTE = ['kopf', 'abschluss', 'kurzleiste', 'rezept', 'fuss', 'code'];
 export const storeLink = (ort) => {
   if (!STORE_ORTE.includes(ort)) throw new Error(`Unbekannter Ort für den Link zu Google Play: ${ort}`);
   return `${store.adresse}&referrer=utm_source%3Dwebsite%26utm_medium%3Dlink%26utm_campaign%3D${ort}`;

@@ -43,7 +43,7 @@ export default {
       anker: 'haushalt-importieren',
       symbol: 'download',
       funktionen: ['HAUSHALT-08'],
-      nutzen: 'Du übernimmst Personen aus einer exportierten Datei und wählst, ob sie deinen Haushalt ergänzen oder ersetzen. „Ersetzen“ löscht alle Personen, die in der App stehen.',
+      nutzen: 'Du übernimmst Personen aus einer exportierten Datei und wählst, ob sie deinen Haushalt ergänzen oder ersetzen. „Ersetzen“ löscht alle Personen, die in der App stehen. In einem neuen Haushalt kommen bis zu drei Personen mit je ihrem ersten Eintrag hinein; FoodAsu sagt dir danach, was nicht übernommen wurde.',
       wo: 'Einstellungen > „Haushalt“ > „Haushalt importieren“',
       fotos: [foto('haushalt_import_01', 'Die Personen in der Datei')],
     },

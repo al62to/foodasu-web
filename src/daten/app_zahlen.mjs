@@ -21,7 +21,7 @@ export const appZahlen = {
   eintraegeFest: fassung.eintraegeFest,
   // Alles, was man in dieser Fassung beim Meiden wählen kann: feste Einträge und weitere Lebensmittel (ab 0.15).
   eintraege: fassung.eintraegeFest + fassung.weitereLebensmittel,
-  // Die festen Einträge je Art (Zutaten, Ernährungsformen, weitere wie Schweinefleisch), die Stufen eines Eintrags
+  // Die festen Einträge je Art (Zutaten, Ernährungsformen, weitere wie Gelatine), die Stufen eines Eintrags
   // und, ab 0.15, die Knöpfe „Häufig gewählt“.
   zutatenFest: fassung.arten.zutaten,
   ernaehrungsformen: fassung.arten.ernaehrungsformen,

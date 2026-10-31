@@ -20,7 +20,8 @@ import { preisaussagen } from './preisaussagen.mjs';
 // Der Ordner der gebauten Website; mit der Umgebungsvariable DIST prüft der Lauf einen anderen Ordner (Vorschau).
 const DIST = process.env.DIST ?? 'dist';
 const HOST = 'https://foodasu.com';
-const OHNE_EINGANG = new Set(['/', '/404.html']);
+// /c/ (AP-54) erreicht man nur über den Link mit dem Code aus einer Nachricht, nie über eine andere Seite.
+const OHNE_EINGANG = new Set(['/', '/404.html', '/c/']);
 // Rechtstexte laufen wie in texte_pruefen.py nur durch die Bezahl- und Fristlisten.
 const RECHTSTEXTE = new Set(['/datenschutz.html', '/nutzungsbedingungen.html']);
 // Nutzungsbedingungen (AP-35A, 23.10.2026; Text wortgleich aus foodasu-play/Nutzungsbedingungen_1.0.md, Alis Ja vom
@@ -173,7 +174,8 @@ function listeSichtbar(adresse, html, ziele) {
 // genau eine h1 und keine Sprünge in der Reihenfolge der Überschriften; Open Graph und Twitter-Karte vollständig, mit einem Bild 1200 x 630 von dieser
 // Website. Die Prüfung liest nur die gebauten Seiten, nicht src/daten/meta.mjs.
 // Seit AP-56w (29.10.2026) tragen alle Seiten mit Rechtstexten noindex; sie bleiben erreichbar und im Fuß verlinkt.
-const OHNE_INDEX = new Set(['/datenschutz.html', '/nutzungsbedingungen.html', '/lizenzen/', '/offenlegung/', '/quellen-und-lizenzen/', '/404.html']);
+// Seit AP-54 (31.10.2026) dazu die Seite für Codes /c/: noindex, nicht in Sitemap, llms.txt oder Menü.
+const OHNE_INDEX = new Set(['/datenschutz.html', '/nutzungsbedingungen.html', '/lizenzen/', '/offenlegung/', '/quellen-und-lizenzen/', '/404.html', '/c/']);
 // Themenseiten der Rezepte (AP-22 Teil 1 Nr. 2): Im Index steht eine Themenseite nur mit mindestens sechs Rezepten und
 // einem eigenen Einleitungstext. Jede andere trägt "noindex, follow" und fehlt in sitemap.xml und llms.txt; für
 // Besucher bleibt sie. Gelesen wird beides aus der gebauten Seite: die Zahl aus der ItemList, der Text aus dem Absatz
@@ -1297,7 +1299,10 @@ for (const datei of dateien.filter((pfad) => /\.(?:html|txt|xml|json|webmanifest
     const inAnleitung = adresse.startsWith(BEREICH) || (name === '/llms.txt' && teil.includes(`](${HOST}${BEREICH}`));
     if (inAnleitung) for (const wortlaut of ANLEITUNG_ANDROID) teil = teil.replaceAll(wortlaut, ' ');
     const beiRezepten = adresse.startsWith('/rezepte/') || adresse === ALTE || adresse === QUELLEN || (name === '/llms.txt' && (teil.includes(`](${HOST}/rezepte/`) || teil.includes(`](${HOST}${ALTE}`)));
-    for (const [wort, ausdruck] of nurHerkunft ? HERKUNFT : [...HERKUNFT, ...PLATTFORM]) {
+    // /.well-known/assetlinks.json (AP-54) ist eine technische Datei für Android ("namespace": "android_app"); in ihr
+    // zählt nur die Herkunft, nicht die Plattform.
+    const nurHerkunftHier = nurHerkunft || name === '/.well-known/assetlinks.json';
+    for (const [wort, ausdruck] of nurHerkunftHier ? HERKUNFT : [...HERKUNFT, ...PLATTFORM]) {
       if (wort === 'aus Österreich' && beiRezepten) continue;
       for (const fund of alle(teil, ausdruck)) {
         melde(name, `Herkunft oder Plattform: „${fund[0]}“ steht im Bau („… ${teil.slice(Math.max(0, fund.index - 50), fund.index + fund[0].length + 50).trim()} …“)`);
@@ -1592,7 +1597,8 @@ if (ueberStellen === 0) melde('/', 'Zahlen der App: keine Stelle mit „über N 
   const block = (seiten.get('/') ?? '').match(/<ul class="zaehler">[\s\S]*?<\/ul>/)?.[0] ?? '';
   const zahl = (text) => Number(text.replaceAll('.', ''));
   const zaehler = new Map(alle(block, /<li><span class="vh">([\d.]+)<\/span><b[^>]*data-zahl="(\d+)"[^>]*>([\d.]+)<\/b><span class="wortlaut">([^<]+)<\/span><\/li>/g).map(([, a, b, c, wort]) => [wort, zahl(a) === zahl(b) && zahl(b) === zahl(c) ? zahl(a) : NaN]));
-  if (zaehler.get('Einträge zum Meiden') !== EINTRAEGE_ALLE) melde('/', `Zahlenblock: „Einträge zum Meiden“ nennt ${zaehler.get('Einträge zum Meiden')}, die Fassung ${FASSUNG.fassung} der App hat ${EINTRAEGE_ALLE}`);
+  // Seit AP-54 (0.19.0: je Person ein Eintrag) heißt das Wort im Zahlenblock „Einträge zur Auswahl“.
+  if (zaehler.get('Einträge zur Auswahl') !== EINTRAEGE_ALLE) melde('/', `Zahlenblock: „Einträge zur Auswahl“ nennt ${zaehler.get('Einträge zur Auswahl')}, die Fassung ${FASSUNG.fassung} der App hat ${EINTRAEGE_ALLE}`);
   if (zaehler.get('Rezepte in der App') !== APP.gesamt) melde('/', `Zahlenblock: „Rezepte in der App“ nennt ${zaehler.get('Rezepte in der App')}, in den Daten stehen ${APP.gesamt}`);
   if (zaehler.get('Länder') !== APP.laender) melde('/', `Zahlenblock: „Länder“ nennt ${zaehler.get('Länder')}, in den Daten stehen ${APP.laender}`);
 }
@@ -1609,7 +1615,7 @@ if (ueberStellen === 0) melde('/', 'Zahlen der App: keine Stelle mit „über N 
   let stellen = 0;
   for (const [name, roh] of [...seiten, ['llms.txt', llms]]) {
     const ganz = entschluesselt(ohneSprachangabe(roh)).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
-    for (const fund of alle(ganz, /(\d[\d.]*) Einträge(?:n)? zum Meiden/g)) {
+    for (const fund of alle(ganz, /(\d[\d.]*) Einträge(?:n)? (?:zum Meiden|zur Auswahl)/g)) {
       stellen++;
       const wert = Number(fund[1].replaceAll('.', ''));
       if (wert !== EINTRAEGE_FEST && wert !== EINTRAEGE_ALLE) melde(name, `„${fund[0]}“: die Fassung ${FASSUNG.fassung} der App hat ${EINTRAEGE_FEST} feste und ${EINTRAEGE_ALLE} Einträge insgesamt`);
