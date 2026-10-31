@@ -1,11 +1,14 @@
 [
   {
-    "relation": ["delegate_permission/common.handle_all_urls"],
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
     "target": {
       "namespace": "android_app",
       "package_name": "at.tonc.einkauf",
       "sha256_cert_fingerprints": [
-        "85:38:22:75:91:45:3C:FB:19:BF:36:6A:ED:B1:E2:3B:F3:06:E0:78:02:EA:3C:DC:E6:81:B2:D4:EA:D7:F3:A2"
+        "85:38:22:75:91:45:3C:FB:19:BF:36:6A:ED:B1:E2:3B:F3:06:E0:78:02:EA:3C:DC:E6:81:B2:D4:EA:D7:F3:A2",
+        "22:A3:7A:D1:36:2C:DB:79:8E:C3:39:FC:B0:FB:F1:74:F8:8C:1C:1C:EE:A1:AE:3E:00:42:11:2A:49:49:80:E2"
       ]
     }
   }
