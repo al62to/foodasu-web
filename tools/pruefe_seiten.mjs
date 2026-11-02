@@ -10,7 +10,7 @@ import { muster as nurMuster } from '../src/daten/auswahl.mjs';
 import { BEREICH, adresse as kapitelAdresse, fotosVon, kapitel } from '../src/daten/sogehts.mjs';
 import { einblick, schritte as startSchritte, zahlen as startZahlen } from '../src/daten/startseite.mjs';
 import { EINTRAEGE } from '../src/daten/rezeptseiten.mjs';
-import { store, storeLink, STORE_ORTE } from '../src/daten/seite.mjs';
+import { store, storeLink, STORE_ORTE, APP_STORE_ERHAELTLICH, appStore, appleZiel, seite as seiteDaten } from '../src/daten/seite.mjs';
 import { KURZLINKS } from '../src/daten/kurzlinks.mjs';
 import { GRENZEN, grenzBefunde, masse } from '../src/daten/breite.mjs';
 import { alleRezepte, zutatenBefunde } from './zutaten_pruefen.mjs';
@@ -734,6 +734,14 @@ for (const datei of dateien.filter((d) => /\.(txt|xml)$/.test(d))) {
 // Text "Weiter zu FoodAsu bei Google Play", kein Skript, kein Rahmen, kein Formular, kein Bild von Dritten, keine
 // Kopf- oder Fußzeile; als Text nur der Name und der Link. Dazu: in keiner Sitemap, nicht in llms.txt, von keiner
 // anderen Seite verlinkt, in robots.txt nicht gesperrt (sonst sieht Google das noindex nicht).
+// Seit AP-79w (02.11.2026) nach Gerät: genau ein Skript im Kopf, eingebettet (ohne src), ohne Speicher und Anfragen
+// (speicherBefund), das iPhone und iPad (auch iPad mit Desktop-Kennung über maxTouchPoints) zu appleZiel schickt
+// (App Store, solange APP_STORE_ERHAELTLICH false ist die Startseite) und sonst zum Link der Seite; das meta refresh zu
+// Google Play steht im <noscript> im Kopf (Rückfall ohne Skript). Titel ohne „Google Play“.
+const KURZ_TITEL = 'Weiter zu FoodAsu';
+const KURZ_APPLE_ZIEL = APP_STORE_ERHAELTLICH ? appStore.adresse : `${seiteDaten.adresse}/`;
+if (appleZiel !== KURZ_APPLE_ZIEL) melde('Kurzlinks', `Ziel für iPhone und iPad ${appleZiel}, erwartet ${KURZ_APPLE_ZIEL}`);
+if (appStore.adresse !== 'https://apps.apple.com/app/id6829687240') melde('Kurzlinks', `Adresse im App Store ohne die erwartete Form (ohne Kennung): ${appStore.adresse}`);
 const KURZ_LINKTEXT = 'Weiter zu FoodAsu bei Google Play';
 const KURZ_ERLAUBT = ['/fb/', '/ig/', '/app/', '/teilen/'];
 const KURZ_KENNUNGEN = {
@@ -754,7 +762,17 @@ for (const kurzlink of KURZLINKS) {
   const inhalt = entschluesselt(refresh[0]?.[0].match(/content="([^"]*)"/)?.[1] ?? '');
   if (refresh.length !== 1 || inhalt !== `0; url=${kurzlink.ziel}`) melde(kurzlink.pfad, `genau eine Weiterleitung "0; url=<Ziel>" erwartet, gefunden: ${inhalt || 'keine'}`);
   if (!/<meta name="robots" content="noindex, follow">/.test(html)) melde(kurzlink.pfad, 'noindex fehlt');
-  if (/<(?:script|iframe|form|img|video|audio|object|embed|link\b[^>]*rel="(?:preload|prefetch|preconnect|dns-prefetch|stylesheet)[^>]*href="https?:)/i.test(html)) melde(kurzlink.pfad, 'Skript, Rahmen, Formular, Bild oder Verbindung zu Dritten gefunden (erlaubt ist nur die Weiterleitung und ein Link)');
+  if (/<(?:iframe|form|img|video|audio|object|embed|link\b[^>]*rel="(?:preload|prefetch|preconnect|dns-prefetch|stylesheet)[^>]*href="https?:)/i.test(html)) melde(kurzlink.pfad, 'Rahmen, Formular, Bild oder Verbindung zu Dritten gefunden (erlaubt ist nur die Weiterleitung und ein Link)');
+  const kurzKopf = html.slice(0, html.indexOf('</head>'));
+  const kurzSkripte = alle(html, /<script\b([^>]*)>([\s\S]*?)<\/script>/g);
+  if (kurzSkripte.length !== 1 || !kurzKopf.includes(kurzSkripte[0][0])) melde(kurzlink.pfad, `genau ein Skript im Kopf erwartet, gefunden: ${kurzSkripte.length}`);
+  for (const [, attribute, skript] of kurzSkripte) {
+    if (/\bsrc=/.test(attribute)) melde(kurzlink.pfad, 'das Skript der Weiterleitung lädt eine Datei (erwartet eingebettet)');
+    if (speicherBefund(skript)) melde(kurzlink.pfad, speicherBefund(skript));
+    if (/https?:\/\/(?!foodasu\.com\/|apps\.apple\.com\/)/.test(skript)) melde(kurzlink.pfad, 'das Skript nennt eine Adresse außer foodasu.com und dem App Store');
+    if (!skript.includes(JSON.stringify(KURZ_APPLE_ZIEL)) || !/maxTouchPoints/.test(skript) || !/iPhone\|iPad/.test(skript)) melde(kurzlink.pfad, `das Skript schickt iPhone und iPad nicht zu ${KURZ_APPLE_ZIEL}`);
+  }
+  if (!/<noscript><meta http-equiv="refresh"[^>]*><\/noscript>/.test(kurzKopf)) melde(kurzlink.pfad, 'die Weiterleitung ohne Skript (meta refresh im noscript im Kopf) fehlt');
   if (/<(?:header|footer|nav)\b/.test(html)) melde(kurzlink.pfad, 'Kopf, Fuß oder Navigation gehören nicht auf eine Weiterleitung');
   if (/\bcanonical\b/.test(html)) melde(kurzlink.pfad, 'kanonische Adresse gehört nicht auf eine Weiterleitung');
   const links = alle(html, /<a\b[^>]*>([\s\S]*?)<\/a>/g);
@@ -765,6 +783,7 @@ for (const kurzlink of KURZLINKS) {
   if (!/<h1\b[^>]*aria-label="FoodAsu"/.test(html)) melde(kurzlink.pfad, 'Überschrift mit dem Namen FoodAsu fehlt');
   // Wortlisten wie auf jeder Seite (gesperrte Wörter, Bezahl- und Fristwörter, Beta, Wendungen) über Titel und Text.
   const titelKurz = entschluesselt(html.match(/<title>([^<]*)<\/title>/)?.[1] ?? '');
+  if (titelKurz !== KURZ_TITEL) melde(kurzlink.pfad, `Titel „${KURZ_TITEL}“ erwartet, gefunden: ${titelKurz}`);
   for (const [art, ausdruck] of [...GESPERRT, ...BEZAHL_UND_FRIST, ...BETA, ...WENDUNGEN]) for (const fund of alle(`${titelKurz} ${text}`, ausdruck)) melde(kurzlink.pfad, `${art}: ${fund[0]}`);
   for (const [adresse, andere] of seiten) if (andere.includes(`href="${kurzlink.pfad}"`) || andere.includes(`href="${kurzlink.pfad.slice(0, -1)}"`) || andere.includes(`href="${HOST}${kurzlink.pfad}`)) melde(adresse, `verlinkt den Kurzlink ${kurzlink.pfad} (er steht in keiner Navigation und auf keiner Seite)`);
   for (const datei of ['sitemap.xml', 'llms.txt']) {
@@ -1733,7 +1752,7 @@ if (metaZiel) {
   console.log(`Geschrieben: ${metaZiel} (${metaZeilen.length} Seiten)`);
 }
 
-console.log(`Kurzlinks: ${weiterleitungen.size} Weiterleitungen (${[...weiterleitungen.keys()].join(', ')}) mit meta refresh auf den Eintrag bei Google Play, noindex, ohne Skript, nicht in Sitemap, llms.txt, Navigation oder robots.txt`);
+console.log(`Kurzlinks: ${weiterleitungen.size} Weiterleitungen (${[...weiterleitungen.keys()].join(', ')}) nach Gerät (ein eingebettetes Skript ohne Speicher: iPhone und iPad zu ${KURZ_APPLE_ZIEL}, sonst zum Eintrag bei Google Play; ohne Skript meta refresh im noscript), noindex, nicht in Sitemap, llms.txt, Navigation oder robots.txt`);
 console.log(`Geprüft: ${seiten.size} Seiten (${[...seiten.keys()].join(', ')}), ${dateien.length} Dateien`);
 console.log(`Knopf „${TEILEN_NAME}“: auf ${teilenKnoepfe} von ${rezeptSeiten} Rezeptseiten, auf keiner anderen Seite`);
 console.log(`„Zum Ausprobieren“ im Menü: ${probeWahlen.size} verschiedene Auswahlen im HTML von ${seiten.size} Seiten, je drei Rezepte aus drei Ländern, nie die Seite selbst`);

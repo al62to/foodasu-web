@@ -62,5 +62,13 @@ export const KURZLINKS = [
   ziel: `${store.adresse}&referrer=utm_source%3D${kurzlink.quelle}%26utm_medium%3D${kurzlink.medium}%26utm_campaign%3Dkurzlink`,
 }));
 
+// Kurzlinks nach Gerät (AP-79w, 02.11.2026): Auf iPhone und iPad schickt ein kleines Skript im Kopf der Weiterleitung
+// (src/layouts/Weiterleitung.astro) zum App Store statt zu Google Play. Solange APP_STORE_ERHAELTLICH false ist, geht es
+// dort auf die Startseite. Umschalten auf true erst nach der Freigabe durch Apple (eigener kleiner Schritt). Der Link
+// zum App Store trägt keine Kennung des Kanals (die Datenschutzerklärung nennt für den App Store keine).
+export const APP_STORE_ERHAELTLICH = false;
+export const appStore = { adresse: 'https://apps.apple.com/app/id6829687240' };
+export const appleZiel = APP_STORE_ERHAELTLICH ? appStore.adresse : `${seite.adresse}/`;
+
 // Der Tag der letzten Änderung jeder Seite für sitemap.xml kommt seit AP-22 aus dem Git-Datum ihrer Quelldateien
 // (src/daten/stand.mjs) und wird nicht mehr von Hand gepflegt. Welche Seiten im Index stehen, sagt src/daten/meta.mjs.

@@ -1,7 +1,11 @@
 ---
-// Weiterleitung für die Kurzlinks /fb/, /ig/ und /app/ (AP-45, 25.10.2026): Die Seite leitet sofort mit
-// <meta http-equiv="refresh"> auf den Eintrag bei Google Play weiter. Ohne Skript, ohne Cookies, ohne Messung, ohne
-// Anfrage an Dritte. Für den Fall, dass die Weiterleitung nicht greift, steht hier nur der Name FoodAsu und ein Link.
+// Weiterleitung für die Kurzlinks /fb/, /ig/, /app/ (AP-45, 25.10.2026) und /teilen/ (AP-48). Seit AP-79w (02.11.2026)
+// nach Gerät: Ein kleines Skript im Kopf schickt iPhone und iPad (am User-Agent, ein iPad mit Desktop-Kennung an
+// "Macintosh" mit Touch) zu appleZiel aus src/daten/seite.mjs (App Store, solange APP_STORE_ERHAELTLICH false ist die
+// Startseite), alle anderen zum Link der Seite, dem Eintrag bei Google Play mit Kennung. Ohne Speicher, ohne Cookies,
+// ohne Messung, ohne Anfrage an Dritte. Ohne Skript greift das <meta http-equiv="refresh"> zu Google Play im <noscript>
+// (mit Skript liest der Browser es nicht, so kommt es dem Skript nicht in die Quere). Für den Fall, dass die
+// Weiterleitung nicht greift, steht hier nur der Name FoodAsu und ein Link.
 // noindex, keine Navigation, keine Fußzeile; nicht in der Sitemap und nicht in llms.txt (src/daten/kurzlinks.mjs, KURZLINKS).
 import '@fontsource-variable/plus-jakarta-sans/wght.css';
 import '../styles/basis.css';
@@ -11,19 +15,32 @@ import logo from '../inhalte/logo.svg?raw';
 // wird logo.<Hash>.css, gleicher Inhalt), und jede der 116 Seiten verweist auf einen neuen Dateinamen.
 import Motive from '../components/Motive.astro';
 void Motive;
-import { seite } from '../daten/seite.mjs';
+import { seite, appleZiel } from '../daten/seite.mjs';
 
 const { ziel } = Astro.props;
+const skript = `(function () {
+  var ua = navigator.userAgent || '';
+  var apple = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+  var appleZiel = ${JSON.stringify(appleZiel)};
+  if (apple) location.replace(appleZiel);
+  document.addEventListener('DOMContentLoaded', function () {
+    var link = document.querySelector('.wl a');
+    if (!link) return;
+    if (apple) { link.href = appleZiel; link.textContent = 'Weiter zu FoodAsu'; }
+    else location.replace(link.href);
+  });
+})();`;
 ---
 <!doctype html>
 <html lang={seite.sprache}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Weiter zu FoodAsu bei Google Play</title>
+    <title>Weiter zu FoodAsu</title>
     <meta name="robots" content="noindex, follow" />
     <meta name="referrer" content="no-referrer" />
-    <meta http-equiv="refresh" content={`0; url=${ziel}`} />
+    <script is:inline set:html={skript} />
+    <noscript><meta http-equiv="refresh" content={`0; url=${ziel}`} /></noscript>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
