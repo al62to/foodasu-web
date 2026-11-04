@@ -10,7 +10,7 @@ import { muster as nurMuster } from '../src/daten/auswahl.mjs';
 import { BEREICH, adresse as kapitelAdresse, fotosVon, kapitel } from '../src/daten/sogehts.mjs';
 import { einblick, schritte as startSchritte, zahlen as startZahlen } from '../src/daten/startseite.mjs';
 import { EINTRAEGE } from '../src/daten/rezeptseiten.mjs';
-import { store, storeLink, STORE_ORTE, APP_STORE_ERHAELTLICH, APPLE_ANBIETER, appStore, appleZiel, seite as seiteDaten } from '../src/daten/seite.mjs';
+import { store, storeLink, STORE_ORTE, APP_STORE_ERHAELTLICH, APPLE_ANBIETER, appStore, appleLink, appleZiel, seite as seiteDaten } from '../src/daten/seite.mjs';
 import { KURZLINKS } from '../src/daten/kurzlinks.mjs';
 import { GRENZEN, grenzBefunde, masse } from '../src/daten/breite.mjs';
 import { alleRezepte, zutatenBefunde } from './zutaten_pruefen.mjs';
@@ -833,8 +833,18 @@ for (const [adresse, html] of seiten) {
     if (!new RegExp(`<a class="fuss-knopf" href="https://www\\.${dienst.replace('.', '\\.')}/[^"]*" rel="me noopener">\\s*<svg`).test(inhalt)) melde(adresse, `Fußzeile: Knopf mit Symbol für ${dienst} fehlt`);
   }
   // Seit AP-34 steht im Fuß genau ein Bild: das offizielle Abzeichen von Google Play, lokal, als Link zum Eintrag.
-  const abzeichen = alle(inhalt, /<img\b[^>]*>/g);
-  if (abzeichen.length !== (store.oeffentlich ? 1 : 0) || abzeichen.some((tag) => !/src="\/bilder\/google-play-abzeichen-de\.png"/.test(tag) || !/alt="Jetzt bei Google Play"/.test(tag))) melde(adresse, 'Fußzeile: erwartet genau das Abzeichen von Google Play als einziges Bild');
+  // Seit AP-88 (Teil B) mit APP_STORE_ERHAELTLICH davor das Abzeichen von Apple (lokal, SVG), als Link zum App Store
+  // (auf den Seiten der Rechtstexte ohne Kennung, sonst appleLink('fuss')).
+  const abzeichen = alle(inhalt, /<img\b[^>]*>/g).map(([tag]) => tag);
+  const abzeichenSoll = [
+    ...(store.oeffentlich && APP_STORE_ERHAELTLICH ? [['/bilder/app-store-abzeichen-de.svg', 'Laden im App Store']] : []),
+    ...(store.oeffentlich ? [['/bilder/google-play-abzeichen-de.png', 'Jetzt bei Google Play']] : []),
+  ];
+  if (abzeichen.length !== abzeichenSoll.length || abzeichen.some((tag, i) => !tag.includes(`src="${abzeichenSoll[i][0]}"`) || !tag.includes(`alt="${abzeichenSoll[i][1]}"`))) melde(adresse, `Fußzeile: erwartet genau die Abzeichen ${abzeichenSoll.map(([b]) => b).join(', ') || '(keines)'} in dieser Reihenfolge`);
+  if (store.oeffentlich && APP_STORE_ERHAELTLICH) {
+    const appleSoll = (PLAY_OHNE_KENNUNG.has(adresse) ? appStore.adresse : appleLink('fuss')).replaceAll('&', '&amp;');
+    if (!new RegExp(`<a class="fuss-abzeichen fuss-abzeichen-apple" href="${appleSoll.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}" rel="me noopener">\\s*<img\\b`).test(inhalt)) melde(adresse, `Fußzeile: Abzeichen von Apple nicht als Link ${appleSoll}`);
+  }
   // AP-44: Das Abzeichen führt mit der Kennung des Kanals (utm_campaign=fuss) zum Eintrag; nur auf den Seiten der
   // Rechtstexte (PLAY_OHNE_KENNUNG) bleibt die Adresse ohne Kennung.
   const abzeichenZiel = (PLAY_OHNE_KENNUNG.has(adresse) ? store.adresse : storeLink('fuss')).replaceAll('&', '&amp;');

@@ -22,6 +22,9 @@ export const lizenzen = {
   saetze: [
     { name: 'Rezepte', text: 'Die Rezepte stammen aus offenen Rezeptsammlungen. Quelle, Urheber, Lizenz und Änderungen stehen für jedes Rezept auf der Seite ', link: { text: 'Quellen und Lizenzen', ziel: '/quellen-und-lizenzen/' }, nach: '.' },
     { name: 'Bilder', text: 'Symbolbilder, mit Adobe Firefly erzeugt.' },
+    // Markenhinweis zum Abzeichen von Apple (AP-88 Teil B), nach der Vorgabe von Apple für Hinweise außerhalb der USA
+    // („… are trademarks of Apple Inc.“, Übersetzung erlaubt, Marken bleiben englisch).
+    { name: 'App Store', text: 'Apple, das Apple-Logo und App Store sind Marken von Apple Inc.' },
     { name: 'Google Play', text: 'Google Play und das Google Play-Logo sind Marken von Google LLC.' },
   ],
 };

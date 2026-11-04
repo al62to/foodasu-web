@@ -311,6 +311,13 @@ a.chip:hover, button.chip:hover { border-color: var(--main); }
 /* Offizielles Abzeichen von Google Play (AP-34): 2,75rem hoch, ringsum ein Viertel der Höhe frei (Vorgabe von Google). */
 .fuss-abzeichen { display: inline-block; padding: 0.6875rem; margin: -0.6875rem; line-height: 0; border-radius: 0.5rem; }
 .fuss-abzeichen img { display: block; width: auto; height: 2.75rem; }
+/* Seit AP-88 mit dem Abzeichen von Apple davor (nur auf ap-88b): beide sichtbar 2,5rem (40 px) hoch, Apple zuerst,
+   dazwischen mehr als ein Viertel der Höhe frei. Das Bild von Google hat oben und unten je 29 von 250 Bildpunkten
+   durchsichtigen Rand, deshalb 3,25rem. */
+.fuss-abzeichen-reihe { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; }
+.fuss-abzeichen-apple { padding: 0.625rem; margin: -0.625rem; }
+.fuss-abzeichen-reihe .fuss-abzeichen-apple img { height: 2.5rem; }
+.fuss-abzeichen-apple ~ .fuss-abzeichen img { height: 3.25rem; }
 @media (min-width: 40rem) {
   .fuss-raster { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .fuss-marke { grid-column: 1 / -1; }

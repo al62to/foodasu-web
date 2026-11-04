@@ -6,7 +6,7 @@
 // in der Textfarbe, wie es die Markenrichtlinien von Meta für einfarbige Verwendung vorsehen; die Pfade stammen aus
 // der Sammlung Simple Icons (CC0 1.0), Fassung 13.21.0, und sind unverändert.
 import Logo from './Logo.astro';
-import { auftritte, store, storeLink } from '../daten/seite.mjs';
+import { auftritte, store, storeLink, APP_STORE_ERHAELTLICH, appStore, appleLink } from '../daten/seite.mjs';
 import { fuss, geruest } from '../daten/startseite.mjs';
 import kontakt from '../inhalte/kontakt.html?raw';
 
@@ -17,6 +17,8 @@ const alteMarke = Astro.url.pathname === '/' ? 'offenlegung' : undefined;
 // Auf den vier Seiten mit Rechtstexten bleibt der Link zu Google Play ohne Kennung (AP-44): die Seiten bleiben unverändert.
 const OHNE_KENNUNG = new Set(['/datenschutz.html', '/nutzungsbedingungen.html', '/offenlegung/', '/lizenzen/']);
 const storeAdresse = OHNE_KENNUNG.has(Astro.url.pathname) ? store.adresse : storeLink('fuss');
+// Abzeichen des App Store (AP-88): auf denselben vier Seiten ohne Kennung, sonst mit ct=fuss, sobald der Anbieter-Code steht.
+const appleAdresse = OHNE_KENNUNG.has(Astro.url.pathname) ? appStore.adresse : appleLink('fuss');
 const kontaktLink = `<a href="${kontakt.trim()}">${fuss.links.kontakt}</a>`;
 ---
 <footer class="fuss">
@@ -74,10 +76,20 @@ const kontaktLink = `<a href="${kontakt.trim()}">${fuss.links.kontakt}</a>`;
       {/* Seit dem öffentlichen Start (AP-34) das offizielle deutsche Abzeichen von Google Play, unverändert nach den
           Vorgaben von Google: Höhe mindestens 28 px, ringsum frei ein Viertel der Höhe, keine Änderung an Farben oder
           Teilen. Die Datei liegt auf foodasu.com, kein Abruf bei Google. */}
+      {/* Seit AP-88 davor das offizielle deutsche Abzeichen von Apple („Laden im App Store“, schwarz, SVG unverändert von
+          Apple): an erster Stelle, mindestens 40 px hoch, ringsum frei ein Viertel der Höhe (Vorgaben von Apple). Beide
+          Abzeichen sind sichtbar gleich hoch (40 px); das von Google trägt oben und unten durchsichtigen Rand. */}
       {store.oeffentlich ? (
-        <a class="fuss-abzeichen" href={storeAdresse} rel="me noopener">
-          <img src="/bilder/google-play-abzeichen-de.png" width="646" height="250" alt={fuss.auftritte.abzeichen} loading="lazy" decoding="async" />
-        </a>
+        <div class="fuss-abzeichen-reihe">
+          {APP_STORE_ERHAELTLICH && (
+            <a class="fuss-abzeichen fuss-abzeichen-apple" href={appleAdresse} rel="me noopener">
+              <img src="/bilder/app-store-abzeichen-de.svg" width="120" height="40" alt={fuss.auftritte.abzeichenApple} loading="lazy" decoding="async" />
+            </a>
+          )}
+          <a class="fuss-abzeichen" href={storeAdresse} rel="me noopener">
+            <img src="/bilder/google-play-abzeichen-de.png" width="646" height="250" alt={fuss.auftritte.abzeichen} loading="lazy" decoding="async" />
+          </a>
+        </div>
       ) : (
         <p class="fuss-bald">
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="7" y="2.75" width="10" height="18.5" rx="2.25" fill="none" stroke="currentColor" stroke-width="1.8" /><path d="M11 18.2h2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg>

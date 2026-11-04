@@ -6,11 +6,12 @@
 //
 // Geprüft wird jedes href an a und area, vom Anfang der Seite bis zum Ende des Inhalts: Menü, Brotkrumen, Kapitel.
 // Die Fußzeile der Website steht auf jeder Seite gleich. Dort sind nur die Auftritte und die Adresse bei Google Play
-// aus src/daten/seite.mjs und der Link "Kontakt" erlaubt; jeder andere Link nach außen ist auch dort ein Fund.
+// aus src/daten/seite.mjs und der Link "Kontakt" erlaubt, seit AP-88 mit APP_STORE_ERHAELTLICH auch die Adresse im App
+// Store (Abzeichen von Apple, ohne oder mit ct=fuss); jeder andere Link nach außen ist auch dort ein Fund.
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { auftritte, seite, store, storeLink } from '../src/daten/seite.mjs';
+import { auftritte, seite, store, storeLink, APP_STORE_ERHAELTLICH, appStore, appleLink } from '../src/daten/seite.mjs';
 
 const BEREICH = 'so-gehts';
 const EIGEN = seite.adresse;
@@ -22,7 +23,7 @@ const klar = (text) => text
   .replace(/&(amp|quot|apos|lt|gt);/g, (_, name) => ZEICHEN[name]);
 
 const KONTAKT = klar(readFileSync(fileURLToPath(new URL('../src/inhalte/kontakt.html', import.meta.url)), 'utf8').trim());
-const IM_FUSS = new Set([auftritte.facebook, auftritte.instagram, store.adresse, storeLink('fuss'), KONTAKT].filter(Boolean));
+const IM_FUSS = new Set([auftritte.facebook, auftritte.instagram, store.adresse, storeLink('fuss'), KONTAKT, ...(APP_STORE_ERHAELTLICH ? [appStore.adresse, appleLink('fuss')] : [])].filter(Boolean));
 
 // Ein Link bleibt auf foodasu.com, wenn er ein Anker, ein relativer Link oder eine Adresse unter https://foodasu.com/
 // ist. Alles mit einem anderen Schema oder einer anderen Domain führt hinaus, auch "//domain" ohne Schema.

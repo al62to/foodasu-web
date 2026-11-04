@@ -445,6 +445,8 @@ export const fuss = {
     storeLink: 'FoodAsu bei Google Play',
     // Bildbeschreibung des offiziellen Abzeichens: der Text im Abzeichen.
     abzeichen: 'Jetzt bei Google Play',
+    // Seit AP-88: Bildbeschreibung des Abzeichens von Apple, der Text im Abzeichen.
+    abzeichenApple: 'Laden im App Store',
   },
 };
 
