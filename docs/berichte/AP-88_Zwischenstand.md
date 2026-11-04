@@ -142,3 +142,11 @@ Sätze zur Verfügbarkeit unverändert.
 
 Bau und `npm run pruefen`: bestanden. Texte ausgegeben nach `Material/Website_Texte_SoGehts.md` und
 `Material/Website_Texte_Startseite.md`.
+
+## Etappe 4: Prüfen und Vorschau (04.11.2026, 10:50)
+
+Bau, `npm run pruefen`, `texte_pruefen.py`: bestanden. Vorschau in `Material/Projektleitung/AP-88_vorschau/`
+(01 Symbole alt und neu, 03 Rezepte-Bilder alt und neu, 04 Menü am App-Symbol alt und Kandidat, 05 OG-Bild
+unverändert, 06 Browser-Tab hell und dunkel, `abschnitte/` Startseite und sechs Abschnitte am Handy und am Laptop,
+Konsole ohne Fehler). Bericht Teil 1 in `docs/berichte/AP-88_Bericht.md`. Emulator beendet, Belegt-Zettel leer,
+worktree abgemeldet. Weiter mit Teil B auf `ap-88b`.
