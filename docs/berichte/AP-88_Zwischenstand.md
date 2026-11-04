@@ -162,3 +162,9 @@ Vorschau in `AP-88_vorschau/teil_b/`. Nicht gemergt, nicht gepusht.
 
 Bericht `docs/berichte/AP-88_Bericht.md` (Teil 1 und 2) auf `ap-88`; `ap-88b` danach auf `ap-88` neu aufgesetzt.
 Emulator beendet, Belegt-Zettel leer, worktree abgemeldet, caffeinate beendet. Teil A geht erst mit „Ja Website live“.
+
+## Etappe 5: Live (04.11.2026, 11:05)
+
+Alis „Ja Website live“ im Chat. `main` `37fcfb6` → `deda415` (Vorspulen), Push um 11:03 nach einer Störung bei GitHub
+im ersten Versuch, Lauf 41811604850 erfolgreich. Live 976 von 976 Dateien gleich dem Bau, Konsole ohne Fehler,
+`npm run pruefen` bestanden. `ap-88b` auf den neuen `main` gesetzt, lokal.

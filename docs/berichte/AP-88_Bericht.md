@@ -5,7 +5,7 @@ Auftrag: `Material/Projektleitung/AP-88_Website_Symbol_SoGehts_AppStore.md` (04.
 
 ## Für Ali
 
-- **Teil A ist fertig, aber nicht live** (Zweig `ap-88`, lokal). Was sich ändert:
+- **Teil A ist live seit 04.11.2026, 11:03 Uhr** (`main` `deda415`, nach deinem „Ja Website live“). Was sich geändert hat:
   1. Das Symbol im Browser-Tab, das Symbol auf dem iPhone-Startbildschirm (wenn jemand die Seite dort ablegt) und das
      Logo in den Daten für Google zeigen die Figur im Scan-Rahmen statt des Einkaufswagens.
   2. „So geht's“: drei Bilder der Rezepte-Seite ohne „25 Länder“ und „273 Rezepte“ (eines davon auch auf der
@@ -14,7 +14,9 @@ Auftrag: `Material/Projektleitung/AP-88_Website_Symbol_SoGehts_AppStore.md` (04.
   3. Das Bild zum Teilen in Social Media zeigte nie den Wagen und bleibt.
 - **Vorschau:** `Material/Projektleitung/AP-88_vorschau/` (Symbole alt und neu, Browser-Tab hell und dunkel, Bilder
   alt und neu, die geänderten Abschnitte am Handy und am Laptop).
-- **Weiter mit Teil A nur mit „Ja Website live“ in diesem Chat, wenn Android 0.20.0 im Play Store veröffentlicht ist.**
+- **Neuindexierung in der Search Console** (nur die geänderten Seiten): https://foodasu.com/so-gehts/einkaufslisten/,
+  https://foodasu.com/so-gehts/scannen-und-urteil/, https://foodasu.com/so-gehts/rezepte/. Die Startseite ist im HTML
+  unverändert. Google zeigt ein neues Favicon in der Suche oft erst nach Tagen bis Wochen.
 - **Teil B wartet auf Zweig `ap-88b`** (lokal, nicht gemergt, nicht gepusht): App Store als Ziel der Kurzlinks fürs
   iPhone, Datenschutzerklärung 2.1.1 (Wortlaut zur Freigabe, Gegenüberstellung in
   `AP-88_vorschau/teil_b/datenschutz_alt_neu.md`), Satz „FoodAsu gibt es für Android im Play Store und fürs iPhone im
@@ -97,7 +99,23 @@ gleicher Maße und Symbole).
    neu aufnehmen.
 4. Logo, Startseiten-Film, Poster und OG-Bild zeigen keinen Wagen; nichts zu entscheiden.
 
-### 6. Nebenbei
+### 6. Veröffentlichung und Prüfung live (Etappe 5)
+
+- `main` war seit `37fcfb6` nicht weitergegangen; kein Neuaufsetzen nötig. `geschichte_pruefen.py ap-88`: bestanden.
+  `git merge --ff-only ap-88`: `main` `37fcfb6` → `deda415`.
+- Push: Der erste Versuch um 11:02 Uhr scheiterte mit „Internal Server Error“ (Störung bei GitHub, Git-Operationen und
+  Actions eingeschränkt laut githubstatus.com); der nächste Versuch um 11:03 Uhr ging durch, ohne Force. Lauf
+  41811604850 erfolgreich (11:04 Uhr).
+- Live (Abruf mit Parameter gegen Zwischenspeicher): Startseite, die drei geänderten Kapitel von „So geht's“,
+  `/favicon.ico`, `/favicon.svg`, `/favicon-32.png`, `/apple-touch-icon.png` und das OG-Bild liefern 200; die vier
+  Symbole byte-gleich mit dem Bau. Alle Dateien: 976 von 976 gleich dem Bau (Textdateien ohne Zeilenenden); eine
+  Rezeptbild-Datei, die sich nicht geändert hat, kam einmal mit 503 und beim zweiten Abruf gleich dem Bau. Konsole
+  ohne Fehler (Startseite und sechs Abschnitte, Handy und Laptop, Bilder in `AP-88_vorschau/live/`).
+  `npm run pruefen` nach dem Livegang: bestanden.
+- Unterschied zum Bau von `37fcfb6`: die vier Symbole, sechs Bilder der Rezepte-Seite (je zwei Breiten), die drei
+  Seiten `/so-gehts/einkaufslisten/`, `/so-gehts/scannen-und-urteil/`, `/so-gehts/rezepte/` und `sitemap.xml`.
+
+### 7. Nebenbei
 
 - Der Emulator `einkauf_api35` war für die Aufnahmen auf die Werte des S24 und kurz auf Deutsch gestellt; alles
   zurückgestellt (Sprache vorher leer, jetzt `en-US`). Die Store-Datei 2000 lag nur für das Kandidatenbild darauf und ist
@@ -108,7 +126,7 @@ gleicher Maße und Symbole).
 
 ## Teil 2: Teil B (App Store vorbereitet, nur lokal)
 
-Zweig `ap-88b` (von `ap-88`), fünf Commits, nicht gemergt, nicht gepusht. Inhaltlich hat Ali die Ergänzungen der
+Zweig `ap-88b` (auf `main` nach dem Livegang von Teil A), fünf Commits, nicht gemergt, nicht gepusht. Inhaltlich hat Ali die Ergänzungen der
 Rechtstexte am 02.11.2026, 21:26 angenommen; den Wortlaut gibt Ali vor dem Livegang frei.
 
 | Inhalt (Reihenfolge der Commits; Kennungen ändern sich beim Neuaufsetzen) |
