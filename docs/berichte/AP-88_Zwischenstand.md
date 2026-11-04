@@ -59,3 +59,21 @@ Probe `Material/temp/ap88/app_fassung_probe_144a147.json`: 20 feste Einträge (1
 4 weitere), 4.099 weitere Lebensmittel, 3 Stufen, „Häufig gewählt“ 8, Zutatenliste gleich. Anders sind nur `fassung`
 (0.20.0), `versionCode` (2000) und `commit`; diese Angaben zeigt die Website nirgends. Rezepte und Länder: die
 Rezeptdateien der App sind von 0.19.0 zu 0.20.0 unverändert. **`src/daten/app_fassung.json` bleibt.**
+
+## Etappe 2: Figur statt Wagen (04.11.2026, 10:35)
+
+- `tools/favicon_bauen.mjs` baut jetzt alle Symbole aus der Vorlage (`Material/grafiken/symbol_figur/C1_fein.svg`,
+  Figur im Scan-Rahmen auf Indigo #4A3FD1): `favicon.svg` (Zeichnung unverändert, Fläche mit runden Ecken wie bisher,
+  Radius 2/9 der Seite; Metadaten und fremde Namensräume der Vorlage entfernt, 1.991 Byte), `favicon.ico` (16, 32, 48,
+  je für sich aus der Vektorgrafik), `favicon-32.png` und `apple-touch-icon.png` (180 x 180) in voller Fläche ohne
+  Transparenz wie bisher. Aufruf `node tools/favicon_bauen.mjs [Vorlage]`.
+- Erkennbarkeit (Vergleichsbild `AP-88_vorschau/01_favicon_alt_neu.png`): bei 16 Pixeln eine helle runde Figur mit
+  Spross im Rahmen, das Gesicht nur angedeutet; ab 32 Pixeln Augen und Mund erkennbar, der Rahmen ab 48 klar.
+- Logo der Organisation und Bild der `MobileApplication` zeigen auf `/apple-touch-icon.png` und haben damit die Figur.
+- OG-Bild `foodasu-teilen.jpg`: zeigt kein Symbol (nur Schriftzug und Satz), bleibt unverändert. Logo, Film und Poster
+  zeigen keinen Wagen, bleiben.
+- **Farbprüfung:** Die Figur hat Mint (#B8F0D2, #8DDDB6) und Grün (Spross). `tools/pruefe_seiten.mjs` nimmt deshalb
+  `/favicon.svg` als zweite Ausnahme neben dem Abzeichen von Google Play aus (Kommentar dort). Gegenprobe ohne die
+  Ausnahme: genau ein Befund „/favicon.svg … #B8F0D2“. Unter „Offene Entscheidungen“, weil Alis Regel „kein Grün,
+  nirgends“ bisher nur das Abzeichen ausnahm.
+- Bau und `npm run pruefen`: bestanden.

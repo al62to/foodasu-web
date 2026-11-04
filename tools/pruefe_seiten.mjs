@@ -1206,10 +1206,14 @@ for (const [adresse, html] of seiten) {
 // Grün und das dunkle Indigo im ganzen Bau (HTML, Stile, Skripte, Vektorbilder).
 // Einzige Ausnahme von „kein Grün, nirgends“ (Ali, 23.10.2026, AP-34 Fortsetzung): das offizielle Abzeichen von Google
 // Play, public/bilder/google-play-abzeichen-de.png (Bild von Google, Farben dürfen nicht geändert werden). Es ist eine
-// PNG und liegt damit außerhalb dieser Prüfung, die nur Textdateien liest; keine andere Datei ist ausgenommen.
+// PNG und liegt damit außerhalb dieser Prüfung, die nur Textdateien liest. Zweite Ausnahme (AP-88): das App-Symbol
+// /favicon.svg, die Zeichnung der Figur mit Mint und Grün, unverändert aus der Vorlage (tools/favicon_bauen.mjs);
+// die übrigen Symbole sind PNG und ICO. Keine andere Datei ist ausgenommen.
+const FARBE_AUSGENOMMEN = new Set(['/favicon.svg']);
 for (const datei of dateien.filter((pfad) => /\.(?:html|css|js|svg|txt|xml)$/.test(pfad))) {
   const inhalt = readFileSync(datei, 'utf8');
   const name = '/' + relative(DIST, datei).split(sep).join('/');
+  if (FARBE_AUSGENOMMEN.has(name)) continue;
   if (GRUEN.test(inhalt)) melde(name, `Farbprüfung: Grün oder eine entfallene Variable steht im Bau: ${inhalt.match(GRUEN)[0]}`);
   if (DUNKLE_FLAECHE.test(inhalt)) melde(name, 'Farbprüfung: das dunkle Indigo der früheren Flächen (#16123f) steht im Bau');
 }
