@@ -15,8 +15,14 @@ Auftrag: `Material/Projektleitung/AP-88_Website_Symbol_SoGehts_AppStore.md` (04.
 - **Vorschau:** `Material/Projektleitung/AP-88_vorschau/` (Symbole alt und neu, Browser-Tab hell und dunkel, Bilder
   alt und neu, die geänderten Abschnitte am Handy und am Laptop).
 - **Weiter mit Teil A nur mit „Ja Website live“ in diesem Chat, wenn Android 0.20.0 im Play Store veröffentlicht ist.**
-- Offene Entscheidungen: Abschnitt „Offene Entscheidungen“ (Teil 1), Kurzfassung: Grün im Symbol als zweite Ausnahme,
-  Bild „Menü am App-Symbol“, Bild „Startseite“ mit dem alten Beta-Hinweis.
+- **Teil B wartet auf Zweig `ap-88b`** (lokal, nicht gemergt, nicht gepusht): App Store als Ziel der Kurzlinks fürs
+  iPhone, Datenschutzerklärung 2.1.1 (Wortlaut zur Freigabe, Gegenüberstellung in
+  `AP-88_vorschau/teil_b/datenschutz_alt_neu.md`), Satz „FoodAsu gibt es für Android im Play Store und fürs iPhone im
+  App Store.“, das Abzeichen von Apple im Fuß vor dem von Google (Vorschau `AP-88_vorschau/teil_b/`), Markenhinweis auf
+  /lizenzen/, iPhone in den Daten für Google. Live erst mit Apples Freigabe und deinem Ja, in einem kleinen Folgeauftrag.
+- Offene Entscheidungen mit Vorschlag: Teil 1, Abschnitt 5 (Grün im Symbol, Bild „Menü am App-Symbol“, Bild
+  „Startseite“) und Teil 2, Abschnitt 6 (Wortlaut Datenschutz, Kampagnenkennungen, Seite für Codes, Teilen-Bilder,
+  Knöpfe der Startseite).
 
 ## Teil 1: Teil A (Website auf den Stand von Android 0.20.0)
 
@@ -99,3 +105,125 @@ gleicher Maße und Symbole).
   Gmail durch einen App-Vorschlag; nach dem Neustart war Gmail wieder da.
 - `npm run funktionen` legte wegen des alten Standardpfads einen leeren Ordner `~/Projekte/FoodAsu/einkauf-app` an; die
   Ergebnisdatei liegt jetzt in `Material/temp/ap88/`, die leeren Ordner sind entfernt.
+
+## Teil 2: Teil B (App Store vorbereitet, nur lokal)
+
+Zweig `ap-88b` (von `ap-88`), fünf Commits, nicht gemergt, nicht gepusht. Inhaltlich hat Ali die Ergänzungen der
+Rechtstexte am 02.11.2026, 21:26 angenommen; den Wortlaut gibt Ali vor dem Livegang frei.
+
+| Inhalt (Reihenfolge der Commits; Kennungen ändern sich beim Neuaufsetzen) |
+|---|
+| Schalter `APP_STORE_ERHAELTLICH` an, Anbieter-Code `APPLE_ANBIETER` (leer) und `appleLink(<Kampagne>)`, Ziel je Kurzlink |
+| Datenschutzerklärung 2.1.1 |
+| Satz zur Verfügbarkeit, „App Store“ englisch für die Sprachausgabe |
+| Abzeichen von Apple im Fuß, Markenhinweis auf /lizenzen/ |
+| strukturierte Daten mit iOS |
+
+### 1. Schalter und Kennung (Punkt 1)
+
+`src/daten/seite.mjs`: `APP_STORE_ERHAELTLICH = true`, Ziel `https://apps.apple.com/app/id6829687240`.
+`APPLE_ANBIETER = ''` (Anbieter-Code „pt“ aus App Store Connect, trägt die PL nach). `appleLink(kampagne)` hängt nur mit
+gesetztem Code `?pt=…&ct=<kampagne>&mt=8` an, sonst geht der Link ohne Kennung. Kampagnen wie `utm_campaign`:
+`/fb/`, `/ig/`, `/app/` → `kurzlink`, `/teilen/` → `empfehlung`, Abzeichen im Fuß → `fuss` (auf den vier Seiten mit
+Rechtstexten ohne Kennung, wie bei Google Play). `tools/pruefe_seiten.mjs` rechnet das Ziel je Kurzlink und das des
+Abzeichens unabhängig nach.
+
+### 2. Datenschutzerklärung 2.1.1 (Punkt 2)
+
+Fassungsnummer nach dem Muster (kleine Ergänzung: dritte Stelle), „Version 2.1.1 · Stand: 4. November 2026“ oben und
+unten; **das Datum am Tag der Veröffentlichung nachziehen.** Gegenüberstellung aller Absätze:
+`Material/Projektleitung/AP-88_vorschau/teil_b/datenschutz_alt_neu.md`.
+
+| Stelle | neu |
+|---|---|
+| Einleitung | „…; im App Store heißt die App fürs iPhone „FoodAsu – Lebensmittel-Scanner“ und hat die Bundle-ID at.tonc.foodasu.“ |
+| 3 | „Unter diesem Namen steht der Entwickler auch bei Google Play und im App Store.“ |
+| 13 | Absatz „Kennung des Kanals“ unter „App Store (iPhone)“ (Wortlaut unten) |
+| 16 | „…, auf dem iPhone den Eintrag im App Store im App Store.“ |
+| 16a | der vorgemerkte Satz aus AP-79w („… je nach Handy zum Eintrag von FoodAsu bei Google Play weiter, mit einer Kennung des Kanals (Abschnitt 13), oder zum Eintrag im App Store.“) |
+| 21 | „Open Food Facts, Google, Apple, GitHub und Meta“; Sicherung „…, bei Android im Google-Konto, beim iPhone in iCloud oder auf deinem Computer.“; Punkt „Bewertungen im App Store verwaltest du in deinem Apple Account.“ |
+| 22 | „Open Food Facts, Google, Apple, GitHub oder Meta“ |
+| 26 | „**Fassung 2.1.1.** Neu sind die Angaben zum App Store.“ |
+
+Absatz 13, ausgerichtet am Absatz zu Google Play: „**Kennung des Kanals.** Verknüpfungen zum Eintrag von FoodAsu im App
+Store, etwa von der Website oder von Facebook und Instagram, können eine Kennung der Kampagne tragen, zum Beispiel
+„kurzlink“. Apple zeigt mir daraus in App Store Connect nur zusammengefasst, über welche Kampagne Besuche des Eintrags
+und Installationen kamen, ohne Angaben zu einzelnen Personen; Zahlen zu sehr kleinen Gruppen hält Apple zurück oder
+fasst sie zusammen. Die Kennung enthält nichts über dich, und die App liest sie nicht aus.“
+Quelle (abgerufen am 04.11.2026): Apple, App Store Connect Help, „Campaign links“
+(`https://developer.apple.com/help/app-store-connect/view-app-analytics/manage-campaigns`): Link-Form mit `pt`, `ct`
+und `mt=8`; `ct` bis 30 Zeichen; Werte erscheinen erst ab mindestens fünf Nutzern, Zeilen sehr kleiner Gruppen werden
+zurückgehalten oder zusammengefasst; Einzelheiten zu Kampagnen nur in den Detailberichten mit strengerem Schutz.
+
+### 3. Satz zur Verfügbarkeit (Punkt 3)
+
+„FoodAsu gibt es für Android im Play Store und fürs iPhone im App Store.“ an diesen Stellen: `src/daten/startseite.mjs`
+(`VERFUEGBAR`; damit Kopf der Startseite, Frage „Gibt es FoodAsu fürs iPhone?“ samt strukturierten Daten, Abschluss,
+`llms.txt` und die Seite für Codes `/c/`), `src/daten/fragen.mjs`, `src/daten/ueber.mjs`,
+`src/daten/anleitung/erste-schritte.mjs` (Installieren), `tools/pruefe_seiten.mjs` (Wortlaut der Sperre).
+`src/daten/meta.mjs` nennt die Verfügbarkeit nicht. Im Bau steht der alte Satz nirgends mehr (Suche über alle Seiten
+außer den Rechtstexten).
+
+### 4. Abzeichen und Markenhinweis (Punkt 4)
+
+- Datei `public/bilder/app-store-abzeichen-de.svg`: das schwarze deutsche Abzeichen „Laden im App Store“ aus Apples
+  Marketing-Werkzeug (`toolbox.marketingtools.apple.com`, Titel in der Datei
+  `Download_on_the_App_Store_Badge_DE_RGB_blk_092917`, 9.217 Byte), byte-gleich abgelegt, ohne Skript.
+- Fuß: Apple zuerst (Vorgabe von Apple bei mehreren Abzeichen), beide sichtbar 40 px hoch (Mindesthöhe von Apple am
+  Bildschirm), 12 px Abstand (mehr als ein Viertel der Höhe). Damit das Google-Abzeichen sichtbar gleich hoch ist, steht
+  es jetzt 3,25rem statt 2,75rem hoch (die PNG hat oben und unten durchsichtigen Rand). Bildbeschreibung „Laden im App
+  Store“. Gemessen im Browser: Apple 40 px, Google 52 px (davon 40 px sichtbar), hell und dunkel, Handy und Laptop.
+- /lizenzen/: Abschnitt „App Store“ vor „Google Play“: „Apple, das Apple-Logo und App Store sind Marken von Apple Inc.“
+  Geprüft an Apples Vorgaben (developer.apple.com/app-store/marketing/guidelines, 04.11.2026): Beim Abzeichen sind Apple
+  und das Apple-Logo zu nennen, außerhalb der USA in der Form „… are trademarks of Apple Inc.“, übersetzt erlaubt, die
+  Marken bleiben englisch.
+- Die Sperre gegen fremde Links in „So geht's“ (`tools/sogehts_links.mjs`) erlaubt im Fuß jetzt auch die Adresse im App
+  Store.
+
+### 5. Strukturierte Daten (Punkt 5)
+
+`MobileApplication`: `operatingSystem` „Android, iOS“, `softwareRequirements` „Android 8.0 oder neuer, iOS 17.0 oder
+neuer“ (`deploymentTarget` iOS 17.0 in `ios/project.yml` bei `adb5879`, nur iPhone), `sameAs` mit Google Play und App
+Store. `installUrl` bleibt Google Play: Das Feld nimmt eine Adresse, und die Website war bisher die des Play Store.
+Prüfung im Bau verlangt genau diese Werte, solange der Schalter an ist (Gegenprobe mit „Android“ allein: zwei Befunde).
+
+### 6. Offene Entscheidungen (Teil B)
+
+1. **Wortlaut der Datenschutzerklärung 2.1.1** (Abschnitt 2 oben): dein Ja vor dem Livegang. Dabei: In Abschnitt 3
+   „Unter diesem Namen steht der Entwickler auch … im App Store“ bitte am Eintrag in App Store Connect bestätigen.
+2. **16a mit Kennung:** Der vorgemerkte Satz sagt, nur der Link zu Google Play trägt eine Kennung. Sobald der
+   Anbieter-Code steht, trägt auch der Link zum App Store eine. Vorschlag dann: „… oder zum Eintrag im App Store, beide
+   mit einer Kennung des Kanals (Abschnitt 13).“
+3. **Kampagnenkennungen:** Wie beauftragt gleich `utm_campaign`, also dreimal „kurzlink“ für `/fb/`, `/ig/`, `/app/`.
+   Bei Google Play unterscheidet die Quelle (`utm_source`), bei Apple gibt es nur `ct`. Vorschlag: `facebook`,
+   `instagram`, `nachricht`, damit Apple die Wege getrennt zeigt (eine Zeile je Kurzlink in `seite.mjs`).
+4. **Seite für Codes `/c/`:** zeigt den Satz zur Verfügbarkeit für iPhones; Codes gibt es nur auf Android. Vorschlag:
+   dort ein eigener Satz „Codes löst du in FoodAsu für Android ein.“ statt des allgemeinen Satzes.
+5. **Teilen-Bilder mit beiden Abzeichen** (`Material/Projektleitung/Teilen_Entwuerfe`: A1 „Empfehlen Lila“, A2
+   „Empfehlen Hell“, B1 „Rezept Karte“, B2 „Rezept Vollbild“; eine Variante C liegt dort nicht): nicht geändert.
+   Vorschlag: in A1 und B1 die zwei Abzeichen nebeneinander, Apple zuerst, in gleicher sichtbarer Höhe wie im Fuß;
+   Bilder der App sind ein Auftrag für die App.
+6. **Knöpfe „Jetzt im Play Store“ auf der Startseite:** nicht geändert. Vorschlag: daneben ein gleich gestalteter
+   Knopf „Jetzt im App Store“ mit `appleLink('kopf')` bzw. `('abschluss')`, ohne Abzeichen (Alis Regel vom 23.10.2026:
+   kein Abzeichen im Kopf und im Abschluss).
+7. **Englische Kurzfassung der Datenschutzerklärung** und die Quelle `Material/Datenschutzerklaerung.md`: nicht
+   nachgezogen (wie in AP-79w); vor dem Livegang von Teil B angleichen.
+
+### 7. Prüfungen (Teil B, auf `ap-88b`)
+
+| Prüfung | Ergebnis |
+|---|---|
+| `npm run build` | bestanden |
+| `npm run pruefen` | bestanden; Gegenproben: Fuß ohne Apple-Abzeichen (zwei Befunde), `operatingSystem` „Android“ (zwei Befunde) |
+| `Material/texte_pruefen.py` (Bau, mit Rechtstexten) | bestanden |
+| Kurzlinks im Chrome des Macs, je 8 Adressen in 6 Fällen (iPhone, iPad mit Desktop-Kennung, Mac ohne Touch, Android, iPhone und Android ohne Skript), Anbieter-Code leer | 48 von 48: iPhone und iPad zum App Store ohne Kennung, sonst Google Play mit Kennung, keine Anfrage an Dritte |
+| dasselbe mit Anbieter-Code `123456` (nur lokal, nicht committet, danach zurückgesetzt) | 48 von 48: `?pt=123456&ct=empfehlung&mt=8` bei `/teilen/`, `ct=kurzlink` bei den anderen; Abzeichen im Fuß mit `ct=fuss`, auf den Rechtstexten ohne |
+| Vorschau Fuß hell und dunkel, Handy und Laptop; /lizenzen/; Startseite oben | Konsole ohne Fehler |
+
+Skripte: `Material/temp/ap88/kurzlinks_testen_ap88.mjs <Basis> [pt]`, `vorschau_b.mjs`. Protokolle
+`Material/temp/ap88/kurzlinks_pt_leer.txt`, `kurzlinks_pt_gesetzt.txt`.
+
+### 8. Livegang von Teil B später (Folgeauftrag)
+
+`ap-88b` auf den dann aktuellen `main` setzen, Datum der Datenschutzerklärung auf den Tag, Anbieter-Code eintragen (oder
+leer lassen), Prüfungen wie oben, `geschichte_pruefen.py ap-88b`, Vorspulen, Push.

@@ -150,3 +150,15 @@ Bau, `npm run pruefen`, `texte_pruefen.py`: bestanden. Vorschau in `Material/Pro
 unverändert, 06 Browser-Tab hell und dunkel, `abschnitte/` Startseite und sechs Abschnitte am Handy und am Laptop,
 Konsole ohne Fehler). Bericht Teil 1 in `docs/berichte/AP-88_Bericht.md`. Emulator beendet, Belegt-Zettel leer,
 worktree abgemeldet. Weiter mit Teil B auf `ap-88b`.
+
+## Etappe 6: Teil B auf `ap-88b` (04.11.2026, 10:55)
+
+Fünf Commits auf `ap-88b` (Bericht Teil 2): Schalter und Kennung, Datenschutzerklärung 2.1.1, Satz zur Verfügbarkeit,
+Abzeichen von Apple und Markenhinweis, strukturierte Daten mit iOS. Bau, `npm run pruefen`, `texte_pruefen.py`
+bestanden; Kurzlinks 48 von 48 mit leerem und mit gesetztem Anbieter-Code (Gegenprobe nur lokal, zurückgesetzt).
+Vorschau in `AP-88_vorschau/teil_b/`. Nicht gemergt, nicht gepusht.
+
+## Etappe 7: Abschluss (04.11.2026, 11:00)
+
+Bericht `docs/berichte/AP-88_Bericht.md` (Teil 1 und 2) auf `ap-88`; `ap-88b` danach auf `ap-88` neu aufgesetzt.
+Emulator beendet, Belegt-Zettel leer, worktree abgemeldet, caffeinate beendet. Teil A geht erst mit „Ja Website live“.
