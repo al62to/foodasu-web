@@ -25,13 +25,18 @@ import sys
 from pathlib import Path
 
 ZIEL = Path(__file__).resolve().parent.parent / 'src' / 'daten' / 'app_fassung.json'
-KATALOG = 'app/src/main/java/at/tonc/einkauf/profile/domain/AvoidCatalog.kt'
-EINTRAG = 'app/src/main/java/at/tonc/einkauf/profile/domain/AvoidEntry.kt'
-HAEUFIG = 'app/src/main/java/at/tonc/einkauf/profile/ui/OwnIngredientUi.kt'
-SCHLUESSEL = 'app/src/main/java/at/tonc/einkauf/profile/domain/AvoidKeys.kt'
+# Seit 0.20.0 liegen Teile im gemeinsamen Kern der App (kern/); je Datei gilt der erste Ort, den es im Stand gibt.
+KATALOG = ('app/src/main/java/at/tonc/einkauf/profile/domain/AvoidCatalog.kt',
+           'kern/src/commonMain/kotlin/at/tonc/einkauf/profile/domain/AvoidCatalog.kt')
+EINTRAG = ('app/src/main/java/at/tonc/einkauf/profile/domain/AvoidEntry.kt',
+           'kern/src/commonMain/kotlin/at/tonc/einkauf/profile/domain/AvoidEntry.kt')
+HAEUFIG = ('app/src/main/java/at/tonc/einkauf/profile/ui/OwnIngredientUi.kt',)
+SCHLUESSEL = ('app/src/main/java/at/tonc/einkauf/profile/domain/AvoidKeys.kt',
+              'kern/src/commonMain/kotlin/at/tonc/einkauf/profile/domain/AvoidKeys.kt')
 BAU = 'app/build.gradle.kts'
-LISTE = 'app/src/main/res/raw/zutaten_taxonomie.tsv'
-TEST = 'app/src/test/java/at/tonc/einkauf/taxonomy/domain/AvoidSearchTest.kt'
+LISTE = ('app/src/main/res/raw/zutaten_taxonomie.tsv',)
+TEST = ('app/src/test/java/at/tonc/einkauf/taxonomy/domain/AvoidSearchTest.kt',
+        'kern/src/androidHostTest/kotlin/at/tonc/einkauf/taxonomy/domain/AvoidSearchTest.kt')
 GUELTIG = re.compile(r'^[a-z]{2}:[a-z0-9-]+$')
 
 
@@ -44,9 +49,19 @@ def git(app, *argumente, darf_fehlen=False):
     return lauf.stdout.decode('utf-8')
 
 
+def datei(app, ref, pfade, darf_fehlen=False):
+    for pfad in pfade:
+        inhalt = git(app, 'show', f'{ref}:{pfad}', darf_fehlen=True)
+        if inhalt is not None:
+            return inhalt
+    if darf_fehlen:
+        return None
+    sys.exit(f'{ref}: keine der Dateien gefunden: {", ".join(pfade)}')
+
+
 def feste_schluessel(app, ref):
-    schluessel = git(app, 'show', f'{ref}:{SCHLUESSEL}')
-    katalog = git(app, 'show', f'{ref}:{KATALOG}')
+    schluessel = datei(app, ref, SCHLUESSEL)
+    katalog = datei(app, ref, KATALOG)
     konstanten = dict(re.findall(r'const val ([A-Z_]+) = "([^"]+)"', schluessel))
     eu = re.search(r'object EuAllergens \{\s*val all: List<String> = listOf\(([^)]*)\)', schluessel)
     if not eu:
@@ -69,7 +84,7 @@ def feste_schluessel(app, ref):
 
 
 def stufen(app, ref):
-    eintrag = git(app, 'show', f'{ref}:{EINTRAG}')
+    eintrag = datei(app, ref, EINTRAG)
     werte = re.search(r'enum class Strictness \{([^;}]*);', eintrag)
     if not werte:
         sys.exit('enum Strictness nicht gefunden')
@@ -77,13 +92,13 @@ def stufen(app, ref):
 
 
 def haeufig(app, ref):
-    text = git(app, 'show', f'{ref}:{HAEUFIG}', darf_fehlen=True)
+    text = datei(app, ref, HAEUFIG, darf_fehlen=True)
     liste = re.search(r'val frequentKeys: List<String> = listOf\(([^)]*)\)', text or '')
     return len([eintrag for eintrag in liste.group(1).split(',') if eintrag.strip()]) if liste else None
 
 
 def weitere_lebensmittel(app, ref, fest):
-    inhalt = git(app, 'show', f'{ref}:{LISTE}', darf_fehlen=True)
+    inhalt = datei(app, ref, LISTE, darf_fehlen=True)
     if inhalt is None:
         return 0, None
     kopf = dict(re.findall(r'^# (version|stand): (.+)$', inhalt, re.M))
@@ -95,7 +110,7 @@ def weitere_lebensmittel(app, ref, fest):
         feld = zeile.split('\t')
         if feld[deutsch].strip() and GUELTIG.match(feld[kennung]) and feld[kennung] not in fest:
             zahl += 1
-    test = git(app, 'show', f'{ref}:{TEST}')
+    test = datei(app, ref, TEST)
     erwartet = re.search(r'assertEquals\((\d+), realSearch\.selectableCount\(DE\)\)', test)
     if not erwartet or int(erwartet.group(1)) != zahl:
         sys.exit(f'Zutatenliste: {zahl} wählbare Einträge auf Deutsch, der Test der App erwartet {erwartet.group(1) if erwartet else "nichts"}')
@@ -106,6 +121,7 @@ def main():
     teil = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     teil.add_argument('--app', required=True)
     teil.add_argument('--ref', required=True)
+    teil.add_argument('--ziel', type=Path, default=ZIEL, help='andere Zieldatei, etwa für eine Probe')
     argumente = teil.parse_args()
     commit = git(argumente.app, 'rev-parse', '--short', argumente.ref).strip()
     bau = git(argumente.app, 'show', f'{argumente.ref}:{BAU}')
@@ -119,8 +135,8 @@ def main():
         'stufen': stufen(argumente.app, argumente.ref), 'haeufigGewaehlt': haeufig(argumente.app, argumente.ref),
         'weitereLebensmittel': weitere, 'zutatenliste': liste,
     }
-    ZIEL.write_text(json.dumps(daten, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
-    print(f'{ZIEL.name}: Fassung {fassung} ({code}, {commit}), {len(fest)} feste Einträge {arten}, {weitere} weitere Lebensmittel, {daten["stufen"]} Stufen, „Häufig gewählt“ {daten["haeufigGewaehlt"]}')
+    argumente.ziel.write_text(json.dumps(daten, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+    print(f'{argumente.ziel.name}: Fassung {fassung} ({code}, {commit}), {len(fest)} feste Einträge {arten}, {weitere} weitere Lebensmittel, {daten["stufen"]} Stufen, „Häufig gewählt“ {daten["haeufigGewaehlt"]}')
 
 
 if __name__ == '__main__':
