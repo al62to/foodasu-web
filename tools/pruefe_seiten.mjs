@@ -10,7 +10,7 @@ import { muster as nurMuster } from '../src/daten/auswahl.mjs';
 import { BEREICH, adresse as kapitelAdresse, fotosVon, kapitel } from '../src/daten/sogehts.mjs';
 import { einblick, schritte as startSchritte, zahlen as startZahlen } from '../src/daten/startseite.mjs';
 import { EINTRAEGE } from '../src/daten/rezeptseiten.mjs';
-import { store, storeLink, STORE_ORTE, APP_STORE_ERHAELTLICH, appStore, appleZiel, seite as seiteDaten } from '../src/daten/seite.mjs';
+import { store, storeLink, STORE_ORTE, APP_STORE_ERHAELTLICH, APPLE_ANBIETER, appStore, appleZiel, seite as seiteDaten } from '../src/daten/seite.mjs';
 import { KURZLINKS } from '../src/daten/kurzlinks.mjs';
 import { GRENZEN, grenzBefunde, masse } from '../src/daten/breite.mjs';
 import { alleRezepte, zutatenBefunde } from './zutaten_pruefen.mjs';
@@ -738,7 +738,15 @@ for (const datei of dateien.filter((d) => /\.(txt|xml)$/.test(d))) {
 // (speicherBefund), das iPhone und iPad (auch iPad mit Desktop-Kennung über maxTouchPoints) zu appleZiel schickt
 // (App Store, solange APP_STORE_ERHAELTLICH false ist die Startseite) und sonst zum Link der Seite; das meta refresh zu
 // Google Play steht im <noscript> im Kopf (Rückfall ohne Skript). Titel ohne „Google Play“.
+// Seit AP-88 (Teil B) je Kurzlink ein eigenes Ziel für iPhone und iPad: der App Store, und sobald der Anbieter-Code
+// (APPLE_ANBIETER, pt) gesetzt ist, mit pt, ct = utm_campaign des Kurzlinks und mt=8; ohne Anbieter-Code ohne Kennung.
 const KURZ_TITEL = 'Weiter zu FoodAsu';
+const kurzAppleZiel = (pfad) => {
+  if (!APP_STORE_ERHAELTLICH) return `${seiteDaten.adresse}/`;
+  if (!APPLE_ANBIETER) return appStore.adresse;
+  const kampagne = decodeURIComponent(KURZ_KENNUNGEN[pfad]).match(/utm_campaign=([a-z0-9-]+)/)[1];
+  return `${appStore.adresse}?pt=${encodeURIComponent(APPLE_ANBIETER)}&ct=${kampagne}&mt=8`;
+};
 const KURZ_APPLE_ZIEL = APP_STORE_ERHAELTLICH ? appStore.adresse : `${seiteDaten.adresse}/`;
 if (appleZiel !== KURZ_APPLE_ZIEL) melde('Kurzlinks', `Ziel für iPhone und iPad ${appleZiel}, erwartet ${KURZ_APPLE_ZIEL}`);
 if (appStore.adresse !== 'https://apps.apple.com/app/id6829687240') melde('Kurzlinks', `Adresse im App Store ohne die erwartete Form (ohne Kennung): ${appStore.adresse}`);
@@ -757,6 +765,7 @@ if (/^\s*Disallow:\s*\S/im.test(robotsDatei)) melde('/robots.txt', 'Disallow gef
 for (const kurzlink of KURZLINKS) {
   const html = weiterleitungen.get(kurzlink.pfad);
   if (html === undefined) { melde(kurzlink.pfad, 'Weiterleitung fehlt im Bau'); continue; }
+  if (kurzlink.appleZiel !== kurzAppleZiel(kurzlink.pfad)) melde(kurzlink.pfad, `Ziel für iPhone und iPad ${kurzlink.appleZiel}, erwartet ${kurzAppleZiel(kurzlink.pfad)}`);
   if (kurzlink.ziel !== kurzZiel(kurzlink.pfad)) melde(kurzlink.pfad, `Ziel ohne die erwartete Kennung (${KURZ_KENNUNGEN[kurzlink.pfad]}): ${kurzlink.ziel}`);
   const refresh = alle(html, /<meta\b[^>]*http-equiv="refresh"[^>]*>/gi);
   const inhalt = entschluesselt(refresh[0]?.[0].match(/content="([^"]*)"/)?.[1] ?? '');
@@ -770,7 +779,7 @@ for (const kurzlink of KURZLINKS) {
     if (/\bsrc=/.test(attribute)) melde(kurzlink.pfad, 'das Skript der Weiterleitung lädt eine Datei (erwartet eingebettet)');
     if (speicherBefund(skript)) melde(kurzlink.pfad, speicherBefund(skript));
     if (/https?:\/\/(?!foodasu\.com\/|apps\.apple\.com\/)/.test(skript)) melde(kurzlink.pfad, 'das Skript nennt eine Adresse außer foodasu.com und dem App Store');
-    if (!skript.includes(JSON.stringify(KURZ_APPLE_ZIEL)) || !/maxTouchPoints/.test(skript) || !/iPhone\|iPad/.test(skript)) melde(kurzlink.pfad, `das Skript schickt iPhone und iPad nicht zu ${KURZ_APPLE_ZIEL}`);
+    if (!skript.includes(JSON.stringify(kurzAppleZiel(kurzlink.pfad))) || !/maxTouchPoints/.test(skript) || !/iPhone\|iPad/.test(skript)) melde(kurzlink.pfad, `das Skript schickt iPhone und iPad nicht zu ${kurzAppleZiel(kurzlink.pfad)}`);
   }
   if (!/<noscript><meta http-equiv="refresh"[^>]*><\/noscript>/.test(kurzKopf)) melde(kurzlink.pfad, 'die Weiterleitung ohne Skript (meta refresh im noscript im Kopf) fehlt');
   if (/<(?:header|footer|nav)\b/.test(html)) melde(kurzlink.pfad, 'Kopf, Fuß oder Navigation gehören nicht auf eine Weiterleitung');

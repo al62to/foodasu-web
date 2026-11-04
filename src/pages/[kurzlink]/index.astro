@@ -5,8 +5,8 @@ import Weiterleitung from '../../layouts/Weiterleitung.astro';
 import { KURZLINKS } from '../../daten/kurzlinks.mjs';
 
 export function getStaticPaths() {
-  return KURZLINKS.map((kurzlink) => ({ params: { kurzlink: kurzlink.pfad.replaceAll('/', '') }, props: { ziel: kurzlink.ziel } }));
+  return KURZLINKS.map((kurzlink) => ({ params: { kurzlink: kurzlink.pfad.replaceAll('/', '') }, props: { ziel: kurzlink.ziel, appleZiel: kurzlink.appleZiel } }));
 }
-const { ziel } = Astro.props;
+const { ziel, appleZiel } = Astro.props;
 ---
-<Weiterleitung ziel={ziel} />
+<Weiterleitung ziel={ziel} appleZiel={appleZiel} />

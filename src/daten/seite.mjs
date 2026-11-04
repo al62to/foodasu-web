@@ -60,15 +60,28 @@ export const KURZLINKS = [
 ].map((kurzlink) => ({
   ...kurzlink,
   ziel: `${store.adresse}&referrer=utm_source%3D${kurzlink.quelle}%26utm_medium%3D${kurzlink.medium}%26utm_campaign%3Dkurzlink`,
+  kampagne: 'kurzlink',
 }));
 
 // Kurzlinks nach Gerät (AP-79w, 02.11.2026): Auf iPhone und iPad schickt ein kleines Skript im Kopf der Weiterleitung
 // (src/layouts/Weiterleitung.astro) zum App Store statt zu Google Play. Solange APP_STORE_ERHAELTLICH false ist, geht es
-// dort auf die Startseite. Umschalten auf true erst nach der Freigabe durch Apple (eigener kleiner Schritt). Der Link
-// zum App Store trägt keine Kennung des Kanals (die Datenschutzerklärung nennt für den App Store keine).
-export const APP_STORE_ERHAELTLICH = false;
+// dort auf die Startseite. Seit AP-88 (Teil B, 04.11.2026) steht der Schalter auf true (Zweig ap-88b, live erst nach
+// Apples Freigabe und Alis Ja).
+export const APP_STORE_ERHAELTLICH = true;
 export const appStore = { adresse: 'https://apps.apple.com/app/id6829687240' };
+// Kennung des Kanals für den App Store (AP-88): Anbieter-Code (pt, "provider token") des Entwicklerkontos aus App Store
+// Connect und je Ort eine Kampagnenkennung (ct, gleiche Namen wie utm_campaign bei Google Play). Solange APPLE_ANBIETER
+// leer ist, gehen alle Links ohne Kennung zum App Store. Die Kennung enthält nichts über Besucher; Apple zeigt dazu nur
+// zusammengefasste Zahlen. Erlaubt für ct: bis 30 Zeichen (hier nur Kleinbuchstaben, Ziffern, Bindestrich).
+export const APPLE_ANBIETER = '';
+export const appleLink = (kampagne) => {
+  if (!/^[a-z0-9-]{1,30}$/.test(kampagne)) throw new Error(`Kampagnenkennung für den App Store ungültig: ${kampagne}`);
+  if (!APPLE_ANBIETER) return appStore.adresse;
+  return `${appStore.adresse}?pt=${encodeURIComponent(APPLE_ANBIETER)}&ct=${kampagne}&mt=8`;
+};
+// Ziel für iPhone und iPad ohne bestimmten Ort (ohne Kennung); die Kurzlinks nehmen appleZielFuer(<Kampagne>).
 export const appleZiel = APP_STORE_ERHAELTLICH ? appStore.adresse : `${seite.adresse}/`;
+export const appleZielFuer = (kampagne) => (APP_STORE_ERHAELTLICH ? appleLink(kampagne) : `${seite.adresse}/`);
 
 // Der Tag der letzten Änderung jeder Seite für sitemap.xml kommt seit AP-22 aus dem Git-Datum ihrer Quelldateien
 // (src/daten/stand.mjs) und wird nicht mehr von Hand gepflegt. Welche Seiten im Index stehen, sagt src/daten/meta.mjs.

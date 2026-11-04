@@ -15,9 +15,10 @@ import logo from '../inhalte/logo.svg?raw';
 // wird logo.<Hash>.css, gleicher Inhalt), und jede der 116 Seiten verweist auf einen neuen Dateinamen.
 import Motive from '../components/Motive.astro';
 void Motive;
-import { seite, appleZiel } from '../daten/seite.mjs';
+import { seite } from '../daten/seite.mjs';
 
-const { ziel } = Astro.props;
+// appleZiel je Kurzlink aus src/daten/kurzlinks.mjs (seit AP-88 mit Kampagnenkennung, sobald der Anbieter-Code steht).
+const { ziel, appleZiel } = Astro.props;
 const skript = `(function () {
   var ua = navigator.userAgent || '';
   var apple = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
