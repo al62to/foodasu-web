@@ -1269,7 +1269,8 @@ for (const [adresse, html] of seiten) if (/href="\/#alltag"/.test(html)) melde(a
 // - die Adresse des Eintrags bei Google Play (der Paketname at.tonc.einkauf lässt sich nicht ändern);
 // - technische Hinweise zu Android: im Text der Datenschutzerklärung, und in der Anleitung die Abschnitte
 //   "Installieren", "Backup von Android" und "Feedback geben" mit genau den Wortlauten unten (die Beschreibung des
-//   Kapitels "Einstellungen und deine Daten" nennt das Backup und steht deshalb auch in llms.txt).
+//   Kapitels "Einstellungen und deine Daten" nennt das Backup und steht deshalb auch in llms.txt); seit AP-88 der Satz
+//   zum Querformat im Scanner (nur Android; Wortlaut der Projektleitung vom 04.11.2026).
 // "Bald im Play Store" enthält keines der Wörter. Jeder andere Treffer ist ein Befund und bricht den Bau ab.
 const GANZES_WORT = (wort) => new RegExp(`(?<![\\p{L}\\p{N}_])${wort}(?![\\p{L}\\p{N}_])`, 'gu');
 const HERKUNFT = [
@@ -1301,6 +1302,7 @@ const WEITERE_SPRACHE = /<meta property="og:locale:alternate" content="de_AT"\s*
 const ANLEITUNG_ANDROID = [
   'Backup von Android', 'backup-von-android', 'Android kann ein Backup deiner App-Daten anlegen',
   'Mit geht die Version der App und von Android, sonst nichts.',
+  'Hältst du das Handy quer, steht die Produktkarte neben dem Kamerabild (Android).',
 ];
 const RECHT_MIT_ANSCHRIFT = new Set(['/datenschutz.html', '/offenlegung/', '/nutzungsbedingungen.html']);
 // Sprachangaben um ein fremdes Wort (tools/sprache_setzen.mjs) trennen einen Wortlaut nicht.

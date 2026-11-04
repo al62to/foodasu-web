@@ -78,7 +78,7 @@ export default {
       anker: 'querformat',
       symbol: 'drehen',
       funktionen: ['SCAN-08'],
-      nutzen: 'Hältst du das Handy quer, steht die Produktkarte neben dem Kamerabild.',
+      nutzen: 'Hältst du das Handy quer, steht die Produktkarte neben dem Kamerabild (Android).',
       wo: 'Scanner > Handy drehen',
     },
     {

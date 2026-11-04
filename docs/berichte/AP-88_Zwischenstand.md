@@ -77,3 +77,68 @@ Rezeptdateien der App sind von 0.19.0 zu 0.20.0 unverändert. **`src/daten/app_f
   Ausnahme: genau ein Befund „/favicon.svg … #B8F0D2“. Unter „Offene Entscheidungen“, weil Alis Regel „kein Grün,
   nirgends“ bisher nur das Abzeichen ausnahm.
 - Bau und `npm run pruefen`: bestanden.
+
+## Etappe 3: So geht's und Texte (04.11.2026, 10:45)
+
+### 3.1 Bilder
+
+Testfassung 0.20.0 (2000) aus dem worktree `144a147` (`assembleVollDebug`, Lauf über das Lauf-Skript mit Belegt-Zettel;
+`local.properties` der App als Verweis im worktree, nicht geöffnet) am eigenen Emulator `einkauf_api35`, für die
+Aufnahmen auf die Werte des S24 gestellt (1080 x 2340, 480 dpi, Tasten) wie bei AP-54, danach zurückgestellt.
+Haushalt per Import: Mia Schalenfrüchte „Auf keinen Fall“, Jonas Gluten „Meiden“, Elif vegetarisch „Meiden“ (je ein
+Eintrag, ohne Schweinefleisch). Verarbeitet mit `So_gehts_Bilder/werkzeug/ap88_verarbeiten.py` (aus
+`ap54_verarbeiten.py`), dann `tools/sogehts_fotos.py`. Alte Fassungen in `So_gehts_Bilder/bis_2026-11-04_ap88/` und
+`bilder_bis_2026-11-04_ap88.json`.
+
+| Bild | vorher | jetzt |
+|---|---|---|
+| `rezepte_ansehen_01` (auch Startseite) | „25 Länder“, „273 Rezepte“ | ohne Zahlen, sonst gleicher Ausschnitt |
+| `rezepte_filter_01` | „25 Länder“, „37 Rezepte“; Bildtext „… gewählt: 37 Rezepte; …“ | ohne Zahlen; Bildtext ohne „37 Rezepte“ |
+| `rezepte_merken_02` | „25 Länder“ | ohne Zahl; „Gemerkt“: Kaiserschmarren, Ratatouille, Anfang von Apfelstrudel |
+| `start_schnellzugriff_01` | altes Symbol (Wagen) | **nicht getauscht**, siehe unten |
+
+`sogehts_fotos.py` hat dabei auch `scanner_ean_03` und `scanner_scannen_01` neu kodiert (Kamerabilder aus AP-32,
+gleiche Quelle); beide sofort auf den Stand von `main` zurückgesetzt, sie ändern sich nicht.
+
+**`start_schnellzugriff_01` nicht getauscht:** Das alte Bild stammt vom S24 (Samsung). Am Emulator zeigt der
+Pixel-Launcher ein anderes Menü (App-Info, App pausieren) und die langen Namen der Schnellzugriffe, „Produkt scannen“
+und „Einkaufsliste öffnen“; die Website schreibt „Scannen“ oder „Liste“ (die kurzen Namen, so am S24). Ein Tausch
+hätte Bild und Text auseinandergebracht. Kandidat für die Vorschau: Store-Datei 2000 (`Material/FoodAsu-0.20.0-2000.aab`,
+universelle APK, Debug-Schlüssel) am Emulator, nicht geöffnet, Systemsprache für die Aufnahme kurz Deutsch.
+Unter „Offene Entscheidungen“.
+
+Filme: keiner zeigt die Rezepte-Seite oder die Kommt-bald-Karte; nichts zu melden.
+
+Emulator danach: Store-Kopie deinstalliert, Systemsprache, Größe, Dichte und Gestennavigation zurück (vorher war
+`persist.sys.locale` leer, jetzt `en-US`, gleiche Sprache), Emulator beendet, Belegt-Zettel leer. In der Testfassung am
+Emulator bleibt der Beispielhaushalt mit drei gemerkten Rezepten (vorher Mia mit Milch).
+
+### 3.2 bis 3.4 Texte
+
+- „In die Liste scannen“ (`einkaufslisten.mjs`, Anker `in-die-liste-scannen`), neuer Satz: „Nach dem Scannen bringt
+  dich „Zurück zur Liste“ auf der Produktkarte direkt wieder zu dieser Liste.“ Abweichung vom Vorschlag: „auf der
+  Produktkarte“, weil der Knopf in der Leiste der Karte unter „Auf der Liste“ steht (`CardListBar.kt`,
+  `BackToListButton`, nur im Modus „Scannen für Liste“); Beschriftung in der App wörtlich „Zurück zur Liste“.
+- Tastatur: Die Anleitung beschrieb sie in „Einträge hinzufügen“ („Das Feld bleibt offen für den nächsten Eintrag.“).
+  Das stimmt seit 0.20.0 nicht mehr (`ListAddField.kt`: Haken meldet den Eintrag und schließt die Tastatur). Der Satz
+  wird: „Der Haken auf der Tastatur setzt den Eintrag auf die Liste und schließt die Tastatur; ein Tipp ins Feld öffnet
+  sie wieder.“ Beim Abhaken nennt die Anleitung keine Tastatur.
+- Querformat (`scannen-und-urteil.mjs`): „… neben dem Kamerabild (Android).“ Die Sperre gegen Plattform-Nennungen
+  schlug an; der Wortlaut steht jetzt in `ANLEITUNG_ANDROID` in `tools/pruefe_seiten.mjs` (technischer Hinweis, wie
+  „Backup von Android“).
+
+### 3.5 Aussagen, die nach 0.20.0 nicht mehr stimmen
+
+Gesucht in `src/daten`, `src/inhalte`, Seiten und `llms.txt` nach „Kommt bald“, „Produktpreise“, „Preise“, „Länder“,
+„Zahl der“, „Wagen“, „Symbol“, „Startbildschirm“, „Feld bleibt“, „Tastatur“, „testest“:
+- geändert: nur der Satz zur Tastatur (oben).
+- stimmt weiter: „über N Rezepte aus N Ländern“ (Zahlen der Website, nicht der App-Seite), „Wagen“ in „was im Wagen
+  liegt“ (Einkaufswagen im Laden, nicht das Symbol), „lange auf das Symbol von FoodAsu drücken“ (gilt für jedes Symbol).
+- keine Fundstelle zur Kommt-bald-Karte und zum alten Symbol im Text.
+
+### 3.6 Verfügbarkeit
+
+Sätze zur Verfügbarkeit unverändert.
+
+Bau und `npm run pruefen`: bestanden. Texte ausgegeben nach `Material/Website_Texte_SoGehts.md` und
+`Material/Website_Texte_Startseite.md`.
