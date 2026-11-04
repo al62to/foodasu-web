@@ -6,7 +6,7 @@
 // softwareVersion auch nicht, weil sie mit jedem Update veralten würde. termsOfService gibt es bei schema.org nur für
 // Organization und Service, nicht für SoftwareApplication und ihre Unterarten; deshalb steht es nicht in der App.
 // Was hier steht, prüft tools/pruefe_seiten.mjs unabhängig nach (Abschnitt „Strukturierte Daten zur App“).
-import { seite, store } from './seite.mjs';
+import { seite, store, APP_STORE_ERHAELTLICH, appStore } from './seite.mjs';
 import { metaVon } from './meta.mjs';
 import { standVon } from './stand.mjs';
 
@@ -33,8 +33,10 @@ export const app = {
   // Sprachen der App (strings.xml: de mit de-rCH, en) und Länder des Eintrags in Produktion.
   sprachen: ['de', 'en'],
   laender: ['AT', 'DE', 'CH', 'LI'],
-  // Aus dem Repository der App, nur gelesen: minSdk 26 in app/build.gradle.kts ist Android 8.0.
-  voraussetzung: 'Android 8.0 oder neuer',
+  // Aus dem Repository der App, nur gelesen: minSdk 26 in app/build.gradle.kts ist Android 8.0; seit AP-88 mit dem App
+  // Store dazu iOS 17.0 (deploymentTarget in ios/project.yml, Stand adb5879, nur iPhone).
+  betriebssystem: APP_STORE_ERHAELTLICH ? 'Android, iOS' : 'Android',
+  voraussetzung: APP_STORE_ERHAELTLICH ? 'Android 8.0 oder neuer, iOS 17.0 oder neuer' : 'Android 8.0 oder neuer',
   // Berechtigungen der Play-Fassung 0.15.4: CAMERA, INTERNET und VIBRATE aus app/src/main/AndroidManifest.xml,
   // ACCESS_NETWORK_STATE bringen Bibliotheken mit (im Manifest der App als Kommentar vermerkt, im zusammengeführten
   // Manifest der Fassung enthalten).
@@ -47,7 +49,7 @@ export const appDaten = () => ({
   '@type': 'MobileApplication',
   '@id': APP_ID,
   name: seite.name,
-  operatingSystem: 'Android',
+  operatingSystem: app.betriebssystem,
   applicationCategory: 'ShoppingApplication',
   description: app.beschreibung,
   url: `${seite.adresse}/`,
@@ -61,7 +63,8 @@ export const appDaten = () => ({
   // Seit AP-48 Teil G (27.10.2026): Autor ist die Organisation FoodAsu, keine Person mit Namen.
   author: { '@id': ORGANISATION_ID },
   publisher: { '@id': ORGANISATION_ID },
-  ...(store.oeffentlich ? { installUrl: store.adresse, sameAs: [store.adresse] } : {}),
+  // installUrl bleibt der Eintrag bei Google Play (ein Feld, eine Adresse); den App Store nennt sameAs (AP-88).
+  ...(store.oeffentlich ? { installUrl: store.adresse, sameAs: [store.adresse, ...(APP_STORE_ERHAELTLICH ? [appStore.adresse] : [])] } : {}),
 });
 
 // Der Verweis auf die App für eine Seite, die von ihr handelt.

@@ -1305,9 +1305,12 @@ const PLAY_EINTRAG = 'https://play.google.com/store/apps/details?id=at.tonc.eink
 // 11.10.2026 gilt ohne Ausnahme). Nur auf der Startseite steht die Angabe "operatingSystem" der SoftwareApplication.
 // Die Zahl der Rezepte kommt aus den Daten.
 const GEO = `FoodAsu ist eine Einkaufslisten-App mit Lebensmittel-Scanner: Einkaufsliste, über ${UEBER} Rezepte und ein Scanner, der für jede Person im Haushalt zeigt, ob laut den Angaben zum Produkt etwas drin ist, das sie meidet.`;
-const BETRIEBSSYSTEM = '"operatingSystem":"Android"';
+// Seit AP-88 (Teil B) mit APP_STORE_ERHAELTLICH: „Android, iOS“ und die kleinste Version beider Plattformen.
+const BS_SOLL = APP_STORE_ERHAELTLICH ? 'Android, iOS' : 'Android';
+const MINDEST_SOLL = APP_STORE_ERHAELTLICH ? 'Android 8.0 oder neuer, iOS 17.0 oder neuer' : 'Android 8.0 oder neuer';
+const BETRIEBSSYSTEM = `"operatingSystem":"${BS_SOLL}"`;
 // Seit AP-35A nennt die App-Angabe der Startseite die kleinste Version (minSdk 26 der App). Nur genau diese Angabe.
-const MINDESTVERSION = '"softwareRequirements":"Android 8.0 oder neuer"';
+const MINDESTVERSION = `"softwareRequirements":"${MINDEST_SOLL}"`;
 // Beschreibung der App in den strukturierten Daten (AP-35A): wortgleich die Kurzbeschreibung des deutschen
 // Store-Eintrags (foodasu-play/Store_Eintrag.md, Fassung AP-33, live seit dem öffentlichen Start).
 const APP_KURZ = 'Einkaufsliste und Lebensmittel-Scanner für den ganzen Haushalt. Mit Rezepten.';
@@ -1495,7 +1498,7 @@ if (/mailto:/.test(ueberInhalt)) melde('/ueber-foodasu/', 'die Adresse des Konta
   if (app) {
     // Seit AP-35A: feste Kennung, Beschreibung wortgleich die Kurzbeschreibung des deutschen Store-Eintrags (nicht mehr
     // der GEO-Satz; der steht weiter sichtbar auf der Seite und in llms.txt).
-    if (app['@id'] !== APP_ID || app.operatingSystem !== 'Android' || app.applicationCategory !== 'ShoppingApplication' || app.description !== APP_KURZ || app.url !== `${HOST}/` || app.name !== 'FoodAsu') melde('/', 'MobileApplication: Kennung, Name, Betriebssystem, Kategorie, Beschreibung (Kurzbeschreibung des Store-Eintrags) oder Adresse weicht ab');
+    if (app['@id'] !== APP_ID || app.operatingSystem !== BS_SOLL || app.applicationCategory !== 'ShoppingApplication' || app.description !== APP_KURZ || app.url !== `${HOST}/` || app.name !== 'FoodAsu') melde('/', 'MobileApplication: Kennung, Name, Betriebssystem, Kategorie, Beschreibung (Kurzbeschreibung des Store-Eintrags) oder Adresse weicht ab');
     if (app.author?.['@id'] !== `${HOST}/#organisation`) melde('/', 'MobileApplication: der Entwickler (author, Organisation FoodAsu) fehlt');
     if (/offers|price|aggregateRating|review|isAccessibleForFree/i.test(JSON.stringify(app))) melde('/', 'MobileApplication: Angebot, Preis oder Bewertung gehören nicht hinein');
     if (!store.oeffentlich && JSON.stringify(app).includes('play.google.com')) melde('/', 'MobileApplication: Eintrag bei Google Play vor dem öffentlichen Start');
@@ -1510,7 +1513,9 @@ if (/mailto:/.test(ueberInhalt)) melde('/ueber-foodasu/', 'die Adresse des Konta
     if (app.datePublished !== '2026-10-23') melde('/', 'MobileApplication: datePublished 2026-10-23 erwartet');
     if (JSON.stringify(app.inLanguage) !== '["de","en"]') melde('/', 'MobileApplication: inLanguage de und en erwartet');
     if (JSON.stringify(app.countriesSupported) !== '["AT","DE","CH","LI"]') melde('/', 'MobileApplication: countriesSupported AT, DE, CH, LI erwartet');
-    if (app.softwareRequirements !== 'Android 8.0 oder neuer') melde('/', 'MobileApplication: softwareRequirements „Android 8.0 oder neuer“ erwartet (minSdk 26)');
+    if (app.softwareRequirements !== MINDEST_SOLL) melde('/', `MobileApplication: softwareRequirements „${MINDEST_SOLL}“ erwartet (minSdk 26, iOS 17.0)`);
+    const sameAsSoll = store.oeffentlich ? JSON.stringify([store.adresse, ...(APP_STORE_ERHAELTLICH ? [appStore.adresse] : [])]) : undefined;
+    if (JSON.stringify(app.sameAs) !== sameAsSoll) melde('/', `MobileApplication: sameAs ${sameAsSoll ?? 'ohne'} erwartet`);
     if (app.permissions !== 'Kamera, Internet, Vibration, Netzwerkstatus') melde('/', 'MobileApplication: permissions weichen von den Berechtigungen der App ab');
     for (const feld of ['softwareVersion', 'termsOfService']) if (feld in app) melde('/', `MobileApplication: ${feld} gehört nicht hinein`);
   }
