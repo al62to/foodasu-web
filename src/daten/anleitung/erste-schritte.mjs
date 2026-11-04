@@ -14,7 +14,7 @@ export default {
       anker: 'installieren',
       symbol: 'download',
       absaetze: [
-        'FoodAsu gibt es für Android im Play Store. Die Version fürs iPhone folgt. Den Weg zum Eintrag findest du unten auf jeder Seite dieser Website.',
+        'FoodAsu gibt es für Android im Play Store und fürs iPhone im App Store. Den Weg zum Eintrag findest du unten auf jeder Seite dieser Website.',
         'Ein Konto brauchst du nicht. Du gibst keinen Namen und keine E-Mail-Adresse ein, um die App zu nutzen.',
       ],
     },

@@ -11,6 +11,7 @@ const fest = [
   ['Open Food Facts', 'en'],
   ['Google Play', 'en'],
   ['Play Store', 'en'],
+  ['App Store', 'en'],
   ['GitHub Pages', 'en'],
   ['GitHub', 'en'],
   ['ML Kit', 'en'],

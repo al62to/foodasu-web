@@ -36,7 +36,7 @@ export const GEO_SATZ = `FoodAsu ist eine Einkaufslisten-App mit Lebensmittel-Sc
 // Satz zur Verfügbarkeit, wörtlich: der einzige Satz, der die Plattform nennt. Seit dem öffentlichen Start (AP-34,
 // Alis Ja, 23.10.2026) ersetzt er den Satz vom 11.10.2026. "stand" ist der Hinweis zu Beta und Verfügbarkeit unter
 // den Knöpfen (am Laptop), wörtlich gleich in fragen.mjs und ueber.mjs.
-export const VERFUEGBAR = 'FoodAsu gibt es für Android im Play Store. Die Version fürs iPhone folgt.';
+export const VERFUEGBAR = 'FoodAsu gibt es für Android im Play Store und fürs iPhone im App Store.';
 const BETA = 'FoodAsu ist in der Beta. Wir bauen laufend neue Funktionen ein und freuen uns über dein Feedback.';
 
 export const kopf = {

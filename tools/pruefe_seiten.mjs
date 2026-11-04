@@ -1288,7 +1288,7 @@ const HERKUNFT = [
   ['de_AT', /de_AT/g], ['de-AT', /de-AT/g],
 ];
 const PLATTFORM = [['Android', /Android/giu]];
-const VERFUEGBAR = 'FoodAsu gibt es für Android im Play Store. Die Version fürs iPhone folgt.';
+const VERFUEGBAR = 'FoodAsu gibt es für Android im Play Store und fürs iPhone im App Store.';
 const STAND = `FoodAsu ist in der Beta. Wir bauen laufend neue Funktionen ein und freuen uns über dein Feedback. ${VERFUEGBAR}`;
 const PLAY_EINTRAG = 'https://play.google.com/store/apps/details?id=at.tonc.einkauf';
 // GEO-Satz (Auftrag SEO 1 neu, Teil 2 Nr. 6; seit Alis Entscheidung vom 14.10.2026 ohne Plattform, die Regel vom
