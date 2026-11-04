@@ -93,16 +93,16 @@
  "start_startseite_01": {
   "breite": 720,
   "hoehe": 1365,
-  "zeigt": "Startseite mit Haushalt: oben Hilfe und Zahnrad, der Hinweis zur Beta, „Zuletzt gescannt“ mit Abzeichen, „Deine Listen“, der Rezept-Vorschlag „Ohne Hinweise für euren Haushalt“, unten die Leiste mit Start, Listen, Scan-Knopf, Rezepte, Haushalt",
+  "zeigt": "Startseite mit Haushalt: oben Hilfe und Zahnrad, die Karte „FoodAsu wächst.“, „Zuletzt gescannt“ mit Abzeichen, „Deine Listen“, unten die Leiste mit Start, Listen, Scan-Knopf, Rezepte, Haushalt",
   "weich": true,
-  "aufnahme": "14.10.2026 07:30"
+  "aufnahme": "04.11.2026 11:39"
  },
  "start_schnellzugriff_01": {
   "breite": 720,
   "hoehe": 729,
   "zeigt": "Menü am App-Symbol nach langem Drücken: „Scannen“ und „Liste“ (Ausschnitt)",
   "weich": false,
-  "aufnahme": "10.10.2026 15:08"
+  "aufnahme": "04.11.2026 11:40"
  },
  "einstellungen_dunkel_01": {
   "breite": 720,
