@@ -786,7 +786,7 @@ const kurzAppleZiel = (pfad) => {
 };
 const KURZ_APPLE_ZIEL = APP_STORE_ERHAELTLICH ? appStore.adresse : `${seiteDaten.adresse}/`;
 if (appleZiel !== KURZ_APPLE_ZIEL) melde('Kurzlinks', `Ziel für iPhone und iPad ${appleZiel}, erwartet ${KURZ_APPLE_ZIEL}`);
-if (appStore.adresse !== 'https://apps.apple.com/app/id6829687240') melde('Kurzlinks', `Adresse im App Store ohne die erwartete Form (ohne Kennung): ${appStore.adresse}`);
+if (appStore.adresse !== 'https://apps.apple.com/at/app/id6829687240') melde('Kurzlinks', `Adresse im App Store ohne die erwartete Form (ohne Kennung): ${appStore.adresse}`);
 const KURZ_LINKTEXT = 'Weiter zu FoodAsu bei Google Play';
 const KURZ_ERLAUBT = ['/fb/', '/ig/', '/app/', '/teilen/'];
 const KURZ_KENNUNGEN = {

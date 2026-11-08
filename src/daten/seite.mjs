@@ -69,7 +69,10 @@ export const KURZLINKS = [
 // dort auf die Startseite. Seit AP-88 (Teil B, 04.11.2026) steht der Schalter auf true (Zweig ap-88b, live erst nach
 // Apples Freigabe und Alis Ja).
 export const APP_STORE_ERHAELTLICH = true;
-export const appStore = { adresse: 'https://apps.apple.com/app/id6829687240' };
+// Mit Länderkürzel (AP-105): Ohne Kürzel nimmt Apple den Store der USA, dort gibt es FoodAsu nicht, und Browser am
+// Computer und an Android-Handys bekommen 404 (geprüft 08.11.2026; iPhones leitet Apple in jedem Fall in die App des
+// App Store weiter). /at/ antwortet überall; das iPhone öffnet den Eintrag im eigenen Store.
+export const appStore = { adresse: 'https://apps.apple.com/at/app/id6829687240' };
 // Kennung des Kanals für den App Store (AP-88): Anbieter-Code (pt, "provider token") des Entwicklerkontos aus App Store
 // Connect und je Ort eine Kampagnenkennung (ct, gleiche Namen wie utm_campaign bei Google Play). Solange APPLE_ANBIETER
 // leer ist, gehen alle Links ohne Kennung zum App Store. Die Kennung enthält nichts über Besucher; Apple zeigt dazu nur
