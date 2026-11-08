@@ -1,6 +1,8 @@
 // Schreibt alle Texte der Startseite und des Gerüsts als eine Datei zur Freigabe. Quelle ist
 // src/daten/startseite.mjs; geändert wird dort. Aufruf: node tools/texte_ausgeben.mjs [Zieldatei]
+// (ohne Zieldatei: Material/Website_Texte_Startseite.md, Ordner änderbar über FOODASU_TEXTE_ORDNER, siehe texte_ziel.mjs)
 import { writeFileSync } from 'node:fs';
+import { textZiel } from './texte_ziel.mjs';
 import { mega, hauptpunkte } from '../src/daten/navigation.mjs';
 import * as t from '../src/daten/startseite.mjs';
 import { texte as r, rezepte, themen, websiteZahlen } from '../src/daten/rezeptseiten.mjs';
@@ -9,7 +11,7 @@ import { seite } from '../src/daten/seite.mjs';
 import { datenquellen } from '../src/daten/datenquellen.mjs';
 import { ueber } from '../src/daten/ueber.mjs';
 
-const ziel = process.argv[2] ?? 'C:/Users/ali/foodasu-play/Website_Texte_Startseite.md';
+const ziel = process.argv[2] ?? textZiel('Website_Texte_Startseite.md');
 const z = [];
 const zeile = (text = '') => z.push(text);
 const punkt = (name, text) => zeile(`- **${name}:** ${text}`);

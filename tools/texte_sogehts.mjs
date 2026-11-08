@@ -1,10 +1,12 @@
 // Schreibt alle Texte des Bereichs "So geht's" (Übersicht und alle Kapitel) im Wortlaut als eine Datei. Quelle ist
 // src/daten/sogehts.mjs; geändert wird dort. Aufruf: node tools/texte_sogehts.mjs [Zieldatei]
+// (ohne Zieldatei: Material/Website_Texte_SoGehts.md, Ordner änderbar über FOODASU_TEXTE_ORDNER, siehe texte_ziel.mjs)
 import { writeFileSync } from 'node:fs';
+import { textZiel } from './texte_ziel.mjs';
 import { BEREICH, adresse, fotoDaten, kapitel, rahmen, uebersicht } from '../src/daten/sogehts.mjs';
 import { metaVon } from '../src/daten/meta.mjs';
 
-const ziel = process.argv[2] ?? 'C:/Users/ali/foodasu-play/Website_Texte_SoGehts.md';
+const ziel = process.argv[2] ?? textZiel('Website_Texte_SoGehts.md');
 const z = [];
 const zeile = (text = '') => z.push(text);
 const punkt = (name, text) => zeile(`- **${name}:** ${text}`);
