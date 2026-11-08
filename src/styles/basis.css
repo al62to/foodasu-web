@@ -318,6 +318,19 @@ a.chip:hover, button.chip:hover { border-color: var(--main); }
 .fuss-abzeichen-apple { padding: 0.625rem; margin: -0.625rem; }
 .fuss-abzeichen-reihe .fuss-abzeichen-apple img { height: 2.5rem; }
 .fuss-abzeichen-apple ~ .fuss-abzeichen img { height: 3.25rem; }
+/* AP-105: die zwei Abzeichen im Kopf der Startseite (bis AP-108 auch im Abschluss), in der Leiste unten und auf den Rezeptseiten
+   (src/components/StoreAbzeichen.astro), sichtbar gleich hoch wie im Fuß: App Store 2,5rem, Google Play 3,25rem mit
+   seinem durchsichtigen Rand. Zwischen den Abzeichen und zum Rand der weißen Fläche 0,625rem frei (ein Viertel der
+   Höhe); die weiße Fläche hält das Muster der Abschnitte aus dem Freiraum. Die Links sind mindestens 48 px hoch
+   (Polster ohne Platzbedarf). Wo die Fläche schmaler ist als beide nebeneinander (Rezeptseite unter 376 px), stehen
+   sie untereinander; im Kopf passen sie ab 320 px nebeneinander. */
+.abzeichen { display: flex; flex-wrap: wrap; align-items: center; gap: 0.625rem; }
+.abzeichen-flaeche { padding: 0.625rem; border: 1px solid var(--tone-deep); border-radius: 1.125rem; background: var(--karte); }
+.abzeichen a { display: block; padding: 0.25rem; margin: -0.25rem; line-height: 0; border-radius: 0.5rem; }
+.abzeichen img { display: block; width: auto; }
+.abzeichen-apple img { height: 2.5rem; }
+.abzeichen-google img { height: 3.25rem; }
+@media (max-width: 23.49rem) { .r-app .abzeichen-flaeche { flex-direction: column; align-items: flex-start; } }
 @media (min-width: 40rem) {
   .fuss-raster { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .fuss-marke { grid-column: 1 / -1; }

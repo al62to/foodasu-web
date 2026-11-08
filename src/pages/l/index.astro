@@ -1,0 +1,111 @@
+---
+// Seite für geteilte Einkaufslisten (AP-112): https://foodasu.com/l/#<Kodierung>. Die Liste steckt im Teil hinter dem
+// #; er geht nie an den Server. Das Skript der Seite (src/skripte/liste_seite.mjs mit dem Kern unter
+// src/skripte/teilen/) liest ihn nur im Browser, hakt ab und baut die Häkchen als neuen Link. Gestaltet wie die übrige
+// Website (Vorgabe 7a): Kopf auf der Lavendel-Fläche mit Muster wie die Unterseiten, weiße Karte mit der Liste,
+// Abzeichen beider Stores (StoreAbzeichen.astro) und am Computer ein QR-Code. noindex, nicht in Sitemap, llms.txt
+// oder Menü (src/daten/meta.mjs). Ohne JavaScript steht nur der Satz, dass die Liste im Link steckt.
+import Basis from '../../layouts/Basis.astro';
+import Seitenkopf from '../../components/Seitenkopf.astro';
+import StoreAbzeichen from '../../components/StoreAbzeichen.astro';
+import { listeSeite as t, listeTexte as s } from '../../daten/liste_seite.mjs';
+import { seite } from '../../daten/seite.mjs';
+import '../../styles/liste.css';
+
+const linien = { fill: 'none', stroke: 'currentColor', 'stroke-width': '2.6', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' };
+---
+<Basis adresse={t.adresse}>
+  <Seitenkopf etikett={t.ueberzeile} klein>
+    <span slot="titel" data-l-titel>{t.titel}</span>
+    <p class="l-stand" data-l-stand hidden></p>
+    <div class="l-wach-zeile" data-l-wach-zeile hidden>
+      <button type="button" class="l-schalter" role="switch" aria-checked="true" data-l-wach>
+        <span class="l-bahn" aria-hidden="true"><span class="l-griff"></span></span>
+        <span>{s.wach}</span>
+      </button>
+    </div>
+    <div class="kasten l-neuer" data-l-neuer hidden>
+      <p>{s.neuer.text}</p>
+      <button type="button" class="knopf voll" data-l-neuer-knopf>{s.neuer.knopf}</button>
+    </div>
+  </Seitenkopf>
+
+  <div class="s-inhalt innen l-seite" data-l-seite data-basis={`${seite.adresse}${t.adresse}`}>
+    <div class="l-haupt">
+    <p class="s-karte l-hinweis" data-l-ohne-skript>{t.ohneSkript}</p>
+    <section class="s-karte l-hinweis" data-l-hinweis hidden>
+      <p data-l-hinweis-text></p>
+      <p class="l-weiter" data-l-hinweis-weiter hidden></p>
+    </section>
+
+    <p class="kasten l-ohne-speicher" data-l-ohne-speicher hidden>{s.ohneSpeicher}</p>
+
+    <form class="s-karte l-name" data-l-name hidden aria-labelledby="l-name-titel">
+      <h2 class="l-karte-titel" id="l-name-titel">{s.name.titel}</h2>
+      <p data-l-name-text></p>
+      <label class="l-feld">
+        <span>{s.name.feld}</span>
+        <input type="text" name="name" maxlength="40" autocomplete="nickname" enterkeyhint="done" data-l-name-feld />
+      </label>
+      <div class="l-knoepfe">
+        <button type="submit" class="knopf voll">{s.name.speichern}</button>
+        <button type="button" class="knopf rand" data-l-name-spaeter>{s.name.spaeter}</button>
+      </div>
+    </form>
+
+    <section class="s-karte l-liste" data-l-liste hidden>
+      <div data-l-eintraege></div>
+    </section>
+
+    </div>
+
+    <div class="l-neben">
+    <section class="s-karte l-zurueck" data-l-zurueck hidden aria-labelledby="l-zurueck-titel">
+      <h2 class="l-karte-titel" id="l-zurueck-titel">
+        <span class="l-fertig-zeichen" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false" {...linien}><path d="M20 6L9 17l-5-5" /></svg></span>
+        <span data-l-zurueck-titel>{s.zurueck.titel}</span>
+      </h2>
+      <p data-l-zurueck-text></p>
+      <button type="button" class="knopf voll l-senden" data-l-senden>{s.zurueck.knopfOhneName}</button>
+      <p class="l-als" data-l-als hidden><span data-l-als-text></span> <button type="button" class="l-textknopf" data-l-aendern>{s.name.aendern}</button></p>
+      <div class="l-wege" data-l-wege hidden>
+        <p class="l-wege-titel">{s.zurueck.wege}</p>
+        <div class="l-knoepfe">
+          <a class="knopf rand" href="#" rel="noopener" data-l-weg="whatsapp">{s.zurueck.whatsapp}</a>
+          <a class="knopf rand" href="#" data-l-weg="sms">{s.zurueck.sms}</a>
+          <button type="button" class="knopf rand" data-l-weg="kopieren">{s.zurueck.kopieren}</button>
+        </div>
+        <p class="l-status" role="status" data-l-status></p>
+        <textarea class="l-selbst" rows="4" readonly hidden aria-label={s.zurueck.kopieren} data-l-selbst></textarea>
+      </div>
+    </section>
+
+    <section class="l-browser" data-l-browser hidden aria-labelledby="l-browser-titel">
+      <h2 class="l-klein-titel" id="l-browser-titel">{s.browser.titel}</h2>
+      <p>{s.browser.text}</p>
+      <button type="button" class="knopf rand" data-l-entfernen>{s.browser.entfernen}</button>
+    </section>
+
+    <section class="l-app muster" aria-labelledby="l-app-titel">
+      <div class="l-app-text">
+        <h2 id="l-app-titel">{t.app.titel}</h2>
+        <p>{t.app.satz}</p>
+        <div class="l-app-zeile"><StoreAbzeichen ort="liste" /></div>
+      </div>
+      <figure class="l-qr" data-l-qr hidden>
+        <div class="l-qr-bild" data-l-qr-bild data-name={t.app.qrBild}></div>
+        <figcaption>{t.app.qr}</figcaption>
+      </figure>
+    </section>
+    </div>
+  </div>
+
+  <template data-l-symbol="haken"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...linien}><path d="M20 6L9 17l-5-5" /></svg></template>
+  <template data-l-symbol="nicht"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...linien}><circle cx="12" cy="12" r="8.5" /><path d="M6 18L18 6" /></svg></template>
+  <template data-l-symbol="zurueck"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...linien}><path d="M9 14L4 9l5-5" /><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11" /></svg></template>
+  <template data-l-symbol="strich"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...linien}><path d="M6 12h12" /></svg></template>
+</Basis>
+
+<script>
+  import '../../skripte/liste_seite.mjs';
+</script>

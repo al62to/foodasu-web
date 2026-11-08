@@ -16,12 +16,18 @@ import { GRENZEN, grenzBefunde, masse } from '../src/daten/breite.mjs';
 import { alleRezepte, zutatenBefunde } from './zutaten_pruefen.mjs';
 import { sogehtsLinks } from './sogehts_links.mjs';
 import { preisaussagen } from './preisaussagen.mjs';
+import { listeSeite, listeTexte } from '../src/daten/liste_seite.mjs';
+import { pruefeTestfaelle } from './teilen_pruefen.mjs';
+import { spawnSync } from 'node:child_process';
+import { homedir } from 'node:os';
 
 // Der Ordner der gebauten Website; mit der Umgebungsvariable DIST prüft der Lauf einen anderen Ordner (Vorschau).
 const DIST = process.env.DIST ?? 'dist';
 const HOST = 'https://foodasu.com';
-// /c/ (AP-54) erreicht man nur über den Link mit dem Code aus einer Nachricht, nie über eine andere Seite.
-const OHNE_EINGANG = new Set(['/', '/404.html', '/c/']);
+// /c/ (AP-54) erreicht man nur über den Link mit dem Code aus einer Nachricht, nie über eine andere Seite; ebenso /l/
+// (AP-112) nur über den Link mit der Liste.
+const LISTE = listeSeite.adresse;
+const OHNE_EINGANG = new Set(['/', '/404.html', '/c/', LISTE]);
 // Rechtstexte laufen wie in texte_pruefen.py nur durch die Bezahl- und Fristlisten.
 const RECHTSTEXTE = new Set(['/datenschutz.html', '/nutzungsbedingungen.html']);
 // Nutzungsbedingungen (AP-35A, 23.10.2026; Text wortgleich aus foodasu-play/Nutzungsbedingungen_1.0.md, Alis Ja vom
@@ -174,8 +180,9 @@ function listeSichtbar(adresse, html, ziele) {
 // genau eine h1 und keine Sprünge in der Reihenfolge der Überschriften; Open Graph und Twitter-Karte vollständig, mit einem Bild 1200 x 630 von dieser
 // Website. Die Prüfung liest nur die gebauten Seiten, nicht src/daten/meta.mjs.
 // Seit AP-56w (29.10.2026) tragen alle Seiten mit Rechtstexten noindex; sie bleiben erreichbar und im Fuß verlinkt.
-// Seit AP-54 (31.10.2026) dazu die Seite für Codes /c/: noindex, nicht in Sitemap, llms.txt oder Menü.
-const OHNE_INDEX = new Set(['/datenschutz.html', '/nutzungsbedingungen.html', '/lizenzen/', '/offenlegung/', '/quellen-und-lizenzen/', '/404.html', '/c/']);
+// Seit AP-54 (31.10.2026) dazu die Seite für Codes /c/: noindex, nicht in Sitemap, llms.txt oder Menü; seit AP-112
+// ebenso die Seite für geteilte Einkaufslisten /l/.
+const OHNE_INDEX = new Set(['/datenschutz.html', '/nutzungsbedingungen.html', '/lizenzen/', '/offenlegung/', '/quellen-und-lizenzen/', '/404.html', '/c/', LISTE]);
 // Themenseiten der Rezepte (AP-22 Teil 1 Nr. 2): Im Index steht eine Themenseite nur mit mindestens sechs Rezepten und
 // einem eigenen Einleitungstext. Jede andere trägt "noindex, follow" und fehlt in sitemap.xml und llms.txt; für
 // Besucher bleibt sie. Gelesen wird beides aus der gebauten Seite: die Zahl aus der ItemList, der Text aus dem Absatz
@@ -210,6 +217,11 @@ const TITEL_ZEICHEN = /^[\p{L}\p{N} :|()'-]+$/u;
 // ist von den Grenzen ausgenommen; die Prüfung wertet ihn nicht als Fehler. Den Namen tragen og:site_name und
 // WebSite.name (beides unten geprüft).
 const TITEL_START = 'Einkaufslisten-App und Lebensmittel-Scanner für den ganzen Haushalt';
+// AP-112 (Vorgabe der PL vom 08.11.2026, 3.1): Die Seite für Listen hat den festen Titel, den die Vorschau in WhatsApp
+// zeigt, und ein eigenes Bild zum Teilen ohne Inhalt der Liste (tools/teilen_bild_liste.mjs). Der Titel ist kürzer als
+// 30 Zeichen; nur genau er auf genau dieser Seite ist von den Grenzen ausgenommen (noindex).
+const TITEL_LISTE = 'Einkaufsliste von FoodAsu';
+const LISTE_BILD = '/bilder/liste-teilen.jpg';
 const META_WORTE = [['LADEN-WORT', muster('herunterladen|herunter\\s+laden|download|jetzt\\s+laden|jetzt\\s+holen')]];
 const TEILEN = { breite: 1200, hoehe: 630, gemeinsam: '/bilder/foodasu-teilen.jpg' };
 const inhaltVon = (html, name) => {
@@ -238,7 +250,7 @@ for (const [adresse, html] of seiten) {
   if (!beschreibung.trim()) melde(adresse, 'genau eine Beschreibung erwartet');
   for (const [art, text] of [['titel', titel], ['beschreibung', beschreibung]]) {
     if (!text.trim()) continue;
-    const ausnahme = art === 'titel' && adresse === '/' && text === TITEL_START;
+    const ausnahme = art === 'titel' && ((adresse === '/' && text === TITEL_START) || (adresse === LISTE && text === TITEL_LISTE));
     if (!ausnahme) for (const befund of grenzBefunde(text, art)) melde(adresse, `${art === 'titel' ? 'Titel' : 'Beschreibung'} „${text}“: ${befund}`);
     if (gesehen[art].has(text)) melde(adresse, `${art === 'titel' ? 'Titel' : 'Beschreibung'} doppelt, auch auf ${gesehen[art].get(text)}`);
     gesehen[art].set(text, adresse);
@@ -274,7 +286,7 @@ for (const [adresse, html] of seiten) {
 
   // Open Graph und Twitter-Karte
   const istRezept = IST_REZEPT.test(html);
-  const bildPfad = istRezept ? `/bilder/rezepte/${adresse.split('/').at(-2)}-teilen.jpg` : TEILEN.gemeinsam;
+  const bildPfad = istRezept ? `/bilder/rezepte/${adresse.split('/').at(-2)}-teilen.jpg` : adresse === LISTE ? LISTE_BILD : TEILEN.gemeinsam;
   const teilen = {
     'og:type': istRezept ? 'article' : 'website', 'og:site_name': 'FoodAsu', 'og:locale': 'de_DE', 'og:title': titel,
     'og:description': beschreibung, 'og:url': HOST + adresse, 'og:image': HOST + bildPfad,
@@ -580,10 +592,43 @@ for (const [adresse, zahl] of eingang) {
   if (zahl === 0 && !OHNE_EINGANG.has(adresse)) melde(adresse, 'kein eingehender Link von einer anderen Seite');
 }
 
+// Seite für geteilte Einkaufslisten /l/ (AP-112): Ihre Skripte sind die einzigen außer dem Schalter der Darstellung,
+// die den Speicher des Browsers nutzen dürfen (lokaler Speicher je Liste unter foodasu-liste-<listId>, Vorgabe 7),
+// und die einzigen mit einem Link zu einem Dienst zum Teilen: dem reinen Link https://wa.me/?text=… (Auftrag AP-112:
+// navigator.share, sonst WhatsApp-Link, SMS-Link und Kopieren; keine Skripte oder Knöpfe fremder Dienste). Ihr
+// Service Worker /l/sw.js darf Dateien der Seite anfragen (fetch) und ablegen. Welche Dateien zur Seite gehören, liest
+// die Prüfung aus dem Bau: die Skripte, die /l/index.html lädt, und was diese einbinden; keine davon darf eine andere
+// Seite laden. Jeder andere Zugriff (sessionStorage, IndexedDB, Cookies, Anfragen) bleibt auch dort ein Befund.
+const WA_LINK = 'https://wa.me/?text=';
+const listeSkripte = new Set();
+{
+  const offen = alle(seiten.get(LISTE) ?? '', /<script\b[^>]*\bsrc="(\/_astro\/[^"]+\.js)"/g).map(([, pfad]) => pfad);
+  while (offen.length) {
+    const pfad = offen.pop();
+    if (listeSkripte.has(pfad) || !vorhanden.has(pfad)) continue;
+    listeSkripte.add(pfad);
+    const inhalt = readFileSync(join(DIST, pfad), 'utf8');
+    for (const [, ziel] of alle(inhalt, /(?:from|import\(?)\s*["'`]\.\/([\w.-]+\.js)["'`]|new URL\(\s*["'`](?:\/_astro\/|\.\/)([\w.-]+\.js)["'`]/g).map(([, a, b]) => [null, a ?? b])) offen.push(`/_astro/${ziel}`);
+  }
+  if (listeSkripte.size === 0) melde(LISTE, 'kein Skript der Seite gefunden');
+  for (const [adresse, html] of seiten) {
+    if (adresse === LISTE) continue;
+    for (const pfad of listeSkripte) if (html.includes(pfad)) melde(adresse, `lädt ein Skript der Seite ${LISTE}: ${pfad}`);
+  }
+}
+const LISTE_DIENST = '/l/sw.js';
+if (!vorhanden.has(LISTE_DIENST)) melde(LISTE, `Service Worker ${LISTE_DIENST} fehlt`);
+// Was die Prüfungen unten von einem Skript der Seite /l/ zu sehen bekommen: ohne die erlaubten Stellen.
+const ohneListenAusnahmen = (name, inhalt) => {
+  if (listeSkripte.has(name)) return inhalt.replaceAll(WA_LINK, ' ').replace(/localStorage/g, ' ');
+  if (name === LISTE_DIENST) return inhalt.replace(/\bfetch\(/g, ' ');
+  return inhalt;
+};
+
 // Skripte und Stile: keine fremden Adressen, kein Speicher im Browser, keine Anfragen aus dem Skript.
 for (const datei of dateien.filter((d) => /\.(js|css)$/.test(d))) {
-  const inhalt = readFileSync(datei, 'utf8');
   const name = adresseVon(datei);
+  const inhalt = ohneListenAusnahmen(name, readFileSync(datei, 'utf8'));
   for (const fund of alle(inhalt, /(?:url\(|@import\s*|["'`])\s*((?:https?:)?\/\/[^"'`)\s]+)/g)) {
     if (!/^https?:\/\/(www\.w3\.org|schema\.org)\//.test(fund[1])) melde(name, `fremde Adresse: ${fund[1]}`);
   }
@@ -1805,6 +1850,47 @@ console.log(`Im Index: ${seiten.size - OHNE_INDEX.size} von ${seiten.size} Seite
 console.log(`Farbprüfung: ${stilDateien.length} Stildateien (feste Farbwerte nur in basis.css und geraet.css), ${farbStellen} Stellen im HTML`);
 console.log(`Herkunft und Plattform: ${herkunftDateien} Dateien des Baus durchsucht (HTML, TXT, XML, JSON; Skripte, Stile und Vektorbilder auf die Herkunft)`);
 console.log(`Preisaussagen: ${preisSperre.dateien} Dateien des Baus durchsucht (${preisSperre.texte} Textdateien ganz, ${preisSperre.dateien - preisSperre.texte} weitere auf lesbare Zeichenfolgen), ${preisSperre.funde.length} Funde`);
+// Seite für geteilte Einkaufslisten /l/ (AP-112; Vorgabe der PL vom 08.11.2026, Abschnitte 3, 7, 7a und 11).
+// 1. Der JavaScript-Kern der Seite besteht die gemeinsamen Testfälle von App und Website (tools/teilen/testfaelle.json,
+//    alle Arten außer "liste"), einmal mit DecompressionStream und einmal mit der Rückfall-Bibliothek fflate.
+// 2. Die Kopie der Testfälle und src/daten/teilen_app.json passen zur App: Liegt das Repository der App da
+//    (FOODASU_APP oder ~/Projekte/FoodAsu/App), prüft es sein Werkzeug website_exportieren.py --pruefe; sonst nur ein
+//    Hinweis (auf GitHub gibt es die App nicht).
+// 3. Alle Wortlaute, die das Skript der Seite einsetzt, laufen durch dieselben Wortlisten wie die Seiten.
+// 4. Die Seite trägt beide Abzeichen (App Store zuerst) mit dem Ort "liste", den festen Titel und den Hinweis für
+//    Browser ohne JavaScript; ihr Skript meldet den Service Worker nur für /l/ an.
+const listePruefung = await pruefeTestfaelle();
+for (const befund of listePruefung.befunde) melde(`${LISTE} Testfälle`, befund);
+const APP_ORDNER = process.env.FOODASU_APP ?? join(homedir(), 'Projekte', 'FoodAsu', 'App');
+const EXPORT = join(APP_ORDNER, 'tools', 'teilen', 'website_exportieren.py');
+let exportGeprueft = false;
+if (existsSync(EXPORT)) {
+  const lauf = spawnSync('python3', ['-B', EXPORT, '--website', process.cwd(), '--pruefe'], { encoding: 'utf8' });
+  exportGeprueft = true;
+  if (lauf.status !== 0) melde(`${LISTE} Daten aus der App`, `website_exportieren.py --pruefe endet mit ${lauf.status}: ${(lauf.stdout + lauf.stderr).trim().slice(0, 400)}`);
+} else {
+  hinweise.push(`${LISTE}: Repository der App nicht gefunden (${APP_ORDNER}); src/daten/teilen_app.json und tools/teilen/testfaelle.json sind nicht gegen die App geprüft`);
+}
+{
+  const texte = [];
+  const sammle = (wert) => { if (typeof wert === 'string') texte.push(wert); else if (wert && typeof wert === 'object') Object.values(wert).forEach(sammle); };
+  sammle(listeTexte);
+  sammle(listeSeite);
+  for (const text of texte) {
+    for (const [art, ausdruck] of [...GESPERRT, ...BEZAHL_UND_FRIST, ...BETA, ...WENDUNGEN]) for (const fund of alle(text, ausdruck)) melde(`${LISTE} Texte`, `${art}: ${fund[0]} in „${text}“`);
+    if (/(?<![\p{L}])(?:Ali|Tonc)(?![\p{L}])/u.test(text)) melde(`${LISTE} Texte`, `Name des Entwicklers in „${text}“`);
+  }
+  const html = seiten.get(LISTE) ?? '';
+  const abzeichen = alle(html.match(/<section class="l-app[\s\S]*?<\/section>/)?.[0] ?? '', /<a class="abzeichen-(apple|google)" href="([^"]+)"/g).map(([, art, ziel]) => `${art} ${ziel.replaceAll('&amp;', '&')}`);
+  if (abzeichen.join(' | ') !== `apple ${appleLink('liste')} | google ${storeLink('liste')}`) melde(LISTE, `Karte zur App: beide Abzeichen (App Store zuerst) mit dem Ort „liste“ erwartet, gefunden: ${abzeichen.join(' | ') || 'keine'}`);
+  if (!html.includes(`<title>${TITEL_LISTE}</title>`)) melde(LISTE, `Titel „${TITEL_LISTE}“ fehlt`);
+  if (!html.includes('data-l-ohne-skript')) melde(LISTE, 'Hinweis für Browser ohne JavaScript fehlt');
+  const skript = [...listeSkripte].map((pfad) => readFileSync(join(DIST, pfad), 'utf8')).join('\n');
+  if (!/register\(\s*["'`]\/l\/sw\.js["'`]\s*,\s*\{\s*scope:\s*["'`]\/l\/["'`]/.test(skript)) melde(LISTE, 'Service Worker nicht mit dem Bereich /l/ angemeldet');
+  if (!skript.includes('foodasu-liste-')) melde(LISTE, 'Schlüssel foodasu-liste- im Skript nicht gefunden');
+}
+console.log(`Seite für Listen ${LISTE}: Testfälle ${Object.entries(listePruefung.zahlen).filter(([weg]) => weg !== 'anzeige').map(([weg, arten]) => `${weg} ${Object.values(arten).reduce((summe, [gut]) => summe + gut, 0)}/${Object.values(arten).reduce((summe, [, zahl]) => summe + zahl, 0)}`).join(', ')} (ohne ${listePruefung.uebersprungen} Fälle „liste“), Daten aus der App ${exportGeprueft ? 'geprüft' : 'nicht geprüft'}, ${listeSkripte.size} Skripte der Seite mit Speicher und WhatsApp-Link, Service Worker ${LISTE_DIENST}`);
+
 // Zutaten und Zubereitung (AP-25 Nachbesserung, 11.10.2026): Warnung ohne Abbruch, wenn eine Zutat in keinem Schritt
 // vorkommt oder mehrmals in der Liste steht, ohne dass ein Schritt sagt, welcher Eintrag gemeint ist
 // (tools/zutaten_pruefen.mjs). Einzeln gemeldet werden die Rezepte, die es in der App noch nicht gibt: Ihren Wortlaut

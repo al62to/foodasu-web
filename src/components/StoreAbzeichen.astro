@@ -1,0 +1,23 @@
+---
+// Die zwei offiziellen Abzeichen als Links zu den Stores (AP-105, Auftrag der PL vom 08.11.2026): zuerst „Laden im App
+// Store“ (schwarz, SVG unverändert von Apple), dann „Jetzt bei Google Play“ (PNG unverändert von Google), sichtbar
+// gleich hoch (40 px) wie im Fuß. Das Bild von Google trägt oben und unten durchsichtigen Rand (29 von 250 Pixeln) und
+// steht darum 52 px hoch. Freiraum: zwischen den Abzeichen und zum Rand der Fläche ein Viertel der Höhe (10 px); nur in
+// der schmalen Leiste unter 360 px ein Zehntel (Apple: „very limited layout space … mobile banners“). Auf gepunkteten
+// Flächen (Kopf, Rezeptseite) liegen die Abzeichen auf einer ruhigen Fläche, damit im Freiraum kein Muster
+// steht. Links mit Kennung des Ortes: storeLink(ort) für Google Play, appleLink(ort) mit demselben Namen für Apple.
+import { storeLink, appleLink, APP_STORE_ERHAELTLICH } from '../daten/seite.mjs';
+import { abzeichen } from '../daten/startseite.mjs';
+
+const { ort, flaeche = true, klasse = '' } = Astro.props;
+---
+<div class:list={['abzeichen', { 'abzeichen-flaeche': flaeche }, klasse]} data-abzeichen={ort}>
+  {APP_STORE_ERHAELTLICH && (
+    <a class="abzeichen-apple" href={appleLink(ort)} rel="noopener">
+      <img src="/bilder/app-store-abzeichen-de.svg" width="120" height="40" alt={abzeichen.apple} decoding="async" />
+    </a>
+  )}
+  <a class="abzeichen-google" href={storeLink(ort)} rel="noopener">
+    <img src="/bilder/google-play-abzeichen-de.png" width="646" height="250" alt={abzeichen.google} decoding="async" />
+  </a>
+</div>

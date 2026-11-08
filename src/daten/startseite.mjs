@@ -391,6 +391,13 @@ export const fragenStart = {
   ],
 };
 
+// Namen der Links mit den zwei Abzeichen (AP-105) im Kopf, in der Leiste unten und auf den Rezeptseiten.
+// Sie stehen als Bildbeschreibung im Abzeichen und sind damit der Name des Links.
+export const abzeichen = {
+  apple: 'FoodAsu im App Store',
+  google: 'FoodAsu bei Google Play',
+};
+
 // Abschluss (Teil 1 Nr. 13): gepunktete Lavendel-Fläche, H2, der Satz zur Verfügbarkeit, weißer Knopf mit Punkt
 // (seit dem öffentlichen Start ein Link zum Eintrag bei Google Play). Am Handy steht darunter klein der Hinweis zur
 // Beta (am Laptop steht er unter den Knöpfen im Kopf).

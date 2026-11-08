@@ -1,0 +1,156 @@
+{
+ "format": 1,
+ "hinweis": "Erzeugt mit tools/teilen/website_exportieren.py im Repository der App; nie von Hand ändern.",
+ "warengruppen": [
+  {
+   "kennung": "OBST_GEMUESE",
+   "name": "Obst und Gemüse"
+  },
+  {
+   "kennung": "BROT_GEBAECK",
+   "name": "Brot und Gebäck"
+  },
+  {
+   "kennung": "MILCH_KAESE",
+   "name": "Milch und Käse"
+  },
+  {
+   "kennung": "FLEISCH_FISCH",
+   "name": "Fleisch und Fisch"
+  },
+  {
+   "kennung": "VORRAT",
+   "name": "Vorrat"
+  },
+  {
+   "kennung": "GETRAENKE",
+   "name": "Getränke"
+  },
+  {
+   "kennung": "TIEFKUEHL",
+   "name": "Tiefkühl"
+  },
+  {
+   "kennung": "DROGERIE",
+   "name": "Drogerie"
+  },
+  {
+   "kennung": "SONSTIGES",
+   "name": "Sonstiges"
+  }
+ ],
+ "einheiten": {
+  "Becher": [
+   "Becher",
+   "Becher"
+  ],
+  "Blatt": [
+   "Blatt",
+   "Blatt"
+  ],
+  "Bund": [
+   "Bund",
+   "Bund"
+  ],
+  "Dose": [
+   "Dose",
+   "Dosen"
+  ],
+  "EL": [
+   "EL",
+   "EL"
+  ],
+  "Flasche": [
+   "Flasche",
+   "Flaschen"
+  ],
+  "Glas": [
+   "Glas",
+   "Gläser"
+  ],
+  "Handvoll": [
+   "Handvoll",
+   "Handvoll"
+  ],
+  "Knolle": [
+   "Knolle",
+   "Knollen"
+  ],
+  "Kopf": [
+   "Kopf",
+   "Köpfe"
+  ],
+  "Msp.": [
+   "Msp.",
+   "Msp."
+  ],
+  "Packung": [
+   "Packung",
+   "Packungen"
+  ],
+  "Portion": [
+   "Portion",
+   "Portionen"
+  ],
+  "Prise": [
+   "Prise",
+   "Prisen"
+  ],
+  "Scheibe": [
+   "Scheibe",
+   "Scheiben"
+  ],
+  "Schote": [
+   "Schote",
+   "Schoten"
+  ],
+  "Spritzer": [
+   "Spritzer",
+   "Spritzer"
+  ],
+  "Stange": [
+   "Stange",
+   "Stangen"
+  ],
+  "Stängel": [
+   "Stängel",
+   "Stängel"
+  ],
+  "TL": [
+   "TL",
+   "TL"
+  ],
+  "Tasse": [
+   "Tasse",
+   "Tassen"
+  ],
+  "Tropfen": [
+   "Tropfen",
+   "Tropfen"
+  ],
+  "Würfel": [
+   "Würfel",
+   "Würfel"
+  ],
+  "Zehe": [
+   "Zehe",
+   "Zehen"
+  ],
+  "Zweig": [
+   "Zweig",
+   "Zweige"
+  ]
+ },
+ "grosseEinheiten": [
+  {
+   "von": "g",
+   "nach": "kg",
+   "ab": 1000
+  },
+  {
+   "von": "ml",
+   "nach": "l",
+   "ab": 1000
+  }
+ ]
+}

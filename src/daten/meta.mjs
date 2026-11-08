@@ -31,12 +31,17 @@ import {
 } from './rezeptseiten.mjs';
 import { alteSeite, jahreVonBis } from './alte_rezepte.mjs';
 import { appZahlen, zahlwort } from './app_zahlen.mjs';
+import { listeSeite } from './liste_seite.mjs';
 
 const MARKE = ` | ${seite.name}`;
 // Der eine Titel, der die Grenzen überschreiten darf (siehe oben, Ausnahme Startseite).
 export const TITEL_START = 'Einkaufslisten-App und Lebensmittel-Scanner für den ganzen Haushalt';
 if (kopfdaten.titel !== TITEL_START) throw new Error(`Titel der Startseite: „${TITEL_START}“ erwartet, gefunden „${kopfdaten.titel}“`);
-export const OHNE_INDEX = ['/datenschutz.html', '/nutzungsbedingungen.html', '/lizenzen/', '/offenlegung/', '/quellen-und-lizenzen/', '/404.html', '/c/'];
+export const OHNE_INDEX = ['/datenschutz.html', '/nutzungsbedingungen.html', '/lizenzen/', '/offenlegung/', '/quellen-und-lizenzen/', '/404.html', '/c/', '/l/'];
+// Ausnahme Seite für Listen /l/ (AP-112, Vorgabe der PL vom 08.11.2026, 3.1): fester Titel „Einkaufsliste von
+// FoodAsu“, den die Vorschau in WhatsApp zeigt (der Inhalt hinter dem # erreicht sie nie). Er ist kürzer als 30
+// Zeichen; die Seite steht nicht im Index. Nur genau dieser Titel auf genau dieser Seite ist von den Grenzen ausgenommen.
+export const TITEL_LISTE = listeSeite.titelSeite;
 const TITEL_ZEICHEN = /^[\p{L}\p{N} :|()'-]+$/u;
 
 const fehler = [];
@@ -112,6 +117,14 @@ const FEST = [
     pfad: '/c/',
     titel: mitMarke('/c/', 'Dein Code für FoodAsu einlösen'),
     beschreibung: 'Hier steht der Code, den du für deine Hilfe beim Test von FoodAsu bekommen hast, und wie du ihn in der App unter Einstellungen einlöst.',
+  },
+  // Seite für geteilte Einkaufslisten (AP-112): noindex, nicht in der Sitemap, nicht im Menü, eigenes Bild zum Teilen
+  // ohne Inhalt der Liste (tools/teilen_bild_liste.mjs).
+  {
+    pfad: listeSeite.adresse,
+    titel: TITEL_LISTE,
+    beschreibung: listeSeite.beschreibung,
+    bild: { pfad: listeSeite.bild.pfad, alt: `${seite.name}: ${listeSeite.bild.satz.join(' ')}` },
   },
   {
     pfad: '/404.html',
@@ -392,7 +405,7 @@ const rezeptListe = rezeptSeiten.map((rezept) => ({ pfad: rezeptAdresse(rezept),
 
 export const alleMeta = [
   fest('/'), fest(BEREICH), ...anleitung, uebersicht, alteMeta, ...themenSeiten, ...rezeptListe, fest('/fragen/'),
-  fest('/daten-und-quellen/'), fest('/ueber-foodasu/'), fest('/datenschutz.html'), fest('/nutzungsbedingungen.html'), fest('/lizenzen/'), fest('/offenlegung/'), fest('/quellen-und-lizenzen/'), fest('/404.html'), fest('/c/'),
+  fest('/daten-und-quellen/'), fest('/ueber-foodasu/'), fest('/datenschutz.html'), fest('/nutzungsbedingungen.html'), fest('/lizenzen/'), fest('/offenlegung/'), fest('/quellen-und-lizenzen/'), fest('/404.html'), fest('/c/'), fest('/l/'),
 ].map(({ imIndex = true, ...eintrag }) => ({ art: 'website', bild: GEMEINSAM, ...eintrag, index: imIndex && !OHNE_INDEX.includes(eintrag.pfad) }));
 
 // ---- Prüfung beim Laden: Jeder Verstoß bricht den Bau ab. ----
@@ -400,7 +413,7 @@ const gesehen = { titel: new Map(), beschreibung: new Map() };
 for (const eintrag of alleMeta) {
   for (const art of ['titel', 'beschreibung']) {
     const text = eintrag[art];
-    const ausnahme = art === 'titel' && eintrag.pfad === '/' && text === TITEL_START;
+    const ausnahme = art === 'titel' && ((eintrag.pfad === '/' && text === TITEL_START) || (eintrag.pfad === listeSeite.adresse && text === TITEL_LISTE));
     if (!ausnahme) for (const befund of grenzBefunde(text, art)) fehler.push(`${eintrag.pfad}: ${art} „${text}“: ${befund}`);
     if (gesehen[art].has(text)) fehler.push(`${eintrag.pfad}: ${art} doppelt, auch auf ${gesehen[art].get(text)}`);
     gesehen[art].set(text, eintrag.pfad);
