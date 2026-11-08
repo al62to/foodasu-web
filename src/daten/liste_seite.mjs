@@ -60,6 +60,8 @@ export const listeTexte = {
     nichtBekommenName: '{eintrag}: nicht bekommen',
     zuruecknehmenName: '{eintrag}: zurücknehmen',
   },
+  // Notiz des Absenders oben unter Absender und Stand (Nachtrag 09.11.2026).
+  notiz: { von: 'Notiz von {von}', ohneName: 'Notiz zur Liste' },
   zurueck: {
     // Alis Wortlaut 08.11.2026, 23:50: „Liste an Papa zurückschicken“ (statt „Häkchen an Papa zurückschicken“).
     titel: 'Liste zurückschicken',
@@ -67,6 +69,11 @@ export const listeTexte = {
     textOhneName: 'Öffnet man den Link in FoodAsu, stehen deine Häkchen in der Liste.',
     knopf: 'Liste an {absender} zurückschicken',
     knopfOhneName: 'Liste zurückschicken',
+    // Notiz in beide Richtungen (Alis Wahl 09.11.2026, 00:08): freiwillig, höchstens 200 Zeichen, steht auch in der
+    // Nachricht.
+    notizFeld: 'Notiz für {absender} (freiwillig)',
+    notizFeldOhneName: 'Notiz (freiwillig)',
+    nachrichtNotiz: 'Notiz: {notiz}',
     fertigTitel: 'Alles erledigt.',
     fertigKnopf: '{absender} Bescheid geben?',
     fertigKnopfOhneName: 'Bescheid geben?',

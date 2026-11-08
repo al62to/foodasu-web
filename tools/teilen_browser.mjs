@@ -294,6 +294,30 @@ console.log('\n## 7 Häkchen zurückschicken, Alles erledigt');
   await p.umgebung.close();
 }
 
+// ---- 7a. Notiz in beide Richtungen (Nachtrag 09.11.2026) --------------------------------------------------------
+console.log('\n## 7a Notiz in beide Richtungen');
+{
+  const p = await neuesProfil();
+  const seite = await p.oeffne();
+  const mitNotiz = fall('Liste mit Notiz');
+  await offen(seite, link(mitNotiz.kodierung));
+  pruefe(await sichtbar(seite, '[data-l-notiz]') && (await text(seite, '[data-l-notiz-titel]')) === 'Notiz von Papa' && (await text(seite, '[data-l-notiz-text]')) === mitNotiz.json.nt[0], `Notiz oben: „${await text(seite, '[data-l-notiz-titel]')}“ „${await text(seite, '[data-l-notiz-text]')}“`);
+  await seite.type('[data-l-name-feld]', 'Mama');
+  await seite.click('[data-l-name] button[type="submit"]');
+  await seite.click('[data-id="e0Milch1"] [data-art="haken"]');
+  pruefe((await text(seite, '[data-l-notiz-feld-titel]')) === 'Notiz für Papa (freiwillig)', `Feld: ${await text(seite, '[data-l-notiz-feld-titel]')}`);
+  await seite.type('[data-l-notiz-eingabe]', 'Butter war aus, hab Margarine genommen');
+  await seite.click('[data-l-senden]');
+  await seite.waitForFunction(() => window.__geteilt !== undefined, { timeout: 5000 });
+  const [satz, notiz, adresse] = (await seite.evaluate(() => window.__geteilt)).split('\n');
+  pruefe(notiz === 'Notiz: Butter war aus, hab Margarine genommen', `Notiz in der Nachricht: ${notiz} (nach „${satz}“)`);
+  const u = (await lesen(adresse.split('#')[1])).umschlag;
+  pruefe(u?.k === 'h' && Array.isArray(u.nt) && u.nt[0] === 'Butter war aus, hab Margarine genommen' && u.nt[2] === u.by, `Umschlag h mit nt: ${JSON.stringify(u?.nt)}`);
+  pruefe(!(await sichtbar(seite, '[data-l-notiz]')) || (await text(seite, '[data-l-notiz-titel]')) === 'Notiz von Papa', 'die eigene Antwort steht nicht oben als fremde Notiz');
+  pruefe(p.fehler.length === 0, `keine Fehler auf der Seite (${p.fehler.join('; ')})`);
+  await p.umgebung.close();
+}
+
 // ---- 8. Seiten ohne Liste ------------------------------------------------------------------------------------
 console.log('\n## 8 Seiten ohne Liste');
 {

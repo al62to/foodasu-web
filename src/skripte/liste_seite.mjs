@@ -30,6 +30,9 @@ const kopf = {
   wach: $('[data-l-wach]'),
   neuer: $('[data-l-neuer]'),
   neuerKnopf: $('[data-l-neuer-knopf]'),
+  notiz: $('[data-l-notiz]'),
+  notizTitel: $('[data-l-notiz-titel]'),
+  notizText: $('[data-l-notiz-text]'),
 };
 const teil = {
   hinweis: $('[data-l-hinweis]'),
@@ -48,6 +51,8 @@ const teil = {
   zurueckText: $('[data-l-zurueck-text]'),
   senden: $('[data-l-senden]'),
   sendenText: $('[data-l-senden-text]'),
+  notizFeldTitel: $('[data-l-notiz-feld-titel]'),
+  notizEingabe: $('[data-l-notiz-eingabe]'),
   als: $('[data-l-als]'),
   alsText: $('[data-l-als-text]'),
   wege: $('[data-l-wege]'),
@@ -282,6 +287,7 @@ function zeigeListe(fokus = null) {
   const zahl = zaehlen(stand);
   kopf.stand.textContent = `${fuelle(T.stand, { zeit: standZeit(stand.t) })} · ${fuelle(T.fortschritt, zahl)}`;
   kopf.stand.hidden = false;
+  zeigeNotiz(stand);
   const neu = new Set(zustand.datensatz.neu);
   const { gruppen, erledigt } = ordnen(stand, app);
   const inhalt = document.createDocumentFragment();
@@ -373,6 +379,36 @@ teil.nameSpaeter.addEventListener('click', () => {
 });
 document.querySelector('[data-l-aendern]').addEventListener('click', () => zeigeName(true, { senden: false }));
 
+// ---- Notiz (Nachtrag 09.11.2026) ------------------------------------------------------------------------------------
+
+// Fremde Notiz oben unter Absender und Stand; die eigene steht im Feld beim Zurückschicken.
+function zeigeNotiz(stand) {
+  const nt = stand.nt;
+  const ich = zustand.datensatz.autor;
+  const fremd = nt && nt[0] && nt[2] !== ich;
+  kopf.notiz.hidden = !fremd;
+  if (fremd) {
+    const von = hat(stand.a, nt[2]) ? stand.a[nt[2]] : '';
+    kopf.notizTitel.textContent = von ? fuelle(T.notiz.von, { von }) : T.notiz.ohneName;
+    kopf.notizText.textContent = nt[0];
+  }
+  const absenderName = absender();
+  teil.notizFeldTitel.textContent = absenderName ? fuelle(T.zurueck.notizFeld, { absender: absenderName }) : T.zurueck.notizFeldOhneName;
+  if (nt && nt[2] === ich && document.activeElement !== teil.notizEingabe && !teil.notizEingabe.value) teil.notizEingabe.value = nt[0];
+}
+
+// Übernimmt die Notiz aus dem Feld als eigene (Zeit mindestens eine Sekunde nach der bisherigen, Format 6.3); ein
+// leeres Feld leert nur eine eigene Notiz, die es schon gab.
+function notizUebernehmen(stand, ich) {
+  const textNeu = teil.notizEingabe.value.trim().slice(0, 200);
+  const da = stand.nt;
+  const eigene = da && da[2] === ich ? da[0] : null;
+  if (textNeu === (eigene ?? '')) return;
+  if (!textNeu && eigene === null) return;
+  stand.nt = [textNeu, Math.max(jetztSek(), (da ? da[1] : 0) + 1), ich];
+  speichern();
+}
+
 // ---- Häkchen zurückschicken ---------------------------------------------------------------------------------------
 
 function nachricht(stand, name, fertig) {
@@ -388,9 +424,11 @@ async function senden() {
   frisch();
   const { stand, autor, name } = zustand.datensatz;
   if (!name) { nachName = senden; zeigeName(true, { senden: true }); return; }
+  notizUebernehmen(stand, autor);
   const umschlag = haekchen(stand, autor, name, jetztSek());
   const link = `${BASIS}#${await schreiben(umschlag)}`;
-  const ganz = `${nachricht(stand, name, umschlag.done === 1)}\n${link}`;
+  const notiz = umschlag.nt && umschlag.nt[0] ? `\n${fuelle(T.zurueck.nachrichtNotiz, { notiz: umschlag.nt[0] })}` : '';
+  const ganz = `${nachricht(stand, name, umschlag.done === 1)}${notiz}\n${link}`;
   teil.wege.dataset.link = link;
   teil.wege.dataset.text = ganz;
   teil.whatsapp.href = `https://wa.me/?text=${encodeURIComponent(ganz)}`;

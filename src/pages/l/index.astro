@@ -18,6 +18,10 @@ const linien = { fill: 'none', stroke: 'currentColor', 'stroke-width': '2.6', 's
   <Seitenkopf etikett={t.ueberzeile} klein>
     <span slot="titel" data-l-titel>{t.titel}</span>
     <p class="l-stand" data-l-stand hidden></p>
+    <div class="l-kopfnotiz" data-l-notiz hidden>
+      <p class="l-kopfnotiz-titel" data-l-notiz-titel></p>
+      <p class="l-kopfnotiz-text" data-l-notiz-text></p>
+    </div>
     <div class="l-wach-zeile" data-l-wach-zeile hidden>
       <button type="button" class="l-schalter" role="switch" aria-checked="true" data-l-wach>
         <span class="l-bahn" aria-hidden="true"><span class="l-griff"></span></span>
@@ -69,6 +73,10 @@ const linien = { fill: 'none', stroke: 'currentColor', 'stroke-width': '2.6', 's
         <span data-l-zurueck-titel>{s.zurueck.titel}</span>
       </h2>
       <p data-l-zurueck-text></p>
+      <label class="l-feld l-notiz-feld">
+        <span data-l-notiz-feld-titel>{s.zurueck.notizFeldOhneName}</span>
+        <textarea rows="2" maxlength="200" data-l-notiz-eingabe></textarea>
+      </label>
       <button type="button" class="knopf voll l-senden" data-l-senden><svg class="l-senden-zeichen" viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...linien}><path d="M20.5 3.5L10 14M20.5 3.5L14 20.5l-4-6.5-6.5-4z" /></svg><span data-l-senden-text>{s.zurueck.knopfOhneName}</span></button>
       <p class="l-als" data-l-als hidden><span data-l-als-text></span> <button type="button" class="l-textknopf" data-l-aendern>{s.name.aendern}</button></p>
       <div class="l-wege" data-l-wege hidden>

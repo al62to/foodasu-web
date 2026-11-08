@@ -168,6 +168,16 @@ function meidenLesen(wert) {
   return art === null || schluessel === null || stufe === null || name === undefined ? null : [art, schluessel, stufe, name];
 }
 
+// Notiz [text, zeit, authorId] (freiwillig, Nachtrag 09.11.2026): schief oder fehlend heißt keine Notiz (null); der
+// Text wird auf 200 Zeichen gekürzt, weitere Felder werden überlesen (wie ShareJson.readNote im Kern).
+export function notizLesen(wert) {
+  if (!Array.isArray(wert) || wert.length < 3) return null;
+  const inhalt = text(wert[0]);
+  const zeit = ganz(wert[1]);
+  const von = text(wert[2]);
+  return inhalt === null || zeit === null || von === null ? null : [kuerzen(inhalt, GRENZEN.text), zeit, von];
+}
+
 // Je Kennung gilt das erste gültige Teilstück.
 function erstesJeKennung(liste) {
   const gesehen = new Set();
@@ -200,14 +210,20 @@ export function umschlagLesen(wurzel) {
     const e = feld(wurzel, 'e');
     if (n === null || sv === null || full === null || !Array.isArray(e)) return KAPUTT;
     if (e.length > GRENZEN.eintraege) return ZU_GROSS;
-    return { umschlag: { ...kopf, n: kuerzen(n, GRENZEN.listenName), sv, full, e: erstesJeKennung(e.map(eintragLesen)) } };
+    const umschlag = { ...kopf, n: kuerzen(n, GRENZEN.listenName), sv, full, e: erstesJeKennung(e.map(eintragLesen)) };
+    const nt = notizLesen(feld(wurzel, 'nt'));
+    if (nt) umschlag.nt = nt;
+    return { umschlag };
   }
   if (art === 'h') {
     const done = schalter(feld(wurzel, 'done'));
     const s = feld(wurzel, 's');
     if (done === null || !Array.isArray(s)) return KAPUTT;
     if (s.length > GRENZEN.haekchen) return ZU_GROSS;
-    return { umschlag: { ...kopf, done, s: erstesJeKennung(s.map(haekchenLesen)) } };
+    const umschlag = { ...kopf, done, s: erstesJeKennung(s.map(haekchenLesen)) };
+    const nt = notizLesen(feld(wurzel, 'nt'));
+    if (nt) umschlag.nt = nt;
+    return { umschlag };
   }
   if (rev < 1) return KAPUTT;
   const n = text(feld(wurzel, 'n'));
@@ -227,7 +243,8 @@ const listeText = (liste) => `[${liste.map((teil) => json(teil)).join(',')}]`;
 
 export function umschlagText(u) {
   const kopf = `"v":1,"k":${json(u.k)},"id":${json(u.id)},"t":${json(u.t)},"by":${json(u.by)},"a":${namenText(u.a)},"rev":${json(u.rev)}`;
-  if (u.k === 'l') return `{${kopf},"n":${json(u.n)},"sv":${json(u.sv)},"full":${json(u.full)},"e":${listeText(u.e)}}`;
-  if (u.k === 'h') return `{${kopf},"done":${json(u.done)},"s":${listeText(u.s)}}`;
+  const nt = u.nt ? `,"nt":${json(u.nt)}` : '';
+  if (u.k === 'l') return `{${kopf},"n":${json(u.n)},"sv":${json(u.sv)},"full":${json(u.full)},"e":${listeText(u.e)}${nt}}`;
+  if (u.k === 'h') return `{${kopf},"done":${json(u.done)},"s":${listeText(u.s)}${nt}}`;
   return `{${kopf},"n":${json(u.n)},"ic":${json(u.ic)},"m":${listeText(u.m)},"from":${json(u.from)}}`;
 }

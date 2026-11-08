@@ -32,6 +32,7 @@ export function standKopie(stand) {
   return {
     id: stand.id, rev: stand.rev, t: stand.t, by: stand.by, n: stand.n, sv: stand.sv,
     a: namenKopie(stand.a), e: stand.e.map((eintrag) => [...eintrag]), g: namenKopie(stand.g),
+    nt: stand.nt ? [...stand.nt] : null,
   };
 }
 
@@ -52,6 +53,17 @@ function namenZusammenfuehren(stand, umschlag) {
   }
 }
 
+// Notiz (5.4a): die neuere gilt (Zeit, bei Gleichstand die größere Kennung); ohne Notiz im Umschlag bleibt sie.
+function notizZusammenfuehren(stand, umschlag, ergebnis) {
+  const neu = umschlag.nt;
+  if (!neu) return;
+  const da = stand.nt;
+  if (!da || neuer(neu[1], neu[2], da[1], da[2])) {
+    if (!da || da[0] !== neu[0] || da[2] !== neu[2]) ergebnis.notiz = 1;
+    stand.nt = [...neu];
+  }
+}
+
 // zusammenfuehren(stand | null, umschlag) → { stand, ergebnis } oder { fehler } (der Stand bleibt dann, wie er ist).
 export function zusammenfuehren(standVorher, umschlag) {
   if (umschlag.k === 'p') return { fehler: MERGE_FEHLER.falscheArt };
@@ -59,8 +71,9 @@ export function zusammenfuehren(standVorher, umschlag) {
   if (!standVorher && umschlag.k === 'h') return { fehler: MERGE_FEHLER.unbekannteListe };
   const stand = standVorher
     ? standKopie(standVorher)
-    : { id: umschlag.id, rev: 0, t: 0, by: umschlag.by, n: umschlag.n, sv: umschlag.sv, a: {}, e: [], g: {} };
-  const ergebnis = { neu: [], geaendert: [], gestrichen: [], haekchen: [], erledigt: 0, von: umschlag.by };
+    : { id: umschlag.id, rev: 0, t: 0, by: umschlag.by, n: umschlag.n, sv: umschlag.sv, a: {}, e: [], g: {}, nt: null };
+  if (stand.nt === undefined) stand.nt = null;
+  const ergebnis = { neu: [], geaendert: [], gestrichen: [], haekchen: [], erledigt: 0, von: umschlag.by, notiz: 0 };
   const eintraege = new Map(stand.e.map((eintrag) => [eintrag[F.id], eintrag]));
 
   if (umschlag.k === 'l') {
@@ -128,6 +141,7 @@ export function zusammenfuehren(standVorher, umschlag) {
     }
     ergebnis.erledigt = umschlag.done;
   }
+  notizZusammenfuehren(stand, umschlag, ergebnis);
   stand.e = nachKennung(eintraege.values());
   return { stand, ergebnis };
 }
@@ -157,7 +171,10 @@ export function haekchen(stand, ich, meinName, jetzt) {
     .filter((eintrag) => eintrag[F.status] !== STATUS.gestrichen && eintrag[F.statusVon] === ich)
     .sort(nachOrdnung)
     .map((eintrag) => [eintrag[F.id], eintrag[F.status], eintrag[F.statusZeit]]);
-  return { v: 1, k: 'h', id: stand.id, t: jetzt, by: ich, a: setze({}, ich, meinName), rev: stand.rev, done: allesErledigt(stand) ? 1 : 0, s };
+  const umschlag = { v: 1, k: 'h', id: stand.id, t: jetzt, by: ich, a: setze({}, ich, meinName), rev: stand.rev, done: allesErledigt(stand) ? 1 : 0, s };
+  // Nur die eigene Antwort reist zurück (6.2).
+  if (stand.nt && stand.nt[2] === ich) umschlag.nt = [...stand.nt];
+  return umschlag;
 }
 
 // Profil (5.6): neu, anderes_profil, neuer, gleich, aelter.
