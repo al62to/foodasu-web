@@ -1,5 +1,7 @@
 // Umschlag beim Teilen (Format 1, App-Repository docs/Teilen_Format.md, Abschnitte 1 und 3): Kennungen, Grenzen, Lesen
-// nach 3.5 und Schreiben in der festen Feldfolge. Dieselben Regeln gelten im Kern der App
+// nach 3.5 und Schreiben in der festen Feldfolge. Im Umschlag stehen Einträge, Häkchen und Notiz in der Kurzform
+// (Format 3.2, seit AP-112b: Zeiten als Abstand zu t, Warengruppe als Zahl, Felder mit Standard am Ende weggelassen);
+// gelesen ergibt sich die Langform des Stands (13 Felder, feste Zeiten, Gruppe als Name), mit der die Seite rechnet. Dieselben Regeln gelten im Kern der App
 // (kern/src/commonMain/kotlin/at/tonc/einkauf/teilen/ShareJson.kt); beide prüfen dieselben Testfälle
 // (tools/teilen/testfaelle.json, Prüfung tools/teilen_pruefen.mjs). Reines ES-Modul ohne DOM: läuft im Browser und in
 // Node. Es gibt kein Feld und keine Regel, die es nur für den Link oder nur für diese Seite gibt.
@@ -68,13 +70,13 @@ export function base64urlLesen(text) {
 
 // ---- Kennungen (Format 1) ---------------------------------------------------------------------------------------
 
-export const KENNUNG_BYTE = Object.freeze({ liste: 12, eintrag: 6, autor: 4, profil: 12 });
+export const KENNUNG_BYTE = Object.freeze({ liste: 12, eintrag: 4, autor: 4, profil: 12 });
 const KENNUNG = /^[A-Za-z0-9_-]{4,32}$/;
 
-// Beim Lesen gilt jede Kennung mit 4 bis 32 Zeichen aus base64url (vorwärts verträglich).
+// Beim Lesen gilt jede Kennung mit 4 bis 32 Zeichen aus base64url (so liest auch eine ältere Fassung längere Kennungen).
 export const istKennung = (wert) => typeof wert === 'string' && KENNUNG.test(wert);
 
-// Zufällige Kennung aus der sicheren Zufallsquelle des Browsers (crypto.getRandomValues); authorId: 4 Byte = 6 Zeichen.
+// Zufällige Kennung aus der kryptografischen Zufallsquelle des Browsers (crypto.getRandomValues); authorId: 4 Byte = 6 Zeichen.
 export function neueKennung(byte) {
   const zufall = new Uint8Array(byte);
   globalThis.crypto.getRandomValues(zufall);
@@ -96,6 +98,13 @@ export const istObjekt = (wert) => typeof wert === 'object' && wert !== null && 
 // Eine ganze Zahl zwischen 0 und 2^53 (auch als 5.0 geschrieben), sonst null (Format 3.5).
 const GROESSTE = 2 ** 53;
 export const ganz = (wert) => (typeof wert === 'number' && Number.isInteger(wert) && wert >= 0 && wert <= GROESSTE ? wert + 0 : null);
+// Ein Zeitpunkt als Abstand zu t (Format 3.2: ganze Sekunden, auch negativ); der Zeitpunkt selbst liegt zwischen 0 und
+// 2^53, sonst null (wie timeOrNull im Kern).
+const zeitpunkt = (wert, t) => {
+  if (typeof wert !== 'number' || !Number.isInteger(wert) || Math.abs(wert) > GROESSTE) return null;
+  const zeit = t + wert;
+  return zeit >= 0 && zeit <= GROESSTE ? zeit + 0 : null;
+};
 const schalter = (wert) => { const zahl = ganz(wert); return zahl === 0 || zahl === 1 ? zahl : null; };
 const text = (wert) => (typeof wert === 'string' ? wert : null);
 // Text oder null: undefined heißt "falscher Typ".
@@ -117,6 +126,12 @@ const STATUS_ALLE = new Set(['o', 'd', 'x', 'g']);
 const STATUS_HAEKCHEN = new Set(['o', 'd', 'x']);
 export const ARTEN = Object.freeze({ liste: 'l', haekchen: 'h', profil: 'p' });
 
+// Warengruppen im Umschlag als Zahl (Format 3.2): die Stelle in dieser Liste, fest im Format (Kern ShareJson.GROUPS);
+// eine unbekannte Zahl gilt als SONSTIGES.
+export const GRUPPEN = Object.freeze(['OBST_GEMUESE', 'BROT_GEBAECK', 'MILCH_KAESE', 'FLEISCH_FISCH', 'VORRAT',
+  'GETRAENKE', 'TIEFKUEHL', 'DROGERIE', 'SONSTIGES']);
+const SONSTIGES = GRUPPEN.indexOf('SONSTIGES');
+
 // ---- Lesen (Format 3.5) ---------------------------------------------------------------------------------------
 
 // Namen: ein Objekt; Paare mit ungültiger Kennung oder ohne Text fallen weg (wie im Kern). Kein Objekt: null.
@@ -130,34 +145,40 @@ function namenLesen(wert) {
   return namen;
 }
 
-// Ein Eintrag (Liste mit mindestens 13 Feldern, weitere am Ende werden überlesen); null, wenn er wegfällt.
-export function eintragLesen(wert) {
-  if (!Array.isArray(wert) || wert.length < 13) return null;
+// Ein Eintrag in der Kurzform (Format 3.2, mindestens 5 Felder; fehlende Felder am Ende haben ihren Standard, weitere
+// werden überlesen) als Langform des Stands; null, wenn er wegfällt. Ein gestrichener Eintrag ergibt immer
+// [id, "", null, null, "", "SONSTIGES", 0, "g", zeit, von, 0, "", null] (wie ShareEntry.struck im Kern).
+export function eintragLesen(wert, t, by) {
+  if (!Array.isArray(wert) || wert.length < 5) return null;
+  const da = (stelle) => stelle < wert.length;
   const id = kennung(wert[0]);
   const name = text(wert[1]);
-  const einheit = textOderNull(wert[3]);
-  const notiz = text(wert[4]);
-  const gruppe = text(wert[5]);
-  const ordnung = ganz(wert[6]);
-  const status = typeof wert[7] === 'string' && STATUS_ALLE.has(wert[7]) ? wert[7] : null;
-  const statusZeit = ganz(wert[8]);
-  const statusVon = text(wert[9]);
-  const inhaltZeit = ganz(wert[10]);
-  const inhaltVon = text(wert[11]);
-  const ean = textOderNull(wert[12]);
-  if (id === null || name === null || einheit === undefined || notiz === null || gruppe === null || ordnung === null
-    || status === null || statusZeit === null || statusVon === null || inhaltZeit === null || inhaltVon === null
-    || ean === undefined) return null;
-  if (name === '' && status !== STATUS.gestrichen) return null;
-  return [id, kuerzen(name, GRENZEN.text), menge(wert[2]), einheit, kuerzen(notiz, GRENZEN.text), gruppe, ordnung,
-    status, statusZeit, statusVon, inhaltZeit, inhaltVon, ean];
+  const statusZeit = zeitpunkt(wert[2], t);
+  const code = ganz(wert[3]);
+  const ordnung = ganz(wert[4]);
+  const einheit = da(6) ? textOderNull(wert[6]) : null;
+  const status = !da(7) ? STATUS.offen : typeof wert[7] === 'string' && STATUS_ALLE.has(wert[7]) ? wert[7] : null;
+  const inhaltZeit = da(8) ? zeitpunkt(wert[8], t) : statusZeit;
+  const notiz = da(9) ? text(wert[9]) : '';
+  const ean = da(10) ? textOderNull(wert[10]) : null;
+  const statusVon = da(11) ? text(wert[11]) : by;
+  const inhaltVon = da(12) ? text(wert[12]) : by;
+  if (id === null || name === null || statusZeit === null || code === null || ordnung === null || einheit === undefined
+    || status === null || inhaltZeit === null || notiz === null || ean === undefined || statusVon === null
+    || inhaltVon === null) return null;
+  if (status === STATUS.gestrichen) return [id, '', null, null, '', 'SONSTIGES', 0, STATUS.gestrichen, statusZeit, statusVon, 0, '', null];
+  if (name === '') return null;
+  const gruppe = code < GRUPPEN.length ? GRUPPEN[code] : 'SONSTIGES';
+  return [id, kuerzen(name, GRENZEN.text), da(5) ? menge(wert[5]) : null, einheit, kuerzen(notiz, GRENZEN.text), gruppe,
+    ordnung, status, statusZeit, statusVon, inhaltZeit, inhaltVon, ean];
 }
 
-function haekchenLesen(wert) {
+// Häkchen [entryId, status, zeit - t] als [entryId, status, zeit].
+function haekchenLesen(wert, t) {
   if (!Array.isArray(wert) || wert.length < 3) return null;
   const id = kennung(wert[0]);
   const status = typeof wert[1] === 'string' && STATUS_HAEKCHEN.has(wert[1]) ? wert[1] : null;
-  const zeit = ganz(wert[2]);
+  const zeit = zeitpunkt(wert[2], t);
   return id === null || status === null || zeit === null ? null : [id, status, zeit];
 }
 
@@ -168,13 +189,14 @@ function meidenLesen(wert) {
   return art === null || schluessel === null || stufe === null || name === undefined ? null : [art, schluessel, stufe, name];
 }
 
-// Notiz [text, zeit, authorId] (freiwillig, Nachtrag 09.11.2026): schief oder fehlend heißt keine Notiz (null); der
-// Text wird auf 200 Zeichen gekürzt, weitere Felder werden überlesen (wie ShareJson.readNote im Kern).
-export function notizLesen(wert) {
-  if (!Array.isArray(wert) || wert.length < 3) return null;
+// Notiz [text, zeit - t, authorId] (freiwillig; ohne Urheber ist es der Absender by) als [text, zeit, authorId]:
+// schief oder fehlend heißt keine Notiz (null); der Text wird auf 200 Zeichen gekürzt, weitere Felder werden
+// überlesen (wie readNote im Kern).
+export function notizLesen(wert, t, by) {
+  if (!Array.isArray(wert) || wert.length < 2) return null;
   const inhalt = text(wert[0]);
-  const zeit = ganz(wert[1]);
-  const von = text(wert[2]);
+  const zeit = zeitpunkt(wert[1], t);
+  const von = wert.length > 2 ? text(wert[2]) : by;
   return inhalt === null || zeit === null || von === null ? null : [kuerzen(inhalt, GRENZEN.text), zeit, von];
 }
 
@@ -210,8 +232,8 @@ export function umschlagLesen(wurzel) {
     const e = feld(wurzel, 'e');
     if (n === null || sv === null || full === null || !Array.isArray(e)) return KAPUTT;
     if (e.length > GRENZEN.eintraege) return ZU_GROSS;
-    const umschlag = { ...kopf, n: kuerzen(n, GRENZEN.listenName), sv, full, e: erstesJeKennung(e.map(eintragLesen)) };
-    const nt = notizLesen(feld(wurzel, 'nt'));
+    const umschlag = { ...kopf, n: kuerzen(n, GRENZEN.listenName), sv, full, e: erstesJeKennung(e.map((x) => eintragLesen(x, t, by))) };
+    const nt = notizLesen(feld(wurzel, 'nt'), t, by);
     if (nt) umschlag.nt = nt;
     return { umschlag };
   }
@@ -220,8 +242,8 @@ export function umschlagLesen(wurzel) {
     const s = feld(wurzel, 's');
     if (done === null || !Array.isArray(s)) return KAPUTT;
     if (s.length > GRENZEN.haekchen) return ZU_GROSS;
-    const umschlag = { ...kopf, done, s: erstesJeKennung(s.map(haekchenLesen)) };
-    const nt = notizLesen(feld(wurzel, 'nt'));
+    const umschlag = { ...kopf, done, s: erstesJeKennung(s.map((x) => haekchenLesen(x, t))) };
+    const nt = notizLesen(feld(wurzel, 'nt'), t, by);
     if (nt) umschlag.nt = nt;
     return { umschlag };
   }
@@ -241,10 +263,26 @@ const json = (wert) => JSON.stringify(wert);
 const namenText = (a) => `{${Object.keys(a).sort((x, y) => (x < y ? -1 : x > y ? 1 : 0)).map((id) => `${json(id)}:${json(a[id])}`).join(',')}}`;
 const listeText = (liste) => `[${liste.map((teil) => json(teil)).join(',')}]`;
 
+// Ein Eintrag der Langform in der Kurzform (Format 3.2, wie entryToJson im Kern): Felder am Ende mit Standard fallen
+// weg; ein gestrichener reist nur mit Kennung und Status.
+export function eintragKurz(x, t, by) {
+  const g = x[7] === STATUS.gestrichen;
+  const statusZeit = x[8] - t;
+  const code = GRUPPEN.indexOf(g ? 'SONSTIGES' : x[5]);
+  const felder = [x[0], g ? '' : x[1], statusZeit, code < 0 ? SONSTIGES : code, g ? 0 : x[6], g ? null : x[2],
+    g ? null : x[3], x[7], g ? statusZeit : x[10] - t, g ? '' : x[4], g ? null : x[12], x[9], g ? by : x[11]];
+  const standard = [null, null, STATUS.offen, statusZeit, '', null, by, by];
+  let laenge = felder.length;
+  while (laenge > 5 && felder[laenge - 1] === standard[laenge - 6]) laenge -= 1;
+  return felder.slice(0, laenge);
+}
+
+const notizKurz = (nt, t, by) => (nt[2] === by ? [nt[0], nt[1] - t] : [nt[0], nt[1] - t, nt[2]]);
+
 export function umschlagText(u) {
   const kopf = `"v":1,"k":${json(u.k)},"id":${json(u.id)},"t":${json(u.t)},"by":${json(u.by)},"a":${namenText(u.a)},"rev":${json(u.rev)}`;
-  const nt = u.nt ? `,"nt":${json(u.nt)}` : '';
-  if (u.k === 'l') return `{${kopf},"n":${json(u.n)},"sv":${json(u.sv)},"full":${json(u.full)},"e":${listeText(u.e)}${nt}}`;
-  if (u.k === 'h') return `{${kopf},"done":${json(u.done)},"s":${listeText(u.s)}${nt}}`;
+  const nt = u.nt ? `,"nt":${json(notizKurz(u.nt, u.t, u.by))}` : '';
+  if (u.k === 'l') return `{${kopf},"n":${json(u.n)},"sv":${json(u.sv)},"full":${json(u.full)},"e":${listeText(u.e.map((x) => eintragKurz(x, u.t, u.by)))}${nt}}`;
+  if (u.k === 'h') return `{${kopf},"done":${json(u.done)},"s":${listeText(u.s.map(([id, status, zeit]) => [id, status, zeit - u.t]))}${nt}}`;
   return `{${kopf},"n":${json(u.n)},"ic":${json(u.ic)},"m":${listeText(u.m)},"from":${json(u.from)}}`;
 }

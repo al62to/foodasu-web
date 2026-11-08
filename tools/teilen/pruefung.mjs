@@ -5,7 +5,7 @@
 import { lesen, schreiben, setzeWeg, letzterWeg, stromMoeglich } from '../../src/skripte/teilen/kodierung.mjs';
 import { umschlagLesen, umschlagText, neueKennung, istKennung, KENNUNG_BYTE, base64urlLesen, base64urlSchreiben } from '../../src/skripte/teilen/umschlag.mjs';
 import { aufraeumen, haekchen, profilVergleich, zusammenfuehren } from '../../src/skripte/teilen/zusammenfuehren.mjs';
-import { mengeText } from '../../src/skripte/teilen/anzeige.mjs';
+import { mengeText, ordnen } from '../../src/skripte/teilen/anzeige.mjs';
 
 // Gleich nach Inhalt: Reihenfolge der Felder eines Objekts zählt nicht, die einer Liste schon.
 export function gleich(x, y) {
@@ -26,24 +26,26 @@ const standGleich = (x, y) => {
 };
 
 const kurz = (wert) => { const text = JSON.stringify(wert); return text.length > 400 ? `${text.slice(0, 400)} …` : text; };
+// Ein gelesener Umschlag so, wie die Seite ihn schreibt (Kurzform, Format 3.2), als JSON zum Vergleich mit dem Fall.
+const draht = (umschlag) => (umschlag ? JSON.parse(umschlagText(umschlag)) : null);
 
-async function pruefeFall(fall, weg, befunde) {
+async function pruefeFall(fall, weg, befunde, app) {
   const melde = (text) => befunde.push(`${weg}: ${fall.art} „${fall.name}“: ${text}`);
   if (fall.art === 'umschlag') {
     const gelesen = await lesen(fall.kodierung, weg);
-    if (!gelesen.umschlag || !gleich(gelesen.umschlag, fall.json)) return melde(`Entpacken ergibt ${kurz(gelesen)}`);
+    if (!gelesen.umschlag || !gleich(draht(gelesen.umschlag), fall.json)) return melde(`Entpacken ergibt ${kurz(gelesen)}`);
     if (umschlagText(gelesen.umschlag) !== fall.text) melde(`als Text ${umschlagText(gelesen.umschlag)}, erwartet ${fall.text}`);
     // Eigener Rundlauf: packen und wieder entpacken (Byte für Byte gleich packt nur der Kern auf der JVM).
     const neu = await schreiben(gelesen.umschlag, weg);
     const zurueck = await lesen(neu, weg);
-    if (!gleich(zurueck.umschlag, fall.json)) melde(`Rundlauf packen/entpacken ergibt ${kurz(zurueck)}`);
+    if (!gleich(draht(zurueck.umschlag), fall.json)) melde(`Rundlauf packen/entpacken ergibt ${kurz(zurueck)}`);
     return;
   }
   if (fall.art === 'lesen') {
     const gelesen = await lesen(fall.kodierung, weg);
     if (fall.erwartet.fehler) {
       if (gelesen.fehler !== fall.erwartet.fehler) melde(`Fehler ${fall.erwartet.fehler} erwartet, gefunden ${kurz(gelesen)}`);
-    } else if (!gleich(gelesen.umschlag, fall.erwartet.json)) melde(`erwartet ${kurz(fall.erwartet.json)}, gefunden ${kurz(gelesen)}`);
+    } else if (!gleich(draht(gelesen.umschlag), fall.erwartet.json)) melde(`erwartet ${kurz(fall.erwartet.json)}, gefunden ${kurz(gelesen)}`);
     return;
   }
   if (fall.art === 'zusammenfuehren') {
@@ -70,10 +72,10 @@ async function pruefeFall(fall, weg, befunde) {
   }
   if (fall.art === 'haekchen') {
     const umschlag = haekchen(fall.stand, fall.ich, fall.name_ich, fall.jetzt);
-    if (!gleich(umschlag, fall.erwartet)) return melde(`Umschlag ${kurz(umschlag)}, erwartet ${kurz(fall.erwartet)}`);
+    if (!gleich(draht(umschlag), fall.erwartet)) return melde(`Umschlag ${kurz(draht(umschlag))}, erwartet ${kurz(fall.erwartet)}`);
     // Den gebauten Umschlag packt die Seite und liest ihn selbst wieder (wie es die App mit dem Link tut).
     const zurueck = await lesen(await schreiben(umschlag, weg), weg);
-    if (!gleich(zurueck.umschlag, fall.erwartet)) melde(`Rundlauf ergibt ${kurz(zurueck)}`);
+    if (!gleich(draht(zurueck.umschlag), fall.erwartet)) melde(`Rundlauf ergibt ${kurz(zurueck)}`);
     return;
   }
   if (fall.art === 'profil') {
@@ -81,6 +83,14 @@ async function pruefeFall(fall, weg, befunde) {
     if (!gelesen.umschlag) return melde(`Umschlag nicht lesbar (${gelesen.fehler})`);
     const ergebnis = profilVergleich(fall.vorhanden, gelesen.umschlag);
     if (ergebnis !== fall.erwartet) melde(`${ergebnis}, erwartet ${fall.erwartet}`);
+    return;
+  }
+  if (fall.art === 'reihenfolge') {
+    // Reihenfolge in der Gruppe wie in der App (Schlüssel des Namens, dann ordnung); "app" nennt eine bekannte
+    // Abweichung durch das Lexikon der App, die Seite zeigt "erwartet".
+    const { gruppen } = ordnen({ sv: 0, e: fall.eintraege }, app);
+    const ist = gruppen.map((gruppe) => [gruppe.kennung, gruppe.eintraege.map((eintrag) => eintrag[0])]);
+    if (!gleich(ist, fall.erwartet)) melde(`Reihenfolge ${kurz(ist)}, erwartet ${kurz(fall.erwartet)}`);
     return;
   }
   melde('unbekannte Art');
@@ -99,7 +109,7 @@ export async function pruefeTestfaelle(daten, app) {
     zahlen[weg] = {};
     for (const fall of faelle) {
       const vorher = befunde.length;
-      await pruefeFall(fall, weg, befunde);
+      await pruefeFall(fall, weg, befunde, app);
       const zeile = (zahlen[weg][fall.art] ??= [0, 0]);
       zeile[1] += 1;
       if (befunde.length === vorher) zeile[0] += 1;
@@ -114,13 +124,13 @@ export async function pruefeTestfaelle(daten, app) {
       const roh = base64urlLesen(liste.kodierung.slice(1));
       const mitRest = '1' + base64urlSchreiben(new Uint8Array([...roh, 1, 2, 3]));
       const gelesen = await lesen(mitRest);
-      if (!gleich(gelesen.umschlag, liste.json)) befunde.push(`auto: Bytes nach dem Ende des DEFLATE-Stroms ergeben ${kurz(gelesen)}`);
+      if (!gleich(draht(gelesen.umschlag), liste.json)) befunde.push(`auto: Bytes nach dem Ende des DEFLATE-Stroms ergeben ${kurz(gelesen)}`);
     }
   }
-  // Kennungen aus der sicheren Zufallsquelle: Länge nach Format 1, gültig, verschieden.
+  // Kennungen aus der kryptografischen Zufallsquelle: Länge nach Format 1, gültig, verschieden.
   const autoren = Array.from({ length: 200 }, () => neueKennung(KENNUNG_BYTE.autor));
   if (!autoren.every((id) => id.length === 6 && istKennung(id)) || new Set(autoren).size < 199) befunde.push('Kennungen: authorId nicht 6 Zeichen oder nicht zufällig');
-  if (neueKennung(KENNUNG_BYTE.liste).length !== 16 || neueKennung(KENNUNG_BYTE.eintrag).length !== 8) befunde.push('Kennungen: listId 16, entryId 8 Zeichen erwartet');
+  if (neueKennung(KENNUNG_BYTE.liste).length !== 16 || neueKennung(KENNUNG_BYTE.eintrag).length !== 6) befunde.push('Kennungen: listId 16, entryId 6 Zeichen erwartet');
   // Anzeige der Menge wie in der App (Beispiele aus den Kommentaren von ListQuantities und ListUnits der App).
   const MENGEN = [
     [3, null, '3'], [1.5, null, '1,5'], [0.25, null, '0,25'], [0.125, 'l', '0,125 l'], [500, 'g', '500 g'],

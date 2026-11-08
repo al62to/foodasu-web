@@ -4,7 +4,7 @@
 import { F } from './zusammenfuehren.mjs';
 import { STATUS } from './umschlag.mjs';
 
-// ---- Zahlen genau wie in der App (ExactDecimal: kürzeste Schreibweise, kaufmännisch gerundet) -----------------
+// ---- Zahlen genau wie in der App (ExactDecimal: kürzeste Schreibweise, gerundet mit HALF_UP) ----------------
 
 // Eine Dezimalzahl als { ziffern (BigInt, ohne Vorzeichen), stellen } mit Wert ziffern / 10^stellen.
 function kuerzeste(zahl) {
@@ -31,7 +31,7 @@ function genau(zahl) {
   return { ziffern: mantisse * 5n ** BigInt(-exponent), stellen: -exponent };
 }
 
-// Kaufmännisch (HALF_UP) auf höchstens stellen Nachkommastellen.
+// Gerundet mit HALF_UP (ab 5 aufwärts) auf höchstens stellen Nachkommastellen.
 function runden({ ziffern, stellen }, ziel) {
   if (stellen <= ziel) return { ziffern, stellen };
   const teiler = 10n ** BigInt(stellen - ziel);
@@ -52,7 +52,7 @@ function schreibweise({ ziffern, stellen }) {
   return bruch ? `${ganz},${bruch}` : ganz;
 }
 
-// App: ListUnits.clean (Rechenreste weg: genauer Wert, kaufmännisch auf sechs Stellen).
+// App: ListUnits.clean (Rechenreste weg: genauer Wert, HALF_UP auf sechs Stellen).
 const sauber = (zahl) => alsZahl(runden(genau(zahl), 6));
 
 // App: ListQuantities.format: höchstens drei Nachkommastellen, eine positive Menge nie 0 (kleinster Wert 0,001).
@@ -82,12 +82,43 @@ export function mengeText(menge, einheit, app) {
 
 const vergleich = (x, y) => (x < y ? -1 : x > y ? 1 : 0);
 const nachOrdnung = (x, y) => x[F.ordnung] - y[F.ordnung] || vergleich(x[F.id], y[F.id]);
+
+// Buchstaben, die Unicode nicht in Grundbuchstabe und Zeichen zerlegt (App: RecipeSearch.REPLACEMENTS).
+const ERSATZ = new Map([['ß', 'ss'], ['ı', 'i'], ['ø', 'o'], ['œ', 'oe'], ['æ', 'ae'], ['đ', 'd'], ['ł', 'l']]);
+const ZEICHEN = /[\p{L}\p{Nd}]/u;
+
+// Text in der Form der Suche wie in der App (RecipeSearch.normalize): ohne Zeichen über den Buchstaben, klein, Wörter
+// aus Buchstaben und Ziffern mit einem Leerzeichen getrennt.
+export function normalisieren(wert) {
+  const klein = wert.normalize('NFD').replace(/\p{Mn}/gu, '').toLowerCase();
+  let aus = '';
+  let leer = false;
+  for (const zeichen of klein) {
+    if (!ZEICHEN.test(zeichen)) { leer = true; continue; }
+    if (leer && aus) aus += ' ';
+    leer = false;
+    aus += ERSATZ.get(zeichen) ?? zeichen;
+  }
+  return aus;
+}
+
+// Schlüssel des Namens wie in der App (ListKeys.keyOf), aber ohne das Lexikon der App: Produkt "ean:<EAN>", sonst der
+// Text in der Form der Suche (leer: der getrimmte Text). Die App nimmt für Wörter aus ihrem Lexikon dessen Schlüssel
+// ("Brösel" ist dort Semmelbrösel); dann kann die Reihenfolge in der Gruppe abweichen (bekannt, Testfall).
+export function namensSchluessel(eintrag) {
+  const ean = eintrag[F.ean];
+  if (typeof ean === 'string') return `ean:${ean}`;
+  return normalisieren(eintrag[F.text]) || eintrag[F.text].trim();
+}
+
+// In der Gruppe wie die App (ListGroups.grouped): nach Schlüssel des Namens, dann ordnung, dann Kennung.
+const nachSchluessel = (x, y) => vergleich(namensSchluessel(x), namensSchluessel(y)) || nachOrdnung(x, y);
 // Erledigtes: zuletzt erledigt zuerst, dann Kennung (App: DONE_ORDER).
 const nachErledigt = (x, y) => y[F.statusZeit] - x[F.statusZeit] || vergleich(x[F.id], y[F.id]);
 
 // Teilt die Einträge eines Stands für die Seite auf: offen (o und x, auch gestrichene g an ihrer Stelle) nach
-// Warengruppen (sv 0, Reihenfolge aus teilen_app.json, unbekannte Gruppe = SONSTIGES, in der Gruppe nach ordnung) oder
-// als einfache Liste (sv 1, nach ordnung), Erledigtes (d) für sich.
+// Warengruppen (sv 0, Reihenfolge aus teilen_app.json, unbekannte Gruppe = SONSTIGES, in der Gruppe nach dem Schlüssel
+// des Namens, dann ordnung) oder als einfache Liste (sv 1, nach ordnung), Erledigtes (d) für sich.
 export function ordnen(stand, app) {
   const bekannt = new Set(app.warengruppen.map((gruppe) => gruppe.kennung));
   const gruppeVon = (eintrag) => (bekannt.has(eintrag[F.gruppe]) ? eintrag[F.gruppe] : 'SONSTIGES');
@@ -96,7 +127,7 @@ export function ordnen(stand, app) {
   const gruppen = stand.sv === 1
     ? [{ kennung: null, name: null, eintraege: offen }]
     : app.warengruppen
-      .map((gruppe) => ({ kennung: gruppe.kennung, name: gruppe.name, eintraege: offen.filter((eintrag) => gruppeVon(eintrag) === gruppe.kennung) }))
+      .map((gruppe) => ({ kennung: gruppe.kennung, name: gruppe.name, eintraege: offen.filter((eintrag) => gruppeVon(eintrag) === gruppe.kennung).sort(nachSchluessel) }))
       .filter((gruppe) => gruppe.eintraege.length > 0);
   return { gruppen, erledigt };
 }

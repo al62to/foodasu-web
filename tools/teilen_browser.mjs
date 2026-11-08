@@ -116,7 +116,7 @@ console.log('\n## 2 Liste öffnen, Anzeige, Abhaken, Speicher');
   pruefe(await text(seite, '.s-kopf .ueberzeile') === 'Einkaufsliste von Papa', 'Überzeile „Einkaufsliste von Papa“ (Name aus a[by])');
   pruefe(/^Stand .+ · 0 von 4 erledigt$/.test(await text(seite, '[data-l-stand]') ?? ''), `Stand und Fortschritt: ${await text(seite, '[data-l-stand]')}`);
   const reihen = await seite.$$eval('.l-gruppe', (gruppen) => gruppen.map((g) => [g.querySelector('.l-gruppe-titel')?.textContent, [...g.querySelectorAll('.l-name')].map((n) => n.textContent)]));
-  pruefe(JSON.stringify(reihen) === JSON.stringify([['Brot und Gebäck', ['Brot']], ['Milch und Käse', ['2 Milch', '10 Eier']], ['Vorrat', ['500\u00a0g Kaffee']]]), `Gruppen in der Reihenfolge der App, in der Gruppe nach ordnung, Menge vor dem Namen: ${JSON.stringify(reihen)}`);
+  pruefe(JSON.stringify(reihen) === JSON.stringify([['Brot und Gebäck', ['Brot']], ['Milch und Käse', ['10 Eier', '2 Milch']], ['Vorrat', ['500\u00a0g Kaffee']]]), `Gruppen in der Reihenfolge der App, in der Gruppe nach dem Namen (AP-112b), Menge vor dem Namen: ${JSON.stringify(reihen)}`);
   const seitenText = await seite.evaluate(() => document.body.innerText);
   pruefe(!seitenText.includes('4006381333931'), 'Strichcode (ean) steht nicht auf der Seite');
   await seite.click('[data-id="e0Milch1"] [data-art="haken"]');
