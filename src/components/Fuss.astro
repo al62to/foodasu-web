@@ -13,6 +13,9 @@ import kontakt from '../inhalte/kontakt.html?raw';
 // Die Offenlegung stand bis AP-17 am Ende der Startseite. Alte Verweise auf /#offenlegung führen weiter zum Ziel:
 // Auf der Startseite trägt der Link im Fuß diese Sprungmarke.
 const alteMarke = Astro.url.pathname === '/' ? 'offenlegung' : undefined;
+// Seit AP-108 steht auf der Startseite unter dem Satz zur App der Hinweis zur Beta, nur am Handy (am Laptop steht er
+// unter den Abzeichen im Kopf; nie beide sichtbar). Vorher stand er am Handy im Abschluss, den es nicht mehr gibt.
+const startseite = Astro.url.pathname === '/';
 // Die Adresse bleibt wie auf der veröffentlichten Seite als Zeichenfolge aus HTML-Entitäten im Quelltext.
 // Auf den vier Seiten mit Rechtstexten bleibt der Link zu Google Play ohne Kennung (AP-44): die Seiten bleiben unverändert.
 const OHNE_KENNUNG = new Set(['/datenschutz.html', '/nutzungsbedingungen.html', '/offenlegung/', '/lizenzen/']);
@@ -27,6 +30,7 @@ const kontaktLink = `<a href="${kontakt.trim()}">${fuss.links.kontakt}</a>`;
       <a class="marke" href="/" aria-label={geruest.marke}><Logo /></a>
       <p class="fuss-satz">{fuss.satz}</p>
       <p class="hinweis">{fuss.hinweis}</p>
+      {startseite && <p class="fuss-beta">{fuss.beta}</p>}
     </div>
     <nav class="fuss-spalte" aria-labelledby="fuss-recht">
       <h2 class="fuss-titel" id="fuss-recht">{fuss.spalten.recht}</h2>

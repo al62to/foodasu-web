@@ -30,7 +30,8 @@
 .bald { display: inline-flex; align-items: center; gap: 0.6rem; min-height: 3rem; padding: 0 1.15rem; border: 1px solid var(--tone-deep); border-radius: 999px; background: var(--karte); color: var(--deep); font-size: 0.95rem; font-weight: 700; }
 a.bald { text-decoration: none; }
 .bald i { width: 0.6rem; height: 0.6rem; border-radius: 50%; background: var(--main); box-shadow: 0 0 0 3px var(--tone-deep); }
-/* Hinweis zu Beta und Verfügbarkeit: am Laptop unter den Knöpfen, am Handy im Abschluss (Auftrag Teil 1 Nr. 2d). */
+/* Hinweis zu Beta und Verfügbarkeit: am Laptop unter den Knöpfen (Auftrag Teil 1 Nr. 2d); am Handy steht der Hinweis
+   zur Beta seit AP-108 im Fuß (vorher im Abschluss). */
 .held-stand { display: none; max-width: 40em; margin: 1.25rem 0 0; font-size: 0.9rem; line-height: 1.7; color: var(--muted); }
 .buehne { position: relative; height: 39.375rem; display: grid; place-items: center; }
 .schwebt { position: absolute; z-index: 3; box-shadow: 0 14px 30px -18px rgb(var(--schatten) / 0.35); white-space: nowrap; }
@@ -307,19 +308,6 @@ a.bald { text-decoration: none; }
 .faq details[open] summary::after { rotate: 45deg; }
 .faq details > div { padding: 0 0 0.75rem; }
 
-/* 10 Abschluss: dezent auf der gepunkteten Lavendel-Fläche, dunkler Text, seit AP-105 die zwei Abzeichen auf weißer
-   Fläche (vorher der weiße Knopf mit Punkt). Am Handy steht darunter klein der Hinweis zur Beta. */
-.abschluss { padding: 0 0 clamp(3rem, 7vw, 6rem); }
-.abschluss-karte { display: grid; gap: 1.1rem; justify-items: start; margin: 0 calc(-1 * clamp(1rem, 2.6vw, 2rem) + 0.75rem); padding: 1.75rem 1.4rem; border-radius: 1.75rem; }
-.abschluss-text h2 { margin: 0; font-size: clamp(1.6rem, 3vw, 2.25rem); line-height: 1.15; letter-spacing: -0.02em; text-wrap: balance; }
-.abschluss-text p { margin: 0.6rem 0 0; font-size: clamp(0.95rem, 1.3vw, 1.125rem); line-height: 1.55; color: var(--muted); }
-.abschluss-beta { margin: 0; font-size: 0.82rem; line-height: 1.55; color: var(--muted); }
-@media (min-width: 40rem) { .abschluss-karte { margin-inline: 0; } }
-@media (min-width: 56rem) {
-  .abschluss-karte { grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 2rem; padding: 2.75rem 3rem; }
-  .abschluss-beta { display: none; }
-}
-
 /* 11 Leiste unten am Handy: nach dem ersten Bildschirm, schmal und fest unten, mit Logo und Knopf. Am Laptop gibt es sie
    nicht. Am Seitenende hält die Seite Platz frei, damit sie nichts verdeckt; der Knopf "Bewegung anhalten" rückt dann
    über die Leiste. */
@@ -330,8 +318,6 @@ a.bald { text-decoration: none; }
 /* Farben des Schriftzugs wie in Kopf und Fuß (.marke in basis.css), damit er auch im dunklen Modus lesbar ist. */
 .kurzleiste-marke .wort { fill: var(--logo-word); }
 .kurzleiste-marke .schrift { fill: var(--logo-script); }
-.kurzleiste-knopf { min-height: 3rem; padding: 0 1.1rem; font-size: 0.875rem; white-space: nowrap; }
-.kurzleiste-knopf i { width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--on-main); }
 /* AP-105: Logo und die zwei Abzeichen in einer Zeile ab 320 px. Der Schriftzug passt erst ab 28rem neben die Abzeichen
    (40 px hoch, ein Viertel frei); darunter steht das Symbol von FoodAsu. Unter 360 px rückt die Leiste an den Rand,
    hat kleinere Ecken und zwischen den Abzeichen ein Zehntel der Höhe frei (Apple: sehr wenig Platz, etwa Leisten am
@@ -350,8 +336,12 @@ a.bald { text-decoration: none; }
   /* Der Platz am Seitenende ist von Anfang an frei (die Leiste erscheint erst beim Scrollen; sonst wüchse die Seite
      erst, wenn man schon unten ist). */
   .js body:has(.kurzleiste) { padding-bottom: 5.75rem; }
-  .js body:has(.kurzleiste:not([hidden])) .bewegung-knopf { bottom: 5.6rem; }
-  .js body:has(.kurzleiste):has(.bewegung-knopf:not([hidden])) { padding-bottom: 9.25rem; }
+  /* AP-108: Der Knopf "Bewegung anhalten" steht 1rem über der Leiste (vorher 5.6rem, gut 5 px Abstand). Erreicht der
+     Fuß den Knopf, bleibt er auf der Linie über dem Fuß (Skript der Startseite, Klasse "angedockt") und deckt den
+     Fußtext nicht ab; darum braucht das Seitenende nur noch Platz für die Leiste. */
+  .js body:has(.kurzleiste:not([hidden])) .bewegung-knopf { bottom: 6.25rem; }
+  .js body:has(.kurzleiste):has(.bewegung-knopf:not([hidden])) { padding-bottom: 5.75rem; }
+  .bewegung-knopf.angedockt, .js body:has(.kurzleiste:not([hidden])) .bewegung-knopf.angedockt { position: absolute; bottom: auto; }
 }
 
 /* Bewegung, die ohne Skript läuft; die Schleifen brauchen JavaScript, weil nur dann der Knopf zum Anhalten da ist */

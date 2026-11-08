@@ -146,6 +146,8 @@ const alle = (text, ausdruck) => [...text.matchAll(ausdruck)];
 // als Link appleLink(ort), dann das von Google Play als Link storeLink(ort), jeweils mit dem Namen des Links als
 // Bildbeschreibung. Gibt den ersten Befund zurück oder null.
 const ABZEICHEN_NAMEN = { apple: 'FoodAsu im App Store', google: 'FoodAsu bei Google Play' };
+// Hinweis zur Beta, wörtlich (am Laptop im Kopf der Startseite, seit AP-108 am Handy in ihrem Fuß).
+const FUSS_BETA = 'FoodAsu ist in der Beta. Wir bauen laufend neue Funktionen ein und freuen uns über dein Feedback.';
 function abzeichenPruefen(html, ort) {
   const gruppe = html.match(new RegExp(`<div class="abzeichen[^"]*" data-abzeichen="${ort}">([\\s\\S]*?)<\\/div>`))?.[1];
   if (gruppe === undefined) return 'Gruppe der Abzeichen fehlt';
@@ -889,6 +891,13 @@ for (const [adresse, html] of seiten) {
   if (/<(?:iframe|script|link)\b/.test(inhalt)) melde(adresse, 'Fußzeile bettet etwas ein (erlaubt sind nur Links, Zeichnungen im Quelltext und das Abzeichen)');
   if (!text.includes('Bald im Play Store') && !inhalt.includes('play.google.com')) melde(adresse, 'Fußzeile ohne Hinweis auf den Play Store');
   if (store.oeffentlich && text.includes('Bald im Play Store')) melde(adresse, 'Fußzeile: „Bald im Play Store“ nach dem öffentlichen Start');
+  // AP-108: Der Hinweis zur Beta steht im Fuß nur auf der Startseite, genau einmal, direkt nach dem Hinweis zur Verpackung
+  // (unter dem Satz zur App); sichtbar nur am Handy (basis.css, .fuss-beta), am Laptop steht er im Kopf.
+  const fussBeta = alle(inhalt, /<p class="fuss-beta">([^<]*)<\/p>/g).map(([, satz]) => entschluesselt(satz));
+  if (adresse === '/') {
+    if (fussBeta.length !== 1 || fussBeta[0] !== FUSS_BETA) melde(adresse, `Fußzeile: Hinweis zur Beta genau einmal erwartet („${FUSS_BETA}“), gefunden ${fussBeta.length}`);
+    else if (!/<p class="hinweis">[^<]*<\/p>\s*<p class="fuss-beta">/.test(inhalt)) melde(adresse, 'Fußzeile: Hinweis zur Beta steht nicht unter dem Satz zur App und dem Hinweis zur Verpackung');
+  } else if (fussBeta.length) melde(adresse, 'Fußzeile: Hinweis zur Beta nur auf der Startseite erwartet');
 }
 
 // Symbolbilder sind mit Adobe Firefly erzeugt: Jede Datei trägt die IPTC-Angabe DigitalSourceType =
@@ -1336,7 +1345,7 @@ const HERKUNFT = [
 ];
 const PLATTFORM = [['Android', /Android/giu]];
 const VERFUEGBAR = 'FoodAsu gibt es für Android im Play Store und fürs iPhone im App Store.';
-const STAND = `FoodAsu ist in der Beta. Wir bauen laufend neue Funktionen ein und freuen uns über dein Feedback. ${VERFUEGBAR}`;
+const STAND = `${FUSS_BETA} ${VERFUEGBAR}`;
 const PLAY_EINTRAG = 'https://play.google.com/store/apps/details?id=at.tonc.einkauf';
 // GEO-Satz (Auftrag SEO 1 neu, Teil 2 Nr. 6; seit Alis Entscheidung vom 14.10.2026 ohne Plattform, die Regel vom
 // 11.10.2026 gilt ohne Ausnahme). Nur auf der Startseite steht die Angabe "operatingSystem" der SoftwareApplication.
@@ -1448,7 +1457,8 @@ if (/mailto:/.test(ueberInhalt)) melde('/ueber-foodasu/', 'die Adresse des Konta
   const satz = entschluesselt((s.match(/<p class="held-satz">([\s\S]*?)<\/p>/)?.[1] ?? '').replace(/<[^>]+>/g, '')).trim();
   if (!satz || satz.split(/\s+/).length > 15 || !satz.includes('Einkaufsliste')) melde('/', `Satz im Kopf: höchstens 15 Wörter mit „Einkaufsliste“ erwartet, gefunden „${satz}“`);
   if (/held-vorzeile|held-vorspann/.test(s)) melde('/', 'Vorzeile oder langer Absatz im Kopf stehen noch da');
-  // Knöpfe im Kopf wie bisher; der Hinweis zu Beta und Verfügbarkeit unter den Knöpfen (am Laptop) und im Abschluss.
+  // Knöpfe im Kopf wie bisher; der Hinweis zu Beta und Verfügbarkeit unter den Knöpfen (am Laptop; am Handy steht der
+  // Hinweis zur Beta seit AP-108 im Fuß, geprüft bei der Fußzeile).
   if (!/<a class="knopf voll" href="#schritte">/.test(s)) melde('/', 'Knopf „Eine Einkaufswoche“ zu #schritte fehlt');
   if (!new RegExp(`<p class="held-stand">${STAND}</p>`).test(entschluesselt(ohneSprachangabe(s)))) melde('/', 'Hinweis zu Beta und Verfügbarkeit unter den Knöpfen fehlt');
   // Schwebende Begriffe ohne "Schweinefleisch" (Teil 1 Nr. 2e).
@@ -1564,17 +1574,21 @@ if (/mailto:/.test(ueberInhalt)) melde('/ueber-foodasu/', 'die Adresse des Konta
   // Bild; dazu "Einkaufszettel" in der H2 der Funktionen, in Alis Absatz und in einer Frage (Teil 2 Nr. 3).
   if (!alle(s, /<img\b[^>]*alt="[^"]*Einkaufslisten-App[^"]*"/g).length) melde('/', 'kein Bild mit „Einkaufslisten-App“ in der Beschreibung');
   if (!/Einkaufszettel/.test(wortTeil)) melde('/', 'Alis Absatz nennt den Einkaufszettel nicht');
-  // Abschluss (Teil 1 Nr. 13) und Leiste unten am Handy (Teil 1 Nr. 15).
-  const schlussTeil = s.match(/<section class="abschluss" id="abschluss">[\s\S]*?<\/section>/)?.[0] ?? '';
-  if (!/<h2>Passt es für alle\? Schau einfach nach\.<\/h2>/.test(schlussTeil) || !entschluesselt(ohneSprachangabe(schlussTeil)).includes(VERFUEGBAR)) melde('/', 'Abschluss: Überschrift oder Satz zur Verfügbarkeit fehlt');
-  // AP-105: Im Kopf, im Abschluss und in der Leiste unten stehen die zwei Abzeichen mit der Kennung ihres Ortes; die
-  // alten Knöpfe „Jetzt im Play Store“ und „FoodAsu bei Google Play“ gibt es nicht mehr.
+  // Leiste unten am Handy (Teil 1 Nr. 15). Den Abschluss (Teil 1 Nr. 13) gibt es seit AP-108 nicht mehr (Alis Wahl vom
+  // 08.11.2026): kein Abschnitt, keine Sprungmarke #abschluss, keine Überschrift „Passt es für alle?“.
+  if (/id="abschluss"|class="abschluss|href="#abschluss"|Passt es für alle/.test(s)) melde('/', 'Abschluss: Abschnitt, Sprungmarke oder Überschrift „Passt es für alle?“ steht noch da (seit AP-108 entfernt)');
+  for (const [adresse, html] of seiten) if (/href="(?:\/)?#abschluss"/.test(html)) melde(adresse, 'Link auf #abschluss (den Abschnitt gibt es seit AP-108 nicht mehr)');
+  // AP-105: Im Kopf und in der Leiste unten stehen die zwei Abzeichen mit der Kennung ihres Ortes; die alten Knöpfe
+  // „Jetzt im Play Store“ und „FoodAsu bei Google Play“ gibt es nicht mehr.
   if (store.oeffentlich) {
-    const kopfTeil = s.split('<section class="abschluss"')[0].split('<aside class="kurzleiste"')[0];
-    for (const [ort, teil] of [['kopf', kopfTeil], ['abschluss', schlussTeil], ['kurzleiste', s.match(/<aside class="kurzleiste"[^>]*>[\s\S]*?<\/aside>/)?.[0] ?? '']]) {
+    const kopfTeil = s.match(/<section class="held[^"]*" id="start">[\s\S]*?<\/section>/)?.[0] ?? '';
+    for (const [ort, teil] of [['kopf', kopfTeil], ['kurzleiste', s.match(/<aside class="kurzleiste"[^>]*>[\s\S]*?<\/aside>/)?.[0] ?? '']]) {
       const fund = abzeichenPruefen(teil, ort);
       if (fund) melde('/', `Abzeichen (${ort}): ${fund}`);
     }
+    // Außer im Kopf, in der Leiste und im Fuß keine Abzeichen auf der Startseite (seit AP-108).
+    const orte = alle(s, /data-abzeichen="([^"]+)"/g).map(([, ort]) => ort);
+    if (orte.join(',') !== 'kopf,kurzleiste') melde('/', `Abzeichen: Gruppen nur im Kopf und in der Leiste erwartet, gefunden ${orte.join(', ') || 'keine'}`);
     const sichtbarStart = entschluesselt(ohneSprachangabe(s.replace(/<script[\s\S]*?<\/script>/g, ' ')));
     if (/class="bald"|Bald im Play Store|Jetzt im Play Store|kurzleiste-knopf/.test(sichtbarStart)) melde('/', 'Startseite: alter Knopf „Jetzt im Play Store“, „Bald im Play Store“ oder Knopf der Leiste steht noch da');
   }

@@ -293,6 +293,9 @@ a.chip:hover, button.chip:hover { border-color: var(--main); }
 .fuss-marke .marke svg { height: 1.9rem; }
 .fuss-satz { max-width: 19rem; margin: 0.6rem 0 0; color: var(--text); font-weight: 600; }
 .fuss .hinweis { margin: 0.4rem 0 0; font-weight: 700; color: var(--text); }
+/* AP-108: Hinweis zur Beta im Fuß der Startseite, klein wie früher im Abschluss; nur am Handy (am Laptop steht er im Kopf). */
+.fuss-beta { max-width: 22rem; margin: 0.75rem 0 0; font-size: 0.82rem; line-height: 1.55; color: var(--muted); }
+@media (min-width: 56rem) { .fuss-beta { display: none; } }
 .fuss-titel { margin: 0 0 0.25rem; font-size: 1.05rem; font-weight: 800; letter-spacing: 0.09em; line-height: 1.6; font-variant-caps: all-small-caps; color: var(--muted); hyphens: none; }
 .fuss ul { list-style: none; margin: 0; padding: 0; }
 .fuss-spalte li a { display: inline-flex; align-items: center; min-height: 2.75rem; color: var(--text); text-decoration: none; }
@@ -318,19 +321,18 @@ a.chip:hover, button.chip:hover { border-color: var(--main); }
 .fuss-abzeichen-apple { padding: 0.625rem; margin: -0.625rem; }
 .fuss-abzeichen-reihe .fuss-abzeichen-apple img { height: 2.5rem; }
 .fuss-abzeichen-apple ~ .fuss-abzeichen img { height: 3.25rem; }
-/* AP-105: die zwei Abzeichen im Kopf und im Abschluss der Startseite, in der Leiste unten und auf den Rezeptseiten
+/* AP-105: die zwei Abzeichen im Kopf der Startseite (bis AP-108 auch im Abschluss), in der Leiste unten und auf den Rezeptseiten
    (src/components/StoreAbzeichen.astro), sichtbar gleich hoch wie im Fuß: App Store 2,5rem, Google Play 3,25rem mit
    seinem durchsichtigen Rand. Zwischen den Abzeichen und zum Rand der weißen Fläche 0,625rem frei (ein Viertel der
    Höhe); die weiße Fläche hält das Muster der Abschnitte aus dem Freiraum. Die Links sind mindestens 48 px hoch
-   (Polster ohne Platzbedarf). Wo die Fläche schmaler ist als beide nebeneinander (Abschluss unter 360 px, Rezeptseite
-   unter 376 px), stehen sie untereinander; im Kopf passen sie ab 320 px nebeneinander. */
+   (Polster ohne Platzbedarf). Wo die Fläche schmaler ist als beide nebeneinander (Rezeptseite unter 376 px), stehen
+   sie untereinander; im Kopf passen sie ab 320 px nebeneinander. */
 .abzeichen { display: flex; flex-wrap: wrap; align-items: center; gap: 0.625rem; }
 .abzeichen-flaeche { padding: 0.625rem; border: 1px solid var(--tone-deep); border-radius: 1.125rem; background: var(--karte); }
 .abzeichen a { display: block; padding: 0.25rem; margin: -0.25rem; line-height: 0; border-radius: 0.5rem; }
 .abzeichen img { display: block; width: auto; }
 .abzeichen-apple img { height: 2.5rem; }
 .abzeichen-google img { height: 3.25rem; }
-@media (max-width: 22.49rem) { .abschluss .abzeichen-flaeche { flex-direction: column; align-items: flex-start; } }
 @media (max-width: 23.49rem) { .r-app .abzeichen-flaeche { flex-direction: column; align-items: flex-start; } }
 @media (min-width: 40rem) {
   .fuss-raster { grid-template-columns: repeat(3, minmax(0, 1fr)); }

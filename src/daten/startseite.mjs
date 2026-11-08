@@ -389,16 +389,11 @@ export const fragenStart = {
   ],
 };
 
-// Abschluss (Teil 1 Nr. 13): gepunktete Lavendel-Fläche, H2, der Satz zur Verfügbarkeit, seit AP-105 die zwei Abzeichen
-// (App Store und Google Play) auf weißer Fläche statt des Knopfs „Jetzt im Play Store“. Am Handy steht darunter klein
-// der Hinweis zur Beta (am Laptop steht er unter den Knöpfen im Kopf).
-export const abschluss = {
-  ueberschrift: 'Passt es für alle? Schau einfach nach.',
-  satz: VERFUEGBAR,
-  beta: BETA,
-};
+// Den Abschluss (Teil 1 Nr. 13, „Passt es für alle? Schau einfach nach.“ mit Satz zur Verfügbarkeit, Abzeichen und
+// Hinweis zur Beta) gibt es seit AP-108 nicht mehr (Alis Wahl vom 08.11.2026: am Handy zu viele Abzeichen). Der
+// Hinweis zur Beta steht am Handy im Fuß der Startseite (fuss.beta), am Laptop weiter unter den Abzeichen im Kopf.
 
-// Namen der Links mit den zwei Abzeichen (AP-105) im Kopf, im Abschluss, in der Leiste unten und auf den Rezeptseiten.
+// Namen der Links mit den zwei Abzeichen (AP-105) im Kopf, in der Leiste unten und auf den Rezeptseiten.
 // Sie stehen als Bildbeschreibung im Abzeichen und sind damit der Name des Links.
 export const abzeichen = {
   apple: 'FoodAsu im App Store',
@@ -407,14 +402,12 @@ export const abzeichen = {
 
 // Leiste unten am Handy (Teil 1 Nr. 15): erscheint nach dem ersten Bildschirm, nur am Handy. Das Logo führt an den
 // Anfang der Seite. Seit AP-105 stehen daneben die zwei Abzeichen (vor dem öffentlichen Start führte ein Knopf zum
-// Abschluss mit dem Satz zur Verfügbarkeit).
+// Abschluss; Knopf und Abschluss gibt es seit AP-108 nicht mehr).
 export const kurzleiste = {
   // Seit AP-105 mit den zwei Abzeichen statt des Knopfs „FoodAsu bei Google Play“; der Name des Bereichs nennt keinen
   // Store mehr.
   name: 'FoodAsu laden',
   logo: 'FoodAsu, zum Anfang der Seite',
-  knopf: 'Bald im Play Store',
-  ziel: '#abschluss',
 };
 
 // Fragen und Antworten der Seite /fragen/ stehen seit AP-22 in src/daten/fragen.mjs.
@@ -426,6 +419,8 @@ export const fuss = {
   // Seit Nachtrag 2 der PL vom 14.10.2026 wie die H1 der Startseite: die Einkaufsliste zuerst.
   satz: 'Einkaufslisten-App und Lebensmittel-Scanner für den ganzen Haushalt.',
   hinweis: 'Maßgeblich ist die Verpackung.',
+  // Hinweis zur Beta, nur auf der Startseite und nur am Handy (AP-108; am Laptop steht er unter den Abzeichen im Kopf).
+  beta: BETA,
   spalten: { recht: 'Rechtliches', foodasu: 'FoodAsu', folgen: 'Folge uns' },
   links: { datenschutz: 'Datenschutz', nutzungsbedingungen: 'Nutzungsbedingungen', offenlegung: 'Offenlegung', lizenzen: 'Lizenzen', quellen: 'Quellen und Lizenzen', kontakt: 'Kontakt per E-Mail' },
   // Zweite Spalte: dieselben Ziele wie in der Hauptnavigation, dazu der Kontakt.
