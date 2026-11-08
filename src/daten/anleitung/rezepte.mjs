@@ -2,6 +2,7 @@
 // Schritten zeigen die Bilder nur von "Pizza Margherita", einem der Rezepte aus der App, die auch auf dieser
 // Website stehen.
 import { appZahlen } from '../app_zahlen.mjs';
+import { websiteZahlen } from '../rezeptseiten.mjs';
 import { foto, link } from './hilfen.mjs';
 
 export default {
@@ -41,6 +42,16 @@ export default {
       nutzen: 'Du grenzt die Rezepte mit einem Tipp auf ein Land oder eine Kategorie ein; beides lässt sich verbinden.',
       wo: 'Rezepte > Reihen mit Ländern und Kategorien unter dem Suchfeld',
       fotos: [foto('rezepte_filter_01', 'Gewählt: „Österreich“')],
+    },
+    {
+      titel: 'Rezepte aus alten Kochbüchern',
+      anker: 'alte-kochbuecher',
+      symbol: 'uhr',
+      funktionen: ['REZEPT-14'],
+      // Zahl aus den Daten: Alle Rezepte aus alten Kochbüchern der Website sind seit AP-107 auch in der App (inApp).
+      nutzen: `Unter „Aus alten Kochbüchern“ findest du ${websiteZahlen.alt} Rezepte aus Büchern von 1570 bis 1910. Mit dem Filter „Zeit“ wählst du einen oder mehrere Zeiträume. Auf der Rezeptseite steht unter „Aus dem Original“, wie es im Buch steht, und dieselbe Stelle in heutigem Deutsch.`,
+      wo: 'Rezepte > „Aus alten Kochbüchern“ unter den Kategorien; Rezeptseite > „Aus dem Original“',
+      fotos: [foto('rezepte_alt_01', 'Gewählt: „1800er“')],
     },
     {
       titel: 'Rezept merken',

@@ -1595,6 +1595,8 @@ for (const [adresse, html] of seiten) {
 // einem Rezept in den strukturierten Daten, davon die Rezepte, die es in der App noch nicht gibt (aus alten Kochbüchern
 // und neue). Jede Stelle, die Rezepte der Website zählt, nennt genau diese Zahlen. Was die App hat ("über N" Rezepte,
 // weiter unten nachgerechnet), bleibt für sich; kein Satz schreibt die Rezepte aus alten Kochbüchern oder die neuen der App zu.
+// AP-107c: Ob alle Rezepte aus alten Kochbüchern auch in der App sind (Feld inApp aus dem Rezeptpaket der App).
+const ALTE_ALLE_IN_APP = alteSlugs.length > 0 && alteSlugs.every((slug) => ZUSATZ.get(slug)?.inApp === true);
 const websiteZahlen = { gesamt: rezeptSeiten, alt: alteSlugs.length, neu: ZUSATZ.size - alteSlugs.length, app: rezeptSeiten - ZUSATZ.size };
 const ZAHL_SAETZE = [
   // AP-107: Alle Rezepte der Website sind auch in der App.
@@ -1614,6 +1616,8 @@ for (const [adresse, html] of seiten) {
   }
   // Kein Satz schreibt die Rezepte aus alten Kochbüchern der App zu: Wo beides in einem Satz steht, steht "später".
   // Gelesen werden die Absätze, Überschriften und Listenpunkte im Inhalt der Seite und die Beschreibung im Kopf.
+  // AP-107c: Sind alle Rezepte aus alten Kochbüchern in der App ("inApp"), dürfen Sätze das sagen („So geht's“).
+  if (ALTE_ALLE_IN_APP) continue;
   const inhalt = ohneSprachangabe(html.match(/<main[\s\S]*<\/main>/)?.[0] ?? '').replace(/<script[\s\S]*?<\/script>/g, ' ');
   const stuecke = alle(inhalt, /<(p|h[1-6]|dd|figcaption|summary)\b[^>]*>([\s\S]*?)<\/\1>/g).map(([, , innen]) => entschluesselt(innen.replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' '));
   for (const satz of [...stuecke, inhaltVon(html, 'description') ?? ''].flatMap((stueck) => stueck.split(/(?<=[.!?])\s+/))) {
