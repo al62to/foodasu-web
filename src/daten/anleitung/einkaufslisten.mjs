@@ -54,9 +54,9 @@ export default {
       titel: 'Warengruppen',
       anker: 'warengruppen',
       symbol: 'stapel',
-      funktionen: ['LISTE-05'],
-      nutzen: 'Die Einkaufsliste ordnet sich von selbst nach Warengruppen, wie Kategorien im Supermarkt. So gehst du Gruppe für Gruppe durch und musst nicht zurücklaufen.',
-      wo: 'Liste; die Gruppe eines Eintrags änderst du unter „Eintrag bearbeiten“',
+      funktionen: ['LISTE-05', 'LISTE-17'],
+      nutzen: 'Die Einkaufsliste ordnet sich von selbst nach Warengruppen, wie Kategorien im Supermarkt. So gehst du Gruppe für Gruppe durch und musst nicht zurücklaufen. Oben in jeder Liste wechselst du zwischen „nach Bereichen“ und „einfache Liste“.',
+      wo: 'Liste; die Gruppe eines Eintrags änderst du unter „Eintrag bearbeiten“; die Ansicht mit dem Knopf neben „Weitere Aktionen“',
       fotos: [foto('liste_warengruppen_01', 'Einträge unter ihrer Warengruppe')],
     },
     {

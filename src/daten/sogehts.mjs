@@ -3,8 +3,8 @@
 // in der App heißen (Stand 0.14.3, das Kapitel "Haushalt anlegen und Meiden" und die Sätze zum Fragezeichen und zu
 // Getränken Stand 0.15.2); beschrieben ist nur, was die App kann. Wortregeln nach Konzept v4, Abschnitt 1:
 // keine Versprechen, im Zweifel der Hinweis auf die Verpackung.
-// Pflege-Regel: Jedes Paket mit einer sichtbaren neuen Funktion zieht neben der Einführung in der App auch das
-// passende Kapitel hier nach. Vor jeder Änderung läuft "npm run funktionen"; er hält die Funktionsliste der App
+// Pflege-Regel: Jedes Paket mit einer sichtbaren neuen Funktion zieht das passende Kapitel hier nach; eine Karte in
+// der Einführung der App bekommt es seit AP-110 nicht mehr (dort nur noch sechs feste Karten). Vor jeder Änderung läuft "npm run funktionen"; er hält die Funktionsliste der App
 // (einkauf-app/docs/Funktionsliste.md) gegen diese Daten. Alle Texte gehen mit "npm run texte" in die Datei
 // Website_Texte_SoGehts.md; geändert wird in src/daten/anleitung/.
 //

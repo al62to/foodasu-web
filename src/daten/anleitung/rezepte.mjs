@@ -63,6 +63,14 @@ export default {
       fotos: [foto('rezepte_merken_02', 'Der Abschnitt „Gemerkt“')],
     },
     {
+      titel: 'Rezept teilen',
+      anker: 'rezept-teilen',
+      symbol: 'teilen',
+      funktionen: ['REZEPT-13'],
+      nutzen: 'Oben in jedem Rezept findest du „Rezept teilen“. Du wählst eines von zwei Bildern und schickst es mit dem Link über dein Handy weiter.',
+      wo: 'Rezeptseite > oben „Rezept teilen“ neben dem Herz',
+    },
+    {
       titel: 'Hinweise bei Zutaten',
       anker: 'hinweise-bei-zutaten',
       symbol: 'schild',
@@ -113,7 +121,7 @@ export default {
       symbol: 'liste',
       gross: true,
       funktionen: ['REZEPT-11'],
-      nutzen: 'Du setzt die Zutaten eines Rezepts mit wenigen Tipps auf eine eigene Liste mit dem Namen des Rezepts. Was du schon zu Hause hast, wählst du vorher ab.',
+      nutzen: 'Du setzt die Zutaten eines Rezepts mit wenigen Tipps auf eine eigene Liste mit dem Namen des Rezepts. Was du schon zu Hause hast, wählst du vorher ab; Grundzutaten wie Salz und Öl sind schon abgewählt.',
       wo: 'Rezeptseite > unter den Zutaten > „Fehlende Zutaten auf die Liste“',
       fotos: [foto('rezepte_liste_01', 'Die Auswahl der Zutaten')],
     },
