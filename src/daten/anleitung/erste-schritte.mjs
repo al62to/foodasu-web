@@ -91,8 +91,8 @@ export default {
       anker: 'hell-oder-dunkel',
       symbol: 'mond',
       funktionen: ['EINST-02'],
-      nutzen: 'FoodAsu ist hell, unabhängig von der Einstellung deines Handys. Mit einem Schalter stellst du die App auf dunkel; die Wahl bleibt gespeichert.',
-      wo: 'Einstellungen > „Darstellung“ > „Dunkler Modus“',
+      nutzen: 'FoodAsu folgt der Einstellung deines Handys. Du kannst die App auch fest auf hell oder dunkel stellen; die Wahl bleibt gespeichert.',
+      wo: 'Einstellungen > „Darstellung“ > „Erscheinungsbild“',
       fotos: [foto('einstellungen_dunkel_01', 'Die Einstellungen im dunklen Modus')],
     },
     {
