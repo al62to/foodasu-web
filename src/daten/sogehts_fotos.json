@@ -85,10 +85,10 @@
  },
  "start_einfuehrung_02": {
   "breite": 720,
-  "hoehe": 1365,
-  "zeigt": "Einführung, Schritt 2 von 19: „Die Startseite“",
-  "weich": true,
-  "aufnahme": "14.10.2026 07:31"
+  "hoehe": 1395,
+  "zeigt": "Einführung, Schritt 2 von 6: „Dein Haushalt“, hervorgehoben der Reiter Haushalt",
+  "weich": false,
+  "aufnahme": "08.11.2026 20:58"
  },
  "start_startseite_01": {
   "breite": 720,
