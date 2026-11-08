@@ -265,7 +265,7 @@ console.log('\n## 7 Häkchen zurückschicken, Alles erledigt');
   await seite.type('[data-l-name-feld]', 'Mama');
   await seite.click('[data-l-name] button[type="submit"]');
   for (const id of ['e0Milch1', 'e0Eier01', 'e0Brot01']) await seite.click(`[data-id="${id}"] [data-art="haken"]`);
-  pruefe((await text(seite, '[data-l-senden]')) === 'Häkchen an Papa zurückschicken', `Knopf: ${await text(seite, '[data-l-senden]')}`);
+  pruefe((await text(seite, '[data-l-senden]')) === 'Liste an Papa zurückschicken', `Knopf: ${await text(seite, '[data-l-senden]')}`);
   await seite.click('[data-id="e0Kaffee"] [data-art="nicht"]');
   pruefe(await seite.$eval('[data-l-zurueck]', (e) => e.classList.contains('fertig')), 'alles erledigt oder nicht bekommen: großer Knopf');
   pruefe((await text(seite, '[data-l-zurueck-titel]')) === 'Alles erledigt.' && (await text(seite, '[data-l-senden]')) === 'Papa Bescheid geben?', `„Alles erledigt.“ und „${await text(seite, '[data-l-senden]')}“`);
@@ -308,7 +308,7 @@ console.log('\n## 8 Seiten ohne Liste');
     ['kaputt', `${BASIS}/l/#1ab$cd`, 'Dieser Link ist leider unvollständig.'],
     ['zu groß', `${BASIS}/l/#${gross.kodierung}`, 'Dieser Link ist leider unvollständig.'],
     ['neuere Version', `${BASIS}/l/#${neuer.kodierung}`, 'Dieser Link ist für eine neuere FoodAsu-Version.'],
-    ['Häkchen (Art h)', `${BASIS}/l/#${h.kodierung}`, 'Häkchen von Mama'],
+    ['Häkchen (Art h)', `${BASIS}/l/#${h.kodierung}`, 'Liste von Mama zurück'],
     ['Profil (Art p)', `${BASIS}/l/#${profil.kodierung}`, 'Dieser Link gehört zu einem Profil.'],
   ]) {
     await seite.goto('about:blank');
@@ -316,6 +316,10 @@ console.log('\n## 8 Seiten ohne Liste');
     const gefunden = await text(seite, '[data-l-titel]');
     pruefe(gefunden === titel && await sichtbar(seite, '[data-l-hinweis]') && !(await sichtbar(seite, '[data-l-liste]')), `${name}: „${gefunden}“, ${await text(seite, '[data-l-hinweis-text]')}`);
   }
+  await seite.goto('about:blank');
+  await offen(seite, `${BASIS}/l/#${h.kodierung}`);
+  const oeffnenLink = await seite.$eval('[data-l-hinweis-oeffnen]', (a) => ({ text: a.textContent.trim(), href: a.href, hidden: a.hidden }));
+  pruefe(oeffnenLink.text === 'In FoodAsu öffnen' && !oeffnenLink.hidden && oeffnenLink.href.endsWith(`/l/#${h.kodierung}`), `Häkchen-Seite: Knopf „In FoodAsu öffnen“ mit derselben Adresse (${oeffnenLink.text})`);
   pruefe(Object.keys(await speicher(seite)).length === 0, 'ohne Liste nichts im Speicher');
   pruefe(await seite.evaluate(async () => (await navigator.serviceWorker.getRegistrations()).length) === 0, 'ohne Liste kein Service Worker');
   pruefe(p.fehler.length === 0, `keine Fehler auf der Seite (${p.fehler.join('; ')})`);

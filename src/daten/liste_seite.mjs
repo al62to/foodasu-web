@@ -10,7 +10,7 @@ export const listeSeite = {
   adresse: '/l/',
   // Fester Titel der Seite (Vorgabe 3.1): Die Vorschau in WhatsApp sieht den Teil hinter dem # nie.
   titelSeite: 'Einkaufsliste von FoodAsu',
-  beschreibung: 'Eine Einkaufsliste, die dir jemand mit FoodAsu geschickt hat: beim Einkaufen abhaken und die Häkchen mit einem Link zurückschicken.',
+  beschreibung: 'Eine Einkaufsliste, die dir jemand mit FoodAsu geschickt hat: beim Einkaufen abhaken und die Liste mit einem Link zurückschicken.',
   // Teilen-Bild ohne Inhalt der Liste (gebaut mit tools/teilen_bild_liste.mjs).
   bild: { pfad: '/bilder/liste-teilen.jpg', satz: ['Eine Einkaufsliste für dich.', 'Abhaken und zurückschicken.'] },
   // Kopf vor dem Lesen des Links und ohne JavaScript.
@@ -61,11 +61,12 @@ export const listeTexte = {
     zuruecknehmenName: '{eintrag}: zurücknehmen',
   },
   zurueck: {
-    titel: 'Häkchen zurückschicken',
+    // Alis Wortlaut 08.11.2026, 23:50: „Liste an Papa zurückschicken“ (statt „Häkchen an Papa zurückschicken“).
+    titel: 'Liste zurückschicken',
     text: 'Öffnet {absender} den Link in FoodAsu, stehen deine Häkchen in der Liste.',
     textOhneName: 'Öffnet man den Link in FoodAsu, stehen deine Häkchen in der Liste.',
-    knopf: 'Häkchen an {absender} zurückschicken',
-    knopfOhneName: 'Häkchen zurückschicken',
+    knopf: 'Liste an {absender} zurückschicken',
+    knopfOhneName: 'Liste zurückschicken',
     fertigTitel: 'Alles erledigt.',
     fertigKnopf: '{absender} Bescheid geben?',
     fertigKnopfOhneName: 'Bescheid geben?',
@@ -103,11 +104,13 @@ export const listeTexte = {
     titel: 'Dieser Link gehört zu einem Profil.',
     text: 'Hier erscheinen nur Einkaufslisten. Öffne den Link mit FoodAsu auf deinem Handy.',
   },
-  // Art h ohne App (Vorgabe 3.1): kurze Seite für den, der die Liste geschickt hat.
+  // Art h ohne App (Vorgabe 3.1, Alis Wortlaut 08.11.2026, 23:50): kurze Seite für den, der die Liste geschickt hat,
+  // „Liste von Mama zurück“ (Name dessen, der zurückschickt) mit „In FoodAsu öffnen“.
   haekchen: {
-    titel: 'Häkchen von {von}',
-    titelOhneName: 'Häkchen für deine Liste',
-    fuer: 'Häkchen für {absender}',
+    titel: 'Liste von {von} zurück',
+    titelOhneName: 'Liste zurück',
+    fuer: 'Einkaufsliste für {absender}',
+    oeffnen: 'In FoodAsu öffnen',
     text: '{von} hat {anzahl} Sachen auf deiner Liste abgehakt.',
     textEine: '{von} hat eine Sache auf deiner Liste abgehakt.',
     textFertig: '{von} hat alles erledigt.',

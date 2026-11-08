@@ -17,6 +17,11 @@
 .l-hinweis { margin: 0; }
 .l-hinweis p { margin: 0; font-size: 1.06rem; line-height: 1.7; }
 .l-hinweis p + p { margin-top: 0.9rem; color: var(--muted); }
+/* Text in jedem Knopf der Seite mittig, auch wenn der Knopf breiter ist als sein Text (Ali, 08.11.2026). */
+.l-seite .knopf { justify-content: center; text-align: center; }
+/* „In FoodAsu öffnen“ auf der kurzen Seite für den Absender (Art h). */
+.l-hinweis .l-oeffnen { margin-top: 1.4rem; }
+.l-hinweis .l-oeffnen[hidden] { display: none; }
 .l-ohne-speicher { margin: 0; font-weight: 600; }
 
 /* Kopf: Stand, Schalter "Bildschirm anlassen", Hinweis auf eine neuere Fassung. */
@@ -78,7 +83,7 @@ button.l-haken:hover { background: var(--flaeche); }
 
 /* Häkchen zurückschicken; mit allem erledigt größer und mit Häkchen vor der Überschrift. */
 .l-zurueck p { margin: 0; color: var(--muted); line-height: 1.6; }
-.l-senden { margin-top: 1.25rem; min-height: 3.5rem; padding: 0.75rem 1.75rem; font-size: 1.02rem; text-align: left; }
+.l-senden { margin-top: 1.25rem; min-height: 3.5rem; padding: 0.75rem 1.75rem; font-size: 1.02rem; text-align: center; justify-content: center; }
 .l-fertig-zeichen { display: none; place-items: center; flex: none; width: 2.25rem; height: 2.25rem; border-radius: 50%; background: var(--main); color: var(--on-main); }
 .l-fertig-zeichen svg { width: 1.3rem; height: 1.3rem; }
 .l-zurueck.fertig .l-fertig-zeichen { display: grid; }

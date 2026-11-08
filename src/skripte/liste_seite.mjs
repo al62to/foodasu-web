@@ -35,6 +35,7 @@ const teil = {
   hinweis: $('[data-l-hinweis]'),
   hinweisText: $('[data-l-hinweis-text]'),
   hinweisWeiter: $('[data-l-hinweis-weiter]'),
+  hinweisOeffnen: $('[data-l-hinweis-oeffnen]'),
   ohneSpeicher: $('[data-l-ohne-speicher]'),
   name: $('[data-l-name]'),
   nameText: $('[data-l-name-text]'),
@@ -135,7 +136,7 @@ const nameVon = (id) => (id && hat(standVon().a, id) ? standVon().a[id] : '');
 const absender = () => nameVon(standVon().by);
 
 function alleAusblenden() {
-  for (const bereich of [teil.hinweis, teil.ohneSpeicher, teil.name, teil.liste, teil.zurueck, teil.browser, teil.qr, kopf.stand, kopf.wachZeile, kopf.neuer, teil.hinweisWeiter]) bereich.hidden = true;
+  for (const bereich of [teil.hinweis, teil.ohneSpeicher, teil.name, teil.liste, teil.zurueck, teil.browser, teil.qr, kopf.stand, kopf.wachZeile, kopf.neuer, teil.hinweisWeiter, teil.hinweisOeffnen]) bereich.hidden = true;
 }
 
 function zeigeHinweis(texte, werte = {}, { ueberzeile = T.ueberzeileOhneName, weiter = null } = {}) {
@@ -161,6 +162,9 @@ function zeigeHaekchen(umschlag) {
     ueberzeile: fuer ? fuelle(H.fuer, { absender: fuer }) : T.ueberzeileOhneName,
     weiter: H.weiter,
   });
+  // „In FoodAsu öffnen“: dieselbe Adresse; wo die App mit der Website verknüpft ist (AP-113), öffnet sie die App.
+  teil.hinweisOeffnen.href = location.href;
+  teil.hinweisOeffnen.hidden = false;
 }
 
 // ---- Öffnen eines Links (beim Laden und bei hashchange) ----------------------------------------------------------
