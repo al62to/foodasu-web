@@ -5,6 +5,10 @@ höchstens 40): Das Repository ist öffentlich, alle übrigen Rezepte gibt es nu
 App sagen ("davon 216 zu diesem Thema"), rechnet der Lauf über alle Rezepte des Pakets aus und schreibt davon nur
 die Zahlen in die Datei ("zahlen").
 
+Rezeptpaket Version 3 (AP-107): wie Version 2, dazu die 25 Rezepte aus AP-25 (20 aus alten Kochbüchern mit `jahr`
+und `zeitraum`, 5 neue). Sie zählen bei den Zahlen der App mit; ihre Seiten schreibt tools/zusatz_exportieren.py. Die
+Adresse eines alten Rezepts ist wie dort "<gericht>-<jahr>", damit sie neben dem heutigen Gericht frei bleibt.
+
 Rezeptpaket Version 2 (AP-37): Zutaten und Schritte stehen in der Fassung für Österreich (`name`, `text`), wie in der
 App mit Region Österreich; dazu `zeitGesamtHinweis` und `ofen` (feste Kennungen oder null). Die Website zeigt die
 Zeile zum Ofen noch nicht (neues Element, erst mit Alis Ja); "über Nacht" ersetzt die Gesamtzeit im Text.
@@ -91,6 +95,8 @@ def main() -> None:
             if eintrag["text"] not in r["titel"]:
                 fehler(f"{wahl.sprachen.name}, Rezept {nr}: '{eintrag['text']}' steht nicht im Titel '{r['titel']}'")
         adresse = slug(kurztitel(r["titel"]))
+        if r["jahr"] is not None:
+            adresse = f"{adresse}-{r['jahr']}"
         if not adresse or adresse in VERGEBEN or adresse.startswith("ohne-"):
             fehler(f"Rezept {nr}: Adresse '{adresse}' ist nicht verwendbar")
         if adresse in adressen:
@@ -134,8 +140,8 @@ def main() -> None:
         })
 
     stand = dict(db.execute("select schluessel, wert from paket"))
-    if stand["version"] != "2":
-        fehler(f"Rezeptpaket Version {stand['version']}, dieser Export liest Version 2 (Schritte je Land, Ofen)")
+    if stand["version"] != "3":
+        fehler(f"Rezeptpaket Version {stand['version']}, dieser Export liest Version 3 (Schritte je Land, Ofen, alte Kochbücher)")
     if len(rezepte) != int(stand["rezepte"]):
         fehler(f"{len(rezepte)} Rezepte gelesen, das Paket nennt {stand['rezepte']}")
     unbekannt = [adresse for adresse in gewaehlt if adresse not in adressen]

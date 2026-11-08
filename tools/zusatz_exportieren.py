@@ -6,11 +6,18 @@ Gelesen werden rezepte_ap25.db (derselbe Aufbau wie rezepte.db der App) und zusa
 alten die Angaben zum Original). Alle Rezepte der beiden Dateien stehen auf der Website; die Auswahl der 40 Rezepte
 aus der App (src/daten/auswahl.mjs) bleibt davon unberührt.
 
+Seit AP-107 sind die 25 Rezepte auch in der App (Rezeptpaket Version 3). Damit es für jeden Text nur eine Quelle gibt,
+kommen Zutaten, Hinweise, Schritte (Fassung für Österreich), Zeiten, vegetarisch und vegan, der Änderungsvermerk und
+die Nährwerte aus dem Rezeptpaket der App (--paket); aus rezepte_ap25.db und zusatz_ap25.json bleiben Titel, Länder,
+Quelle, Adressen der Quelle, Lizenz und die Angaben zum Original. Fehlt ein Rezept im Paket der App, bricht der Lauf ab.
+"inApp" sagt der Website, dass das Rezept in der App ist (dann entfällt der Kasten „kommt später in die App“).
+
 Die Adresse eines alten Rezepts ist "<gericht>-<jahr>", die eines neuen entsteht wie bei den übrigen aus dem Titel vor
 der Klammer. Der Lauf bricht ab, wenn sich eine schon vergebene Adresse ändern würde oder eine Adresse doppelt wäre,
 auch gegenüber rezepte.json.
 
 Aufruf: python tools/zusatz_exportieren.py --ordner <Ordner mit rezepte_ap25.db und zusatz_ap25.json>
+            --paket <Ordner "assets" der App, darin rezepte/rezepte.db>
 """
 import argparse
 import json
@@ -31,7 +38,14 @@ ZEITRAEUME = ("1500er", "1600er und 1700er", "1800er", "1900 bis 1955")
 def main() -> None:
     eingabe = argparse.ArgumentParser()
     eingabe.add_argument("--ordner", required=True, type=Path)
+    eingabe.add_argument("--paket", required=True, type=Path)
     wahl = eingabe.parse_args()
+    app = sqlite3.connect(f"file:{(wahl.paket / 'rezepte' / 'rezepte.db').as_posix()}?mode=ro", uri=True)
+    app.row_factory = sqlite3.Row
+    app_stand = dict(app.execute("select schluessel, wert from paket"))
+    if app_stand["version"] != "3":
+        fehler(f"Rezeptpaket der App Version {app_stand['version']}, erwartet 3 (mit den Rezepten aus AP-25)")
+    in_app = {r["id"]: r for r in app.execute("select * from rezept")}
     zusatz = json.loads((wahl.ordner / "zusatz_ap25.json").read_text(encoding="utf-8"))
     db = sqlite3.connect(f"file:{(wahl.ordner / 'rezepte_ap25.db').as_posix()}?mode=ro", uri=True)
     db.row_factory = sqlite3.Row
@@ -66,35 +80,40 @@ def main() -> None:
         if r["id"] in alt and alt[r["id"]] != adresse:
             fehler(f"{r['titel']}: Adresse würde sich ändern ({alt[r['id']]} -> {adresse})")
         adressen[adresse] = r["id"]
+        a = in_app.get(r["id"])
+        if a is None:
+            fehler(f"{r['titel']}: fehlt im Rezeptpaket der App")
+        if a["titel"] != r["titel"] or a["laender"] != r["laender"]:
+            fehler(f"{r['titel']}: Titel oder Länder anders als im Rezeptpaket der App")
         nr = zaehler[paket]
         zaehler[paket] += 1
 
         hinweise: dict[int, list[dict]] = {}
-        for h in db.execute("select pos, eintrag, stufe from hinweis where rezept_nr = ? order by pos, eintrag", (r["nr"],)):
+        for h in app.execute("select pos, eintrag, stufe from hinweis where rezept_nr = ? order by pos, eintrag", (a["nr"],)):
             hinweise.setdefault(h["pos"], []).append({"eintrag": h["eintrag"], "stufe": h["stufe"]})
         zutaten = [
             {
                 "menge": z["menge"], "einheit": z["einheit_text"], "name": z["name"],
                 "grundbegriff": z["grundbegriff"], "gruppe": z["gruppe"], "hinweise": hinweise.get(z["pos"], []),
             }
-            for z in db.execute("select * from zutat where rezept_nr = ? order by pos", (r["nr"],))
+            for z in app.execute("select * from zutat where rezept_nr = ? order by pos", (a["nr"],))
         ]
-        gesamt = dict(teil.split("=") for teil in r["hinweise"].split(";") if teil)
+        gesamt = dict(teil.split("=") for teil in a["hinweise"].split(";") if teil)
         rezepte.append({
             "nr": nr, "id": r["id"], "slug": adresse, "titel": r["titel"], "kurztitel": kurz, "fremd": [],
             "laender": r["laender"].split(","), "kueche": r["kueche"], "kategorie": r["kategorie"],
             "aufwand": r["aufwand"], "portionen": r["portionen"], "portionenEinheit": r["portionen_einheit"],
-            "portionenText": r["portionen_text"], "zeitVorbereitung": r["zeit_vorbereitung"],
-            "zeitGesamt": r["zeit_gesamt"], "vegetarisch": bool(r["vegetarisch"]), "vegan": bool(r["vegan"]),
+            "portionenText": a["portionen_text"], "zeitVorbereitung": a["zeit_vorbereitung"],
+            "zeitGesamt": a["zeit_gesamt"], "vegetarisch": bool(a["vegetarisch"]), "vegan": bool(a["vegan"]),
             "quelle": r["quelle"], "quelleUrl": r["quelle_url"], "urheberUrl": r["urheber_url"],
             "lizenz": r["lizenz"], "lizenzUrl": r["lizenz_url"], "uebertragen": bool(r["uebertragen"]),
-            "aenderung": r["aenderung"], "hinweise": gesamt, "energiedichte": r["energiedichte"],
-            "nwVollstaendig": bool(r["nw_vollstaendig"]), "ohneSalzNachGeschmack": bool(r["nw_ohne_salz_nach_geschmack"]),
-            "portion": None if r["portion_kcal"] is None else {n: r[f"portion_{n}"] for n in NAEHRWERTE},
-            "je100": {n: r[f"je100_{n}"] for n in NAEHRWERTE},
+            "aenderung": a["aenderung"], "hinweise": gesamt, "energiedichte": a["energiedichte"],
+            "nwVollstaendig": bool(a["nw_vollstaendig"]), "ohneSalzNachGeschmack": bool(a["nw_ohne_salz_nach_geschmack"]),
+            "portion": None if a["portion_kcal"] is None else {n: a[f"portion_{n}"] for n in NAEHRWERTE},
+            "je100": {n: a[f"je100_{n}"] for n in NAEHRWERTE},
             "zutaten": zutaten,
-            "schritte": [s["text"] for s in db.execute("select text from schritt where rezept_nr = ? order by pos", (r["nr"],))],
-            "paket": paket, "original": original,
+            "schritte": [s["text"] for s in app.execute("select text from schritt where rezept_nr = ? order by pos", (a["nr"],))],
+            "paket": paket, "inApp": True, "original": original,
         })
 
     fehlt = sorted(set(zusatz) - {r["id"] for r in rezepte})

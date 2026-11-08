@@ -497,7 +497,8 @@ for (const [adresse, html] of seiten) {
       // nicht gibt. Der Kopf der Seite bleibt, wie ihn die Vorlage vorgibt.
       const kasten = html.match(/<section class="r-teil r-app[\s\S]*?<\/section>/)?.[0] ?? '';
       const imKasten = entschluesselt(kasten.match(/<h2 id="app">([^<]*)<\/h2>/)?.[1] ?? '') === SPAETER;
-      if (zusatz) {
+      // AP-107: Rezepte mit "inApp" sind in der App und tragen den gewöhnlichen Kasten.
+      if (zusatz && !zusatz.inApp) {
         spaeterSeiten++;
         if (!imKasten) melde(adresse, `der Satz „${SPAETER}“ ist nicht die Überschrift des Kastens am Ende der Seite`);
         if (html.slice(0, html.indexOf('class="r-sprung"')).replace(/<script[\s\S]*?<\/script>/g, ' ').includes(SPAETER)) melde(adresse, `der Satz „${SPAETER}“ steht im Kopf der Seite (die Vorlage bleibt dort unverändert)`);
@@ -636,7 +637,7 @@ for (const [adresse, html] of seiten) {
   if (/https?:|\/\//.test(roh)) melde(adresse, '„Zum Ausprobieren“: Die Liste nennt eine Adresse außerhalb der Website');
 }
 if (probeWahlen.size <= seiten.size / 2) melde('/', `„Zum Ausprobieren“: nur ${probeWahlen.size} verschiedene Auswahlen auf ${seiten.size} Seiten`);
-if (spaeterSeiten !== ZUSATZ.size) melde('/rezepte/', `der Satz „${SPAETER}“ ist auf ${spaeterSeiten} von ${ZUSATZ.size} Seiten geprüft`);
+if (spaeterSeiten !== [...ZUSATZ.values()].filter((rezept) => !rezept.inApp).length) melde('/rezepte/', `der Satz „${SPAETER}“ ist auf ${spaeterSeiten} von ${ZUSATZ.size} Seiten geprüft`);
 const alteSeite = seiten.get(ALTE);
 const alteSlugs = [...ZUSATZ.values()].filter((rezept) => rezept.original).map((rezept) => rezept.slug);
 if (!alteSeite) melde(ALTE, 'Seite fehlt');
@@ -1596,8 +1597,9 @@ for (const [adresse, html] of seiten) {
 // weiter unten nachgerechnet), bleibt für sich; kein Satz schreibt die Rezepte aus alten Kochbüchern oder die neuen der App zu.
 const websiteZahlen = { gesamt: rezeptSeiten, alt: alteSlugs.length, neu: ZUSATZ.size - alteSlugs.length, app: rezeptSeiten - ZUSATZ.size };
 const ZAHL_SAETZE = [
-  ['/rezepte/', `Auf der Website stehen ${websiteZahlen.gesamt} Rezepte mit Hinweisen zu den Zutaten. ${websiteZahlen.app} davon sind aus der App, ${websiteZahlen.alt} aus alten Kochbüchern und ${websiteZahlen.neu} neue, die später in die App kommen.`],
-  ['/', `Über ${UEBER} Rezepte gibt es in der App, ${websiteZahlen.app} davon stehen hier. Dazu kommen ${websiteZahlen.alt} Rezepte aus alten Kochbüchern und ${websiteZahlen.neu} neue, die später in die App kommen.`],
+  // AP-107: Alle Rezepte der Website sind auch in der App.
+  ['/rezepte/', `Auf der Website stehen ${websiteZahlen.gesamt} Rezepte mit Hinweisen zu den Zutaten, darunter ${websiteZahlen.alt} aus alten Kochbüchern.`],
+  ['/', `Über ${UEBER} Rezepte gibt es in der App, ${websiteZahlen.gesamt} davon stehen hier. Darunter sind ${websiteZahlen.alt} Rezepte aus alten Kochbüchern.`],
   ['/', `${websiteZahlen.gesamt} Rezepte auf der Website ansehen`],
   [ALTE, `${websiteZahlen.alt} historische Rezepte aus Kochbüchern`],
   ['/fragen/', `Das sind ${websiteZahlen.alt} Rezepte aus gedruckten Kochbüchern`],
@@ -1620,8 +1622,14 @@ for (const [adresse, html] of seiten) {
 }
 // Auf den Rezepten, die es in der App noch nicht gibt, steht im Kasten am Ende der Satz zu den anderen Rezepten der App,
 // nicht der Verweis auf dieses Rezept in der App.
-for (const slug of ZUSATZ.keys()) {
+// AP-107: Rezepte mit "inApp" sind in der App und tragen den gewöhnlichen Kasten „Dieses Rezept in FoodAsu“.
+for (const [slug, rezept] of ZUSATZ) {
   const text = fliesstext(`/rezepte/${slug}/`);
+  if (rezept.inApp) {
+    if (!text.includes('Dieses Rezept in FoodAsu')) melde(`/rezepte/${slug}/`, 'Kasten am Ende: „Dieses Rezept in FoodAsu“ fehlt, obwohl das Rezept in der App ist');
+    if (text.includes(SPAETER)) melde(`/rezepte/${slug}/`, `„${SPAETER}“, obwohl das Rezept in der App ist`);
+    continue;
+  }
   if (!text.includes(`In der App gibt es schon über ${UEBER} andere Rezepte.`)) melde(`/rezepte/${slug}/`, 'Kasten am Ende: der Satz zu den anderen Rezepten der App fehlt');
   for (const wendung of ['Dieses Rezept in FoodAsu', `Dort findest du über ${UEBER} Rezepte.`]) if (text.includes(wendung)) melde(`/rezepte/${slug}/`, `schreibt das Rezept der App zu: „${wendung}“`);
 }

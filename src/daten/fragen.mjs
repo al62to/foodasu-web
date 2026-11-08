@@ -32,7 +32,7 @@ export const fragen = {
       frage: 'Was sind die Rezepte aus alten Kochbüchern?',
       antwort: [
         `Das sind ${websiteZahlen.alt} Rezepte aus gedruckten Kochbüchern von ${altVon} bis ${altBis}, geordnet nach Zeiträumen. Die Bücher sind gemeinfrei: Ihre Verfasserinnen und Verfasser sind seit mehr als 70 Jahren tot, oder das Buch erschien ohne Namen.`,
-        'Zu jedem Rezept steht ein kurzer Auszug aus dem Buch in der alten Schreibweise und in heutigem Deutsch. Zutaten, Mengen und Schritte sind eine heutige Fassung von FoodAsu: Alte Maße sind umgerechnet und mit heutigen Rezepten abgeglichen. Die Rezepte stehen auf der Website und kommen später in die App.',
+        'Zu jedem Rezept steht ein kurzer Auszug aus dem Buch in der alten Schreibweise und in heutigem Deutsch. Zutaten, Mengen und Schritte sind eine heutige Fassung von FoodAsu: Alte Maße sind umgerechnet und mit heutigen Rezepten abgeglichen. Die Rezepte stehen auf der Website und in der App.',
       ],
       verweis: { vor: 'Alle Rezepte der Rubrik stehen unter ', text: 'Aus alten Kochbüchern', nach: '.', ziel: '/alte-rezepte/' },
     },

@@ -8,7 +8,7 @@ export const alteSeite = {
   adresse: '/alte-rezepte/',
   name: 'Aus alten Kochbüchern',
   titel: 'Alte Rezepte aus historischen Kochbüchern',
-  vorspann: (zahl, von, bis) => `${zahl} historische Rezepte aus Kochbüchern von ${von} bis ${bis}: Gerichte, die man heute noch kennt. Zu jedem steht ein kurzer Auszug aus dem alten Buch und eine heutige Fassung mit Zutaten, Mengen und Schritten. Die Rezepte kommen später in die App.`,
+  vorspann: (zahl, von, bis) => `${zahl} historische Rezepte aus Kochbüchern von ${von} bis ${bis}: Gerichte, die man heute noch kennt. Zu jedem steht ein kurzer Auszug aus dem alten Buch und eine heutige Fassung mit Zutaten, Mengen und Schritten. Die Rezepte gibt es auch in der App.`,
   zeitstrahl: 'Zeitstrahl: Rezepte nach Zeitraum',
   sprung: 'Zu einem Zeitraum springen',
   anzahl: (zahl) => (zahl === 1 ? '1 Rezept' : `${zahl} Rezepte`),

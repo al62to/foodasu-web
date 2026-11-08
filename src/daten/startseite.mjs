@@ -315,7 +315,8 @@ export const vorschau = {
   // AP-25 kommen Rezepte dazu, die es in der App noch nicht gibt; die Zahlen kommen aus den Daten
   // (websiteZahlen in src/daten/rezeptseiten.mjs).
   // Zwei Sätze, je ein Absatz (am Handy höchstens drei Zeilen); Wortlaut unverändert.
-  hinweis: (zahlen) => [`Über ${appZahlen.ueber} Rezepte gibt es in der App, ${zahlen.app} davon stehen hier.`, `Dazu kommen ${zahlen.alt} Rezepte aus alten Kochbüchern und ${zahlen.neu} neue, die später in die App kommen.`],
+  // AP-107: Alle Rezepte der Website sind jetzt auch in der App (Wortlaut der Startseite, Alis Ja nötig).
+  hinweis: (zahlen) => [`Über ${appZahlen.ueber} Rezepte gibt es in der App, ${zahlen.gesamt} davon stehen hier.`, `Darunter sind ${zahlen.alt} Rezepte aus alten Kochbüchern.`],
   link: (zahlen) => `${zahlen.gesamt} Rezepte auf der Website ansehen`,
   // Kleine Karte, die zur Rubrik "Aus alten Kochbüchern" führt (AP-25 Teil C Nr. 5). Die Zahlen kommen aus den Daten.
   alt: {

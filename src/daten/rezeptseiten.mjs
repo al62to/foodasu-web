@@ -29,7 +29,9 @@ for (const rezept of zusatzRezepte) {
   nachSlug.set(rezept.slug, rezept);
 }
 export const rezepte = [...appRezepte, ...zusatzRezepte];
-export const kommtSpaeter = (rezept) => Boolean(rezept.paket);
+// Seit AP-107 sind die 25 Rezepte aus AP-25 auch in der App ("inApp" aus tools/zusatz_exportieren.py); der Kasten
+// „kommt später in die App“ bleibt für Rezepte, die erst später kommen.
+export const kommtSpaeter = (rezept) => Boolean(rezept.paket) && !rezept.inApp;
 // Wie viele Rezepte auf der Website stehen und woher sie kommen. Jede Zahl im Text, die Rezepte der Website zählt,
 // kommt von hier (AP-25 Teil F); tools/pruefe_seiten.mjs zählt unabhängig davon nach.
 export const websiteZahlen = {
@@ -271,7 +273,8 @@ export const texte = {
     // Zahlen der Website, getrennt von den Zahlen der App (AP-25 Teil F Nr. 3): Kein Satz schreibt die Rezepte aus
     // alten Kochbüchern oder die neuen Rezepte der App zu. "zahlen" ist websiteZahlen (unten); die Zahl der App
     // steht als "über N" aus src/daten/app_zahlen.mjs da.
-    text: (zahlen) => `Auf der Website stehen ${zahlen.gesamt} Rezepte mit Hinweisen zu den Zutaten. ${zahlen.app} davon sind aus der App, ${zahlen.alt} aus alten Kochbüchern und ${zahlen.neu} neue, die später in die App kommen. In der Einkaufslisten-App sind es über ${appZahlen.ueber}.`,
+    // AP-107: Alle Rezepte der Website sind jetzt auch in der App; der Satz nennt nur noch die alten Kochbücher.
+    text: (zahlen) => `Auf der Website stehen ${zahlen.gesamt} Rezepte mit Hinweisen zu den Zutaten, darunter ${zahlen.alt} aus alten Kochbüchern. In der Einkaufslisten-App sind es über ${appZahlen.ueber}.`,
     // AP-46: "Einkaufslisten-App" im letzten Satz ist ein Link zur Startseite.
     link: { text: 'Einkaufslisten-App', ziel: '/' },
     grundlage: 'Grundlage ist die Zutatenliste des Rezepts. Was in einem Produkt aus dem Laden steckt, steht auf der Packung. Maßgeblich ist die Verpackung.',
