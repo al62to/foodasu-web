@@ -13,6 +13,10 @@
   .l-neben { position: sticky; top: 5.5rem; }
 }
 .js [data-l-ohne-skript] { display: none; }
+/* Bis das Skript die Liste aufgebaut hat, bleibt der Inhalt unsichtbar; so springt nichts, wenn der Kopf (Stand,
+   Schalter) wächst (Lighthouse am Computer: Verschiebung 0,69 ohne diese Regel). */
+.js [data-l-seite]:not([data-bereit]),
+.js body:has([data-l-seite]:not([data-bereit])) > .fuss { visibility: hidden; }
 .l-seite [hidden] { display: none !important; }
 .l-hinweis { margin: 0; }
 .l-hinweis p { margin: 0; font-size: 1.06rem; line-height: 1.7; }

@@ -31,6 +31,8 @@ const linien = { fill: 'none', stroke: 'currentColor', 'stroke-width': '2.6', 's
   </Seitenkopf>
 
   <div class="s-inhalt innen l-seite" data-l-seite data-basis={`${seite.adresse}${t.adresse}`}>
+    {/* Rückfall: Lädt das Skript der Seite nicht, wird der Inhalt nach 3 Sekunden trotzdem sichtbar (liste.css). */}
+    <script is:inline>setTimeout(function () { var e = document.querySelector('[data-l-seite]'); if (e && !e.dataset.bereit) e.dataset.bereit = '0'; }, 3000);</script>
     <div class="l-haupt">
     <p class="s-karte l-hinweis" data-l-ohne-skript>{t.ohneSkript}</p>
     <section class="s-karte l-hinweis" data-l-hinweis hidden>
