@@ -63,7 +63,8 @@ button.l-haken:hover { background: var(--flaeche); }
 .l-haken[aria-checked="true"] .l-kreis { border-color: var(--main); background: var(--main); color: var(--on-main); }
 .l-text { display: grid; gap: 0.2rem; min-width: 0; padding-top: 0.08rem; }
 .l-name { font-size: 1.1rem; line-height: 1.45; overflow-wrap: anywhere; }
-.l-menge { font-weight: 800; }
+/* Menge und Name gleich stark (Ali, 08.11.2026: in der Liste einheitlich). */
+.l-menge { font-weight: inherit; }
 .l-notiz { font-size: 0.92rem; line-height: 1.45; color: var(--muted); }
 .l-vermerk { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.88rem; font-weight: 700; line-height: 1.4; color: var(--muted); }
 .l-vermerk svg { flex: none; width: 1.05rem; height: 1.05rem; }
@@ -83,9 +84,11 @@ button.l-haken:hover { background: var(--flaeche); }
 
 /* Häkchen zurückschicken; mit allem erledigt größer und mit Häkchen vor der Überschrift. */
 .l-zurueck p { margin: 0; color: var(--muted); line-height: 1.6; }
-.l-senden { margin-top: 1.25rem; min-height: 3.5rem; padding: 0.75rem 1.75rem; font-size: 1.02rem; text-align: center; justify-content: center; }
+.l-senden { margin-top: 1.25rem; min-height: 3.25rem; padding: 0.6rem 1.15rem; gap: 0.5rem; font-size: 1.02rem; text-align: center; justify-content: center; }
 .l-fertig-zeichen { display: none; place-items: center; flex: none; width: 2.25rem; height: 2.25rem; border-radius: 50%; background: var(--main); color: var(--on-main); }
 .l-fertig-zeichen svg { width: 1.3rem; height: 1.3rem; }
+/* Senden-Symbol links im Knopf „Liste an … zurückschicken“ (Ali, 08.11.2026). */
+.l-senden-zeichen { flex: none; width: 1.25rem; height: 1.25rem; }
 .l-zurueck.fertig .l-fertig-zeichen { display: grid; }
 .l-zurueck.fertig .l-karte-titel { font-size: clamp(1.6rem, 4vw, 2.1rem); }
 .l-zurueck.fertig .l-senden { width: 100%; justify-content: center; min-height: 4rem; font-size: 1.15rem; }

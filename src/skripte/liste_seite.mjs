@@ -47,6 +47,7 @@ const teil = {
   zurueckTitel: $('[data-l-zurueck-titel]'),
   zurueckText: $('[data-l-zurueck-text]'),
   senden: $('[data-l-senden]'),
+  sendenText: $('[data-l-senden-text]'),
   als: $('[data-l-als]'),
   alsText: $('[data-l-als-text]'),
   wege: $('[data-l-wege]'),
@@ -229,7 +230,7 @@ function eintragZeile(eintrag, { neu }) {
   zeile.dataset.status = status;
   const menge = mengeText(eintrag[F.menge], eintrag[F.einheit], app);
   const name = element('span', 'l-name');
-  if (menge) { name.append(element('b', 'l-menge', menge), ' '); }
+  if (menge) { name.append(element('span', 'l-menge', menge), ' '); }
   name.append(eintrag[F.text]);
   const text = element('span', 'l-text');
   text.append(name);
@@ -318,7 +319,7 @@ function zeigeZurueck() {
   teil.zurueck.classList.toggle('fertig', fertig);
   teil.zurueckTitel.textContent = fertig ? T.zurueck.fertigTitel : T.zurueck.titel;
   teil.zurueckText.textContent = absenderName ? fuelle(T.zurueck.text, { absender: absenderName }) : T.zurueck.textOhneName;
-  teil.senden.textContent = fertig
+  teil.sendenText.textContent = fertig
     ? (absenderName ? fuelle(T.zurueck.fertigKnopf, { absender: absenderName }) : T.zurueck.fertigKnopfOhneName)
     : (absenderName ? fuelle(T.zurueck.knopf, { absender: absenderName }) : T.zurueck.knopfOhneName);
   teil.als.hidden = !name;
