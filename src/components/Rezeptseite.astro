@@ -8,8 +8,9 @@ import Basis from '../layouts/Basis.astro';
 import Seitenkopf from './Seitenkopf.astro';
 import Motive from './Motive.astro';
 import Rezeptkarte from './Rezeptkarte.astro';
+import StoreAbzeichen from './StoreAbzeichen.astro';
 import '../styles/rezepte.css';
-import { seite, store, storeLink } from '../daten/seite.mjs';
+import { seite, store } from '../daten/seite.mjs';
 import { fuss } from '../daten/startseite.mjs';
 import {
   rezepte, texte, LAND, KATEGORIE, AUFWAND, ENERGIE, QUELLE, NAEHRWERT, STAND, ausLand, zahl, dauer, gesamtzeit, iso, portionen,
@@ -376,10 +377,10 @@ const daten = [{
             ? <p>{texte.spaeter.appText}</p>
             : <p>{texte.app.text.split(texte.app.link.text)[0]}<a href={texte.app.link.ziel}>{texte.app.link.text}</a>{texte.app.text.split(texte.app.link.text)[1]} {texte.app.mehr}</p>}
         </div>
-        <p class="r-app-zeile">
+        <div class="r-app-zeile">
           <a class="knopf voll" href="/so-gehts/">{texte.app.soGehts}</a>
-          {store.oeffentlich ? <a class="knopf rand" href={storeLink('rezept')} rel="noopener">{fuss.auftritte.storeLink}</a> : <span class="r-bald">{fuss.auftritte.storeBald}</span>}
-        </p>
+          {store.oeffentlich ? <StoreAbzeichen ort="rezept" /> : <span class="r-bald">{fuss.auftritte.storeBald}</span>}
+        </div>
       </section>
 
       <p class="r-quelle-link"><a href={quelleAdresse(rezept)} aria-label={texte.quelle.fuer(rezept.kurztitel)}>{texte.quelle.link}</a></p>

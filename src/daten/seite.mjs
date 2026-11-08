@@ -8,8 +8,9 @@ export const seite = {
   sprache: 'de',
   logo: '/apple-touch-icon.png',
   // Gemeinsames Bild für Open Graph und die Twitter-Karte (gebaut mit tools/teilen_bild.mjs). Rezeptseiten zeigen
-  // ihr eigenes Bild in denselben Maßen (tools/rezeptbilder_bauen.py).
-  teilen: { pfad: '/bilder/foodasu-teilen.jpg', breite: 1200, hoehe: 630 },
+  // ihr eigenes Bild in denselben Maßen (tools/rezeptbilder_bauen.py). Seit AP-105 mit einem Band unten (band, Höhe in
+  // Pixeln) mit den zwei Abzeichen und neuen Dateinamen (-teilen-2), damit Facebook und WhatsApp neu laden.
+  teilen: { pfad: '/bilder/foodasu-teilen-2.jpg', breite: 1200, hoehe: 630, band: 100 },
   // Der Satz zur Beschreibung (Nachtrag zu AP-23 Teil A Nr. 1 in der Fassung der Änderung vom 11.10.2026; Entscheidung
   // Ali vom 11.10.2026: ohne regionale Herkunft, ohne Plattform, Scanner und Einkaufsliste zusammen; seit Nachtrag 2
   // der PL vom 14.10.2026 die Einkaufsliste zuerst), wörtlich. Er

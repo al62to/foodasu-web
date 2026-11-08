@@ -141,6 +141,29 @@ for (const kurzlink of KURZLINKS) {
 const eingang = new Map([...seiten.keys()].map((adresse) => [adresse, 0]));
 
 const alle = (text, ausdruck) => [...text.matchAll(ausdruck)];
+
+// AP-105: Gruppe der zwei Abzeichen (src/components/StoreAbzeichen.astro) an einem Ort: zuerst das Abzeichen von Apple
+// als Link appleLink(ort), dann das von Google Play als Link storeLink(ort), jeweils mit dem Namen des Links als
+// Bildbeschreibung. Gibt den ersten Befund zurück oder null.
+const ABZEICHEN_NAMEN = { apple: 'FoodAsu im App Store', google: 'FoodAsu bei Google Play' };
+function abzeichenPruefen(html, ort) {
+  const gruppe = html.match(new RegExp(`<div class="abzeichen[^"]*" data-abzeichen="${ort}">([\\s\\S]*?)<\\/div>`))?.[1];
+  if (gruppe === undefined) return 'Gruppe der Abzeichen fehlt';
+  const links = alle(gruppe, /<a class="abzeichen-(apple|google)" href="([^"]+)" rel="noopener">\s*<img src="([^"]+)"[^>]*alt="([^"]*)"/g).map(([, art, ziel, bild, name]) => ({ art, ziel: ziel.replaceAll('&amp;', '&'), bild, name }));
+  const soll = [
+    ...(APP_STORE_ERHAELTLICH ? [{ art: 'apple', ziel: appleLink(ort), bild: '/bilder/app-store-abzeichen-de.svg', name: ABZEICHEN_NAMEN.apple }] : []),
+    { art: 'google', ziel: storeLink(ort), bild: '/bilder/google-play-abzeichen-de.png', name: ABZEICHEN_NAMEN.google },
+  ];
+  if (links.length !== soll.length || alle(gruppe, /<a\b/g).length !== soll.length) return `erwartet ${soll.map((eintrag) => eintrag.art).join(' und ')} in dieser Reihenfolge, gefunden ${links.map((eintrag) => eintrag.art).join(', ') || 'keines'}`;
+  for (const [nummer, eintrag] of soll.entries()) {
+    const ist = links[nummer];
+    if (ist.art !== eintrag.art) return `Reihenfolge: ${eintrag.art} an Stelle ${nummer + 1} erwartet`;
+    if (ist.ziel !== eintrag.ziel) return `${eintrag.art}: Link ${ist.ziel} statt ${eintrag.ziel}`;
+    if (ist.bild !== eintrag.bild) return `${eintrag.art}: Bild ${ist.bild} statt ${eintrag.bild}`;
+    if (ist.name !== eintrag.name) return `${eintrag.art}: Name „${ist.name}“ statt „${eintrag.name}“`;
+  }
+  return null;
+}
 const entschluesselt = (text) =>
   text
     .replace(/&#(\d+);/g, (_, zahl) => String.fromCodePoint(Number(zahl)))
@@ -211,7 +234,7 @@ const TITEL_ZEICHEN = /^[\p{L}\p{N} :|()'-]+$/u;
 // WebSite.name (beides unten geprüft).
 const TITEL_START = 'Einkaufslisten-App und Lebensmittel-Scanner für den ganzen Haushalt';
 const META_WORTE = [['LADEN-WORT', muster('herunterladen|herunter\\s+laden|download|jetzt\\s+laden|jetzt\\s+holen')]];
-const TEILEN = { breite: 1200, hoehe: 630, gemeinsam: '/bilder/foodasu-teilen.jpg' };
+const TEILEN = { breite: 1200, hoehe: 630, gemeinsam: '/bilder/foodasu-teilen-2.jpg' };
 const inhaltVon = (html, name) => {
   const treffer = alle(html, new RegExp(`<meta (?:name|property)="${name}" content="([^"]*)"`, 'g'));
   return treffer.length === 1 ? entschluesselt(treffer[0][1]) : null;
@@ -274,7 +297,7 @@ for (const [adresse, html] of seiten) {
 
   // Open Graph und Twitter-Karte
   const istRezept = IST_REZEPT.test(html);
-  const bildPfad = istRezept ? `/bilder/rezepte/${adresse.split('/').at(-2)}-teilen.jpg` : TEILEN.gemeinsam;
+  const bildPfad = istRezept ? `/bilder/rezepte/${adresse.split('/').at(-2)}-teilen-2.jpg` : TEILEN.gemeinsam;
   const teilen = {
     'og:type': istRezept ? 'article' : 'website', 'og:site_name': 'FoodAsu', 'og:locale': 'de_DE', 'og:title': titel,
     'og:description': beschreibung, 'og:url': HOST + adresse, 'og:image': HOST + bildPfad,
@@ -497,6 +520,11 @@ for (const [adresse, html] of seiten) {
       // nicht gibt. Der Kopf der Seite bleibt, wie ihn die Vorlage vorgibt.
       const kasten = html.match(/<section class="r-teil r-app[\s\S]*?<\/section>/)?.[0] ?? '';
       const imKasten = entschluesselt(kasten.match(/<h2 id="app">([^<]*)<\/h2>/)?.[1] ?? '') === SPAETER;
+      // AP-105: Im Kasten stehen die zwei Abzeichen (Ort rezept) statt des Knopfs „FoodAsu bei Google Play“.
+      if (store.oeffentlich) {
+        const fund = abzeichenPruefen(kasten, 'rezept');
+        if (fund) melde(adresse, `Abzeichen im Kasten „Dieses Rezept in FoodAsu“: ${fund}`);
+      }
       if (zusatz) {
         spaeterSeiten++;
         if (!imKasten) melde(adresse, `der Satz „${SPAETER}“ ist nicht die Überschrift des Kastens am Ende der Seite`);
@@ -722,6 +750,15 @@ for (const [adresse, html] of [...seiten, ...weiterleitungen]) {
   // Schreibweisen ohne doppelte Anführungszeichen oder mit Großbuchstaben im Schema würden die Suche oben umgehen.
   const schreibweise = ohneDaten.replace(/\bhref\s*=\s*"https?:\/\/play\.google\.com\/store\/apps\/details[^"]*"/g, ' ').replace(/http-equiv="refresh"\s+content="\d+;\s*url=https?:\/\/play\.google\.com\/store\/apps\/details[^"]*"/g, ' ');
   if (/play\.google\.com\/store\/apps\/details/i.test(schreibweise.replace(/<(?:svg|style)[\s\S]*?<\/(?:svg|style)>/g, ' '))) melde(adresse, 'Verweis auf den Eintrag bei Google Play außerhalb eines href in doppelten Anführungszeichen');
+}
+// AP-105: Links zum App Store im HTML nur als appleLink(<Ort aus STORE_ORTE>) oder, ohne Kennung, appStore.adresse
+// (Seiten der Rechtstexte; solange APPLE_ANBIETER leer ist, sind beide gleich). Kurzlinks prüft ihr eigener Abschnitt.
+const APPLE_ERLAUBT = new Set([appStore.adresse, ...STORE_ORTE.map((ort) => appleLink(ort))]);
+for (const [adresse, html] of seiten) {
+  const ohneDaten = html.replace(/<script\b[^>]*type="application\/ld\+json"[^>]*>[\s\S]*?<\/script>/g, ' ');
+  for (const [, roh] of alle(ohneDaten, /\bhref="(https?:\/\/apps\.apple\.com\/[^"]*)"/g)) {
+    if (!APPLE_ERLAUBT.has(roh.replaceAll('&amp;', '&'))) melde(adresse, `Link zum App Store ohne bekannte Kennung: ${roh}`);
+  }
 }
 for (const datei of dateien.filter((d) => /\.(txt|xml)$/.test(d))) {
   // llms.txt und Sitemap bleiben ohne Kennung (Ausnahme aus AP-44); eine Kennung dort wäre ein Befund.
@@ -1529,10 +1566,22 @@ if (/mailto:/.test(ueberInhalt)) melde('/ueber-foodasu/', 'die Adresse des Konta
   if (!/Einkaufszettel/.test(wortTeil)) melde('/', 'Alis Absatz nennt den Einkaufszettel nicht');
   // Abschluss (Teil 1 Nr. 13) und Leiste unten am Handy (Teil 1 Nr. 15).
   const schlussTeil = s.match(/<section class="abschluss" id="abschluss">[\s\S]*?<\/section>/)?.[0] ?? '';
-  if (!/<h2>Passt es für alle\? Schau einfach nach\.<\/h2>/.test(schlussTeil) || !entschluesselt(ohneSprachangabe(schlussTeil)).includes(VERFUEGBAR) || !/class="bald"/.test(schlussTeil)) melde('/', 'Abschluss: Überschrift, Satz zur Verfügbarkeit oder Knopf fehlt');
-  if (store.oeffentlich && (alle(s, /<a class="bald" href="https:\/\/play\.google\.com\/store\/apps\/details\?id=at\.tonc\.einkauf&amp;referrer=utm_source%3Dwebsite%26utm_medium%3Dlink%26utm_campaign%3D(?:kopf|abschluss)" rel="noopener">/g).length !== 2 || !/<a class="bald" href="[^"]*utm_campaign%3Dkopf"/.test(s.split('<section class="abschluss"')[0]) || !/utm_campaign%3Dabschluss"/.test(schlussTeil) || /Bald im Play Store/.test(entschluesselt(ohneSprachangabe(s.replace(/<script[\s\S]*?<\/script>/g, ' ')))))) melde('/', 'Startseite: Knöpfe im Kopf und im Abschluss nicht als Link zum Eintrag bei Google Play, oder „Bald im Play Store“ steht noch da');
+  if (!/<h2>Passt es für alle\? Schau einfach nach\.<\/h2>/.test(schlussTeil) || !entschluesselt(ohneSprachangabe(schlussTeil)).includes(VERFUEGBAR)) melde('/', 'Abschluss: Überschrift oder Satz zur Verfügbarkeit fehlt');
+  // AP-105: Im Kopf, im Abschluss und in der Leiste unten stehen die zwei Abzeichen mit der Kennung ihres Ortes; die
+  // alten Knöpfe „Jetzt im Play Store“ und „FoodAsu bei Google Play“ gibt es nicht mehr.
+  if (store.oeffentlich) {
+    const kopfTeil = s.split('<section class="abschluss"')[0].split('<aside class="kurzleiste"')[0];
+    for (const [ort, teil] of [['kopf', kopfTeil], ['abschluss', schlussTeil], ['kurzleiste', s.match(/<aside class="kurzleiste"[^>]*>[\s\S]*?<\/aside>/)?.[0] ?? '']]) {
+      const fund = abzeichenPruefen(teil, ort);
+      if (fund) melde('/', `Abzeichen (${ort}): ${fund}`);
+    }
+    const sichtbarStart = entschluesselt(ohneSprachangabe(s.replace(/<script[\s\S]*?<\/script>/g, ' ')));
+    if (/class="bald"|Bald im Play Store|Jetzt im Play Store|kurzleiste-knopf/.test(sichtbarStart)) melde('/', 'Startseite: alter Knopf „Jetzt im Play Store“, „Bald im Play Store“ oder Knopf der Leiste steht noch da');
+  }
   const leiste = s.match(/<aside class="kurzleiste"[^>]*>[\s\S]*?<\/aside>/)?.[0] ?? '';
-  if (!/<aside class="kurzleiste" aria-label="[^"]+" data-kurzleiste hidden>/.test(leiste) || alle(leiste, /<a\b[^>]*href="[^"]+"/g).length !== 2) melde('/', 'Leiste unten: Bereich mit Namen, zwei Links und anfangs ausgeblendet erwartet');
+  const leisteLinks = store.oeffentlich ? 1 + (APP_STORE_ERHAELTLICH ? 2 : 1) : 2;
+  if (!/<aside class="kurzleiste" aria-label="[^"]+" data-kurzleiste hidden>/.test(leiste) || alle(leiste, /<a\b[^>]*href="[^"]+"/g).length !== leisteLinks) melde('/', `Leiste unten: Bereich mit Namen, ${leisteLinks} Links (Logo und Abzeichen) und anfangs ausgeblendet erwartet`);
+  if (/Play Store/.test(leiste.match(/aria-label="([^"]*)"/)?.[1] ?? '')) melde('/', 'Leiste unten: der Name des Bereichs nennt nur einen Store');
   if (/herunterladen|download/i.test(textVon('/'))) melde('/', 'Aufforderung zum Herunterladen auf der Startseite');
 }
 // 404-Seite: Karte im Wortlaut der Projektleitung, keine Handys mehr, die Null als Zitronenscheibe.

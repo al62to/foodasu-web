@@ -46,7 +46,6 @@ export const kopf = {
   // Satz statt des langen Absatzes (Teil 2 Nr. 5): höchstens 15 Wörter, mit "Einkaufsliste". "betont" steht in Indigo
   // wie "alle" im Entwurf.
   satz: { vor: 'Einkaufsliste, Rezepte und Scanner in einer App. Du siehst, ob es für ', betont: 'alle', nach: ' passt.' },
-  aufruf: 'Jetzt im Play Store',
   zweiterKnopf: 'Eine Einkaufswoche',
   stand: `${BETA} ${VERFUEGBAR}`,
   handy: {
@@ -390,25 +389,32 @@ export const fragenStart = {
   ],
 };
 
-// Abschluss (Teil 1 Nr. 13): gepunktete Lavendel-Fläche, H2, der Satz zur Verfügbarkeit, weißer Knopf mit Punkt
-// (seit dem öffentlichen Start ein Link zum Eintrag bei Google Play). Am Handy steht darunter klein der Hinweis zur
-// Beta (am Laptop steht er unter den Knöpfen im Kopf).
+// Abschluss (Teil 1 Nr. 13): gepunktete Lavendel-Fläche, H2, der Satz zur Verfügbarkeit, seit AP-105 die zwei Abzeichen
+// (App Store und Google Play) auf weißer Fläche statt des Knopfs „Jetzt im Play Store“. Am Handy steht darunter klein
+// der Hinweis zur Beta (am Laptop steht er unter den Knöpfen im Kopf).
 export const abschluss = {
   ueberschrift: 'Passt es für alle? Schau einfach nach.',
   satz: VERFUEGBAR,
-  knopf: 'Jetzt im Play Store',
   beta: BETA,
 };
 
+// Namen der Links mit den zwei Abzeichen (AP-105) im Kopf, im Abschluss, in der Leiste unten und auf den Rezeptseiten.
+// Sie stehen als Bildbeschreibung im Abzeichen und sind damit der Name des Links.
+export const abzeichen = {
+  apple: 'FoodAsu im App Store',
+  google: 'FoodAsu bei Google Play',
+};
+
 // Leiste unten am Handy (Teil 1 Nr. 15): erscheint nach dem ersten Bildschirm, nur am Handy. Das Logo führt an den
-// Anfang der Seite. Der Knopf führt zum Eintrag bei Google Play (store.oeffentlich in seite.mjs; vor dem öffentlichen
-// Start führte er zum Abschluss mit dem Satz zur Verfügbarkeit).
+// Anfang der Seite. Seit AP-105 stehen daneben die zwei Abzeichen (vor dem öffentlichen Start führte ein Knopf zum
+// Abschluss mit dem Satz zur Verfügbarkeit).
 export const kurzleiste = {
-  name: 'FoodAsu im Play Store',
+  // Seit AP-105 mit den zwei Abzeichen statt des Knopfs „FoodAsu bei Google Play“; der Name des Bereichs nennt keinen
+  // Store mehr.
+  name: 'FoodAsu laden',
   logo: 'FoodAsu, zum Anfang der Seite',
   knopf: 'Bald im Play Store',
   ziel: '#abschluss',
-  storeKnopf: 'FoodAsu bei Google Play',
 };
 
 // Fragen und Antworten der Seite /fragen/ stehen seit AP-22 in src/daten/fragen.mjs.

@@ -12,7 +12,11 @@ Je Rezept unter public/bilder/rezepte/:
     <slug>-4x3-1200.avif/.webp       1200 x 900    Bild der Rezeptseite und strukturierte Daten (4:3)
     <slug>-16x9-1200.webp            1200 x 675    strukturierte Daten (16:9)
     <slug>-1x1-1200.webp             1200 x 1200   strukturierte Daten (1:1)
-    <slug>-teilen.jpg                1200 x 630    Bild beim Teilen (Open Graph, Twitter-Karte), mit --teilen
+    <slug>-teilen-2.jpg              1200 x 630    Bild beim Teilen (Open Graph, Twitter-Karte), mit --teilen; seit AP-105
+                                                   oben das Gericht (1200 x 530), unten das Band mit Logo und den zwei
+                                                   Abzeichen aus tools/vorlagen/teilen_band.png (gebaut mit
+                                                   node tools/teilen_bild.mjs); neuer Name, damit Facebook und
+                                                   WhatsApp neu laden
 
 Aufruf:
     python tools/rezeptbilder_bauen.py --archiv <Bildarchiv> --karten
@@ -46,8 +50,27 @@ SEITE = {
     "16x9-1200": ((16, 9), 1200, 675, ("webp",)),
     "1x1-1200": ((1, 1), 1200, 1200, ("webp",)),
 }
-# Bild beim Teilen: JPEG, weil nicht jeder Dienst WebP in der Vorschau zeigt.
-TEILEN = {"teilen": ((40, 21), 1200, 630, ("jpg",))}
+# Bild beim Teilen: JPEG, weil nicht jeder Dienst WebP in der Vorschau zeigt. Seit AP-105 mit Band: Das Gericht füllt
+# die Fläche darüber (Zuschnitt 1200:530), das Band kommt unverändert aus tools/vorlagen/teilen_band.png.
+TEILEN = {"teilen-2": ((1200, 530), 1200, 630, ("jpg",))}
+BAND = WURZEL / "tools" / "vorlagen" / "teilen_band.png"
+BAND_HOEHE = 100
+
+
+def mit_band(bild: Image.Image) -> Image.Image:
+    """Gericht oben (1200 x 530), Band unten (1200 x 100); bricht ab, wenn das Band fehlt oder andere Maße hat."""
+    if not BAND.exists():
+        print(f"FEHLER {BAND} fehlt: zuerst node tools/teilen_bild.mjs")
+        sys.exit(1)
+    with Image.open(BAND) as band:
+        if band.size != (1200, BAND_HOEHE):
+            print(f"FEHLER {BAND.name}: {band.size} statt 1200 x {BAND_HOEHE}")
+            sys.exit(1)
+        oben = zuschnitt(bild, (1200, 630 - BAND_HOEHE))
+        fertig = Image.new("RGB", (1200, 630))
+        fertig.paste(oben.resize((1200, 630 - BAND_HOEHE), Image.LANCZOS), (0, 0))
+        fertig.paste(band.convert("RGB"), (0, 630 - BAND_HOEHE))
+        return fertig
 
 
 def zuschnitt(bild: Image.Image, verhaeltnis: tuple[int, int]) -> Image.Image:
@@ -66,7 +89,7 @@ def zuschnitt(bild: Image.Image, verhaeltnis: tuple[int, int]) -> Image.Image:
 def schreibe(bild: Image.Image, slug: str, groessen: dict) -> int:
     summe = 0
     for name, (verhaeltnis, breite, hoehe, formate) in groessen.items():
-        fertig = zuschnitt(bild, verhaeltnis).resize((breite, hoehe), Image.LANCZOS)
+        fertig = mit_band(bild) if name.startswith("teilen") else zuschnitt(bild, verhaeltnis).resize((breite, hoehe), Image.LANCZOS)
         for endung in formate:
             datei = ZIEL / f"{slug}-{name}.{endung}"
             if endung == "avif":

@@ -361,7 +361,7 @@ function rezeptMeta(rezept) {
     if (werte[feld] == null) fehler.push(`${pfad}: Die Beschreibung braucht {${feld}}, das Rezept hat die Angabe nicht`);
     return werte[feld] ?? '';
   });
-  return { titel, beschreibung, art: 'article', bild: { pfad: `/bilder/rezepte/${rezept.slug}-teilen.jpg`, alt: `Symbolbild: ${rezept.titel}` } };
+  return { titel, beschreibung, art: 'article', bild: { pfad: `/bilder/rezepte/${rezept.slug}-teilen-2.jpg`, alt: `Symbolbild: ${rezept.titel}` } };
 }
 
 // ---- Liste aller Seiten ----

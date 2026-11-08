@@ -620,8 +620,9 @@ sage('## 2f Kontrast der Texte (mindestens 4,5:1), hell und dunkel');
 // Standbild, das erst beim Scrollen lädt.
 sage();
 sage('## 2h Startseite am Handy (Auftrag SEO 1 neu)');
-for (const breite of [360, 412]) {
-  const ansicht = { width: breite, height: breite === 360 ? 740 : 915, deviceScaleFactor: 1, isMobile: true, hasTouch: true };
+// Seit AP-105 auch 320 px (Leiste mit Logo und beiden Abzeichen in einer Zeile).
+for (const breite of [320, 360, 412]) {
+  const ansicht = { width: breite, height: breite === 412 ? 915 : 740, deviceScaleFactor: 1, isMobile: true, hasTouch: true };
   {
     const { umgebung, seite } = await neueSeite({ ansicht, ruhig: true });
     await seite.goto(BASIS + '/', { waitUntil: 'networkidle0' });
@@ -692,7 +693,10 @@ for (const breite of [360, 412]) {
       }
       return { lang, gezaehlt };
     });
-    pruefe(absaetze.lang.length === 0, `${breite} px: Absätze im Inhalt höchstens drei Zeilen (länger: ${absaetze.lang.length})`);
+    // Die Regel „höchstens drei Zeilen“ gilt wie bisher ab 360 px; 320 px läuft seit AP-105 nur für Leiste und Knöpfe mit
+    // und zählt die Absätze nur.
+    if (breite >= 360) pruefe(absaetze.lang.length === 0, `${breite} px: Absätze im Inhalt höchstens drei Zeilen (länger: ${absaetze.lang.length})`);
+    else sage(`    ${breite} px: Absätze mit mehr als drei Zeilen nur gezählt: ${absaetze.lang.length}`);
     for (const fund of absaetze.lang) sage(`    ${fund}`);
     sage(`    nur gezählt (aufklappende Texte und Karten der Zeitleisten): ${absaetze.gezaehlt.length}`);
     for (const fund of absaetze.gezaehlt) sage(`      ${fund}`);
@@ -707,18 +711,19 @@ for (const breite of [360, 412]) {
     const leiste = await seite.evaluate(() => {
       const element = document.querySelector('[data-kurzleiste]');
       const kasten = element.getBoundingClientRect();
-      const links = [...element.querySelectorAll('a')].map((link) => ({ name: link.getAttribute('aria-label') ?? link.textContent.trim(), hoehe: Math.round(link.getBoundingClientRect().height), ziel: link.getAttribute('href') }));
+      // Seit AP-105: Logo und die zwei Abzeichen; der Name eines Abzeichens ist die Beschreibung seines Bilds.
+      const links = [...element.querySelectorAll('a')].map((link) => ({ name: link.getAttribute('aria-label') ?? link.querySelector('img')?.alt ?? link.textContent.trim(), hoehe: Math.round(link.getBoundingClientRect().height), ziel: link.getAttribute('href') }));
       return { da: !element.hidden && kasten.height > 0, unten: Math.round(window.innerHeight - kasten.bottom), links, name: element.getAttribute('aria-label') };
     });
-    pruefe(leiste.da && leiste.unten >= 0 && leiste.links.length === 2 && leiste.links.every((link) => link.hoehe >= 48),
+    pruefe(leiste.da && leiste.unten >= 0 && leiste.links.length === 3 && leiste.links.every((link) => link.hoehe >= 48),
       `${breite} px, ${wort}: Leiste unten nach dem ersten Bildschirm da („${leiste.name}“; ${leiste.links.map((link) => `${link.name} ${link.hoehe} px nach ${link.ziel}`).join(', ')})`);
-    // Tastatur: Die zwei Links der Leiste sind mit Tab erreichbar.
+    // Tastatur: Die drei Links der Leiste (Logo, App Store, Google Play) sind mit Tab erreichbar.
     let erreicht = 0;
-    for (let nummer = 0; nummer < 120 && erreicht < 2; nummer++) {
+    for (let nummer = 0; nummer < 120 && erreicht < 3; nummer++) {
       await seite.keyboard.press('Tab');
       if (await seite.evaluate(() => Boolean(document.activeElement.closest('[data-kurzleiste]')))) erreicht++;
     }
-    pruefe(erreicht === 2, `${breite} px, ${wort}: beide Links der Leiste mit Tab erreichbar`);
+    pruefe(erreicht === 3, `${breite} px, ${wort}: alle drei Links der Leiste mit Tab erreichbar`);
     // Seitenende: Weder Leiste noch Knopf "Bewegung anhalten" verdecken Text oder Links des Fußes.
     await seite.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }));
     await warte(300);
@@ -736,7 +741,8 @@ for (const breite of [360, 412]) {
       const zahlen = (wert) => { const teile = wert.match(/[\d.]+/g).map(Number); return { r: teile[0], g: teile[1], b: teile[2], a: teile.length > 3 ? teile[3] : 1 }; };
       const hell = ({ r, g, b }) => { const kanal = (wert) => { const anteil = wert / 255; return anteil <= 0.03928 ? anteil / 12.92 : ((anteil + 0.055) / 1.055) ** 2.4; }; return 0.2126 * kanal(r) + 0.7152 * kanal(g) + 0.0722 * kanal(b); };
       const grund = (element) => { for (let teil = element; teil; teil = teil.parentElement) { const farbe = zahlen(getComputedStyle(teil).backgroundColor); if (farbe.a === 1) return farbe; } return { r: 255, g: 255, b: 255 }; };
-      return ['.kurzleiste-knopf span', '.abschluss-beta', '.abschluss-text p', '.abschluss .bald span'].map((auswahl) => {
+      // Seit AP-105 trägt die Leiste und der Abschluss keine Knöpfe mit Text mehr, nur die Abzeichen (Bilder der Stores).
+      return ['.abschluss-beta', '.abschluss-text p'].map((auswahl) => {
         const element = document.querySelector(auswahl);
         const [a, b] = [hell(zahlen(getComputedStyle(element).color)), hell(grund(element))].sort((x, y) => y - x);
         return { auswahl, wert: (a + 0.05) / (b + 0.05) };
