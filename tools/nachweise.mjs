@@ -724,11 +724,27 @@ for (const breite of [320, 360, 412]) {
       if (await seite.evaluate(() => Boolean(document.activeElement.closest('[data-kurzleiste]')))) erreicht++;
     }
     pruefe(erreicht === 3, `${breite} px, ${wort}: alle drei Links der Leiste mit Tab erreichbar`);
-    // Seitenende: Weder Leiste noch Knopf "Bewegung anhalten" verdecken Text oder Links des Fußes.
+    // Den Fokus wieder lösen: Solange ein Link der Leiste den Fokus hat, bleibt sie mit Absicht sichtbar (AP-108, 3b).
+    await seite.evaluate(() => document.activeElement?.blur());
+    // AP-108, Nachtrag 3b: Kommt der Fuß ins Bild, blendet sich die Leiste aus, hier mit "Bewegung reduzieren" sofort
+    // (ohne Übergang); beim Zurückrollen ist sie wieder da. Die Seite wird dabei nicht höher oder kürzer.
+    const fussOben = await seite.evaluate(() => document.querySelector('footer').getBoundingClientRect().top + window.scrollY);
+    const leisteBei = async (hoehe) => {
+      await seite.evaluate((ziel) => window.scrollTo({ top: ziel, behavior: 'instant' }), hoehe);
+      await warte(150);
+      return seite.evaluate(() => { const l = document.querySelector('[data-kurzleiste]'); const stil = getComputedStyle(l); return { sichtbar: !l.hidden && Number(stil.opacity) > 0, klick: stil.pointerEvents, dauer: stil.transitionDuration, hoehe: document.documentElement.scrollHeight }; });
+    };
+    const vorFuss = await leisteBei(fussOben - ansicht.height - 40);
+    const amFuss = await leisteBei(fussOben - ansicht.height + 60);
+    const zurueck = await leisteBei(fussOben - ansicht.height - 200);
+    pruefe(vorFuss.sichtbar && !amFuss.sichtbar && amFuss.klick === 'none' && zurueck.sichtbar && vorFuss.hoehe === amFuss.hoehe && amFuss.dauer.split(',').every((dauer) => parseFloat(dauer) === 0),
+      `${breite} px, ${wort}: Leiste blendet sich aus, sobald der Fuß ins Bild kommt (mit „Bewegung reduzieren“ ohne Übergang, ${amFuss.dauer}), und beim Zurückrollen wieder ein; Seitenhöhe gleich`);
+    // Seitenende: Weder Leiste noch Knopf "Bewegung anhalten" verdecken Text oder Links des Fußes (gezählt wird nur, was
+    // zu sehen ist: Seit AP-108 ist die Leiste am Fuß durchsichtig).
     await seite.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }));
     await warte(300);
     const verdeckt = await seite.evaluate(() => {
-      const decken = [...document.querySelectorAll('[data-kurzleiste], [data-bewegung]')].filter((element) => !element.hidden).map((element) => element.getBoundingClientRect());
+      const decken = [...document.querySelectorAll('[data-kurzleiste], [data-bewegung]')].filter((element) => !element.hidden && Number(getComputedStyle(element).opacity) > 0).map((element) => element.getBoundingClientRect());
       // Die Leiste steht im main; ihre eigenen Links verdecken sich nicht selbst und zählen deshalb nicht mit.
       return [...document.querySelectorAll('footer a, footer p, footer h2, main a, main p')].filter((element) => !element.closest('[data-kurzleiste], [data-bewegung]')).filter((element) => {
         const f = element.getBoundingClientRect();
@@ -782,7 +798,7 @@ for (const breite of [320, 360, 412]) {
         if (knopf.hidden) { funde.push('Knopf ausgeblendet'); break; }
         const k = knopf.getBoundingClientRect();
         const leiste = document.querySelector('[data-kurzleiste]');
-        if (!leiste.hidden) {
+        if (!leiste.hidden && Number(getComputedStyle(leiste).opacity) > 0) {
           const l = leiste.getBoundingClientRect();
           abstand = Math.min(abstand, l.top - k.bottom);
           if (ueber(k, l)) funde.push(`${hoehe}: Leiste`);
@@ -799,6 +815,23 @@ for (const breite of [320, 360, 412]) {
     pruefe(reihe.join(',') === 'a,a,button,Knopf' && knopfLage.name === 'Bewegung anhalten', `${breite} px, ${wort}: Knopf „${knopfLage.name}“ an vierter Stelle mit Tab (${reihe.join(', ')})`);
     pruefe(knopfLage.funde.length === 0 && knopfLage.abstand >= 12, `${breite} px, ${wort}: Knopf „Bewegung anhalten“ deckt beim Rollen durch das Seitenende (${knopfLage.stellen} Stellen) weder Leiste noch Fuß ab, mindestens ${knopfLage.abstand} px über der Leiste${knopfLage.funde.length ? ` (überdeckt: ${knopfLage.funde.slice(0, 3).join('; ')})` : ''}`);
     pruefe(knopfLage.beta.join(',') === 'Fuß' && !knopfLage.abschluss, `${breite} px, ${wort}: Hinweis zur Beta genau einmal sichtbar, im Fuß (${knopfLage.beta.join(', ') || 'keiner'}); kein Abschluss`);
+    // Nachtrag 3b mit Bewegung: Die Leiste gleitet am Fuß sanft hinaus (Übergang über 0 s) und der Knopf bleibt dabei stehen.
+    const sanft = await seite.evaluate(async () => {
+      const bild = () => new Promise((weiter) => requestAnimationFrame(() => requestAnimationFrame(weiter)));
+      const oben = document.querySelector('footer').getBoundingClientRect().top + window.scrollY;
+      const leiste = document.querySelector('[data-kurzleiste]');
+      const knopf = document.querySelector('[data-bewegung]');
+      window.scrollTo({ top: oben - window.innerHeight - 40, behavior: 'instant' });
+      await new Promise((weiter) => setTimeout(weiter, 500));
+      const knopfVor = Math.round(knopf.getBoundingClientRect().top);
+      window.scrollTo({ top: oben - window.innerHeight + 60, behavior: 'instant' });
+      await bild();
+      const dauer = getComputedStyle(leiste).transitionDuration;
+      await new Promise((weiter) => setTimeout(weiter, 500));
+      return { dauer, deckkraft: Number(getComputedStyle(leiste).opacity), knopfVor, knopfNach: Math.round(knopf.getBoundingClientRect().top) };
+    });
+    pruefe(sanft.dauer.split(',').some((dauer) => parseFloat(dauer) > 0) && sanft.deckkraft === 0 && sanft.knopfVor === sanft.knopfNach,
+      `${breite} px, ${wort}: am Fuß gleitet die Leiste sanft hinaus (${sanft.dauer}), der Knopf bleibt stehen (${sanft.knopfVor} / ${sanft.knopfNach} px)`);
     await umgebung.close();
   }
 }

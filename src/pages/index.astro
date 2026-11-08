@@ -461,20 +461,25 @@ const posterQuellen = (format) => [360, 720].map((breite) => `${filmOrt}-${forma
   });
 
   // Leiste unten am Handy: erscheint, sobald der erste Bildschirm durchgescrollt ist, und nur unter 56rem Breite
-  // (darüber blendet sie start.css aus). Sie ist ein eigener Bereich mit zwei Links; am Seitenende hält start.css
-  // Platz für sie frei.
+  // (darüber blendet sie start.css aus). Sie ist ein eigener Bereich mit drei Links (Logo und zwei Abzeichen).
+  // Seit AP-108 (Nachtrag 3b, Alis Wunsch vom 08.11.2026): Sobald der Fuß mit den Abzeichen ins Bild kommt, blendet
+  // sich die Leiste aus ("data-am-fuss", start.css: sanft, mit "Bewegung reduzieren" ohne Übergang) und beim
+  // Zurückrollen wieder ein. Sie bleibt dabei im Dokument; bekommt ein Link darin den Fokus, ist sie wieder zu sehen.
   const leiste = document.querySelector('[data-kurzleiste]');
+  const fussZeile = document.querySelector('footer');
   const schmal = window.matchMedia('(max-width: 55.99rem)');
   const leisteZeigen = () => {
     const zeigen = schmal.matches && window.scrollY > window.innerHeight * 0.9;
     if (leiste.hidden === zeigen) leiste.hidden = !zeigen;
+    const amFuss = Boolean(fussZeile) && fussZeile.getBoundingClientRect().top < window.innerHeight;
+    if (leiste.hasAttribute('data-am-fuss') !== amFuss) leiste.toggleAttribute('data-am-fuss', amFuss);
     knopfPlanen();
   };
   window.addEventListener('scroll', leisteZeigen, { passive: true });
   schmal.addEventListener('change', leisteZeigen);
   window.addEventListener('resize', knopfPlanen);
-  // Klappt eine Frage auf oder zu, wandert der Fuß ohne Rollen; der angedockte Knopf zieht mit.
-  if ('ResizeObserver' in window) new ResizeObserver(knopfPlanen).observe(document.body);
+  // Klappt eine Frage auf oder zu, wandert der Fuß ohne Rollen; Leiste und angedockter Knopf ziehen mit.
+  if ('ResizeObserver' in window) new ResizeObserver(leisteZeigen).observe(document.body);
   leisteZeigen();
 
   // Knopf "Bewegung anhalten" am Handy (AP-108): Er steht mit Abstand über der Leiste (start.css) und deckt den Fuß nicht

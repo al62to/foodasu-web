@@ -309,10 +309,13 @@ a.bald { text-decoration: none; }
 .faq details > div { padding: 0 0 0.75rem; }
 
 /* 11 Leiste unten am Handy: nach dem ersten Bildschirm, schmal und fest unten, mit Logo und Knopf. Am Laptop gibt es sie
-   nicht. Am Seitenende hält die Seite Platz frei, damit sie nichts verdeckt; der Knopf "Bewegung anhalten" rückt dann
-   über die Leiste. */
+   nicht. Kommt der Fuß ins Bild, blendet sie sich aus (seit AP-108; vorher hielt das Seitenende Platz für sie frei); der
+   Knopf "Bewegung anhalten" steht über ihr. */
 .kurzleiste { position: fixed; left: 0.75rem; right: 0.75rem; bottom: 0.875rem; z-index: 41; display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; min-height: 4rem; padding: 0.5rem 0.625rem 0.5rem 1.25rem; border: 1px solid var(--tone-deep); border-radius: 999px; background: var(--karte); box-shadow: 0 18px 40px -18px rgb(var(--schatten) / 0.45); }
 .kurzleiste[hidden] { display: none; }
+/* AP-108, Nachtrag 3b: Am Fuß (Skript der Startseite, "data-am-fuss") ist die Leiste unsichtbar und nimmt keine Klicks an;
+   mit dem Fokus der Tastatur auf einem ihrer Links ist sie wieder da. Der Übergang steht unten bei der Bewegung. */
+.kurzleiste[data-am-fuss]:not(:focus-within) { opacity: 0; translate: 0 1.5rem; pointer-events: none; }
 .kurzleiste-marke { display: inline-flex; align-items: center; min-height: 3rem; line-height: 0; }
 .kurzleiste-marke svg { height: 1.5rem; width: auto; }
 /* Farben des Schriftzugs wie in Kopf und Fuß (.marke in basis.css), damit er auch im dunklen Modus lesbar ist. */
@@ -333,14 +336,12 @@ a.bald { text-decoration: none; }
 }
 @media (min-width: 56rem) { .kurzleiste, .kurzleiste[hidden] { display: none; } }
 @media (max-width: 55.99rem) {
-  /* Der Platz am Seitenende ist von Anfang an frei (die Leiste erscheint erst beim Scrollen; sonst wüchse die Seite
-     erst, wenn man schon unten ist). */
-  .js body:has(.kurzleiste) { padding-bottom: 5.75rem; }
   /* AP-108: Der Knopf "Bewegung anhalten" steht 1rem über der Leiste (vorher 5.6rem, gut 5 px Abstand). Erreicht der
      Fuß den Knopf, bleibt er auf der Linie über dem Fuß (Skript der Startseite, Klasse "angedockt") und deckt den
-     Fußtext nicht ab; darum braucht das Seitenende nur noch Platz für die Leiste. */
+     Fußtext nicht ab. Die Leiste blendet sich aus, sobald der Fuß ins Bild kommt (Nachtrag 3b); darum braucht das
+     Seitenende keinen freien Platz mehr (bis AP-108 5.75rem, mit dem Knopf 9.25rem). */
   .js body:has(.kurzleiste:not([hidden])) .bewegung-knopf { bottom: 6.25rem; }
-  .js body:has(.kurzleiste):has(.bewegung-knopf:not([hidden])) { padding-bottom: 5.75rem; }
+  .js body:has(.kurzleiste), .js body:has(.kurzleiste):has(.bewegung-knopf:not([hidden])) { padding-bottom: 0; }
   .bewegung-knopf.angedockt, .js body:has(.kurzleiste:not([hidden])) .bewegung-knopf.angedockt { position: absolute; bottom: auto; }
 }
 
@@ -363,7 +364,7 @@ a.bald { text-decoration: none; }
   .faq summary::after, .funktion summary::after { transition: rotate 0.2s; }
   .einblick-karte .geraet, .schritt-bild .geraet { transition: translate 0.35s cubic-bezier(0.22, 1, 0.36, 1); }
   .einblick-karte:hover .geraet, .einblick-karte:focus-within .geraet, .schritt:hover .geraet, .schritt:focus-within .geraet { translate: 0 -0.5rem; }
-  /* Die Leiste unten gleitet herein. */
+  /* Die Leiste unten gleitet herein, am Fuß hinaus und beim Zurückrollen wieder herein (AP-108). */
   .kurzleiste { transition: translate 0.3s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s; }
   @starting-style { .kurzleiste { translate: 0 1.5rem; opacity: 0; } }
   /* Knopf "Bewegung anhalten": Die Schleifen bleiben stehen, wo sie sind; das Hereinkommen der Begriffe läuft zu Ende. */
