@@ -91,6 +91,15 @@
 .g-wo svg { flex: none; width: 1.1rem; height: 1.1rem; margin-top: 0.1rem; color: var(--main); }
 .g-wo b { font-weight: 800; }
 .g-wo i { font-style: normal; font-weight: 800; color: var(--main); }
+/* Sehr große Schrift (AP-116b): Ist die Seite schmaler als 19,5em (bei normaler Schrift nie), wird eine Karte nie
+   breiter als ihre Spalte (der Handy-Rahmen hat schon max-width: 100 %), und Karten und „In der App“ trennen lange
+   Wörter, damit nichts über den Bildschirm ragt. */
+@media (max-width: 19.5em) {
+  .g-karte, .g-foto, .g-funktion .r-stufen { grid-template-columns: minmax(0, 1fr); }
+  .g-worte { hyphens: auto; overflow-wrap: break-word; }
+  .g-wo span { min-width: 0; }
+  .g-mehr .chip { hyphens: auto; overflow-wrap: break-word; }
+}
 .g-funktion .r-stufen { margin: 1rem 0 0; }
 .g-funktion .r-stufen div { background: var(--karte); }
 @media (min-width: 48rem) { .g-funktion .r-stufen { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

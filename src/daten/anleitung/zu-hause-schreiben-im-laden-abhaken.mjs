@@ -38,7 +38,9 @@ export default {
         { name: 'Ohne Scannen', text: 'Aufschreiben und Abhaken gehen ganz ohne Kamera. Scannen kannst du, musst du aber nicht.' },
         { name: 'Ohne Internet', text: 'Die Liste liegt auf deinem Handy. Zum Aufschreiben und Abhaken brauchst du kein Internet.' },
         { name: 'Mit Hinweisen', text: 'Betrifft ein Eintrag jemanden in deinem Haushalt, steht ein Hinweis dabei. Das ist ein Hinweis, kein Urteil.' },
-        { name: 'Für andere', text: 'Mit „Als Text teilen“ schickst du die offenen Einträge an jemanden, der für dich einkaufen geht.' },
+        // Seit 0.22.0 gibt es den Menüpunkt „Als Text teilen“ nicht mehr (Blatt „Liste schicken“); Entwurf zu Alis Ja
+        // (Bericht AP-116b), vorher: „Mit „Als Text teilen“ schickst du die offenen Einträge an jemanden, …“.
+        { name: 'Für andere', text: 'Mit „Liste schicken“ bekommt jemand, der für dich einkaufen geht, die Liste als Link oder nur als Text.' },
       ],
     },
     {
@@ -55,7 +57,7 @@ export default {
   verweise: [
     { text: 'Einkaufslisten', ziel: '/so-gehts/einkaufslisten/' },
     { text: 'Abhaken', ziel: '/so-gehts/einkaufslisten/#abhaken' },
-    { text: 'Als Text teilen', ziel: '/so-gehts/einkaufslisten/#als-text-teilen' },
+    { text: 'Liste per Link schicken', ziel: '/so-gehts/einkaufslisten/#liste-per-link' },
     { text: '„Was kann ich damit kochen?“', ziel: '/so-gehts/einkaufslisten/#was-kann-ich-damit-kochen' },
   ],
 };

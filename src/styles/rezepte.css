@@ -11,6 +11,14 @@
 /* Sehr große Schrift (AP-116): Ist die Seite schmaler als 19,5em, stehen die drei Angaben untereinander statt
    Buchstabe für Buchstabe; bei normaler Schrift (ab 320 px sind das mindestens 20em) greift das nie. */
 @media (max-width: 19.5em) { .r-angaben { grid-template-columns: minmax(0, 1fr); } }
+/* Sehr große Schrift (AP-116b): Schritte und Suchleiste werden nie breiter als die Spalte, die Nummer eines Schritts
+   steht über dem Text, lange Wörter trennen sich. Reiterleiste und Nährwerttabelle rollen schon in sich waagrecht. */
+@media (max-width: 19.5em) {
+  .r-schritte, .f-leiste { grid-template-columns: minmax(0, 1fr); }
+  .r-schritte li { flex-direction: column; }
+  .r-schritte li > * { min-width: 0; }
+  .r-schritte, .f-leiste { hyphens: auto; overflow-wrap: break-word; }
+}
 .r-angaben dd { margin: 0.2rem 0 0; font-size: clamp(1.15rem, 2.6vw, 1.75rem); font-weight: 800; line-height: 1.15; letter-spacing: -0.01em; color: var(--main); hyphens: manual; }
 .r-zeile { display: flex; flex-wrap: wrap; gap: 0 0.6rem; margin: 1.1rem 0 0; font-size: 0.95rem; color: var(--muted); }
 .r-zeile div { display: flex; align-items: baseline; gap: 0.35rem; }

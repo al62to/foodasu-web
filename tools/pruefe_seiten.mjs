@@ -988,6 +988,13 @@ else {
   for (const eintrag of kapitel) if (!soGehts.includes(`href="${kapitelAdresse(eintrag)}"`)) melde(BEREICH, `Kachel für „${eintrag.titel}“ fehlt`);
 }
 if (kapitel.length !== KAPITEL_ZAHL) melde(BEREICH, `${KAPITEL_ZAHL} Kapitel erwartet, gefunden: ${kapitel.length}`);
+// Anker früherer Teile, die in einem anderen Teil aufgegangen sind (Adressen und Anker bleiben dauerhaft gleich).
+const FESTE_ALTE_ANKER = { einkaufslisten: ['vom-einkauf-zum-kochen', 'als-text-teilen'] };
+for (const [slug, marken] of Object.entries(FESTE_ALTE_ANKER)) {
+  const eintrag = kapitel.find((k) => k.slug === slug);
+  const da = new Set((eintrag?.teile ?? []).flatMap((teil) => [teil.anker, ...(teil.alteAnker ?? [])]));
+  for (const marke of marken) if (!da.has(marke)) melde(`${BEREICH}${slug}/`, `Anker #${marke} ist nicht mehr erreichbar`);
+}
 kapitel.forEach((eintrag, stelle) => {
   const adresse = kapitelAdresse(eintrag);
   const html = seiten.get(adresse);
@@ -997,6 +1004,11 @@ kapitel.forEach((eintrag, stelle) => {
   for (const teil of eintrag.teile) {
     if (!text.includes(teil.titel)) melde(adresse, `Abschnitt „${teil.titel}“ fehlt`);
     if (!new RegExp(`<h2 id="${teil.anker}"`).test(html)) melde(adresse, `Anker fehlt: #${teil.anker}`);
+    // Alte Anker bleiben dauerhaft erreichbar: als leeres Element am Anfang des Teils, nicht im Inhaltsverzeichnis.
+    for (const marke of teil.alteAnker ?? []) {
+      if (!new RegExp(`<span id="${marke}" class="g-alt-anker"></span>`).test(html)) melde(adresse, `alter Anker fehlt: #${marke}`);
+      if (html.includes(`href="#${marke}"`)) melde(adresse, `alter Anker #${marke} steht im Inhaltsverzeichnis`);
+    }
     if ((teil.funktionen ?? []).length > 0 && !(teil.nutzen && teil.wo)) melde(adresse, `Abschnitt „${teil.titel}“ ohne Nutzen oder ohne Weg in der App`);
   }
   const wege = eintrag.teile.filter((teil) => teil.wo).length;
