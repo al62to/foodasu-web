@@ -58,9 +58,23 @@
  "liste_erledigte_loeschen_01": {
   "breite": 720,
   "hoehe": 1395,
-  "zeigt": "Menü „Weitere Aktionen“ der Liste: „Was kann ich damit kochen?“, „Als Text teilen“, „Erledigte löschen“, „Umbenennen“, „Neue Liste“, „Liste löschen“",
+  "zeigt": "Menü „Weitere Aktionen“ der Liste: „Was kann ich damit kochen?“, „Erledigte löschen“, „Umbenennen“, „Neue Liste“, „Liste löschen“; darunter der Knopf „Liste schicken“",
   "weich": false,
-  "aufnahme": "10.10.2026 14:43"
+  "aufnahme": "09.11.2026 17:45"
+ },
+ "liste_link_01": {
+  "breite": 720,
+  "hoehe": 1395,
+  "zeigt": "Blatt „Liste schicken“ der Liste „Grillabend“ mit der Notiz „Bitte frisches Brot holen“ und den Knöpfen „Schicken“, „QR-Code zeigen“ und „Nur als Text“",
+  "weich": false,
+  "aufnahme": "09.11.2026 17:45"
+ },
+ "liste_link_02": {
+  "breite": 720,
+  "hoehe": 1395,
+  "zeigt": "Liste „Wocheneinkauf“, nachdem Mama sie zurückgeschickt hat: oben „Notiz von Mama“, darunter der Knopf „Liste schicken“, Tomaten „nicht bekommen von Mama“ und im Bereich „Erledigt“ Einträge mit „erledigt von Mama“",
+  "weich": false,
+  "aufnahme": "09.11.2026 17:42"
  },
  "liste_hinweise_01": {
   "breite": 720,
@@ -107,9 +121,9 @@
  "einstellungen_dunkel_01": {
   "breite": 720,
   "hoehe": 1395,
-  "zeigt": "Einstellungen mit eingeschaltetem Schalter „Dunkler Modus“: Die App ist sofort dunkel",
+  "zeigt": "Einstellungen im dunklen Erscheinungsbild mit der Auswahl „Erscheinungsbild“: „Wie Handy“, „Hell“ und „Dunkel“, gewählt ist „Dunkel“",
   "weich": false,
-  "aufnahme": "14.10.2026 07:32"
+  "aufnahme": "09.11.2026 17:50"
  },
  "haushalt_person_06": {
   "breite": 720,

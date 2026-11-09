@@ -17,7 +17,7 @@
 // steht ihr Name als Text da, und der Link zeigt auf /lizenzen/.
 // Zuschnitt (Entscheidung vom 10.10.2026): Die Anleitung zeigt, was die App kann und wo man es findet. Sie nennt
 // keine nummerierten Schrittfolgen und keine Regeln, nach denen Urteil, Hinweise oder Sortierung entstehen. Bilder
-// gibt es nur bei den wichtigen Funktionen, höchstens eines je Abschnitt und höchstens 45 im ganzen Bereich.
+// gibt es nur bei den wichtigen Funktionen, höchstens eines je Abschnitt und höchstens 47 im ganzen Bereich (bis AP-116 45).
 //
 // Anker: Jeder Abschnitt hat einen festen Anker ("anker"). Ab 0.15 öffnet das Fragezeichen der App die Seite zum
 // aktuellen Bildschirm; Adressen und Anker bleiben deshalb gleich, auch wenn sich ein Titel ändert. "alteAnker" nennt
@@ -141,8 +141,9 @@ for (const eintrag of kapitel) {
   if (grosse < 1 || grosse > 2) fehler.push(`${eintrag.slug}: eine oder zwei große Karten je Kapitel, gefunden: ${grosse}`);
   if (!eintrag.teile.some((teil) => (teil.fotos ?? []).some((foto) => foto.datei === eintrag.leitbild))) fehler.push(`${eintrag.slug}: Leitbild „${eintrag.leitbild}“ ist kein Bild des Kapitels`);
 }
-// Höchstens 45 Bilder im ganzen Bereich, die Schleifen mitgezählt.
-export const BILDER_HOECHSTENS = 45;
+// Höchstens 45 Bilder im ganzen Bereich, die Schleifen mitgezählt; seit AP-116 (Auftrag der PL vom 09.11.2026: zwei
+// Bilder zu „Liste per Link schicken“) 47.
+export const BILDER_HOECHSTENS = 47;
 export const bilderZahl = kapitel.reduce((summe, eintrag) => summe + eintrag.teile.reduce((zahl, teil) => zahl + (teil.fotos ?? []).length, 0) + (eintrag.film ? 1 : 0), 0);
 if (bilderZahl > BILDER_HOECHSTENS) fehler.push(`${bilderZahl} Bilder, höchstens ${BILDER_HOECHSTENS}`);
 // Verweise innerhalb der Anleitung müssen auf ein Kapitel und, mit Anker, auf einen Abschnitt zeigen.
