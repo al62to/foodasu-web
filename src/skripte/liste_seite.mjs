@@ -65,6 +65,7 @@ const teil = {
   entfernen: $('[data-l-entfernen]'),
   qr: $('[data-l-qr]'),
   qrBild: $('[data-l-qr-bild]'),
+  appOeffnen: $('[data-l-app-oeffnen]'),
 };
 const symbol = (name) => document.querySelector(`template[data-l-symbol="${name}"]`).content.firstElementChild.cloneNode(true);
 const element = (marke, klasse, text) => {
@@ -142,7 +143,7 @@ const nameVon = (id) => (id && hat(standVon().a, id) ? standVon().a[id] : '');
 const absender = () => nameVon(standVon().by);
 
 function alleAusblenden() {
-  for (const bereich of [teil.hinweis, teil.ohneSpeicher, teil.name, teil.liste, teil.zurueck, teil.browser, teil.qr, kopf.stand, kopf.wachZeile, kopf.neuer, teil.hinweisWeiter, teil.hinweisOeffnen]) bereich.hidden = true;
+  for (const bereich of [teil.hinweis, teil.ohneSpeicher, teil.name, teil.liste, teil.zurueck, teil.browser, teil.qr, kopf.stand, kopf.wachZeile, kopf.neuer, teil.hinweisWeiter, teil.hinweisOeffnen, teil.appOeffnen]) bereich.hidden = true;
 }
 
 function zeigeHinweis(texte, werte = {}, { ueberzeile = T.ueberzeileOhneName, weiter = null } = {}) {
@@ -213,6 +214,7 @@ async function oeffnen() {
   zeigeName(!zustand.datensatz.name && !zustand.datensatz.gefragt);
   wachZeigen();
   zeigeQr();
+  zeigeAppOeffnen();
   dienstAnmelden();
 }
 
@@ -551,7 +553,17 @@ async function zeigeQr() {
     dienstMerken();
   } catch { teil.qr.hidden = true; }
 }
-computer.addEventListener('change', () => { zeigeQr(); });
+computer.addEventListener('change', () => { zeigeQr(); zeigeAppOeffnen(); });
+
+// ---- „In FoodAsu öffnen“ in der Liste (AP-113, Vorgabe 6.4) ----------------------------------------------------
+
+// Gebaut wie auf der kurzen Seite zum Umschlag h: dieselbe https-Adresse samt Teil hinter dem # (location.href); wo
+// die App installiert und mit foodasu.com verknüpft ist (Android App Links, iPhone Universal Links), öffnet sie die
+// App. Nur in der Ansicht einer Liste und nicht am Computer: Dort gibt es keine App, dafür den QR-Code.
+function zeigeAppOeffnen() {
+  teil.appOeffnen.href = location.href;
+  teil.appOeffnen.hidden = !zustand || computer.matches;
+}
 
 // ---- Ohne Netz nach dem ersten Öffnen (Service Worker nur für /l/) ---------------------------------------------
 

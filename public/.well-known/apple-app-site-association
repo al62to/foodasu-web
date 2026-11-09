@@ -1,0 +1,25 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "8Z7PV9R6WY.at.tonc.foodasu",
+        "appIDs": [
+          "8Z7PV9R6WY.at.tonc.foodasu"
+        ],
+        "paths": [
+          "/l/*",
+          "/p/*"
+        ],
+        "components": [
+          {
+            "/": "/l/*"
+          },
+          {
+            "/": "/p/*"
+          }
+        ]
+      }
+    ]
+  }
+}

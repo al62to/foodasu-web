@@ -101,6 +101,9 @@ const linien = { fill: 'none', stroke: 'currentColor', 'stroke-width': '2.6', 's
       <div class="l-app-text">
         <h2 id="l-app-titel">{t.app.titel}</h2>
         <p>{t.app.satz}</p>
+        {/* „In FoodAsu öffnen“ (AP-113, Vorgabe 6.4): wie auf der kurzen Seite zum Umschlag h ein Link, dem das Skript
+            die Adresse der geöffneten Seite samt Teil hinter dem # gibt; ohne JavaScript bleibt er verborgen. */}
+        <a class="knopf rand l-app-oeffnen" data-l-app-oeffnen href={t.adresse} hidden>{s.haekchen.oeffnen}</a>
         <div class="l-app-zeile"><StoreAbzeichen ort="liste" /></div>
       </div>
       <figure class="l-qr" data-l-qr hidden>

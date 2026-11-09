@@ -1888,7 +1888,45 @@ if (existsSync(EXPORT)) {
   const skript = [...listeSkripte].map((pfad) => readFileSync(join(DIST, pfad), 'utf8')).join('\n');
   if (!/register\(\s*["'`]\/l\/sw\.js["'`]\s*,\s*\{\s*scope:\s*["'`]\/l\/["'`]/.test(skript)) melde(LISTE, 'Service Worker nicht mit dem Bereich /l/ angemeldet');
   if (!skript.includes('foodasu-liste-')) melde(LISTE, 'Schlüssel foodasu-liste- im Skript nicht gefunden');
+  // 5. „In FoodAsu öffnen“ (AP-113, Vorgabe 6.4): auf der kurzen Seite zum Umschlag h und in der Karte zur App je ein
+  //    verborgener Link mit dem Wortlaut aus listeTexte.haekchen.oeffnen; in der Karte als sekundärer Knopf (Rand).
+  //    Die Adresse (location.href) setzt das Skript; ob sie stimmt, prüft tools/liste_oeffnen_pruefen.mjs im Browser.
+  const oeffnen = listeTexte.haekchen.oeffnen;
+  const karte = html.match(/<section class="l-app[\s\S]*?<\/section>/)?.[0] ?? '';
+  if (!new RegExp(`<a class="knopf rand l-app-oeffnen" data-l-app-oeffnen href="${LISTE}" hidden>${oeffnen}</a>`).test(karte)) melde(LISTE, `Karte zur App: verborgener Knopf „${oeffnen}“ (knopf rand, href ${LISTE}) fehlt oder weicht ab`);
+  if (!new RegExp(`<a class="knopf voll l-oeffnen" data-l-hinweis-oeffnen href="${LISTE}" hidden>${oeffnen}</a>`).test(html)) melde(LISTE, `kurze Seite zum Umschlag h: verborgener Knopf „${oeffnen}“ fehlt oder weicht ab`);
+  if (alle(html, new RegExp(`>${oeffnen}<`, 'g')).length !== 2) melde(LISTE, `„${oeffnen}“ soll genau zweimal im HTML stehen (Umschlag h und Karte zur App)`);
+  if (!skript.includes('location.href')) melde(LISTE, 'location.href im Skript nicht gefunden (Adresse für „In FoodAsu öffnen“)');
 }
+// /.well-known/apple-app-site-association (AP-113, Vorgabe 6.4): iPhone Universal Links für /l/ und /p/, nicht /c/,
+// nur die App FoodAsu (nicht die Testfassung). JSON ohne Dateiendung, aus public/ in den Bau kopiert wie
+// assetlinks.json; neues Format (appIDs, components) und für ältere iOS-Fassungen das alte (apps, appID, paths).
+const AASA = '/.well-known/apple-app-site-association';
+const AASA_ERWARTET = {
+  applinks: {
+    apps: [],
+    details: [{
+      appID: '8Z7PV9R6WY.at.tonc.foodasu',
+      appIDs: ['8Z7PV9R6WY.at.tonc.foodasu'],
+      paths: ['/l/*', '/p/*'],
+      components: [{ '/': '/l/*' }, { '/': '/p/*' }],
+    }],
+  },
+};
+{
+  const datei = join(DIST, '.well-known', 'apple-app-site-association');
+  if (!existsSync(datei)) melde(AASA, 'fehlt im Bau');
+  else {
+    const roh = readFileSync(datei, 'utf8');
+    let wert = null;
+    try { wert = JSON.parse(roh); } catch { melde(AASA, 'kein gültiges JSON'); }
+    if (wert && JSON.stringify(wert) !== JSON.stringify(AASA_ERWARTET)) melde(AASA, `Inhalt weicht ab: ${JSON.stringify(wert).slice(0, 300)}`);
+    if (/\/c\/|\.test\b/.test(roh)) melde(AASA, 'nennt /c/ oder die Testfassung');
+    if (Buffer.byteLength(roh) > 128 * 1024) melde(AASA, 'größer als 128 KB (Grenze von Apple)');
+  }
+  if (!vorhanden.has('/.well-known/assetlinks.json')) melde('/.well-known/assetlinks.json', 'fehlt im Bau');
+}
+console.log(`Verknüpfung mit der App: ${AASA} (iPhone, /l/* und /p/*) und /.well-known/assetlinks.json (Android) im Bau`);
 console.log(`Seite für Listen ${LISTE}: Testfälle ${Object.entries(listePruefung.zahlen).filter(([weg]) => weg !== 'anzeige').map(([weg, arten]) => `${weg} ${Object.values(arten).reduce((summe, [gut]) => summe + gut, 0)}/${Object.values(arten).reduce((summe, [, zahl]) => summe + zahl, 0)}`).join(', ')} (ohne ${listePruefung.uebersprungen} Fälle „liste“), Daten aus der App ${exportGeprueft ? 'geprüft' : 'nicht geprüft'}, ${listeSkripte.size} Skripte der Seite mit Speicher und WhatsApp-Link, Service Worker ${LISTE_DIENST}`);
 
 // Zutaten und Zubereitung (AP-25 Nachbesserung, 11.10.2026): Warnung ohne Abbruch, wenn eine Zutat in keinem Schritt

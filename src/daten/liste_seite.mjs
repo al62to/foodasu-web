@@ -117,6 +117,7 @@ export const listeTexte = {
     titel: 'Liste von {von} zurück',
     titelOhneName: 'Liste zurück',
     fuer: 'Einkaufsliste für {absender}',
+    // Derselbe Wortlaut steht seit AP-113 auch in der Liste (Karte „FoodAsu fürs Handy“).
     oeffnen: 'In FoodAsu öffnen',
     text: '{von} hat {anzahl} Sachen auf deiner Liste abgehakt.',
     textEine: '{von} hat eine Sache auf deiner Liste abgehakt.',
