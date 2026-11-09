@@ -91,6 +91,8 @@ export default {
       funktionen: ['LISTE-09'],
       nutzen: 'Nach dem Einkauf räumst du alle abgehakten Einträge auf einmal weg. Was offen ist, bleibt für den nächsten Einkauf stehen.',
       wo: 'Liste > „Weitere Aktionen“ (drei Punkte) > „Erledigte löschen“',
+      // Menübild seit AP-116b hier (vorher bei „Als Text teilen“; Alis Ja 09.11.2026, 19:19).
+      fotos: [foto('liste_erledigte_loeschen_01', 'Das Menü der Liste mit „Erledigte löschen“')],
     },
     {
       titel: 'Liste umbenennen oder löschen',
@@ -100,26 +102,18 @@ export default {
       nutzen: 'Du gibst einer Liste einen anderen Namen oder löschst sie samt ihren Einträgen. Löschen lässt sich nicht rückgängig machen.',
       wo: 'Listen > drei Punkte an der Karte der Liste > „Umbenennen“ oder „Löschen“',
     },
-    {
-      titel: 'Als Text teilen',
-      anker: 'als-text-teilen',
-      symbol: 'teilen',
-      funktionen: ['LISTE-11'],
-      nutzen: 'Du schickst die offenen Einträge einer Liste als Text an eine App deiner Wahl, zum Beispiel an jemanden, der einkaufen geht. Was dein Haushalt meidet, steht nicht im Text.',
-      // Seit 0.22.0 im Blatt „Liste schicken“ (AP-113; Knopf in der Liste seit AP-116); vorher Menüpunkt „Als Text teilen“.
-      wo: 'Liste öffnen > „Liste schicken“ > „Nur als Text“',
-      fotos: [foto('liste_erledigte_loeschen_01', 'Das Menü der Liste, darunter „Liste schicken“')],
-    },
     // Liste per Link (AP-113, mit 0.22.0; AP-116). Erster Satz von „nutzen“ wie der Versionshinweis mit Alis Ja
-    // (09.11.2026, 12:44); die übrigen Sätze sind Entwurf zu Alis Ja (Bericht AP-116). Anker bleibt fest.
+    // (09.11.2026, 12:44), die übrigen Sätze mit Alis Ja vom 09.11.2026, 19:19. Anker bleibt fest. Der frühere Teil
+    // „Als Text teilen“ ist seit AP-116b hier enthalten („Nur als Text“ im Blatt); sein Anker bleibt erreichbar.
     {
       titel: 'Liste per Link schicken',
       anker: 'liste-per-link',
+      alteAnker: ['als-text-teilen'],
       symbol: 'teilen',
-      funktionen: ['LISTE-18'],
+      funktionen: ['LISTE-18', 'LISTE-11'],
       nutzen: 'Schick eine Einkaufsliste als Link oder QR-Code. Wer FoodAsu nicht hat, hakt im Browser ab, und die Häkchen kommen in deine Liste zurück.',
       wo: 'Listen > Teilen-Symbol neben den drei Punkten; Liste öffnen > „Liste schicken“',
-      absaetze: ['Eine Notiz kannst du mitschicken. Die Liste steckt im Link und geht an keinen Server.'],
+      absaetze: ['Eine Notiz kannst du mitschicken. Die Liste steckt im Link und geht an keinen Server. Mit „Nur als Text“ schickst du nur die offenen Einträge, ohne Link.'],
       fotos: [foto('liste_link_01', 'Das Blatt „Liste schicken“ mit Notiz')],
     },
     {
