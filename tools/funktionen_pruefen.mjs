@@ -4,19 +4,25 @@
 // einkauf-app/docs/berichte/funktionen_stand.md. Der Prüfer warnt nur: Er endet immer ohne Fehler und bricht keinen
 // Bau ab. Er läuft vor jedem neuen App-Release und vor jeder Änderung an "So geht's".
 // Aufruf: npm run funktionen (oder node tools/funktionen_pruefen.mjs [Zieldatei]).
-// Andere Orte über die Umgebung: FOODASU_APP (Ordner der App), FOODASU_PLAY (Ordner foodasu-play).
+// Orte relativ zum Repository (AP-116, am Mac): die App in ../App, foodasu-play in ../Material
+// (~/Projekte/FoodAsu/App und ~/Projekte/FoodAsu/Material). Andere Orte über die Umgebung: FOODASU_APP (Ordner der App),
+// FOODASU_PLAY (Ordner foodasu-play). Code der App liegt seit AP-61 auch im Kern (kern/src/<Quellsatz>/kotlin); ein Beleg
+// `Datei` gilt, wenn er unter app/src/main/java oder in einem der Quellsätze des Kerns steht.
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const wurzel = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const app = resolve(process.env.FOODASU_APP ?? join(wurzel, '../einkauf-app'));
-const play = resolve(process.env.FOODASU_PLAY ?? join(wurzel, '../foodasu-play'));
+const app = resolve(process.env.FOODASU_APP ?? join(wurzel, '../App'));
+const play = resolve(process.env.FOODASU_PLAY ?? join(wurzel, '../Material'));
 const liste = join(app, 'docs/Funktionsliste.md');
 const ziel = process.argv[2] ?? join(app, 'docs/berichte/funktionen_stand.md');
 const quelle = join(app, 'app/src/main');
 const kotlin = join(quelle, 'java/at/tonc/einkauf');
+// Quellsätze des Kerns mit Code der App (ohne Tests), in dieser Reihenfolge gesucht.
+const KERN = ['commonMain', 'androidMain', 'iosMain'].map((satz) => join(app, 'kern/src', satz, 'kotlin/at/tonc/einkauf'));
+const WURZELN = [kotlin, ...KERN];
 const bilderOrdner = join(play, 'So_gehts_Bilder');
 
 // Dateinamen, die einen Bildschirm, ein Blatt oder einen Dialog bauen.
@@ -98,10 +104,11 @@ function zeitpunkt(text) {
   return `${jahr}-${monat}-${tag}T${stunde ?? '23'}:${minute ?? '59'}:${stunde ? '00' : '59'}`;
 }
 
-// Bildschirmfotos einer Funktion: `datei.png` (Version, Datum, `Datei im Code`, weichgezeichnet).
+// Bildschirmfotos einer Funktion: `datei.png` (Version, Datum, `Datei im Code`, weichgezeichnet). Die Version darf
+// selbst Klammern enthalten („0.19.0 (1903) am Emulator“, AP-116: vorher endete die Angabe an der ersten Klammer).
 function bilderVon(wert) {
   const bilder = [];
-  for (const treffer of (wert ?? '').matchAll(/`([^`]+\.(?:png|jpg|jpeg|webp))`\s*\(([^)]*)\)/g)) {
+  for (const treffer of (wert ?? '').matchAll(/`([^`]+\.(?:png|jpg|jpeg|webp))`\s*\(((?:[^()]|\([^()]*\))*)\)/g)) {
     const angaben = treffer[2];
     bilder.push({
       datei: treffer[1],
@@ -123,7 +130,13 @@ function aenderungenSeit(pfad, seit) {
   } catch { return null; }
 }
 
-const pfadImCode = (angabe) => (angabe.startsWith('res/') || angabe === 'AndroidManifest.xml' ? join(quelle, angabe) : join(kotlin, angabe));
+// Pfad einer Angabe im Code: res/ und das Manifest unter app/src/main, sonst die erste Wurzel, in der es die Datei gibt
+// (App, dann Kern); gibt es sie nirgends, der Pfad in der App.
+const pfadImCode = (angabe) => {
+  if (angabe.startsWith('res/') || angabe === 'AndroidManifest.xml') return join(quelle, angabe);
+  return WURZELN.map((wurzelOrdner) => join(wurzelOrdner, angabe)).find((pfad) => existsSync(pfad)) ?? join(kotlin, angabe);
+};
+const inWurzeln = (angabe) => WURZELN.map((wurzelOrdner) => join(wurzelOrdner, angabe)).find((pfad) => existsSync(pfad));
 
 async function pruefen() {
   const z = [];
@@ -146,13 +159,13 @@ async function pruefen() {
   const { funktionen, bekannt } = listeLesen(text);
 
   // Bestand im Code
-  const alleDateien = dateien(kotlin);
-  const routen = [...(lies(join(kotlin, 'core/navigation/Routes.kt')) ?? '').matchAll(/data (?:object|class) (\w+Route)\b/g)].map((treffer) => treffer[1]);
+  const alleDateien = [...new Set(WURZELN.flatMap((wurzelOrdner) => dateien(wurzelOrdner)))];
+  const routen = [...(lies(inWurzeln('core/navigation/Routes.kt') ?? '') ?? '').matchAll(/data (?:object|class) (\w+Route)\b/g)].map((treffer) => treffer[1]);
   const einstellungen = [...new Set(alleDateien.filter((datei) => datei.endsWith('.kt')).flatMap((datei) =>
-    [...(lies(join(kotlin, datei)) ?? '').matchAll(/PreferencesKey\("([^"]+)"\)/g)].map((treffer) => treffer[1])))];
+    [...(lies(pfadImCode(datei)) ?? '').matchAll(/PreferencesKey\("([^"]+)"\)/g)].map((treffer) => treffer[1])))];
   const deutsch = textschluessel('values');
   const englisch = textschluessel('values-en');
-  const schritte = [...(lies(join(kotlin, 'intro/domain/IntroPlan.kt')) ?? '').matchAll(/^\s{4}([A-Z][A-Z_]+)\(\d+,/gm)].map((treffer) => treffer[1]);
+  const schritte = [...(lies(inWurzeln('intro/domain/IntroPlan.kt') ?? '') ?? '').matchAll(/^\s{4}([A-Z][A-Z_]+)\(\d+,/gm)].map((treffer) => treffer[1]);
   const version = (() => {
     const gradle = lies(join(app, 'app/build.gradle.kts')) ?? '';
     const name = gradle.match(/versionName = "([^"]+)"/)?.[1];
@@ -283,7 +296,8 @@ async function pruefen() {
       }
     }
   }
-  for (const name of vorhandeneBilder) if (!eingetragen.has(name)) bildFehler.push(`\`${name}\` liegt im Ordner, steht aber bei keiner Funktion`);
+  // Sicherungen alter Fassungen („…_bis_2026-11-07_AP-98.png“) liegen mit Absicht daneben (Regel: nichts überschreiben).
+  for (const name of vorhandeneBilder) if (!eingetragen.has(name) && !/_bis_\d{4}-\d{2}-\d{2}/.test(name)) bildFehler.push(`\`${name}\` liegt im Ordner, steht aber bei keiner Funktion`);
 
   const zahl = fehlend.length + neu.length + ohneAnleitung.length + falsch.length + ohneEnglisch.length + geaendert.length + bildFehler.length + ohneBild.length;
   const jetzt = new Date();

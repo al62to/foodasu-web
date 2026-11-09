@@ -14,6 +14,7 @@ import { store, storeLink, STORE_ORTE, APP_STORE_ERHAELTLICH, APPLE_ANBIETER, ap
 import { KURZLINKS } from '../src/daten/kurzlinks.mjs';
 import { GRENZEN, grenzBefunde, masse } from '../src/daten/breite.mjs';
 import { alleRezepte, zutatenBefunde } from './zutaten_pruefen.mjs';
+import { textZiel } from './texte_ziel.mjs';
 import { sogehtsLinks } from './sogehts_links.mjs';
 import { preisaussagen } from './preisaussagen.mjs';
 import { listeSeite, listeTexte } from '../src/daten/liste_seite.mjs';
@@ -955,7 +956,7 @@ for (const [adresse, html] of seiten) {
 // Sitemap prüft der nächste Abschnitt). Die Übersicht verlinkt jedes Kapitel. Jedes Kapitel hat seine Abschnitte, jeder
 // mit seinem festen Anker aus den Daten; eine Funktion steht mit ihrem Nutzen und dem Weg in der App da, ohne
 // nummerierte Schrittfolge. Das Kapitel zeigt genau die Bildschirmfotos aus den Daten (höchstens eines je Abschnitt,
-// höchstens 45 im ganzen Bereich: Das prüfen die Daten beim Laden), jedes mit Beschreibung, Maßen und, bis auf das
+// höchstens 47 im ganzen Bereich, bis AP-116 45: Das prüfen die Daten beim Laden), jedes mit Beschreibung, Maßen und, bis auf das
 // erste Foto und das Standbild der Schleife, erst beim Scrollen geladen; jedes steht im Handy-Rahmen und ist oberhalb
 // der Tasten von Android abgeschnitten (AP-19 Teil H); es führt zum vorigen und zum nächsten
 // Kapitel und zurück zur Übersicht. Die 404-Seite führt mit ihrem Knopf zur Anleitung, und llms.txt
@@ -1812,7 +1813,12 @@ for (const datei of quelltexte) {
 if (!llms.includes('## Aus alten Kochbüchern\n') || !llms.includes(`(${websiteZahlen.alt} Rezepte, `)) melde('llms.txt', 'Abschnitt „Aus alten Kochbüchern“ fehlt oder nennt eine andere Zahl');
 
 // Tabelle aller Titel und Beschreibungen, wie sie auf den gebauten Seiten stehen (Aufruf mit --meta <Datei>).
-const metaZiel = process.argv.includes('--meta') ? process.argv[process.argv.indexOf('--meta') + 1] : null;
+// Ohne Angabe (npm run meta, AP-116) wie npm run texte: Material/Website_Meta_Uebersicht.md neben der Website
+// (~/Projekte/FoodAsu/Material am Mac), Ordner änderbar über FOODASU_TEXTE_ORDNER (tools/texte_ziel.mjs).
+const metaAngabe = process.argv[process.argv.indexOf('--meta') + 1];
+const metaZiel = process.argv.includes('--meta')
+  ? (metaAngabe && !metaAngabe.startsWith('--') ? metaAngabe : textZiel('Website_Meta_Uebersicht.md'))
+  : null;
 if (metaZiel) {
   const zelle = (text) => text.replaceAll('|', '\\|');
   const tabelle = [
