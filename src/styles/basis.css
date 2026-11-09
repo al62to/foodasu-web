@@ -73,8 +73,10 @@ a { color: var(--main); text-underline-offset: 0.18em; }
 img, svg { max-width: 100%; }
 .vh { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
 .innen { max-width: var(--breite); margin: 0 auto; padding: 0 clamp(1rem, 2.6vw, 2rem); }
-.sprung { position: absolute; left: 1rem; top: -4rem; z-index: 100; background: var(--main); color: var(--on-main); padding: 0.6rem 1rem; border-radius: 0.75rem; font-weight: 700; }
-.sprung:focus { top: 0.5rem; }
+/* Ganz über dem Rand, gleich wie hoch der Link ist (AP-116: bei Schrift 200 % ist er zweizeilig und ragte mit top: -4rem
+   als Band ins Bild). */
+.sprung { position: absolute; left: 1rem; bottom: 100%; z-index: 100; background: var(--main); color: var(--on-main); padding: 0.6rem 1rem; border-radius: 0.75rem; font-weight: 700; }
+.sprung:focus { top: 0.5rem; bottom: auto; }
 
 /* Kopf und Navigation. Das Mega-Menü folgt Entwurf A (AP-17 Teil E2): links die Gruppen, in der Mitte die Links der
    gewählten Gruppe, rechts drei Rezepte mit Bild. Am Handy füllt das Menü den Bildschirm. */

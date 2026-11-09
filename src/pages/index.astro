@@ -87,6 +87,12 @@ const altBild = alteRezepte.find((rezept) => rezept.slug === vorschau.alt.bild) 
 const [altVon, altBis] = alteRezepte.length ? jahreVonBis() : [];
 const quellen = (datei, endung) => [360, 720].map((breite) => `/bilder/rezepte/${datei}-${breite}.${endung} ${breite}w`).join(', ');
 const linien = { fill: 'none', stroke: 'currentColor', 'stroke-width': '2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' };
+// Weiche Trennstellen an den Fugen der langen Wörter der Überschrift (AP-116): Bei Schrift 200 % brach
+// „Einkaufslist-en-App“ mitten im Wort ohne Strich; jetzt „Einkaufs-listen-App“. Der Wortlaut bleibt; wirksam sind
+// die Stellen nur bei sehr großer Schrift (src/styles/start.css), sonst bricht die Überschrift wie bisher. Nur hier,
+// nicht in Titel und Daten.
+const FUGEN = [['Einkaufslisten', 'Einkaufs\u00ADlisten'], ['Lebensmittel', 'Lebens\u00ADmittel']];
+const weichTrennen = (text) => FUGEN.reduce((ergebnis, [wort, getrennt]) => ergebnis.replaceAll(wort, getrennt), text);
 const urteilZeichen = 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM9 9l6 6M15 9l-6 6';
 // Zeichen der sechs Funktionen ("symbol" in den Daten), dieselben wie bisher.
 const funktionZeichen = {
@@ -124,7 +130,7 @@ const posterQuellen = (format) => [360, 720].map((breite) => `${filmOrt}-${forma
     ]} />
     <div class="innen held-raster">
       <div class="held-text">
-        <h1 class="held-titel"><span class="h-gross">{kopf.ueberschrift[0]}</span>{' '}<span class="h-gross h-farbe">{kopf.ueberschrift[1]}</span>{' '}<span class="h-klein">{kopf.ueberschrift[2]}</span></h1>
+        <h1 class="held-titel"><span class="h-gross">{weichTrennen(kopf.ueberschrift[0])}</span>{' '}<span class="h-gross h-farbe">{weichTrennen(kopf.ueberschrift[1])}</span>{' '}<span class="h-klein">{kopf.ueberschrift[2]}</span></h1>
         <p class="held-satz">{kopf.satz.vor}<em>{kopf.satz.betont}</em>{kopf.satz.nach}</p>
         <div class="held-knoepfe">
           <a class="bald" href={storeLink('kopf')} rel="noopener"><i aria-hidden="true"></i><span>{kopf.aufruf}</span></a>

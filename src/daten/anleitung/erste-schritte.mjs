@@ -93,7 +93,7 @@ export default {
       funktionen: ['EINST-02'],
       nutzen: 'FoodAsu folgt der Einstellung deines Handys. Du kannst die App auch fest auf hell oder dunkel stellen; die Wahl bleibt gespeichert.',
       wo: 'Einstellungen > „Darstellung“ > „Erscheinungsbild“',
-      fotos: [foto('einstellungen_dunkel_01', 'Die Einstellungen im dunklen Modus')],
+      fotos: [foto('einstellungen_dunkel_01', 'Die Auswahl „Erscheinungsbild“, dunkel')],
     },
     {
       titel: 'Deutsch oder Englisch',

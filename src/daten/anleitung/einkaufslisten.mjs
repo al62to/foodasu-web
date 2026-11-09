@@ -7,7 +7,7 @@ export default {
   leitbild: 'liste_anlegen_03',
   titel: 'Einkaufslisten',
   kurz: 'Aufschreiben, abhaken, sortieren, teilen und in die Liste scannen.',
-  vorspann: 'Listen anlegen, aufschreiben, was du brauchst, im Laden abhaken und die Liste als Text teilen.',
+  vorspann: 'Listen anlegen, aufschreiben, was du brauchst, im Laden abhaken und die Liste per Link oder als Text schicken.',
   // Auftrag SEO 1 neu (14.10.2026), Teil 4 Nr. 1: Link mit dem Ankertext "Einkaufslisten-App" zur Startseite.
   vorspannLink: { vor: 'Was die ', text: 'Einkaufslisten-App', nach: ' sonst noch kann, zeigt die Startseite.', ziel: '/' },
   film: { datei: 'auf-die-liste', alt: 'Auf der Produktseite wird „Auf die Liste“ angetippt, die Seite meldet „Auf ‚Wocheneinkauf‘ gesetzt“, dann steht das Produkt auf der Einkaufsliste „Wocheneinkauf“ mit ihren Warengruppen.', unterschrift: 'Von der Produktkarte auf die Liste' },
@@ -106,8 +106,30 @@ export default {
       symbol: 'teilen',
       funktionen: ['LISTE-11'],
       nutzen: 'Du schickst die offenen Einträge einer Liste als Text an eine App deiner Wahl, zum Beispiel an jemanden, der einkaufen geht. Was dein Haushalt meidet, steht nicht im Text.',
-      wo: 'Liste > „Weitere Aktionen“ (drei Punkte) > „Als Text teilen“',
-      fotos: [foto('liste_erledigte_loeschen_01', 'Das Menü der Liste')],
+      // Seit 0.22.0 im Blatt „Liste schicken“ (AP-113; Knopf in der Liste seit AP-116); vorher Menüpunkt „Als Text teilen“.
+      wo: 'Liste öffnen > „Liste schicken“ > „Nur als Text“',
+      fotos: [foto('liste_erledigte_loeschen_01', 'Das Menü der Liste, darunter „Liste schicken“')],
+    },
+    // Liste per Link (AP-113, mit 0.22.0; AP-116). Erster Satz von „nutzen“ wie der Versionshinweis mit Alis Ja
+    // (09.11.2026, 12:44); die übrigen Sätze sind Entwurf zu Alis Ja (Bericht AP-116). Anker bleibt fest.
+    {
+      titel: 'Liste per Link schicken',
+      anker: 'liste-per-link',
+      symbol: 'teilen',
+      funktionen: ['LISTE-18'],
+      nutzen: 'Schick eine Einkaufsliste als Link oder QR-Code. Wer FoodAsu nicht hat, hakt im Browser ab, und die Häkchen kommen in deine Liste zurück.',
+      wo: 'Listen > Teilen-Symbol neben den drei Punkten; Liste öffnen > „Liste schicken“',
+      absaetze: ['Eine Notiz kannst du mitschicken. Die Liste steckt im Link und geht an keinen Server.'],
+      fotos: [foto('liste_link_01', 'Das Blatt „Liste schicken“ mit Notiz')],
+    },
+    {
+      titel: 'Was zurückkommt',
+      anker: 'liste-zurueck',
+      symbol: 'haken',
+      nutzen: 'Häkchen und „nicht bekommen“ kommen mit einem Link zurück und stehen dann in deiner Liste, zum Beispiel „erledigt von Mama“. Die Notiz geht in beide Richtungen; die der anderen Seite steht oben in der Liste.',
+      wo: 'Link in der Nachricht antippen > die Liste in FoodAsu',
+      absaetze: ['Änderst du die Liste nach dem Schicken, fragt FoodAsu „Nachtrag schicken?“. Der Nachtrag sagt, was dazugekommen oder gestrichen ist.'],
+      fotos: [foto('liste_link_02', 'Die Liste mit „erledigt von Mama“ und „Notiz von Mama“')],
     },
     {
       titel: 'Hinweise auf der Liste',

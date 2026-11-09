@@ -1455,7 +1455,8 @@ const waehle = (seite, gruppe, wert) => seite.evaluate((art, was) => {
       titel: gruppen.map((gruppe) => gruppe.querySelector('legend').childNodes[0].textContent.trim()),
       zusatz: Object.fromEntries(gruppen.map((gruppe) => [gruppe.dataset.gruppe, gruppe.querySelector('legend small')?.textContent.trim() ?? ''])),
       zeit: [...blatt.querySelectorAll('[data-gruppe="zeit"] li')].map((punkt) => `${punkt.querySelector('label span').textContent.trim()}: ${punkt.querySelector('.f-anzahl').textContent.trim()}`),
-      kopfLinks: [...document.querySelectorAll('main a')].filter((link) => !link.closest('nav') && link.compareDocumentPosition(document.querySelector('[data-filter]')) & Node.DOCUMENT_POSITION_FOLLOWING).length,
+      // Links im Kopf vor dem Filter: seit AP-46 genau „Einkaufslisten-App“ zur Startseite im Vorspann (AP-116).
+      kopfLinks: [...document.querySelectorAll('main a')].filter((link) => !link.closest('nav') && link.compareDocumentPosition(document.querySelector('[data-filter]')) & Node.DOCUMENT_POSITION_FOLLOWING).map((link) => `${link.textContent.trim()} > ${link.getAttribute('href')}`),
       offen: gruppen.every((gruppe) => sichtbar(gruppe.querySelector('fieldset'))),
       knoepfe: gruppen.filter((gruppe) => sichtbar(gruppe.querySelector('[data-knopf]'))).length + [...blatt.querySelectorAll('[data-fertig], [data-leeren], [data-blatt-zu]')].filter(sichtbar).length,
       filterKnopf: sichtbar(document.querySelector('[data-blatt-auf]')),
@@ -1567,7 +1568,10 @@ const waehle = (seite, gruppe, wert) => seite.evaluate((art, was) => {
   }));
   pruefe(themenTeil.titel === 'Rezepte nach Thema' && themenTeil.links === themen.length + 1 + zeitraeume.length && themenTeil.zeilen.join() === 'Ohne …,Passt für,Nach Land,Nach Kategorie,Nach Zeit', `Laptop: am Ende "${themenTeil.titel}" mit ${themen.length} Themenseiten, der Rubrik und ${zeitraeume.length} Zeiträumen als Chips in ${themenTeil.zeilen.length} Zeilen`);
   const zeitChips = ['Aus alten Kochbüchern > /alte-rezepte/', ...zeitraeume.map((zeitraum) => `${zeitraum.kennung} > /alte-rezepte/#${zeitraum.anker}`)];
-  pruefe(themenTeil.rubrik.join() === zeitChips.join() && leiste.kopfLinks === 0, `Laptop: Zeile "Nach Zeit" führt zur Rubrik und zu den Zeiträumen (${themenTeil.rubrik.join(', ')}); im Kopf der Seite steht kein Link`);
+  // Bis AP-116 hieß es hier „im Kopf der Seite steht kein Link“ (AP-25); seit AP-46 steht dort mit Absicht der Link
+  // „Einkaufslisten-App“ zur Startseite (SEO 1 neu), der Nachweis war deshalb seit AP-46 rot.
+  pruefe(themenTeil.rubrik.join() === zeitChips.join(), `Laptop: Zeile "Nach Zeit" führt zur Rubrik und zu den Zeiträumen (${themenTeil.rubrik.join(', ')})`);
+  pruefe(leiste.kopfLinks.join() === 'Einkaufslisten-App > /', `Laptop: Im Kopf der Seite steht nur der Link „Einkaufslisten-App“ zur Startseite (${leiste.kopfLinks.join(', ') || 'keiner'})`);
   pruefe(themenTeil.form.length === 2 && themenTeil.form[0] === themenTeil.form[1] && !themenTeil.form[1].includes(' | '), `Laptop: Die Chips der Zeile "Nach Zeit" haben die Form der übrigen Chips (${themenTeil.form[1]})`);
   // Jeder Chip eines Zeitraums springt zu seiner Überschrift am Zeitstrahl der Sammelseite.
   const spruenge = [];
