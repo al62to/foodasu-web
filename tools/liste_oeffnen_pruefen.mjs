@@ -8,6 +8,11 @@
 //   4. Handy, Umschlag h: nur der Knopf der kurzen Seite ist zu sehen, auch er mit location.href.
 //   5. Handy, ohne # und ohne JavaScript: kein Knopf „In FoodAsu öffnen“ zu sehen.
 //   6. Laptop (Maus, ab 56rem): kein Knopf in der Liste; dort steht der QR-Code.
+//   7. Android-Browser (AP-114, Kennung mit „Android“): beide Knöpfe führen auf die intent-Adresse
+//      intent://foodasu.com/l/#<Kodierung>#Intent;scheme=https;package=at.tonc.einkauf;S.browser_fallback_url=<Seite>;end,
+//      auch nach einem neuen Link im selben Tab. Geklickt wird dort nicht (Chrome am Mac kennt keine intent-Adresse).
+//   8. Smart App Banner: genau ein <meta name="apple-itunes-app"> mit app-id=6829687240 und app-argument
+//      https://foodasu.com/l/#<Kodierung> (vom Skript im Kopf angehängt); ohne # nur https://foodasu.com/l/.
 // Aufruf: node tools/liste_oeffnen_pruefen.mjs [Adresse der Vorschau]   (Vorgabe http://localhost:4321)
 // Rückgabewert 1, wenn eine Prüfung fehlschlägt.
 import { readFileSync } from 'node:fs';
@@ -39,11 +44,15 @@ const warte = (ms) => new Promise((fertig) => setTimeout(fertig, ms));
 
 const browser = await puppeteer.launch({ executablePath: chromePfad(), headless: true });
 
-async function oeffne(adresse, { ansicht = HANDY, skript = true } = {}) {
+const ANDROID_UA = 'Mozilla/5.0 (Linux; Android 14; SM-S921B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36';
+const intentFuer = (kodierung, href) => `intent://foodasu.com/l/#${kodierung}#Intent;scheme=https;package=at.tonc.einkauf;S.browser_fallback_url=${encodeURIComponent(href)};end`;
+
+async function oeffne(adresse, { ansicht = HANDY, skript = true, kennung = null } = {}) {
   const umgebung = await browser.createBrowserContext();
   const seite = await umgebung.newPage();
   const seitenFehler = [];
   seite.on('pageerror', (f) => seitenFehler.push(f.message));
+  if (kennung) await seite.setUserAgent(kennung);
   await seite.setJavaScriptEnabled(skript);
   await seite.setViewport(ansicht);
   await seite.goto(`${BASIS}${adresse}`, { waitUntil: 'networkidle0' });
@@ -129,6 +138,31 @@ try {
     pruefe(l.computer && l.liste, `Laptop: als Computer erkannt, Liste wird gezeigt (computer=${l.computer})`);
     pruefe(l.karte && !l.karte.sichtbar && l.sichtbareMitWortlaut === 0, `Laptop: kein Knopf „${WORTLAUT}“ in der Liste (${l.sichtbareMitWortlaut})`);
     pruefe(l.qr, 'Laptop: QR-Code in der Karte zur App');
+    await umgebung.close();
+  }
+  // 7: Android-Browser
+  {
+    const { seite, umgebung, seitenFehler } = await oeffne(`/l/#${LISTE}`, { kennung: ANDROID_UA });
+    let l = await lage(seite, WORTLAUT);
+    pruefe(l.karte?.sichtbar && l.karte.href === intentFuer(LISTE, l.adresse), `Android: Knopf in der Karte führt auf die intent-Adresse (${l.karte?.href?.slice(0, 90)} …)`);
+    await seite.evaluate((kodierung) => { location.hash = kodierung; }, NACHTRAG);
+    await warte(800);
+    l = await lage(seite, WORTLAUT);
+    pruefe(l.karte?.href === intentFuer(NACHTRAG, l.adresse), 'Android: nach einem neuen Link im selben Tab die intent-Adresse mit der neuen Kodierung');
+    pruefe(seitenFehler.length === 0, `Android: keine Fehler im Skript der Seite (${seitenFehler.join(' | ') || 'keine'})`);
+    await umgebung.close();
+  }
+  {
+    const { seite, umgebung } = await oeffne(`/l/#${HAEKCHEN}`, { kennung: ANDROID_UA });
+    const l = await lage(seite, WORTLAUT);
+    pruefe(l.kurz?.sichtbar && l.kurz.href === intentFuer(HAEKCHEN, l.adresse), 'Android, Umschlag h: Knopf der kurzen Seite führt auf die intent-Adresse');
+    await umgebung.close();
+  }
+  // 8: Smart App Banner
+  for (const [name, adresse, soll] of [['mit #', `/l/#${LISTE}`, `app-id=6829687240, app-argument=https://foodasu.com/l/#${LISTE}`], ['ohne #', '/l/', 'app-id=6829687240, app-argument=https://foodasu.com/l/']]) {
+    const { seite, umgebung } = await oeffne(adresse);
+    const inhalte = await seite.$$eval('head meta[name="apple-itunes-app"]', (m) => m.map((e) => e.getAttribute('content')));
+    pruefe(inhalte.length === 1 && inhalte[0] === soll, `Smart App Banner ${name}: ${JSON.stringify(inhalte)}`);
     await umgebung.close();
   }
 } finally {

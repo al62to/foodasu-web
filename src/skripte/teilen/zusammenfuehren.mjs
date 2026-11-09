@@ -1,9 +1,10 @@
 // Stand einer geteilten Liste und Zusammenführen (Format 1, App-Repository docs/Teilen_Format.md, Abschnitte 4 bis 6):
 // zusammenfuehren(stand | null, umschlag), aufraeumen(stand, jetzt), haekchen(stand, ich, meinName, jetzt) und der
 // Vergleich zweier Profile. Wie im Kern (ShareMerge) hängt das Ergebnis nur von Stand und Umschlag ab, nie von der Uhr
-// des Geräts. Der Stand hat die Form aus Abschnitt 4: {id, rev, t, by, n, sv, a, e, g}; Einträge als Liste mit den
-// 13 Feldern des Umschlags. Die Seite /l/ speichert genau diesen Stand (dazu nur ihre eigenen Angaben).
-import { GRENZEN, STATUS, hat, setze } from './umschlag.mjs';
+// des Geräts. Der Stand hat die Form aus Abschnitt 4: {id, rev, t, by, n, sv, a, e, g, nt}; Einträge als Liste mit
+// den 13 Feldern der Langform, nt als Objekt authorId → [text, zeit] (eine Notiz je Person, seit AP-114; {} ohne
+// Notiz). Die Seite /l/ speichert genau diesen Stand (dazu nur ihre eigenen Angaben).
+import { GRENZEN, STATUS, hat, istObjekt, setze } from './umschlag.mjs';
 
 // Felder eines Eintrags (Format 3.2).
 export const F = Object.freeze({
@@ -28,11 +29,22 @@ function namenKopie(a) {
   return kopie;
 }
 
+// Notizen eines Stands: nur Paare authorId → [text, zeit] (wie readStateNotes im Kern); alles andere fällt weg.
+function notizenKopie(nt) {
+  const kopie = {};
+  if (!istObjekt(nt)) return kopie;
+  for (const von of Object.keys(nt)) {
+    const notiz = nt[von];
+    if (Array.isArray(notiz) && typeof notiz[0] === 'string' && Number.isInteger(notiz[1])) setze(kopie, von, [notiz[0], notiz[1]]);
+  }
+  return kopie;
+}
+
 export function standKopie(stand) {
   return {
     id: stand.id, rev: stand.rev, t: stand.t, by: stand.by, n: stand.n, sv: stand.sv,
     a: namenKopie(stand.a), e: stand.e.map((eintrag) => [...eintrag]), g: namenKopie(stand.g),
-    nt: stand.nt ? [...stand.nt] : null,
+    nt: notizenKopie(stand.nt),
   };
 }
 
@@ -53,15 +65,29 @@ function namenZusammenfuehren(stand, umschlag) {
   }
 }
 
-// Notiz (5.4a): die neuere gilt (Zeit, bei Gleichstand die größere Kennung); ohne Notiz im Umschlag bleibt sie.
+// Notizen (5.4a), eine je Person: Hat der Stand von dieser Person keine oder eine mit kleinerer Zeit, gilt die neue
+// (gleiche Zeit: die vorhandene bleibt). notiz 1, wenn sich dadurch der Text der Notiz einer Person ändert (eine
+// fehlende zählt als leer). Personen ohne Notiz im Umschlag behalten ihre.
 function notizZusammenfuehren(stand, umschlag, ergebnis) {
-  const neu = umschlag.nt;
-  if (!neu) return;
-  const da = stand.nt;
-  if (!da || neuer(neu[1], neu[2], da[1], da[2])) {
-    if (!da || da[0] !== neu[0] || da[2] !== neu[2]) ergebnis.notiz = 1;
-    stand.nt = [...neu];
+  for (const [text, zeit, von] of umschlag.nt ?? []) {
+    const da = hat(stand.nt, von) ? stand.nt[von] : null;
+    if (da && zeit <= da[1]) continue;
+    if ((da ? da[0] : '') !== text) ergebnis.notiz = 1;
+    setze(stand.nt, von, [text, zeit]);
   }
+}
+
+// Welche Notiz oben steht (5.4b): für ich die neueste Notiz einer anderen Person (Zeit, bei Gleichstand die größere
+// Kennung) als [text, zeit, authorId], nur wenn sie Text hat; sonst null. Die eigene Notiz steht nie oben.
+export function obenNotiz(stand, ich) {
+  let beste = null;
+  const nt = istObjekt(stand?.nt) ? stand.nt : {};
+  for (const von of Object.keys(nt)) {
+    if (von === ich) continue;
+    const [text, zeit] = nt[von];
+    if (!beste || neuer(zeit, von, beste[1], beste[2])) beste = [text, zeit, von];
+  }
+  return beste && beste[0].trim() !== '' ? beste : null;
 }
 
 // zusammenfuehren(stand | null, umschlag) → { stand, ergebnis } oder { fehler } (der Stand bleibt dann, wie er ist).
@@ -71,8 +97,7 @@ export function zusammenfuehren(standVorher, umschlag) {
   if (!standVorher && umschlag.k === 'h') return { fehler: MERGE_FEHLER.unbekannteListe };
   const stand = standVorher
     ? standKopie(standVorher)
-    : { id: umschlag.id, rev: 0, t: 0, by: umschlag.by, n: umschlag.n, sv: umschlag.sv, a: {}, e: [], g: {}, nt: null };
-  if (stand.nt === undefined) stand.nt = null;
+    : { id: umschlag.id, rev: 0, t: 0, by: umschlag.by, n: umschlag.n, sv: umschlag.sv, a: {}, e: [], g: {}, nt: {} };
   const ergebnis = { neu: [], geaendert: [], gestrichen: [], haekchen: [], erledigt: 0, von: umschlag.by, notiz: 0 };
   const eintraege = new Map(stand.e.map((eintrag) => [eintrag[F.id], eintrag]));
 
@@ -172,8 +197,8 @@ export function haekchen(stand, ich, meinName, jetzt) {
     .sort(nachOrdnung)
     .map((eintrag) => [eintrag[F.id], eintrag[F.status], eintrag[F.statusZeit]]);
   const umschlag = { v: 1, k: 'h', id: stand.id, t: jetzt, by: ich, a: setze({}, ich, meinName), rev: stand.rev, done: allesErledigt(stand) ? 1 : 0, s };
-  // Nur die eigene Antwort reist zurück (6.2).
-  if (stand.nt && stand.nt[2] === ich) umschlag.nt = [...stand.nt];
+  // Nur die eigene Notiz reist zurück (6.2), auch eine geleerte.
+  if (istObjekt(stand.nt) && hat(stand.nt, ich)) umschlag.nt = [[stand.nt[ich][0], stand.nt[ich][1], ich]];
   return umschlag;
 }
 

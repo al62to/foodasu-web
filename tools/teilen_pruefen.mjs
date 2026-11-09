@@ -1,7 +1,7 @@
 // Prüft den JavaScript-Kern der Seite /l/ (src/skripte/teilen/) in Node mit den gemeinsamen Testfällen von App und
 // Website (tools/teilen/testfaelle.json, Kopie aus dem App-Repository kern/testdaten/teilen/testfaelle.json, geschrieben
-// nur mit tools/teilen/website_exportieren.py der App). Alle Fälle außer der Art "liste" (die gilt nur für den Kern):
-// umschlag, lesen, zusammenfuehren, aufraeumen, haekchen, profil; jeder Fall einmal mit DecompressionStream/
+// nur mit tools/teilen/website_exportieren.py der App). Alle Fälle außer den Arten "liste" und "uebernehmen" (die
+// gelten nur für den Kern): umschlag, lesen, zusammenfuehren, aufraeumen, haekchen, profil, notiz, reihenfolge; jeder Fall einmal mit DecompressionStream/
 // CompressionStream und einmal mit der Rückfall-Bibliothek fflate. Die Prüflogik steht in tools/teilen/pruefung.mjs
 // (dieselbe läuft im Browser, tools/teilen_browser.mjs).
 // Aufruf: node tools/teilen_pruefen.mjs [--json]  (Rückgabewert 1 bei einem Befund; npm run pruefen ruft es auf)
@@ -16,13 +16,14 @@ const lies = (...teile) => JSON.parse(readFileSync(join(wurzel, ...teile), 'utf8
 export const pruefeTestfaelle = () => pruefe(lies('tools', 'teilen', 'testfaelle.json'), lies('src', 'daten', 'teilen_app.json'));
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
-  const { zahlen, befunde, uebersprungen } = await pruefeTestfaelle();
-  if (process.argv.includes('--json')) console.log(JSON.stringify({ zahlen, befunde, uebersprungen }));
+  const { zahlen, befunde, uebersprungen, oeffnen } = await pruefeTestfaelle();
+  if (process.argv.includes('--json')) console.log(JSON.stringify({ zahlen, befunde, uebersprungen, oeffnen }));
   else {
     for (const [weg, arten] of Object.entries(zahlen)) {
       if (weg === 'anzeige') { console.log(`Anzeige der Mengen: ${arten} Beispiele`); continue; }
       console.log(`${weg === 'strom' ? 'DecompressionStream' : 'fflate (Rückfall)'}: ${Object.entries(arten).map(([art, [gut, alle]]) => `${art} ${gut}/${alle}`).join(', ')}`);
     }
+    console.log(`Öffnen in der App (intent-Adresse für Android, sonst location.href): ${oeffnen} Prüfungen`);
     console.log(`übersprungen (Arten „liste“ und „uebernehmen“, nur Kern): ${uebersprungen}`);
     for (const befund of befunde) console.log(`BEFUND ${befund}`);
   }

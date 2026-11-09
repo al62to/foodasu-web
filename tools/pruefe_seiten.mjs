@@ -1897,6 +1897,36 @@ if (existsSync(EXPORT)) {
   if (!new RegExp(`<a class="knopf voll l-oeffnen" data-l-hinweis-oeffnen href="${LISTE}" hidden>${oeffnen}</a>`).test(html)) melde(LISTE, `kurze Seite zum Umschlag h: verborgener Knopf „${oeffnen}“ fehlt oder weicht ab`);
   if (alle(html, new RegExp(`>${oeffnen}<`, 'g')).length !== 2) melde(LISTE, `„${oeffnen}“ soll genau zweimal im HTML stehen (Umschlag h und Karte zur App)`);
   if (!skript.includes('location.href')) melde(LISTE, 'location.href im Skript nicht gefunden (Adresse für „In FoodAsu öffnen“)');
+  // 6. In Android-Browsern öffnet „In FoodAsu öffnen“ die App über eine intent-Adresse (AP-114, AP-113 Offen 4;
+  //    src/skripte/teilen/app_oeffnen.mjs): Erkennung über „Android“ im userAgent, Paket der App, https als Schema und
+  //    die Seite als Rückfall. Wie die Adresse genau aussieht und dass Android daraus die https-Adresse samt # liest,
+  //    prüfen die Testfälle in Node (tools/teilen/pruefung.mjs, „Öffnen in der App“).
+  for (const teilstueck of ['intent://', '#Intent;scheme=https;package=at.tonc.einkauf;S.browser_fallback_url=', ';end', 'Android', 'userAgent', 'encodeURIComponent']) {
+    if (!skript.includes(teilstueck)) melde(LISTE, `„In FoodAsu öffnen“ in Android-Browsern: „${teilstueck}“ fehlt im Skript der Seite`);
+  }
+}
+// Smart App Banner von Safari (AP-114): <meta name="apple-itunes-app"> nur auf /l/, genau einmal, im Kopf, mit der
+// Kennung der App FoodAsu im App Store (6829687240, dieselbe wie im Link zum App Store) und der Adresse der Seite ohne
+// # als app-argument; das eingebettete Skript direkt danach hängt den Teil hinter dem # an (nur base64url-Zeichen). Auf
+// keiner anderen Seite (auch nicht auf den Kurzlinks und der 404-Seite) steht ein solcher Banner.
+const APP_STORE_ID = '6829687240';
+{
+  if (!appStore.adresse.endsWith(`/id${APP_STORE_ID}`)) melde('Smart App Banner', `Kennung im Link zum App Store ist nicht ${APP_STORE_ID}: ${appStore.adresse}`);
+  const BANNER = /<meta name="apple-itunes-app" content="([^"]*)"\s*\/?>/g;
+  const html = seiten.get(LISTE) ?? '';
+  const kopf = html.slice(0, html.indexOf('</head>'));
+  const treffer = alle(html, BANNER);
+  if (treffer.length !== 1 || !kopf.includes(treffer[0][0])) melde(LISTE, `Smart App Banner: genau ein <meta name="apple-itunes-app"> im Kopf erwartet, gefunden ${treffer.length}`);
+  else if (treffer[0][1] !== `app-id=${APP_STORE_ID}, app-argument=${HOST}${LISTE}`) melde(LISTE, `Smart App Banner: Inhalt „${treffer[0][1]}“, erwartet „app-id=${APP_STORE_ID}, app-argument=${HOST}${LISTE}“`);
+  else {
+    const danach = kopf.slice(kopf.indexOf(treffer[0][0]) + treffer[0][0].length).match(/^\s*<script>([\s\S]*?)<\/script>/)?.[1] ?? '';
+    if (!danach.includes('location.hash') || !danach.includes('apple-itunes-app') || !danach.includes('A-Za-z0-9_-')) melde(LISTE, 'Smart App Banner: das Skript direkt nach dem Banner, das den Teil hinter dem # (nur base64url) anhängt, fehlt');
+  }
+  // Alle HTML-Dateien des Baus, auch die Kurzlinks (sie stehen nicht in seiten).
+  for (const datei of dateien.filter((d) => d.endsWith('.html'))) {
+    const adresse = adresseVon(datei);
+    if (adresse !== LISTE && /apple-itunes-app/.test(readFileSync(datei, 'utf8'))) melde(adresse, 'Smart App Banner (apple-itunes-app) gehört nur auf die Seite für Listen /l/');
+  }
 }
 // /.well-known/apple-app-site-association (AP-113, Vorgabe 6.4): iPhone Universal Links für /l/ und /p/, nicht /c/,
 // nur die App FoodAsu (nicht die Testfassung). JSON ohne Dateiendung, aus public/ in den Bau kopiert wie
@@ -1927,6 +1957,7 @@ const AASA_ERWARTET = {
   if (!vorhanden.has('/.well-known/assetlinks.json')) melde('/.well-known/assetlinks.json', 'fehlt im Bau');
 }
 console.log(`Verknüpfung mit der App: ${AASA} (iPhone, /l/* und /p/*) und /.well-known/assetlinks.json (Android) im Bau`);
+console.log(`Öffnen in der App: Smart App Banner (app-id ${APP_STORE_ID}) nur auf ${LISTE}, intent-Adresse für Android-Browser im Skript der Seite`);
 console.log(`Seite für Listen ${LISTE}: Testfälle ${Object.entries(listePruefung.zahlen).filter(([weg]) => weg !== 'anzeige').map(([weg, arten]) => `${weg} ${Object.values(arten).reduce((summe, [gut]) => summe + gut, 0)}/${Object.values(arten).reduce((summe, [, zahl]) => summe + zahl, 0)}`).join(', ')} (ohne ${listePruefung.uebersprungen} Fälle „liste“), Daten aus der App ${exportGeprueft ? 'geprüft' : 'nicht geprüft'}, ${listeSkripte.size} Skripte der Seite mit Speicher und WhatsApp-Link, Service Worker ${LISTE_DIENST}`);
 
 // Zutaten und Zubereitung (AP-25 Nachbesserung, 11.10.2026): Warnung ohne Abbruch, wenn eine Zutat in keinem Schritt

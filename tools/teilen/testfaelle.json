@@ -369,12 +369,14 @@
      ]
     ],
     "nt": [
-     "Bitte die Eier vom Bauernmarkt & Bio-Milch",
-     0
+     [
+      "Bitte die Eier vom Bauernmarkt & Bio-Milch",
+      0
+     ]
     ]
    },
-   "text": "{\"v\":1,\"k\":\"l\",\"id\":\"Lst0Wocheneink01\",\"t\":1793500000,\"by\":\"PaPa01\",\"a\":{\"PaPa01\":\"Papa\"},\"rev\":1,\"n\":\"Wocheneinkauf\",\"sv\":0,\"full\":1,\"e\":[[\"e0Milch1\",\"Milch\",-100,2,0,2],[\"e0Eier01\",\"Eier\",-90,2,1,10,null,\"o\",-90,\"Bio\"]],\"nt\":[\"Bitte die Eier vom Bauernmarkt & Bio-Milch\",0]}",
-   "kodierung": "1RU5BCsIwEPxKmIOnLSSKiD0K3hR681B6iHaLoTWVmhak9O9uWsVAYHZmdmZHDEgNoUaKBgRXCji9gr60tzt7dr7WRvggrt1-s9XxEa5vsWU2s7NokY6_KdJPi4nQ8RLthfun2b6SjZdIElP1TTN7GGmeg_XZNbd7jJwBKDHStib5BUX96LibKyMQeR9VQ0aTlyhCu3A4uBZFId1ydy5TCKxKxyquqaF9qIPtufMP29VBrZTYk2-jLqYP"
+   "text": "{\"v\":1,\"k\":\"l\",\"id\":\"Lst0Wocheneink01\",\"t\":1793500000,\"by\":\"PaPa01\",\"a\":{\"PaPa01\":\"Papa\"},\"rev\":1,\"n\":\"Wocheneinkauf\",\"sv\":0,\"full\":1,\"e\":[[\"e0Milch1\",\"Milch\",-100,2,0,2],[\"e0Eier01\",\"Eier\",-90,2,1,10,null,\"o\",-90,\"Bio\"]],\"nt\":[[\"Bitte die Eier vom Bauernmarkt & Bio-Milch\",0]]}",
+   "kodierung": "1RY3BCsIwEER_JczB0wqJImKPBW8K3jxIDlG3NLSmUlNBpP_uJlUMBHZnZt-88URhCA0KtCD4qwy7R9TH7lJzYB8abUSPklpvliudHuH8ktjBHVw2HYr3b0vy3WEk9Dyhg2h_mhsquXiIJZhqaNucYRSnE1jvfXupEzIPoLmRtgXJt5T8rec-V6ZB7E1yDRlNQVCEbtJQ-g7WSnfM4NLHyOrqWaU79exuqnQD9-Hm-iaqmZL8_FuprR0_"
   },
   {
    "name": "H\u00e4kchen mit Antwort",
@@ -398,12 +400,14 @@
      ]
     ],
     "nt": [
-     "Butter war aus, hab Margarine genommen",
-     0
+     [
+      "Butter war aus, hab Margarine genommen",
+      0
+     ]
     ]
    },
-   "text": "{\"v\":1,\"k\":\"h\",\"id\":\"Lst0Wocheneink01\",\"t\":1793501100,\"by\":\"MaMa01\",\"a\":{\"MaMa01\":\"Mama\"},\"rev\":1,\"done\":0,\"s\":[[\"e0Milch1\",\"d\",-100]],\"nt\":[\"Butter war aus, hab Margarine genommen\",0]}",
-   "kodierung": "1NU27CsIwFP2VcOYrJIiIGZ3N7FA63LaXJtSmkKaKlP67qeJ23mfFE9YQBlh4EEJXwG3O-j61XqKEOGhT9FxS58vxpI3RmtC8S8yx46_JsOuf7fLI2AhJftPdFAW2lGbYqoJoFx6t33sd6FDm6poQy0GF65KzJPXipHiZSXlulOPUcwpRVC9xGkeJIF1vHw"
+   "text": "{\"v\":1,\"k\":\"h\",\"id\":\"Lst0Wocheneink01\",\"t\":1793501100,\"by\":\"MaMa01\",\"a\":{\"MaMa01\":\"Mama\"},\"rev\":1,\"done\":0,\"s\":[[\"e0Milch1\",\"d\",-100]],\"nt\":[[\"Butter war aus, hab Margarine genommen\",0]]}",
+   "kodierung": "1NYy9CsIwFIVfJZz5CgkiYkZnMzuUDrftpQnaFNJUkdJ3N624nb_vLHjBGsIDFh6E0BVxm7K-j62XKCE-tCl5Lqvz5XjSxmhNaD5l5tjxXjLs8ndbPDBWQpLfdTdGgS3QBFtVEO3Cs_Ub14EO5a6uCTHv5XXOWZJ6c1I8T6Q8N8px6jmFKKqXOA6DRFBh1i8"
   },
   {
    "name": "Nachtrag mit H\u00e4kchen und Antwort von Mama",
@@ -470,13 +474,15 @@
      ]
     ],
     "nt": [
-     "Butter war aus",
-     -900,
-     "MaMa01"
+     [
+      "Butter war aus",
+      -900,
+      "MaMa01"
+     ]
     ]
    },
-   "text": "{\"v\":1,\"k\":\"l\",\"id\":\"Lst0Wocheneink01\",\"t\":1793502000,\"by\":\"PaPa01\",\"a\":{\"MaMa01\":\"Mama\",\"PaPa01\":\"Papa\"},\"rev\":3,\"n\":\"Wocheneinkauf\",\"sv\":0,\"full\":1,\"e\":[[\"e0Milch1\",\"Milch\",-1000,2,0,3,null,\"d\",-1500,\"\",null,\"MaMa01\"],[\"e0Kaffee\",\"Kaffee\",-980,4,3,500,\"g\",\"x\",-2070,\"\",\"4006381333931\",\"MaMa01\"],[\"e0Butter\",\"Butter\",-1480,2,4],[\"e0Brot01\",\"\",-1450,8,0,null,null,\"g\"]],\"nt\":[\"Butter war aus\",-900,\"MaMa01\"]}",
-   "kodierung": "1TVBBboMwEPxKtOdFWmNogGOvLVJuPSAO28QkKJREYNJWUf7eXdeovY1nxjNj3-EGlUE4QwUDIPQHAa-zp7fL_uRG149nMsJ7cW1Lm1NKRAjv32Lb8Y6DyFDdoeZaT5WADxYyqmq7MjwQJidVFmEU7i-dl07Ms0gS2y3DEOY4qJoGHNX9sD9pRQCAidH6FAktjmJGOCiZ6yaITBzSoga8cNc5JwErSMqCMJPr4c5RlC8hU9qGBMiInmxhrLWlDb3_w54X790k7AoSkxU6J4v6dPHhQ4KSExYyNIz6XXaEtpX3y182MWLzydOGl1l36Z617vED"
+   "text": "{\"v\":1,\"k\":\"l\",\"id\":\"Lst0Wocheneink01\",\"t\":1793502000,\"by\":\"PaPa01\",\"a\":{\"MaMa01\":\"Mama\",\"PaPa01\":\"Papa\"},\"rev\":3,\"n\":\"Wocheneinkauf\",\"sv\":0,\"full\":1,\"e\":[[\"e0Milch1\",\"Milch\",-1000,2,0,3,null,\"d\",-1500,\"\",null,\"MaMa01\"],[\"e0Kaffee\",\"Kaffee\",-980,4,3,500,\"g\",\"x\",-2070,\"\",\"4006381333931\",\"MaMa01\"],[\"e0Butter\",\"Butter\",-1480,2,4],[\"e0Brot01\",\"\",-1450,8,0,null,null,\"g\"]],\"nt\":[[\"Butter war aus\",-900,\"MaMa01\"]]}",
+   "kodierung": "1TVDLboMwEPyVaM-LtMbQgI-5Nki59RBxcBOToFASgelDUf69uxtQexvPjGfGvsMnOINwAQcdILRHBtsx0tv1cA59aPsLGeYju9alzSklIoT3H7bt_M6r6MHdofKVnByDD8_krIrt5uGBMASusgg9c3_pfmrYPLLEsc3UdTongNvvIVDVdoezVCgATIzUp0hosWczwlHIXDbBzMxDapSAV980IXDAApKyIMz4ut45sfLNZEprTYCM6MUWxlpbWu39H7aZYgwDswtITFbInGzWh2vUD1ElJyx4qI56LjtBXfP7oz7umbH68sPKT6MMk0FLX_34BQ"
   },
   {
    "name": "Unbekannte Art der Kodierung",
@@ -892,7 +898,7 @@
   {
    "name": "Notiz zu lang wird gek\u00fcrzt",
    "art": "lesen",
-   "kodierung": "15Y7RCsIwDEX_5T5HaBUR-w0qe_Nh9KHOjpWVKm4TZOzfva2IH2EgkNzcnGTGE0YLehhECMKVxWEY1fnWdD75kHqlqY907fabrcohuLxoq1zlytDBzN8uy3eHRfDwH3Si9qO5qeXGwBEx7RRj8XiYuoZXxxCbLiNLAVlpXlsL01qS-EWN098GRNnlDQ",
+   "kodierung": "15Y3BCsIwEET_Zc4rJIqI-QaV3jyUHGJNaWioYlNBSv_dSUT8CAcWdmdn3854wmhBD4MIQbiyOYxJnW9N5wcfhl5p-omp3X6zVVmCy4uxylWuLB3M_J2yfXdYBA__QQ_0fjQ3tbwYuSKmnWIsGQ9T1_DqGGLTZWRpICvNb2thWUtSKrHT3wqirF3e",
    "erwartet": {
     "json": {
      "v": 1,
@@ -918,8 +924,10 @@
       ]
      ],
      "nt": [
-      "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN",
-      0
+      [
+       "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN",
+       0
+      ]
      ]
     }
    }
@@ -958,7 +966,7 @@
   {
    "name": "Notiz mit weiteren Feldern",
    "art": "lesen",
-   "kodierung": "1RY5BCsIwEEXv8tcRUkXEnMCFQnddlC5iTWloSEuTClJ6G2_ixfypSAcGZv78eTMznlCZQAcFBwH7YHENURZ93RpvrO9kRj3SdTofjjKFwP1FW65zvQ411PzvkjxoLAKj-aE9tY2mp4YbgSNimsm51WOgyhJG3qyr24RcC4hdxmt7wawqkvhFiYt2rge17YEwfN7RjKiWLw",
+   "kodierung": "1RY7BCsIwDIbf5T9XaBUR-wQeFHbbYfQQZ8fKyjbWTpCxt_FNfDHTiiwQSP78-ZIFT2gl0EHDQ8A9uLiGKMuhbm1vXd9JxXpk1-l8OMoUAvcX2woqKA8Jevl3SR4Jq8Bkf-ietY1Gc8MbgUeMaWbvs8dCVxWsvDlftwmZC4id4mt7wWkMk2K2Xcj7ASxuH4Tx8452gjHrFw",
    "erwartet": {
     "json": {
      "v": 1,
@@ -984,8 +992,10 @@
       ]
      ],
      "nt": [
-      "Hallo",
-      0
+      [
+       "Hallo",
+       0
+      ]
      ]
     }
    }
@@ -993,7 +1003,7 @@
   {
    "name": "Notiz mit schiefem Urheber wird \u00fcberlesen",
    "art": "lesen",
-   "kodierung": "1RY7NCsIwEITfZc4REqWIeQIPCr15CDnEmtLQkEp_BCl9dycRcWFhd3b2213xglYCPTQiBMKDxWWa5W1oOp98SL1U1Ge6jqdDJXMI3N-01a52Zeig11-X5afDJjD6LzpR-9Pc0nJj4oiYdomxeDy0MfDyGmLTZWQpIHaK1_aCaS1J_MLg7GIcQK2y2wc",
+   "kodierung": "1RY1BC8IwDIX_yztHaJUh9hd4UNjNw-ghzo6VlU62TpCx_25aEQOB5L2XLyteMJowwCCA4B8yXOakbmPbu-h8HJQWPUnqeDpUKhfh_pZYzTUXk2HW35blJ2MjTO6LjqL9abx0cjGLJZhuCaFkHEzTwKmrD22fkWUA7bR825O0tUJKJXbmEEaIWFm7fQA",
    "erwartet": {
     "json": {
      "v": 1,
@@ -1019,6 +1029,87 @@
       ]
      ]
     }
+   }
+  },
+  {
+   "name": "Notiz in der alten Form wird \u00fcberlesen",
+   "art": "lesen",
+   "kodierung": "1RY7BCsIwDIbf5T9HaBUR-wQeFHbzUHqIs2NlYRO3CTL27qYVMRBI_vz5kgUvOEvo4CAgpLsW53Ey16FuYx9T3xmr-qSuw3G3NzkIt7faKq64DBlu-XVZfjBWwjN-0b1qfxrPjW6MOlJMM4sUT4TzHtFcktRtRpYCtLF6bUuaIShJv_A4scgAMmH9AA",
+   "erwartet": {
+    "json": {
+     "v": 1,
+     "k": "l",
+     "id": "Lst0Wocheneink01",
+     "t": 1793500000,
+     "by": "PaPa01",
+     "a": {
+      "PaPa01": "Papa"
+     },
+     "rev": 1,
+     "n": "Wocheneinkauf",
+     "sv": 0,
+     "full": 1,
+     "e": [
+      [
+       "e0Milch1",
+       "Milch",
+       -100,
+       2,
+       0,
+       2
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "Notizen: je Person die erste, schiefe fallen weg",
+   "art": "lesen",
+   "kodierung": "1RY3NDoIwEITfZc5rUjTEyA1_bhK5eWh6qFgCoSKRYjSEd3dbYmjS7O7s7Dcj3kgiQoMEFoT6zs25d-L6LCrTmrptRMS6Y9d2t4mFf4Tbl225znVYaiTjf_JypzERXmZGt6wtND2UfNHzijHlYG3wGCRSwoistkXlkaEBrSJOWxN_pZjkgi0FCUUSe1Ds6wHEiExnPp9tH5CMZ8sRfL2sJE4-vNPGcb08UuFlNf0A",
+   "erwartet": {
+    "json": {
+     "v": 1,
+     "k": "l",
+     "id": "Lst0Wocheneink01",
+     "t": 1793500000,
+     "by": "PaPa01",
+     "a": {
+      "PaPa01": "Papa"
+     },
+     "rev": 1,
+     "n": "Wocheneinkauf",
+     "sv": 0,
+     "full": 1,
+     "e": [
+      [
+       "e0Milch1",
+       "Milch",
+       -100,
+       2,
+       0,
+       2
+      ]
+     ],
+     "nt": [
+      [
+       "C",
+       1,
+       "MaMa01"
+      ],
+      [
+       "A",
+       0
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "Mehr als 50 Notizen sind zu gro\u00df",
+   "art": "lesen",
+   "kodierung": "1RdLbaoNAFIXhd9nXU3AfzMFnaEvuehG8sKkhIZKUHAol5N07sWuWgqD_jNsP8S4_0miSgzQySJL9V754vVyrj9Nm1x_7_fFQae7XvGu-9Lp6Hkk-f_O2VbfqxsVOmnu5e-bvTh5Jzv3_6GNu07Tuts1PXPJSHrO9DcO4p5dmvZa-etsPm91z5Hgh6UXz2yzls23zpOu47V1ykFV_vlSVtGkMiqAlGIKV4AheQiBECTVCXcIMYVbCHGFewgJhUcISYUkYqDpRYVVaFVglVqFVahVcJVfhVXoVYCVYIVaKFWQlWWFWmg1mo9lgtun7wmw0G8xGs8FsNBvMRrPBbDQbzEazwWw0G8xGs8PsNDvMTrPD7NNPAbPT7DA7zQ6z0-wwO80Os9PsMDvNDrPTHDAHzQFz0BwwB80Bc0x_MsxBc8AcNAfMQXPAHDQHzEFzwBw01zDX2dw-_gA",
+   "erwartet": {
+    "fehler": "zu_gross"
    }
   },
   {
@@ -1261,7 +1352,7 @@
      ]
     ],
     "g": {},
-    "nt": null
+    "nt": {}
    }
   },
   {
@@ -1340,7 +1431,7 @@
      ]
     ],
     "g": {},
-    "nt": null
+    "nt": {}
    },
    "schritte": [
     {
@@ -1544,7 +1635,7 @@
     "g": {
      "e0Brot01": 1793500550
     },
-    "nt": null
+    "nt": {}
    }
   },
   {
@@ -1640,7 +1731,7 @@
     "g": {
      "e0Brot01": 1793500550
     },
-    "nt": null
+    "nt": {}
    },
    "schritte": [
     {
@@ -1796,7 +1887,7 @@
     "g": {
      "e0Brot01": 1793500550
     },
-    "nt": null
+    "nt": {}
    }
   },
   {
@@ -1893,7 +1984,7 @@
     "g": {
      "e0Brot01": 1793500550
     },
-    "nt": null
+    "nt": {}
    },
    "schritte": [
     {
@@ -2073,7 +2164,7 @@
     "g": {
      "e0Brot01": 1793500550
     },
-    "nt": null
+    "nt": {}
    }
   },
   {
@@ -2108,7 +2199,7 @@
      ]
     ],
     "g": {},
-    "nt": null
+    "nt": {}
    },
    "schritte": [
     {
@@ -2184,7 +2275,7 @@
      ]
     ],
     "g": {},
-    "nt": null
+    "nt": {}
    }
   },
   {
@@ -2444,7 +2535,7 @@
     "g": {
      "e0Brot01": 1793500550
     },
-    "nt": null
+    "nt": {}
    }
   },
   {
@@ -2665,7 +2756,7 @@
      ]
     ],
     "g": {},
-    "nt": null
+    "nt": {}
    }
   },
   {
@@ -2700,7 +2791,7 @@
      ]
     ],
     "g": {},
-    "nt": null
+    "nt": {}
    },
    "schritte": [
     {
@@ -2773,7 +2864,7 @@
      ]
     ],
     "g": {},
-    "nt": null
+    "nt": {}
    }
   },
   {
@@ -2808,7 +2899,7 @@
      ]
     ],
     "g": {},
-    "nt": null
+    "nt": {}
    },
    "schritte": [
     {
@@ -2935,7 +3026,7 @@
      ]
     ],
     "g": {},
-    "nt": null
+    "nt": {}
    }
   },
   {
@@ -2970,7 +3061,7 @@
      ]
     ],
     "g": {},
-    "nt": null
+    "nt": {}
    },
    "schritte": [
     {
@@ -3036,7 +3127,7 @@
      ]
     ],
     "g": {},
-    "nt": null
+    "nt": {}
    }
   },
   {
@@ -3071,7 +3162,7 @@
      ]
     ],
     "g": {},
-    "nt": null
+    "nt": {}
    },
    "schritte": [
     {
@@ -3136,7 +3227,7 @@
      ]
     ],
     "g": {},
-    "nt": null
+    "nt": {}
    }
   },
   {
@@ -3169,8 +3260,10 @@
        ]
       ],
       "nt": [
-       "Bitte Bio-Milch",
-       0
+       [
+        "Bitte Bio-Milch",
+        0
+       ]
       ]
      },
      "ergebnis": {
@@ -3205,8 +3298,10 @@
        ]
       ],
       "nt": [
-       "Butter war aus, hab Margarine genommen",
-       0
+       [
+        "Butter war aus, hab Margarine genommen",
+        0
+       ]
       ]
      },
      "ergebnis": {
@@ -3246,8 +3341,10 @@
        ]
       ],
       "nt": [
-       "Bitte Bio-Milch",
-       0
+       [
+        "Bitte Bio-Milch",
+        0
+       ]
       ]
      },
      "ergebnis": {
@@ -3320,8 +3417,10 @@
        ]
       ],
       "nt": [
-       "",
-       0
+       [
+        "",
+        0
+       ]
       ]
      },
      "ergebnis": {
@@ -3364,11 +3463,550 @@
      ]
     ],
     "g": {},
-    "nt": [
-     "",
-     1793502000,
-     "PaPa01"
-    ]
+    "nt": {
+     "PaPa01": [
+      "",
+      1793502000
+     ],
+     "MaMa01": [
+      "Butter war aus, hab Margarine genommen",
+      1793501100
+     ]
+    }
+   }
+  },
+  {
+   "name": "Notiz je Person: Nachtrag mit unver\u00e4nderten Notizen \u00e4ndert nichts",
+   "art": "zusammenfuehren",
+   "stand": {
+    "id": "Lst0Wocheneink01",
+    "rev": 1,
+    "t": 1793500000,
+    "by": "PaPa01",
+    "n": "Wocheneinkauf",
+    "sv": 0,
+    "a": {
+     "PaPa01": "Papa",
+     "MaMa01": "Mama"
+    },
+    "e": [
+     [
+      "e0Milch1",
+      "Milch",
+      2,
+      null,
+      "",
+      "MILCH_KAESE",
+      0,
+      "d",
+      1793501000,
+      "MaMa01",
+      1793499900,
+      "PaPa01",
+      null
+     ]
+    ],
+    "g": {},
+    "nt": {
+     "PaPa01": [
+      "Bitte Bio-Milch",
+      1793500000
+     ],
+     "MaMa01": [
+      "Butter war aus, hab Margarine genommen",
+      1793501100
+     ]
+    }
+   },
+   "schritte": [
+    {
+     "umschlag": {
+      "v": 1,
+      "k": "l",
+      "id": "Lst0Wocheneink01",
+      "t": 1793501500,
+      "by": "PaPa01",
+      "a": {
+       "PaPa01": "Papa",
+       "MaMa01": "Mama"
+      },
+      "rev": 2,
+      "n": "Wocheneinkauf",
+      "sv": 0,
+      "full": 1,
+      "e": [
+       [
+        "e0Milch1",
+        "Milch",
+        -500,
+        2,
+        0,
+        2,
+        null,
+        "d",
+        -1600,
+        "",
+        null,
+        "MaMa01"
+       ]
+      ],
+      "nt": [
+       [
+        "Butter war aus, hab Margarine genommen",
+        -400,
+        "MaMa01"
+       ],
+       [
+        "Bitte Bio-Milch",
+        -1500
+       ]
+      ]
+     },
+     "ergebnis": {
+      "neu": [],
+      "geaendert": [],
+      "gestrichen": [],
+      "haekchen": [],
+      "erledigt": 0,
+      "von": "PaPa01",
+      "notiz": 0
+     }
+    }
+   ],
+   "erwartet": {
+    "id": "Lst0Wocheneink01",
+    "rev": 2,
+    "t": 1793501500,
+    "by": "PaPa01",
+    "n": "Wocheneinkauf",
+    "sv": 0,
+    "a": {
+     "PaPa01": "Papa",
+     "MaMa01": "Mama"
+    },
+    "e": [
+     [
+      "e0Milch1",
+      "Milch",
+      2,
+      null,
+      "",
+      "MILCH_KAESE",
+      0,
+      "d",
+      1793501000,
+      "MaMa01",
+      1793499900,
+      "PaPa01",
+      null
+     ]
+    ],
+    "g": {},
+    "nt": {
+     "PaPa01": [
+      "Bitte Bio-Milch",
+      1793500000
+     ],
+     "MaMa01": [
+      "Butter war aus, hab Margarine genommen",
+      1793501100
+     ]
+    }
+   }
+  },
+  {
+   "name": "Notiz je Person: Mama und Oma antworten, beide bleiben",
+   "art": "zusammenfuehren",
+   "stand": {
+    "id": "Lst0Wocheneink01",
+    "rev": 1,
+    "t": 1793500000,
+    "by": "PaPa01",
+    "n": "Wocheneinkauf",
+    "sv": 0,
+    "a": {
+     "PaPa01": "Papa"
+    },
+    "e": [
+     [
+      "e0Milch1",
+      "Milch",
+      2,
+      null,
+      "",
+      "MILCH_KAESE",
+      0,
+      "o",
+      1793499900,
+      "PaPa01",
+      1793499900,
+      "PaPa01",
+      null
+     ]
+    ],
+    "g": {},
+    "nt": {
+     "PaPa01": [
+      "Bitte Bio-Milch",
+      1793500000
+     ]
+    }
+   },
+   "schritte": [
+    {
+     "umschlag": {
+      "v": 1,
+      "k": "h",
+      "id": "Lst0Wocheneink01",
+      "t": 1793501100,
+      "by": "MaMa01",
+      "a": {
+       "MaMa01": "Mama"
+      },
+      "rev": 1,
+      "done": 0,
+      "s": [],
+      "nt": [
+       [
+        "Butter war aus, hab Margarine genommen",
+        0
+       ]
+      ]
+     },
+     "ergebnis": {
+      "neu": [],
+      "geaendert": [],
+      "gestrichen": [],
+      "haekchen": [],
+      "erledigt": 0,
+      "von": "MaMa01",
+      "notiz": 1
+     }
+    },
+    {
+     "umschlag": {
+      "v": 1,
+      "k": "h",
+      "id": "Lst0Wocheneink01",
+      "t": 1793501060,
+      "by": "OmA001",
+      "a": {
+       "OmA001": "Oma"
+      },
+      "rev": 1,
+      "done": 0,
+      "s": [],
+      "nt": [
+       [
+        "Bin um f\u00fcnf da",
+        -10
+       ]
+      ]
+     },
+     "ergebnis": {
+      "neu": [],
+      "geaendert": [],
+      "gestrichen": [],
+      "haekchen": [],
+      "erledigt": 0,
+      "von": "OmA001",
+      "notiz": 1
+     }
+    },
+    {
+     "umschlag": {
+      "v": 1,
+      "k": "h",
+      "id": "Lst0Wocheneink01",
+      "t": 1793501060,
+      "by": "OmA001",
+      "a": {
+       "OmA001": "Oma"
+      },
+      "rev": 1,
+      "done": 0,
+      "s": [],
+      "nt": [
+       [
+        "Bin um f\u00fcnf da",
+        -10
+       ]
+      ]
+     },
+     "ergebnis": {
+      "neu": [],
+      "geaendert": [],
+      "gestrichen": [],
+      "haekchen": [],
+      "erledigt": 0,
+      "von": "OmA001",
+      "notiz": 0
+     }
+    }
+   ],
+   "erwartet": {
+    "id": "Lst0Wocheneink01",
+    "rev": 1,
+    "t": 1793500000,
+    "by": "PaPa01",
+    "n": "Wocheneinkauf",
+    "sv": 0,
+    "a": {
+     "PaPa01": "Papa",
+     "MaMa01": "Mama",
+     "OmA001": "Oma"
+    },
+    "e": [
+     [
+      "e0Milch1",
+      "Milch",
+      2,
+      null,
+      "",
+      "MILCH_KAESE",
+      0,
+      "o",
+      1793499900,
+      "PaPa01",
+      1793499900,
+      "PaPa01",
+      null
+     ]
+    ],
+    "g": {},
+    "nt": {
+     "PaPa01": [
+      "Bitte Bio-Milch",
+      1793500000
+     ],
+     "MaMa01": [
+      "Butter war aus, hab Margarine genommen",
+      1793501100
+     ],
+     "OmA001": [
+      "Bin um f\u00fcnf da",
+      1793501050
+     ]
+    }
+   }
+  },
+  {
+   "name": "Notiz je Person: gleiche Zeit, die vorhandene bleibt",
+   "art": "zusammenfuehren",
+   "stand": {
+    "id": "Lst0Wocheneink01",
+    "rev": 1,
+    "t": 1793500000,
+    "by": "PaPa01",
+    "n": "Wocheneinkauf",
+    "sv": 0,
+    "a": {
+     "PaPa01": "Papa"
+    },
+    "e": [
+     [
+      "e0Milch1",
+      "Milch",
+      2,
+      null,
+      "",
+      "MILCH_KAESE",
+      0,
+      "o",
+      1793499900,
+      "PaPa01",
+      1793499900,
+      "PaPa01",
+      null
+     ]
+    ],
+    "g": {},
+    "nt": {
+     "PaPa01": [
+      "Erst",
+      1793500005
+     ]
+    }
+   },
+   "schritte": [
+    {
+     "umschlag": {
+      "v": 1,
+      "k": "l",
+      "id": "Lst0Wocheneink01",
+      "t": 1793500000,
+      "by": "PaPa01",
+      "a": {
+       "PaPa01": "Papa"
+      },
+      "rev": 1,
+      "n": "Wocheneinkauf",
+      "sv": 0,
+      "full": 1,
+      "e": [
+       [
+        "e0Milch1",
+        "Milch",
+        -100,
+        2,
+        0,
+        2
+       ]
+      ],
+      "nt": [
+       [
+        "Dann",
+        5
+       ]
+      ]
+     },
+     "ergebnis": {
+      "neu": [],
+      "geaendert": [],
+      "gestrichen": [],
+      "haekchen": [],
+      "erledigt": 0,
+      "von": "PaPa01",
+      "notiz": 0
+     }
+    }
+   ],
+   "erwartet": {
+    "id": "Lst0Wocheneink01",
+    "rev": 1,
+    "t": 1793500000,
+    "by": "PaPa01",
+    "n": "Wocheneinkauf",
+    "sv": 0,
+    "a": {
+     "PaPa01": "Papa"
+    },
+    "e": [
+     [
+      "e0Milch1",
+      "Milch",
+      2,
+      null,
+      "",
+      "MILCH_KAESE",
+      0,
+      "o",
+      1793499900,
+      "PaPa01",
+      1793499900,
+      "PaPa01",
+      null
+     ]
+    ],
+    "g": {},
+    "nt": {
+     "PaPa01": [
+      "Erst",
+      1793500005
+     ]
+    }
+   }
+  },
+  {
+   "name": "Notiz je Person: geleert ohne fr\u00fchere Notiz z\u00e4hlt nicht als \u00c4nderung",
+   "art": "zusammenfuehren",
+   "stand": {
+    "id": "Lst0Wocheneink01",
+    "rev": 1,
+    "t": 1793500000,
+    "by": "PaPa01",
+    "n": "Wocheneinkauf",
+    "sv": 0,
+    "a": {
+     "PaPa01": "Papa"
+    },
+    "e": [
+     [
+      "e0Milch1",
+      "Milch",
+      2,
+      null,
+      "",
+      "MILCH_KAESE",
+      0,
+      "o",
+      1793499900,
+      "PaPa01",
+      1793499900,
+      "PaPa01",
+      null
+     ]
+    ],
+    "g": {},
+    "nt": {}
+   },
+   "schritte": [
+    {
+     "umschlag": {
+      "v": 1,
+      "k": "h",
+      "id": "Lst0Wocheneink01",
+      "t": 1793500010,
+      "by": "MaMa01",
+      "a": {
+       "MaMa01": "Mama"
+      },
+      "rev": 1,
+      "done": 0,
+      "s": [],
+      "nt": [
+       [
+        "",
+        0
+       ]
+      ]
+     },
+     "ergebnis": {
+      "neu": [],
+      "geaendert": [],
+      "gestrichen": [],
+      "haekchen": [],
+      "erledigt": 0,
+      "von": "MaMa01",
+      "notiz": 0
+     }
+    }
+   ],
+   "erwartet": {
+    "id": "Lst0Wocheneink01",
+    "rev": 1,
+    "t": 1793500000,
+    "by": "PaPa01",
+    "n": "Wocheneinkauf",
+    "sv": 0,
+    "a": {
+     "PaPa01": "Papa",
+     "MaMa01": "Mama"
+    },
+    "e": [
+     [
+      "e0Milch1",
+      "Milch",
+      2,
+      null,
+      "",
+      "MILCH_KAESE",
+      0,
+      "o",
+      1793499900,
+      "PaPa01",
+      1793499900,
+      "PaPa01",
+      null
+     ]
+    ],
+    "g": {},
+    "nt": {
+     "MaMa01": [
+      "",
+      1793500010
+     ]
+    }
    }
   },
   {
@@ -3479,7 +4117,7 @@
     "g": {
      "e0Brot01": 1793500550
     },
-    "nt": null
+    "nt": {}
    },
    "schritte": [
     {
@@ -3691,7 +4329,7 @@
     "g": {
      "e0Brot01": 1793500400
     },
-    "nt": null
+    "nt": {}
    }
   },
   {
@@ -3726,7 +4364,7 @@
      ]
     ],
     "g": {},
-    "nt": null
+    "nt": {}
    },
    "schritte": [
     {
@@ -3797,7 +4435,7 @@
      ]
     ],
     "g": {},
-    "nt": null
+    "nt": {}
    }
   },
   {
@@ -3831,7 +4469,7 @@
      ]
     ],
     "g": {},
-    "nt": null
+    "nt": {}
    },
    "schritte": [
     {
@@ -3933,7 +4571,7 @@
      ]
     ],
     "g": {},
-    "nt": null
+    "nt": {}
    }
   },
   {
@@ -3967,7 +4605,7 @@
      ]
     ],
     "g": {},
-    "nt": null
+    "nt": {}
    },
    "schritte": [
     {
@@ -4048,7 +4686,7 @@
      ]
     ],
     "g": {},
-    "nt": null
+    "nt": {}
    }
   },
   {
@@ -4142,7 +4780,7 @@
      "e0Grenze1": 1790908000,
      "e0Neu0001": 1793413600
     },
-    "nt": null
+    "nt": {}
    },
    "jetzt": 1793500000,
    "erwartet": {
@@ -4176,7 +4814,7 @@
      "e0Grenze1": 1790908000,
      "e0Neu0001": 1793413600
     },
-    "nt": null
+    "nt": {}
    }
   },
   {
@@ -4288,7 +4926,7 @@
     "g": {
      "e0Brot01": 1793500550
     },
-    "nt": null
+    "nt": {}
    },
    "ich": "MaMa01",
    "name_ich": "Mama",
@@ -4432,7 +5070,7 @@
     "g": {
      "e0Brot01": 1793500550
     },
-    "nt": null
+    "nt": {}
    },
    "ich": "MaMa01",
    "name_ich": "Mama",
@@ -4586,7 +5224,7 @@
     "g": {
      "e0Brot01": 1793500550
     },
-    "nt": null
+    "nt": {}
    },
    "ich": "MaMa01",
    "name_ich": "Mama",
@@ -4730,11 +5368,12 @@
     "g": {
      "e0Brot01": 1793500550
     },
-    "nt": [
-     "Butter war aus",
-     1793501090,
-     "MaMa01"
-    ]
+    "nt": {
+     "MaMa01": [
+      "Butter war aus",
+      1793501090
+     ]
+    }
    },
    "ich": "MaMa01",
    "name_ich": "Mama",
@@ -4768,8 +5407,10 @@
      ]
     ],
     "nt": [
-     "Butter war aus",
-     -10
+     [
+      "Butter war aus",
+      -10
+     ]
     ]
    }
   },
@@ -4882,11 +5523,12 @@
     "g": {
      "e0Brot01": 1793500550
     },
-    "nt": [
-     "Bitte Bio-Milch",
-     1793500000,
-     "PaPa01"
-    ]
+    "nt": {
+     "PaPa01": [
+      "Bitte Bio-Milch",
+      1793500000
+     ]
+    }
    },
    "ich": "MaMa01",
    "name_ich": "Mama",
@@ -4952,7 +5594,7 @@
      ]
     ],
     "g": {},
-    "nt": null
+    "nt": {}
    },
    "ich": "OmA001",
    "name_ich": "Oma",
@@ -5051,7 +5693,7 @@
      "e0Brot01": 1793500550,
      "e0Alt0001": 1790821600
     },
-    "nt": null
+    "nt": {}
    },
    "ich": "PaPa01",
    "name_ich": "Papa",
@@ -5183,7 +5825,7 @@
     "g": {
      "e0Grenze1": 1791167200
     },
-    "nt": null
+    "nt": {}
    },
    "ich": "PaPa01",
    "name_ich": "Papa",
@@ -5278,11 +5920,12 @@
      ]
     ],
     "g": {},
-    "nt": [
-     "Bitte Bio-Milch",
-     1793500005,
-     "PaPa01"
-    ]
+    "nt": {
+     "PaPa01": [
+      "Bitte Bio-Milch",
+      1793500005
+     ]
+    }
    },
    "ich": "PaPa01",
    "name_ich": "Papa",
@@ -5313,8 +5956,96 @@
       ]
      ],
      "nt": [
+      [
+       "Bitte Bio-Milch",
+       -5
+      ]
+     ]
+    }
+   }
+  },
+  {
+   "name": "Liste schicken mit Notizen von zwei Personen",
+   "art": "liste",
+   "stand": {
+    "id": "Lst0Wocheneink01",
+    "rev": 1,
+    "t": 1793500000,
+    "by": "PaPa01",
+    "n": "Wocheneinkauf",
+    "sv": 0,
+    "a": {
+     "PaPa01": "Papa",
+     "MaMa01": "Mama"
+    },
+    "e": [
+     [
+      "e0Milch1",
+      "Milch",
+      2,
+      null,
+      "",
+      "MILCH_KAESE",
+      0,
+      "o",
+      1793499900,
+      "PaPa01",
+      1793499900,
+      "PaPa01",
+      null
+     ]
+    ],
+    "g": {},
+    "nt": {
+     "PaPa01": [
       "Bitte Bio-Milch",
-      -5
+      1793500005
+     ],
+     "MaMa01": [
+      "Butter war aus, hab Margarine genommen",
+      1793501100
+     ]
+    }
+   },
+   "ich": "PaPa01",
+   "name_ich": "Papa",
+   "jetzt": 1793502000,
+   "erwartet": {
+    "art": "voll",
+    "json": {
+     "v": 1,
+     "k": "l",
+     "id": "Lst0Wocheneink01",
+     "t": 1793502000,
+     "by": "PaPa01",
+     "a": {
+      "MaMa01": "Mama",
+      "PaPa01": "Papa"
+     },
+     "rev": 2,
+     "n": "Wocheneinkauf",
+     "sv": 0,
+     "full": 1,
+     "e": [
+      [
+       "e0Milch1",
+       "Milch",
+       -2100,
+       2,
+       0,
+       2
+      ]
+     ],
+     "nt": [
+      [
+       "Butter war aus, hab Margarine genommen",
+       -900,
+       "MaMa01"
+      ],
+      [
+       "Bitte Bio-Milch",
+       -1995
+      ]
      ]
     }
    }
@@ -5365,7 +6096,7 @@
      ]
     ],
     "g": {},
-    "nt": null
+    "nt": {}
    },
    "ich": "PaPa01",
    "name_ich": "Papa",
@@ -8353,7 +9084,7 @@
     "g": {
      "e0Weg0001": 1793500000
     },
-    "nt": null
+    "nt": {}
    },
    "ich": "PaPa01",
    "name_ich": "Papa",
@@ -12139,7 +12870,7 @@
      ]
     ],
     "g": {},
-    "nt": null
+    "nt": {}
    },
    "ich": "PaPa01",
    "name_ich": "Papa",
@@ -12811,6 +13542,324 @@
       "r0Brosl1"
      ]
     ]
+   ]
+  },
+  {
+   "name": "Notiz oben: Mama sieht Papas Notiz, auch wenn ihre neuer ist",
+   "art": "notiz",
+   "stand": {
+    "id": "Lst0Wocheneink01",
+    "rev": 1,
+    "t": 1793500000,
+    "by": "PaPa01",
+    "n": "Wocheneinkauf",
+    "sv": 0,
+    "a": {
+     "PaPa01": "Papa"
+    },
+    "e": [
+     [
+      "e0Milch1",
+      "Milch",
+      2,
+      null,
+      "",
+      "MILCH_KAESE",
+      0,
+      "o",
+      1793499900,
+      "PaPa01",
+      1793499900,
+      "PaPa01",
+      null
+     ]
+    ],
+    "g": {},
+    "nt": {
+     "PaPa01": [
+      "Bitte Bio-Milch",
+      1793500000
+     ],
+     "MaMa01": [
+      "Butter war aus",
+      1793501100
+     ]
+    }
+   },
+   "ich": "MaMa01",
+   "erwartet": [
+    "Bitte Bio-Milch",
+    1793500000,
+    "PaPa01"
+   ]
+  },
+  {
+   "name": "Notiz oben: Papa sieht Mamas Antwort",
+   "art": "notiz",
+   "stand": {
+    "id": "Lst0Wocheneink01",
+    "rev": 1,
+    "t": 1793500000,
+    "by": "PaPa01",
+    "n": "Wocheneinkauf",
+    "sv": 0,
+    "a": {
+     "PaPa01": "Papa"
+    },
+    "e": [
+     [
+      "e0Milch1",
+      "Milch",
+      2,
+      null,
+      "",
+      "MILCH_KAESE",
+      0,
+      "o",
+      1793499900,
+      "PaPa01",
+      1793499900,
+      "PaPa01",
+      null
+     ]
+    ],
+    "g": {},
+    "nt": {
+     "PaPa01": [
+      "Bitte Bio-Milch",
+      1793500000
+     ],
+     "MaMa01": [
+      "Butter war aus",
+      1793501100
+     ]
+    }
+   },
+   "ich": "PaPa01",
+   "erwartet": [
+    "Butter war aus",
+    1793501100,
+    "MaMa01"
+   ]
+  },
+  {
+   "name": "Notiz oben: nur die eigene Notiz, nichts oben",
+   "art": "notiz",
+   "stand": {
+    "id": "Lst0Wocheneink01",
+    "rev": 1,
+    "t": 1793500000,
+    "by": "PaPa01",
+    "n": "Wocheneinkauf",
+    "sv": 0,
+    "a": {
+     "PaPa01": "Papa"
+    },
+    "e": [
+     [
+      "e0Milch1",
+      "Milch",
+      2,
+      null,
+      "",
+      "MILCH_KAESE",
+      0,
+      "o",
+      1793499900,
+      "PaPa01",
+      1793499900,
+      "PaPa01",
+      null
+     ]
+    ],
+    "g": {},
+    "nt": {
+     "MaMa01": [
+      "Butter war aus",
+      1793501100
+     ]
+    }
+   },
+   "ich": "MaMa01",
+   "erwartet": null
+  },
+  {
+   "name": "Notiz oben: keine Notiz",
+   "art": "notiz",
+   "stand": {
+    "id": "Lst0Wocheneink01",
+    "rev": 1,
+    "t": 1793500000,
+    "by": "PaPa01",
+    "n": "Wocheneinkauf",
+    "sv": 0,
+    "a": {
+     "PaPa01": "Papa"
+    },
+    "e": [
+     [
+      "e0Milch1",
+      "Milch",
+      2,
+      null,
+      "",
+      "MILCH_KAESE",
+      0,
+      "o",
+      1793499900,
+      "PaPa01",
+      1793499900,
+      "PaPa01",
+      null
+     ]
+    ],
+    "g": {},
+    "nt": {}
+   },
+   "ich": "MaMa01",
+   "erwartet": null
+  },
+  {
+   "name": "Notiz oben: die neueste fremde ist geleert, nichts oben",
+   "art": "notiz",
+   "stand": {
+    "id": "Lst0Wocheneink01",
+    "rev": 1,
+    "t": 1793500000,
+    "by": "PaPa01",
+    "n": "Wocheneinkauf",
+    "sv": 0,
+    "a": {
+     "PaPa01": "Papa"
+    },
+    "e": [
+     [
+      "e0Milch1",
+      "Milch",
+      2,
+      null,
+      "",
+      "MILCH_KAESE",
+      0,
+      "o",
+      1793499900,
+      "PaPa01",
+      1793499900,
+      "PaPa01",
+      null
+     ]
+    ],
+    "g": {},
+    "nt": {
+     "PaPa01": [
+      "",
+      1793502000
+     ],
+     "OmA001": [
+      "Bis gleich",
+      1793500010
+     ]
+    }
+   },
+   "ich": "MaMa01",
+   "erwartet": null
+  },
+  {
+   "name": "Notiz oben: zwei fremde, die neuere",
+   "art": "notiz",
+   "stand": {
+    "id": "Lst0Wocheneink01",
+    "rev": 1,
+    "t": 1793500000,
+    "by": "PaPa01",
+    "n": "Wocheneinkauf",
+    "sv": 0,
+    "a": {
+     "PaPa01": "Papa"
+    },
+    "e": [
+     [
+      "e0Milch1",
+      "Milch",
+      2,
+      null,
+      "",
+      "MILCH_KAESE",
+      0,
+      "o",
+      1793499900,
+      "PaPa01",
+      1793499900,
+      "PaPa01",
+      null
+     ]
+    ],
+    "g": {},
+    "nt": {
+     "PaPa01": [
+      "Bitte Bio-Milch",
+      1793500000
+     ],
+     "OmA001": [
+      "Bin um f\u00fcnf da",
+      1793500050
+     ]
+    }
+   },
+   "ich": "MaMa01",
+   "erwartet": [
+    "Bin um f\u00fcnf da",
+    1793500050,
+    "OmA001"
+   ]
+  },
+  {
+   "name": "Notiz oben: gleiche Zeit, gr\u00f6\u00dfere Kennung",
+   "art": "notiz",
+   "stand": {
+    "id": "Lst0Wocheneink01",
+    "rev": 1,
+    "t": 1793500000,
+    "by": "PaPa01",
+    "n": "Wocheneinkauf",
+    "sv": 0,
+    "a": {
+     "PaPa01": "Papa"
+    },
+    "e": [
+     [
+      "e0Milch1",
+      "Milch",
+      2,
+      null,
+      "",
+      "MILCH_KAESE",
+      0,
+      "o",
+      1793499900,
+      "PaPa01",
+      1793499900,
+      "PaPa01",
+      null
+     ]
+    ],
+    "g": {},
+    "nt": {
+     "OmA001": [
+      "A",
+      1793500000
+     ],
+     "PaPa01": [
+      "B",
+      1793500000
+     ]
+    }
+   },
+   "ich": "MaMa01",
+   "erwartet": [
+    "B",
+    1793500000,
+    "PaPa01"
    ]
   },
   {

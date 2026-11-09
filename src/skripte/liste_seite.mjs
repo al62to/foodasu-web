@@ -6,8 +6,9 @@
 // Speicher unter foodasu-liste-<listId>. Nichts davon geht an einen Server; Texte aus dem Link kommen nur als Text
 // (textContent) auf die Seite, nie als HTML.
 import { lesen, schreiben } from './teilen/kodierung.mjs';
-import { GRENZEN, KENNUNG_BYTE, STATUS, hat, istKennung, istObjekt, kuerzen, neueKennung } from './teilen/umschlag.mjs';
-import { F, aufraeumen, allesErledigt, haekchen, zusammenfuehren } from './teilen/zusammenfuehren.mjs';
+import { GRENZEN, KENNUNG_BYTE, STATUS, hat, istKennung, istObjekt, kuerzen, neueKennung, setze } from './teilen/umschlag.mjs';
+import { F, aufraeumen, allesErledigt, haekchen, obenNotiz, zusammenfuehren } from './teilen/zusammenfuehren.mjs';
+import { oeffnenAdresse } from './teilen/app_oeffnen.mjs';
 import { mengeText, ordnen, standZeit } from './teilen/anzeige.mjs';
 import app from '../daten/teilen_app.json';
 import { listeTexte as T } from '../daten/liste_seite.mjs';
@@ -77,12 +78,22 @@ const element = (marke, klasse, text) => {
 
 // ---- Speicher im Browser (alles in try/catch: ohne Speicher geht die Seite trotzdem) ----------------------------
 
+// Notizen im Speicher: seit AP-114 eine je Person ({authorId: [text, zeit]}). Ein Eintrag aus der Zeit davor trägt
+// höchstens eine Notiz [text, zeit, authorId]; sie wird so umgedeutet, alles andere heißt keine Notiz (die Seite war
+// mit der alten Form nie live).
+function notizenAusSpeicher(nt) {
+  if (istObjekt(nt)) return nt;
+  const notizen = {};
+  if (Array.isArray(nt) && typeof nt[0] === 'string' && Number.isInteger(nt[1]) && istKennung(nt[2])) setze(notizen, nt[2], [nt[0], nt[1]]);
+  return notizen;
+}
+
 function datensatzPruefen(wert, listId) {
   if (!istObjekt(wert) || wert.format !== 1 || !istKennung(wert.autor) || typeof wert.name !== 'string') return null;
   const stand = wert.stand;
   if (!istObjekt(stand) || stand.id !== listId || !Array.isArray(stand.e) || !istObjekt(stand.a) || !istObjekt(stand.g)) return null;
   if (!stand.e.every((eintrag) => Array.isArray(eintrag) && eintrag.length === 13)) return null;
-  return { ...wert, neu: Array.isArray(wert.neu) ? wert.neu : [], wach: wert.wach !== false };
+  return { ...wert, stand: { ...stand, nt: notizenAusSpeicher(stand.nt) }, neu: Array.isArray(wert.neu) ? wert.neu : [], wach: wert.wach !== false };
 }
 
 // { ok: Speicher lesbar, datensatz: gültiger Eintrag oder null }
@@ -169,8 +180,9 @@ function zeigeHaekchen(umschlag) {
     ueberzeile: fuer ? fuelle(H.fuer, { absender: fuer }) : T.ueberzeileOhneName,
     weiter: H.weiter,
   });
-  // „In FoodAsu öffnen“: dieselbe Adresse; wo die App mit der Website verknüpft ist (AP-113), öffnet sie die App.
-  teil.hinweisOeffnen.href = location.href;
+  // „In FoodAsu öffnen“: dieselbe Adresse; wo die App mit der Website verknüpft ist (AP-113), öffnet sie die App; in
+  // Android-Browsern über eine intent-Adresse (AP-114, src/skripte/teilen/app_oeffnen.mjs).
+  teil.hinweisOeffnen.href = appAdresse();
   teil.hinweisOeffnen.hidden = false;
 }
 
@@ -190,8 +202,10 @@ async function oeffnen() {
   const aus = zusammenfuehren(vorher, umschlag);
   if (aus.fehler) return zeigeHinweis(T.kaputt);
   const stand = aufraeumen(aus.stand, jetzt);
-  let autor = alt?.autor;
-  while (!istKennung(autor) || hat(stand.a, autor) || autor === stand.by) autor = neueKennung(KENNUNG_BYTE.autor);
+  // Die eigene authorId bleibt, solange es den Eintrag im Speicher gibt (sie steht nach einem Nachtrag auch in a, wenn
+  // die Häkchen schon beim Absender waren); eine neue darf mit keiner bekannten Person zusammenfallen.
+  let autor = istKennung(alt?.autor) ? alt.autor : null;
+  while (!autor || (autor !== alt?.autor && (hat(stand.a, autor) || autor === stand.by || hat(stand.nt, autor)))) autor = neueKennung(KENNUNG_BYTE.autor);
   zustand = {
     listId: umschlag.id,
     kodierung,
@@ -383,31 +397,30 @@ document.querySelector('[data-l-aendern]').addEventListener('click', () => zeige
 
 // ---- Notiz (Nachtrag 09.11.2026) ------------------------------------------------------------------------------------
 
-// Fremde Notiz oben unter Absender und Stand; die eigene steht im Feld beim Zurückschicken.
+// Oben unter Absender und Stand die neueste Notiz einer anderen Person (Format 5.4b, eine Notiz je Person seit
+// AP-114); die eigene steht nie oben, sondern im Feld beim Zurückschicken.
 function zeigeNotiz(stand) {
-  const nt = stand.nt;
   const ich = zustand.datensatz.autor;
-  const fremd = nt && nt[0] && nt[2] !== ich;
-  kopf.notiz.hidden = !fremd;
-  if (fremd) {
-    const von = hat(stand.a, nt[2]) ? stand.a[nt[2]] : '';
+  const oben = obenNotiz(stand, ich);
+  kopf.notiz.hidden = !oben;
+  if (oben) {
+    const von = nameVon(oben[2]);
     kopf.notizTitel.textContent = von ? fuelle(T.notiz.von, { von }) : T.notiz.ohneName;
-    kopf.notizText.textContent = nt[0];
+    kopf.notizText.textContent = oben[0];
   }
   const absenderName = absender();
   teil.notizFeldTitel.textContent = absenderName ? fuelle(T.zurueck.notizFeld, { absender: absenderName }) : T.zurueck.notizFeldOhneName;
-  if (nt && nt[2] === ich && document.activeElement !== teil.notizEingabe && !teil.notizEingabe.value) teil.notizEingabe.value = nt[0];
+  const eigene = hat(stand.nt, ich) ? stand.nt[ich] : null;
+  if (eigene && document.activeElement !== teil.notizEingabe && !teil.notizEingabe.value) teil.notizEingabe.value = eigene[0];
 }
 
-// Übernimmt die Notiz aus dem Feld als eigene (Zeit mindestens eine Sekunde nach der bisherigen, Format 6.3); ein
-// leeres Feld leert nur eine eigene Notiz, die es schon gab.
+// Übernimmt die Notiz aus dem Feld als eigene (Zeit mindestens eine Sekunde nach der bisherigen eigenen, Format 6.3);
+// ein leeres Feld leert nur eine eigene Notiz, die es schon gab.
 function notizUebernehmen(stand, ich) {
-  const textNeu = teil.notizEingabe.value.trim().slice(0, 200);
-  const da = stand.nt;
-  const eigene = da && da[2] === ich ? da[0] : null;
-  if (textNeu === (eigene ?? '')) return;
-  if (!textNeu && eigene === null) return;
-  stand.nt = [textNeu, Math.max(jetztSek(), (da ? da[1] : 0) + 1), ich];
+  const textNeu = kuerzen(teil.notizEingabe.value.trim(), GRENZEN.text);
+  const eigene = hat(stand.nt, ich) ? stand.nt[ich] : null;
+  if (textNeu === (eigene ? eigene[0] : '')) return;
+  setze(stand.nt, ich, [textNeu, Math.max(jetztSek(), (eigene ? eigene[1] : 0) + 1)]);
   speichern();
 }
 
@@ -429,7 +442,8 @@ async function senden() {
   notizUebernehmen(stand, autor);
   const umschlag = haekchen(stand, autor, name, jetztSek());
   const link = `${BASIS}#${await schreiben(umschlag)}`;
-  const notiz = umschlag.nt && umschlag.nt[0] ? `\n${fuelle(T.zurueck.nachrichtNotiz, { notiz: umschlag.nt[0] })}` : '';
+  const eigeneNotiz = umschlag.nt?.[0]?.[0] ?? '';
+  const notiz = eigeneNotiz ? `\n${fuelle(T.zurueck.nachrichtNotiz, { notiz: eigeneNotiz })}` : '';
   const ganz = `${nachricht(stand, name, umschlag.done === 1)}${notiz}\n${link}`;
   teil.wege.dataset.link = link;
   teil.wege.dataset.text = ganz;
@@ -558,10 +572,13 @@ computer.addEventListener('change', () => { zeigeQr(); zeigeAppOeffnen(); });
 // ---- „In FoodAsu öffnen“ in der Liste (AP-113, Vorgabe 6.4) ----------------------------------------------------
 
 // Gebaut wie auf der kurzen Seite zum Umschlag h: dieselbe https-Adresse samt Teil hinter dem # (location.href); wo
-// die App installiert und mit foodasu.com verknüpft ist (Android App Links, iPhone Universal Links), öffnet sie die
-// App. Nur in der Ansicht einer Liste und nicht am Computer: Dort gibt es keine App, dafür den QR-Code.
+// die App installiert und mit foodasu.com verknüpft ist (iPhone Universal Links), öffnet sie die App. In
+// Android-Browsern eine intent-Adresse mit derselben Adresse und der Seite als Rückfall (AP-114, Begründung in
+// src/skripte/teilen/app_oeffnen.mjs). Nur in der Ansicht einer Liste und nicht am Computer: Dort gibt es keine App,
+// dafür den QR-Code.
+const appAdresse = () => oeffnenAdresse({ basis: BASIS, href: location.href, hash: location.hash, userAgent: navigator.userAgent });
 function zeigeAppOeffnen() {
-  teil.appOeffnen.href = location.href;
+  teil.appOeffnen.href = appAdresse();
   teil.appOeffnen.hidden = !zustand || computer.matches;
 }
 

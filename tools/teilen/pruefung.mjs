@@ -1,11 +1,13 @@
 // Prüflogik für den JavaScript-Kern der Seite /l/ mit den gemeinsamen Testfällen von App und Website (Aufbau in
 // docs/Teilen_Format.md der App, Abschnitt 8). Reines ES-Modul ohne Node-Module: läuft in Node
 // (tools/teilen_pruefen.mjs, npm run pruefen) und im Browser (tools/teilen_browser.mjs). Alle Fälle außer der Art
-// "liste" und "uebernehmen" (nur Kern), jeder einmal mit DecompressionStream/CompressionStream und einmal mit fflate.
+// "liste" und "uebernehmen" (nur Kern), jeder einmal mit DecompressionStream/CompressionStream und einmal mit fflate:
+// umschlag, lesen, zusammenfuehren, aufraeumen, haekchen, profil, notiz (seit AP-114) und reihenfolge.
 import { lesen, schreiben, setzeWeg, letzterWeg, stromMoeglich } from '../../src/skripte/teilen/kodierung.mjs';
 import { umschlagLesen, umschlagText, neueKennung, istKennung, KENNUNG_BYTE, base64urlLesen, base64urlSchreiben } from '../../src/skripte/teilen/umschlag.mjs';
-import { aufraeumen, haekchen, profilVergleich, zusammenfuehren } from '../../src/skripte/teilen/zusammenfuehren.mjs';
+import { aufraeumen, haekchen, obenNotiz, profilVergleich, zusammenfuehren } from '../../src/skripte/teilen/zusammenfuehren.mjs';
 import { mengeText, ordnen } from '../../src/skripte/teilen/anzeige.mjs';
+import { intentLesen, oeffnenAdresse } from '../../src/skripte/teilen/app_oeffnen.mjs';
 
 // Gleich nach Inhalt: Reihenfolge der Felder eines Objekts zählt nicht, die einer Liste schon.
 export function gleich(x, y) {
@@ -85,6 +87,12 @@ async function pruefeFall(fall, weg, befunde, app) {
     if (ergebnis !== fall.erwartet) melde(`${ergebnis}, erwartet ${fall.erwartet}`);
     return;
   }
+  if (fall.art === 'notiz') {
+    // Welche Notiz oben steht (Format 5.4b, AP-114): für ich die neueste einer anderen Person, nur mit Text.
+    const oben = obenNotiz(fall.stand, fall.ich);
+    if (!gleich(oben, fall.erwartet)) melde(`oben ${kurz(oben)}, erwartet ${kurz(fall.erwartet)}`);
+    return;
+  }
   if (fall.art === 'reihenfolge') {
     // Reihenfolge in der Gruppe wie in der App (Schlüssel des Namens, dann ordnung); "app" nennt eine bekannte
     // Abweichung durch das Lexikon der App, die Seite zeigt "erwartet".
@@ -144,6 +152,31 @@ export async function pruefeTestfaelle(daten, app) {
     if (ist !== soll) befunde.push(`Anzeige: Menge ${menge} ${einheit ?? ''} als „${ist}“, erwartet „${soll}“`);
   }
   zahlen.anzeige = MENGEN.length;
-  return { zahlen, befunde, uebersprungen: (daten.faelle ?? []).length - faelle.length };
+  // „In FoodAsu öffnen“ (AP-114): in Android-Browsern eine intent-Adresse, aus der Android (Intent.parseUri: Daten vor
+  // dem letzten #, Schema aus scheme=) die https-Adresse von foodasu.com samt Teil hinter dem # liest, mit dem Paket der
+  // App und der geöffneten Seite als Rückfall; sonst location.href. Kodierungen aus den Testfällen.
+  const oeffnen = [];
+  const listen = (daten.faelle ?? []).filter((fall) => fall.art === 'umschlag' && fall.kodierung).map((fall) => fall.kodierung);
+  const ANDROID_UA = 'Mozilla/5.0 (Linux; Android 14; SM-S921B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36';
+  const IPHONE_UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1';
+  const LAPTOP_UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36';
+  for (const kodierung of listen.slice(0, 3)) {
+    for (const host of ['https://foodasu.com', 'https://www.foodasu.com', 'http://localhost:4321']) {
+      const href = `${host}/l/#${kodierung}`;
+      const werte = { basis: 'https://foodasu.com/l/', href, hash: `#${kodierung}` };
+      const android = oeffnenAdresse({ ...werte, userAgent: ANDROID_UA });
+      const gelesen = intentLesen(android);
+      const soll = `intent://foodasu.com/l/#${kodierung}#Intent;scheme=https;package=at.tonc.einkauf;S.browser_fallback_url=${encodeURIComponent(href)};end`;
+      oeffnen.push([android === soll, `Android von ${host}: ${android.slice(0, 120)}`]);
+      oeffnen.push([gelesen?.daten === `https://foodasu.com/l/#${kodierung}` && gelesen.paket === 'at.tonc.einkauf' && gelesen.rueckfall === href, `Android liest ${kurz(gelesen)}`]);
+      for (const userAgent of [IPHONE_UA, LAPTOP_UA, '']) oeffnen.push([oeffnenAdresse({ ...werte, userAgent }) === href, `ohne Android (${userAgent.slice(13, 30) || 'leer'}) bleibt location.href`]);
+    }
+  }
+  // Teil hinter dem # mit anderen Zeichen als base64url: die Daten ohne Fragment (kein zweites # vor #Intent;).
+  const schief = oeffnenAdresse({ basis: 'https://foodasu.com/l/', href: 'https://foodasu.com/l/#a#b', hash: '#a#b', userAgent: ANDROID_UA });
+  oeffnen.push([intentLesen(schief)?.daten === 'https://foodasu.com/l/' && intentLesen(schief)?.rueckfall === 'https://foodasu.com/l/#a#b', `schiefer Teil hinter dem #: ${schief}`]);
+  if (listen.length === 0) oeffnen.push([false, 'keine Kodierung in den Testfällen']);
+  for (const [gut, text] of oeffnen) if (!gut) befunde.push(`Öffnen in der App: ${text}`);
+  return { zahlen, befunde, uebersprungen: (daten.faelle ?? []).length - faelle.length, oeffnen: oeffnen.length };
 }
 

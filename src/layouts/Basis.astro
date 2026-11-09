@@ -54,6 +54,8 @@ const kanonisch = seite.adresse + adresse;
     <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="preload" href={schrift} as="font" type="font/woff2" crossorigin />
+    {/* Platz für Angaben im Kopf, die nur eine Seite braucht (AP-114: Smart App Banner von Safari nur auf /l/). */}
+    <slot name="kopf" />
     {daten.map((eintrag) => <script type="application/ld+json" set:html={JSON.stringify(eintrag)} />)}
   </head>
   <body>

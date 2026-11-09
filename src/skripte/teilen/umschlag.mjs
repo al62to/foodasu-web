@@ -1,5 +1,5 @@
 // Umschlag beim Teilen (Format 1, App-Repository docs/Teilen_Format.md, Abschnitte 1 und 3): Kennungen, Grenzen, Lesen
-// nach 3.5 und Schreiben in der festen Feldfolge. Im Umschlag stehen Einträge, Häkchen und Notiz in der Kurzform
+// nach 3.5 und Schreiben in der festen Feldfolge. Im Umschlag stehen Einträge, Häkchen und Notizen in der Kurzform
 // (Format 3.2, seit AP-112b: Zeiten als Abstand zu t, Warengruppe als Zahl, Felder mit Standard am Ende weggelassen);
 // gelesen ergibt sich die Langform des Stands (13 Felder, feste Zeiten, Gruppe als Name), mit der die Seite rechnet. Dieselben Regeln gelten im Kern der App
 // (kern/src/commonMain/kotlin/at/tonc/einkauf/teilen/ShareJson.kt); beide prüfen dieselben Testfälle
@@ -13,6 +13,7 @@ export const GRENZEN = Object.freeze({
   eintraege: 200,
   haekchen: 400,
   meiden: 500,
+  notizen: 50,
   name: 40,
   listenName: 60,
   text: 200,
@@ -189,9 +190,9 @@ function meidenLesen(wert) {
   return art === null || schluessel === null || stufe === null || name === undefined ? null : [art, schluessel, stufe, name];
 }
 
-// Notiz [text, zeit - t, authorId] (freiwillig; ohne Urheber ist es der Absender by) als [text, zeit, authorId]:
-// schief oder fehlend heißt keine Notiz (null); der Text wird auf 200 Zeichen gekürzt, weitere Felder werden
-// überlesen (wie readNote im Kern).
+// Eine Notiz [text, zeit - t, authorId] (ohne Urheber ist es der Absender by) als [text, zeit, authorId]; schief
+// heißt null (kein Text, keine gültige Zeit, Urheber kein Text). Der Text wird auf 200 Zeichen gekürzt, weitere Felder
+// werden überlesen (wie readNote im Kern).
 export function notizLesen(wert, t, by) {
   if (!Array.isArray(wert) || wert.length < 2) return null;
   const inhalt = text(wert[0]);
@@ -200,10 +201,22 @@ export function notizLesen(wert, t, by) {
   return inhalt === null || zeit === null || von === null ? null : [kuerzen(inhalt, GRENZEN.text), zeit, von];
 }
 
-// Je Kennung gilt das erste gültige Teilstück.
-function erstesJeKennung(liste) {
+// Je Kennung gilt das erste gültige Teilstück (Kennung an der Stelle stelle).
+function erstesJeKennung(liste, stelle = 0) {
   const gesehen = new Set();
-  return liste.filter((teil) => teil !== null && !gesehen.has(teil[0]) && gesehen.add(teil[0]));
+  return liste.filter((teil) => teil !== null && !gesehen.has(teil[stelle]) && gesehen.add(teil[stelle]));
+}
+
+const vergleich = (x, y) => (x < y ? -1 : x > y ? 1 : 0);
+
+// Notizen, eine je Person (Format 3.2 und 3.5, seit AP-114): [[text, zeit - t, authorId?], …] als Liste von
+// [text, zeit, authorId], nach authorId geordnet (Vergleich der UTF-16-Zeichen). Keine Liste (auch die alte Form mit
+// nur einer Notiz): keine Notizen. Mehr als 50 Teilstücke: null (zu_gross). Schiefe Teilstücke fallen weg, je Urheber
+// gilt das erste (wie readNotes im Kern).
+export function notizenLesen(wert, t, by) {
+  if (!Array.isArray(wert)) return [];
+  if (wert.length > GRENZEN.notizen) return null;
+  return erstesJeKennung(wert.map((x) => notizLesen(x, t, by)), 2).sort((x, y) => vergleich(x[2], y[2]));
 }
 
 // Liest einen Umschlag aus dem geparsten JSON. Ergebnis { umschlag } in der Form des JSON (Felder in der
@@ -233,8 +246,9 @@ export function umschlagLesen(wurzel) {
     if (n === null || sv === null || full === null || !Array.isArray(e)) return KAPUTT;
     if (e.length > GRENZEN.eintraege) return ZU_GROSS;
     const umschlag = { ...kopf, n: kuerzen(n, GRENZEN.listenName), sv, full, e: erstesJeKennung(e.map((x) => eintragLesen(x, t, by))) };
-    const nt = notizLesen(feld(wurzel, 'nt'), t, by);
-    if (nt) umschlag.nt = nt;
+    const nt = notizenLesen(feld(wurzel, 'nt'), t, by);
+    if (nt === null) return ZU_GROSS;
+    if (nt.length) umschlag.nt = nt;
     return { umschlag };
   }
   if (art === 'h') {
@@ -243,8 +257,9 @@ export function umschlagLesen(wurzel) {
     if (done === null || !Array.isArray(s)) return KAPUTT;
     if (s.length > GRENZEN.haekchen) return ZU_GROSS;
     const umschlag = { ...kopf, done, s: erstesJeKennung(s.map((x) => haekchenLesen(x, t))) };
-    const nt = notizLesen(feld(wurzel, 'nt'), t, by);
-    if (nt) umschlag.nt = nt;
+    const nt = notizenLesen(feld(wurzel, 'nt'), t, by);
+    if (nt === null) return ZU_GROSS;
+    if (nt.length) umschlag.nt = nt;
     return { umschlag };
   }
   if (rev < 1) return KAPUTT;
@@ -277,11 +292,13 @@ export function eintragKurz(x, t, by) {
   return felder.slice(0, laenge);
 }
 
-const notizKurz = (nt, t, by) => (nt[2] === by ? [nt[0], nt[1] - t] : [nt[0], nt[1] - t, nt[2]]);
+// Notizen nach authorId geordnet, die Zeit als Abstand zu t, ohne Urheber, wenn es der Absender ist (Format 3.2).
+const notizenKurz = (nt, t, by) => [...nt].sort((x, y) => vergleich(x[2], y[2]))
+  .map(([inhalt, zeit, von]) => (von === by ? [inhalt, zeit - t] : [inhalt, zeit - t, von]));
 
 export function umschlagText(u) {
   const kopf = `"v":1,"k":${json(u.k)},"id":${json(u.id)},"t":${json(u.t)},"by":${json(u.by)},"a":${namenText(u.a)},"rev":${json(u.rev)}`;
-  const nt = u.nt ? `,"nt":${json(notizKurz(u.nt, u.t, u.by))}` : '';
+  const nt = u.nt && u.nt.length ? `,"nt":${listeText(notizenKurz(u.nt, u.t, u.by))}` : '';
   if (u.k === 'l') return `{${kopf},"n":${json(u.n)},"sv":${json(u.sv)},"full":${json(u.full)},"e":${listeText(u.e.map((x) => eintragKurz(x, u.t, u.by)))}${nt}}`;
   if (u.k === 'h') return `{${kopf},"done":${json(u.done)},"s":${listeText(u.s.map(([id, status, zeit]) => [id, status, zeit - u.t]))}${nt}}`;
   return `{${kopf},"n":${json(u.n)},"ic":${json(u.ic)},"m":${listeText(u.m)},"from":${json(u.from)}}`;

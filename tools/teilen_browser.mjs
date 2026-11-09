@@ -301,7 +301,7 @@ console.log('\n## 7a Notiz in beide Richtungen');
   const seite = await p.oeffne();
   const mitNotiz = fall('Liste mit Notiz');
   await offen(seite, link(mitNotiz.kodierung));
-  pruefe(await sichtbar(seite, '[data-l-notiz]') && (await text(seite, '[data-l-notiz-titel]')) === 'Notiz von Papa' && (await text(seite, '[data-l-notiz-text]')) === mitNotiz.json.nt[0], `Notiz oben: „${await text(seite, '[data-l-notiz-titel]')}“ „${await text(seite, '[data-l-notiz-text]')}“`);
+  pruefe(await sichtbar(seite, '[data-l-notiz]') && (await text(seite, '[data-l-notiz-titel]')) === 'Notiz von Papa' && (await text(seite, '[data-l-notiz-text]')) === mitNotiz.json.nt[0][0], `Notiz oben: „${await text(seite, '[data-l-notiz-titel]')}“ „${await text(seite, '[data-l-notiz-text]')}“`);
   await seite.type('[data-l-name-feld]', 'Mama');
   await seite.click('[data-l-name] button[type="submit"]');
   await seite.click('[data-id="e0Milch1"] [data-art="haken"]');
@@ -312,7 +312,8 @@ console.log('\n## 7a Notiz in beide Richtungen');
   const [satz, notiz, adresse] = (await seite.evaluate(() => window.__geteilt)).split('\n');
   pruefe(notiz === 'Notiz: Butter war aus, hab Margarine genommen', `Notiz in der Nachricht: ${notiz} (nach „${satz}“)`);
   const u = (await lesen(adresse.split('#')[1])).umschlag;
-  pruefe(u?.k === 'h' && Array.isArray(u.nt) && u.nt[0] === 'Butter war aus, hab Margarine genommen' && u.nt[2] === u.by, `Umschlag h mit nt: ${JSON.stringify(u?.nt)}`);
+  // Seit AP-114 eine Notiz je Person: Der Umschlag h trägt nur die eigene, [[text, zeit, authorId]] mit authorId = by.
+  pruefe(u?.k === 'h' && Array.isArray(u.nt) && u.nt.length === 1 && u.nt[0][0] === 'Butter war aus, hab Margarine genommen' && u.nt[0][2] === u.by, `Umschlag h nur mit der eigenen Notiz: ${JSON.stringify(u?.nt)}`);
   pruefe(!(await sichtbar(seite, '[data-l-notiz]')) || (await text(seite, '[data-l-notiz-titel]')) === 'Notiz von Papa', 'die eigene Antwort steht nicht oben als fremde Notiz');
   pruefe(p.fehler.length === 0, `keine Fehler auf der Seite (${p.fehler.join('; ')})`);
   await p.umgebung.close();
