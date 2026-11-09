@@ -1,0 +1,126 @@
+{
+ "format": 1,
+ "hinweis": "Erzeugt mit tools/teilen/website_exportieren.py im Repository der App; nie von Hand ändern.",
+ "meiden": [
+  {
+   "kennung": "en:gluten",
+   "art": "ZUTAT",
+   "name": "Gluten"
+  },
+  {
+   "kennung": "en:crustaceans",
+   "art": "ZUTAT",
+   "name": "Krebstiere"
+  },
+  {
+   "kennung": "en:eggs",
+   "art": "ZUTAT",
+   "name": "Eier"
+  },
+  {
+   "kennung": "en:fish",
+   "art": "ZUTAT",
+   "name": "Fisch"
+  },
+  {
+   "kennung": "en:peanuts",
+   "art": "ZUTAT",
+   "name": "Erdnüsse"
+  },
+  {
+   "kennung": "en:soybeans",
+   "art": "ZUTAT",
+   "name": "Soja"
+  },
+  {
+   "kennung": "en:milk",
+   "art": "ZUTAT",
+   "name": "Milch"
+  },
+  {
+   "kennung": "en:nuts",
+   "art": "ZUTAT",
+   "name": "Schalenfrüchte"
+  },
+  {
+   "kennung": "en:celery",
+   "art": "ZUTAT",
+   "name": "Sellerie"
+  },
+  {
+   "kennung": "en:mustard",
+   "art": "ZUTAT",
+   "name": "Senf"
+  },
+  {
+   "kennung": "en:sesame-seeds",
+   "art": "ZUTAT",
+   "name": "Sesam"
+  },
+  {
+   "kennung": "en:sulphur-dioxide-and-sulphites",
+   "art": "ZUTAT",
+   "name": "Sulfite"
+  },
+  {
+   "kennung": "en:lupin",
+   "art": "ZUTAT",
+   "name": "Lupinen"
+  },
+  {
+   "kennung": "en:molluscs",
+   "art": "ZUTAT",
+   "name": "Weichtiere"
+  },
+  {
+   "kennung": "en:vegan",
+   "art": "ERNAEHRUNGSFORM",
+   "name": "Vegan"
+  },
+  {
+   "kennung": "en:vegetarian",
+   "art": "ERNAEHRUNGSFORM",
+   "name": "Vegetarisch"
+  },
+  {
+   "kennung": "en:pork",
+   "art": "WEITERE",
+   "name": "Schweinefleisch"
+  },
+  {
+   "kennung": "en:alcohol",
+   "art": "WEITERE",
+   "name": "Alkohol"
+  },
+  {
+   "kennung": "en:e428",
+   "art": "WEITERE",
+   "name": "Gelatine"
+  },
+  {
+   "kennung": "en:palm-oil",
+   "art": "WEITERE",
+   "name": "Palmöl"
+  }
+ ],
+ "arten": [
+  "ZUTAT",
+  "ERNAEHRUNGSFORM",
+  "WEITERE",
+  "EIGENE_ZUTAT"
+ ],
+ "stufen": [
+  {
+   "kennung": "STRENG",
+   "name": "Auf keinen Fall"
+  },
+  {
+   "kennung": "NORMAL",
+   "name": "Meiden"
+  },
+  {
+   "kennung": "HINWEIS",
+   "name": "Lieber nicht"
+  }
+ ]
+}

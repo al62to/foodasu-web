@@ -1,0 +1,19 @@
+---
+// Smart App Banner von Safari am iPhone (AP-114, AP-113 Offen 4), nur auf den Seiten für Listen /l/ und Profile /p/
+// (tools/pruefe_seiten.mjs prüft das). Steht im Kopf über den Platz "kopf" von Basis.astro. Kennung der App aus der
+// Adresse des Eintrags im App Store (src/daten/seite.mjs). app-argument ist die Adresse, die die App beim Tipp auf
+// „Öffnen“ bekommt; statisch steht nur https://foodasu.com/<pfad>, denn den Teil hinter dem # kennt der Bau nicht. Das
+// kleine Skript direkt danach hängt ihn noch beim Lesen des Kopfs an (nur base64url-Zeichen, sonst bleibt es bei der
+// Adresse ohne #). Safari liest app-argument nur beim Laden; ob es den geänderten Wert nimmt, ist nach dem Livegang am
+// iPhone zu prüfen (offener Punkt). Der Teil hinter dem # geht dabei an keinen Server: Der Banner reicht ihn nur an
+// die App weiter.
+import { seite, appStore } from '../daten/seite.mjs';
+
+const { pfad } = Astro.props;
+const appId = appStore.adresse.match(/\/id(\d+)$/)?.[1];
+if (!appId) throw new Error('Kennung der App im App Store nicht gefunden (appStore.adresse in src/daten/seite.mjs)');
+if (pfad !== '/l/' && pfad !== '/p/') throw new Error(`Smart App Banner nur auf /l/ und /p/, nicht auf ${pfad}`);
+const banner = `app-id=${appId}, app-argument=${seite.adresse}${pfad}`;
+---
+<meta name="apple-itunes-app" content={banner} />
+<script is:inline>(function(){var m=document.querySelector('meta[name="apple-itunes-app"]');var h=location.hash;if(m&&/^#[A-Za-z0-9_-]+$/.test(h))m.setAttribute('content',m.getAttribute('content')+h);})();</script>

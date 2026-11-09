@@ -17,6 +17,7 @@ import { alleRezepte, zutatenBefunde } from './zutaten_pruefen.mjs';
 import { sogehtsLinks } from './sogehts_links.mjs';
 import { preisaussagen } from './preisaussagen.mjs';
 import { listeSeite, listeTexte } from '../src/daten/liste_seite.mjs';
+import { profilSeite, profilTexte } from '../src/daten/profil_seite.mjs';
 import { pruefeTestfaelle } from './teilen_pruefen.mjs';
 import { spawnSync } from 'node:child_process';
 import { homedir } from 'node:os';
@@ -25,9 +26,10 @@ import { homedir } from 'node:os';
 const DIST = process.env.DIST ?? 'dist';
 const HOST = 'https://foodasu.com';
 // /c/ (AP-54) erreicht man nur über den Link mit dem Code aus einer Nachricht, nie über eine andere Seite; ebenso /l/
-// (AP-112) nur über den Link mit der Liste.
+// (AP-112) nur über den Link mit der Liste und /p/ (AP-114) nur über den Link mit dem Profil.
 const LISTE = listeSeite.adresse;
-const OHNE_EINGANG = new Set(['/', '/404.html', '/c/', LISTE]);
+const PROFIL = profilSeite.adresse;
+const OHNE_EINGANG = new Set(['/', '/404.html', '/c/', LISTE, PROFIL]);
 // Rechtstexte laufen wie in texte_pruefen.py nur durch die Bezahl- und Fristlisten.
 const RECHTSTEXTE = new Set(['/datenschutz.html', '/nutzungsbedingungen.html']);
 // Nutzungsbedingungen (AP-35A, 23.10.2026; Text wortgleich aus foodasu-play/Nutzungsbedingungen_1.0.md, Alis Ja vom
@@ -181,8 +183,8 @@ function listeSichtbar(adresse, html, ziele) {
 // Website. Die Prüfung liest nur die gebauten Seiten, nicht src/daten/meta.mjs.
 // Seit AP-56w (29.10.2026) tragen alle Seiten mit Rechtstexten noindex; sie bleiben erreichbar und im Fuß verlinkt.
 // Seit AP-54 (31.10.2026) dazu die Seite für Codes /c/: noindex, nicht in Sitemap, llms.txt oder Menü; seit AP-112
-// ebenso die Seite für geteilte Einkaufslisten /l/.
-const OHNE_INDEX = new Set(['/datenschutz.html', '/nutzungsbedingungen.html', '/lizenzen/', '/offenlegung/', '/quellen-und-lizenzen/', '/404.html', '/c/', LISTE]);
+// ebenso die Seite für geteilte Einkaufslisten /l/, seit AP-114 die Seite für geteilte Profile /p/.
+const OHNE_INDEX = new Set(['/datenschutz.html', '/nutzungsbedingungen.html', '/lizenzen/', '/offenlegung/', '/quellen-und-lizenzen/', '/404.html', '/c/', LISTE, PROFIL]);
 // Themenseiten der Rezepte (AP-22 Teil 1 Nr. 2): Im Index steht eine Themenseite nur mit mindestens sechs Rezepten und
 // einem eigenen Einleitungstext. Jede andere trägt "noindex, follow" und fehlt in sitemap.xml und llms.txt; für
 // Besucher bleibt sie. Gelesen wird beides aus der gebauten Seite: die Zahl aus der ItemList, der Text aus dem Absatz
@@ -222,6 +224,10 @@ const TITEL_START = 'Einkaufslisten-App und Lebensmittel-Scanner für den ganzen
 // 30 Zeichen; nur genau er auf genau dieser Seite ist von den Grenzen ausgenommen (noindex).
 const TITEL_LISTE = 'Einkaufsliste von FoodAsu';
 const LISTE_BILD = '/bilder/liste-teilen.jpg';
+// AP-114: ebenso die Seite für Profile /p/ mit dem festen Titel „Profil von FoodAsu“ und eigenem Bild zum Teilen ohne
+// Inhalt des Profils (node tools/teilen_bild_liste.mjs profil).
+const TITEL_PROFIL = 'Profil von FoodAsu';
+const PROFIL_BILD = '/bilder/profil-teilen.jpg';
 const META_WORTE = [['LADEN-WORT', muster('herunterladen|herunter\\s+laden|download|jetzt\\s+laden|jetzt\\s+holen')]];
 const TEILEN = { breite: 1200, hoehe: 630, gemeinsam: '/bilder/foodasu-teilen.jpg' };
 const inhaltVon = (html, name) => {
@@ -250,7 +256,7 @@ for (const [adresse, html] of seiten) {
   if (!beschreibung.trim()) melde(adresse, 'genau eine Beschreibung erwartet');
   for (const [art, text] of [['titel', titel], ['beschreibung', beschreibung]]) {
     if (!text.trim()) continue;
-    const ausnahme = art === 'titel' && ((adresse === '/' && text === TITEL_START) || (adresse === LISTE && text === TITEL_LISTE));
+    const ausnahme = art === 'titel' && ((adresse === '/' && text === TITEL_START) || (adresse === LISTE && text === TITEL_LISTE) || (adresse === PROFIL && text === TITEL_PROFIL));
     if (!ausnahme) for (const befund of grenzBefunde(text, art)) melde(adresse, `${art === 'titel' ? 'Titel' : 'Beschreibung'} „${text}“: ${befund}`);
     if (gesehen[art].has(text)) melde(adresse, `${art === 'titel' ? 'Titel' : 'Beschreibung'} doppelt, auch auf ${gesehen[art].get(text)}`);
     gesehen[art].set(text, adresse);
@@ -286,7 +292,7 @@ for (const [adresse, html] of seiten) {
 
   // Open Graph und Twitter-Karte
   const istRezept = IST_REZEPT.test(html);
-  const bildPfad = istRezept ? `/bilder/rezepte/${adresse.split('/').at(-2)}-teilen.jpg` : adresse === LISTE ? LISTE_BILD : TEILEN.gemeinsam;
+  const bildPfad = istRezept ? `/bilder/rezepte/${adresse.split('/').at(-2)}-teilen.jpg` : adresse === LISTE ? LISTE_BILD : adresse === PROFIL ? PROFIL_BILD : TEILEN.gemeinsam;
   const teilen = {
     'og:type': istRezept ? 'article' : 'website', 'og:site_name': 'FoodAsu', 'og:locale': 'de_DE', 'og:title': titel,
     'og:description': beschreibung, 'og:url': HOST + adresse, 'og:image': HOST + bildPfad,
@@ -600,21 +606,34 @@ for (const [adresse, zahl] of eingang) {
 // die Prüfung aus dem Bau: die Skripte, die /l/index.html lädt, und was diese einbinden; keine davon darf eine andere
 // Seite laden. Jeder andere Zugriff (sessionStorage, IndexedDB, Cookies, Anfragen) bleibt auch dort ein Befund.
 const WA_LINK = 'https://wa.me/?text=';
-const listeSkripte = new Set();
-{
-  const offen = alle(seiten.get(LISTE) ?? '', /<script\b[^>]*\bsrc="(\/_astro\/[^"]+\.js)"/g).map(([, pfad]) => pfad);
+// Skripte, die eine Seite lädt (src im HTML, auch Importe aus einem eingebetteten Modul), und was diese einbinden.
+const skripteVon = (html) => {
+  const gefunden = new Set();
+  const offen = alle(html, /<script\b[^>]*\bsrc="(\/_astro\/[^"]+\.js)"/g).map(([, pfad]) => pfad);
+  for (const [, inhalt] of alle(html, /<script\b[^>]*type="module"[^>]*>([\s\S]*?)<\/script>/g)) for (const [pfad] of alle(inhalt, /\/_astro\/[\w.-]+\.js/g)) offen.push(pfad);
   while (offen.length) {
     const pfad = offen.pop();
-    if (listeSkripte.has(pfad) || !vorhanden.has(pfad)) continue;
-    listeSkripte.add(pfad);
+    if (gefunden.has(pfad) || !vorhanden.has(pfad)) continue;
+    gefunden.add(pfad);
     const inhalt = readFileSync(join(DIST, pfad), 'utf8');
     for (const [, ziel] of alle(inhalt, /(?:from|import\(?)\s*["'`]\.\/([\w.-]+\.js)["'`]|new URL\(\s*["'`](?:\/_astro\/|\.\/)([\w.-]+\.js)["'`]/g).map(([, a, b]) => [null, a ?? b])) offen.push(`/_astro/${ziel}`);
   }
+  return gefunden;
+};
+const listeSkripte = skripteVon(seiten.get(LISTE) ?? '');
+// Seite für Profile /p/ (AP-114): Sie nutzt denselben Kern (Kodierung, Umschlag, Öffnen in der App) und darf deshalb
+// gemeinsame Teile der Skripte von /l/ laden, nie aber das eigene Skript von /l/ (das mit dem Speicher). Ihre Skripte
+// nutzen keinen Speicher und melden keinen Service Worker an (unten).
+const profilSkripte = skripteVon(seiten.get(PROFIL) ?? '');
+{
   if (listeSkripte.size === 0) melde(LISTE, 'kein Skript der Seite gefunden');
+  const nurListe = [...listeSkripte].filter((pfad) => !profilSkripte.has(pfad));
   for (const [adresse, html] of seiten) {
     if (adresse === LISTE) continue;
-    for (const pfad of listeSkripte) if (html.includes(pfad)) melde(adresse, `lädt ein Skript der Seite ${LISTE}: ${pfad}`);
+    const verboten = adresse === PROFIL ? nurListe : [...listeSkripte];
+    for (const pfad of verboten) if (html.includes(pfad)) melde(adresse, `lädt ein Skript der Seite ${LISTE}: ${pfad}`);
   }
+  for (const pfad of profilSkripte) if (/localStorage/.test(readFileSync(join(DIST, pfad), 'utf8'))) melde(PROFIL, `ein Skript der Seite nutzt den lokalen Speicher (sie speichert nichts): ${pfad}`);
 }
 const LISTE_DIENST = '/l/sw.js';
 if (!vorhanden.has(LISTE_DIENST)) melde(LISTE, `Service Worker ${LISTE_DIENST} fehlt`);
@@ -1905,27 +1924,85 @@ if (existsSync(EXPORT)) {
     if (!skript.includes(teilstueck)) melde(LISTE, `„In FoodAsu öffnen“ in Android-Browsern: „${teilstueck}“ fehlt im Skript der Seite`);
   }
 }
-// Smart App Banner von Safari (AP-114): <meta name="apple-itunes-app"> nur auf /l/, genau einmal, im Kopf, mit der
-// Kennung der App FoodAsu im App Store (6829687240, dieselbe wie im Link zum App Store) und der Adresse der Seite ohne
-// # als app-argument; das eingebettete Skript direkt danach hängt den Teil hinter dem # an (nur base64url-Zeichen). Auf
-// keiner anderen Seite (auch nicht auf den Kurzlinks und der 404-Seite) steht ein solcher Banner.
+// Seite für geteilte Profile /p/ (AP-114; Vorgabe der PL vom 08.11.2026, 4.4, 7a und 8.1). Profil teilen kommt mit
+// Pro (Alis Entscheidung 09.11.2026, 13:06); auf der Seite steht trotzdem nirgends „Pro“.
+// 1. Alle Wortlaute, die das Skript einsetzt, laufen durch dieselben Wortlisten wie die Seiten; kein „Pro“, kein
+//    Name des Entwicklers.
+// 2. Die Seite trägt beide Abzeichen (App Store zuerst) mit dem Ort „profil“, den Satz zur Verfügbarkeit, den Hinweis
+//    auf die Verpackung, den festen Titel und den Hinweis für Browser ohne JavaScript.
+// 3. „In FoodAsu öffnen“ wie auf /l/: verborgener Link (Rand), Adresse aus dem Skript (location.href bzw. in
+//    Android-Browsern die intent-Adresse).
+// 4. Sie speichert nichts: keines ihrer Skripte nutzt einen Speicher des Browsers oder meldet einen Service Worker an,
+//    und unter /p/ liegt keiner.
+// 5. Die Namen der Einträge und Stufen kommen aus src/daten/teilen_profil.json (aus der App erzeugt; gegen die App
+//    prüft sie website_exportieren.py --pruefe oben): Jede Stufe und jeder Name eines festen Eintrags steht im Skript.
+{
+  const texte = [];
+  const sammle = (wert) => { if (typeof wert === 'string') texte.push(wert); else if (wert && typeof wert === 'object') Object.values(wert).forEach(sammle); };
+  sammle(profilTexte);
+  sammle(profilSeite);
+  for (const text of texte) {
+    for (const [art, ausdruck] of [...GESPERRT, ...BEZAHL_UND_FRIST, ...BETA, ...WENDUNGEN]) for (const fund of alle(text, ausdruck)) melde(`${PROFIL} Texte`, `${art}: ${fund[0]} in „${text}“`);
+    if (/(?<![\p{L}])(?:Ali|Tonc|Pro)(?![\p{L}])/u.test(text)) melde(`${PROFIL} Texte`, `„Pro“ oder Name des Entwicklers in „${text}“`);
+  }
+  const html = seiten.get(PROFIL) ?? '';
+  if (!html) melde(PROFIL, 'Seite fehlt im Bau');
+  if (/(?<![\p{L}])Pro(?![\p{L}])/u.test(textVon(PROFIL))) melde(PROFIL, '„Pro“ im Text der Seite');
+  const karte = html.match(/<section class="p-app[\s\S]*?<\/section>/)?.[0] ?? '';
+  const abzeichen = alle(karte, /<a class="abzeichen-(apple|google)" href="([^"]+)"/g).map(([, art, ziel]) => `${art} ${ziel.replaceAll('&amp;', '&')}`);
+  if (abzeichen.join(' | ') !== `apple ${appleLink('profil')} | google ${storeLink('profil')}`) melde(PROFIL, `Karte zur App: beide Abzeichen (App Store zuerst) mit dem Ort „profil“ erwartet, gefunden: ${abzeichen.join(' | ') || 'keine'}`);
+  if (!karte.includes(`<p>${profilSeite.app.satz}</p>`) || profilSeite.app.satz !== VERFUEGBAR) melde(PROFIL, 'Karte zur App: Satz zur Verfügbarkeit fehlt oder weicht ab');
+  const oeffnen = profilTexte.oeffnen;
+  if (oeffnen !== listeTexte.haekchen.oeffnen) melde(PROFIL, `„${oeffnen}“ weicht vom Wortlaut auf ${LISTE} ab`);
+  if (!new RegExp(`<a class="knopf rand p-app-oeffnen" data-p-app-oeffnen href="${PROFIL}" hidden>${oeffnen}</a>`).test(karte)) melde(PROFIL, `Karte zur App: verborgener Knopf „${oeffnen}“ (knopf rand, href ${PROFIL}) fehlt oder weicht ab`);
+  if (!html.includes(`<title>${TITEL_PROFIL}</title>`)) melde(PROFIL, `Titel „${TITEL_PROFIL}“ fehlt`);
+  if (!html.includes('data-p-ohne-skript')) melde(PROFIL, 'Hinweis für Browser ohne JavaScript fehlt');
+  if (!html.includes(`>${profilTexte.verpackung}</p>`) || profilTexte.verpackung !== 'Maßgeblich ist immer die Verpackung.') melde(PROFIL, 'Hinweis „Maßgeblich ist immer die Verpackung.“ fehlt');
+  // Bettet der Bau ein kleines Skript ins HTML ein (type="module"), zählt es mit.
+  const eingebettet = alle(html, /<script\b[^>]*type="module"[^>]*>([\s\S]*?)<\/script>/g).map(([, inhalt]) => inhalt).filter((inhalt) => inhalt.trim());
+  if (profilSkripte.size === 0 && eingebettet.length === 0) melde(PROFIL, 'kein Skript der Seite gefunden');
+  const skript = [...[...profilSkripte].map((pfad) => readFileSync(join(DIST, pfad), 'utf8')), ...eingebettet].join('\n');
+  for (const teilstueck of ['location.href', 'intent://', '#Intent;scheme=https;package=at.tonc.einkauf;S.browser_fallback_url=', ';end', 'Android', 'userAgent']) {
+    if (!skript.includes(teilstueck)) melde(PROFIL, `„In FoodAsu öffnen“: „${teilstueck}“ fehlt im Skript der Seite`);
+  }
+  // Ausgenommen ist nur der Schalter „Hell oder dunkel“ der ganzen Website (Schlüssel `darstellung`, Datenschutzerklärung
+  // Abschnitt 17); er gehört zum Layout, nicht zum Inhalt der Seite.
+  const ohneDarstellung = skript.replace(/localStorage\.(?:getItem|setItem|removeItem)\(\s*['"`]darstellung['"`]/g, '');
+  for (const fund of alle(ohneDarstellung, /serviceWorker|sessionStorage|indexedDB|document\.cookie|localStorage|caches\./g)) melde(PROFIL, `die Seite speichert nichts, im Skript steht aber: ${fund[0]}`);
+  if ([...vorhanden].some((pfad) => pfad.startsWith(PROFIL) && pfad.endsWith('.js'))) melde(PROFIL, 'unter /p/ liegt ein Skript (die Seite hat keinen Service Worker)');
+  const PROFIL_DATEN = 'src/daten/teilen_profil.json';
+  if (!existsSync(PROFIL_DATEN)) melde(PROFIL, `${PROFIL_DATEN} fehlt (python3 -B <App>/tools/teilen/website_exportieren.py --website . --profil)`);
+  else {
+    const daten = JSON.parse(readFileSync(PROFIL_DATEN, 'utf8'));
+    for (const name of [...daten.stufen.map((stufe) => stufe.name), ...daten.meiden.map((eintrag) => eintrag.name)]) {
+      if (!skript.includes(name) && !skript.includes(JSON.stringify(name).slice(1, -1))) melde(PROFIL, `Name „${name}“ aus ${PROFIL_DATEN} fehlt im Skript der Seite`);
+    }
+  }
+}
+console.log(`Seite für Profile ${PROFIL}: ${profilSkripte.size} Skripte ohne Speicher und ohne Service Worker, Abzeichen mit dem Ort „profil“, Namen aus src/daten/teilen_profil.json`);
+// Smart App Banner von Safari (AP-114): <meta name="apple-itunes-app"> nur auf /l/ und /p/, je genau einmal, im Kopf,
+// mit der Kennung der App FoodAsu im App Store (6829687240, dieselbe wie im Link zum App Store) und der Adresse der
+// Seite ohne # als app-argument; das eingebettete Skript direkt danach hängt den Teil hinter dem # an (nur
+// base64url-Zeichen). Auf keiner anderen Seite (auch nicht auf den Kurzlinks und der 404-Seite) steht ein solcher Banner.
 const APP_STORE_ID = '6829687240';
 {
   if (!appStore.adresse.endsWith(`/id${APP_STORE_ID}`)) melde('Smart App Banner', `Kennung im Link zum App Store ist nicht ${APP_STORE_ID}: ${appStore.adresse}`);
   const BANNER = /<meta name="apple-itunes-app" content="([^"]*)"\s*\/?>/g;
-  const html = seiten.get(LISTE) ?? '';
-  const kopf = html.slice(0, html.indexOf('</head>'));
-  const treffer = alle(html, BANNER);
-  if (treffer.length !== 1 || !kopf.includes(treffer[0][0])) melde(LISTE, `Smart App Banner: genau ein <meta name="apple-itunes-app"> im Kopf erwartet, gefunden ${treffer.length}`);
-  else if (treffer[0][1] !== `app-id=${APP_STORE_ID}, app-argument=${HOST}${LISTE}`) melde(LISTE, `Smart App Banner: Inhalt „${treffer[0][1]}“, erwartet „app-id=${APP_STORE_ID}, app-argument=${HOST}${LISTE}“`);
-  else {
-    const danach = kopf.slice(kopf.indexOf(treffer[0][0]) + treffer[0][0].length).match(/^\s*<script>([\s\S]*?)<\/script>/)?.[1] ?? '';
-    if (!danach.includes('location.hash') || !danach.includes('apple-itunes-app') || !danach.includes('A-Za-z0-9_-')) melde(LISTE, 'Smart App Banner: das Skript direkt nach dem Banner, das den Teil hinter dem # (nur base64url) anhängt, fehlt');
+  for (const ort of [LISTE, PROFIL]) {
+    const html = seiten.get(ort) ?? '';
+    const kopf = html.slice(0, html.indexOf('</head>'));
+    const treffer = alle(html, BANNER);
+    if (treffer.length !== 1 || !kopf.includes(treffer[0][0])) melde(ort, `Smart App Banner: genau ein <meta name="apple-itunes-app"> im Kopf erwartet, gefunden ${treffer.length}`);
+    else if (treffer[0][1] !== `app-id=${APP_STORE_ID}, app-argument=${HOST}${ort}`) melde(ort, `Smart App Banner: Inhalt „${treffer[0][1]}“, erwartet „app-id=${APP_STORE_ID}, app-argument=${HOST}${ort}“`);
+    else {
+      const danach = kopf.slice(kopf.indexOf(treffer[0][0]) + treffer[0][0].length).match(/^\s*<script>([\s\S]*?)<\/script>/)?.[1] ?? '';
+      if (!danach.includes('location.hash') || !danach.includes('apple-itunes-app') || !danach.includes('A-Za-z0-9_-')) melde(ort, 'Smart App Banner: das Skript direkt nach dem Banner, das den Teil hinter dem # (nur base64url) anhängt, fehlt');
+    }
   }
   // Alle HTML-Dateien des Baus, auch die Kurzlinks (sie stehen nicht in seiten).
   for (const datei of dateien.filter((d) => d.endsWith('.html'))) {
     const adresse = adresseVon(datei);
-    if (adresse !== LISTE && /apple-itunes-app/.test(readFileSync(datei, 'utf8'))) melde(adresse, 'Smart App Banner (apple-itunes-app) gehört nur auf die Seite für Listen /l/');
+    if (adresse !== LISTE && adresse !== PROFIL && /apple-itunes-app/.test(readFileSync(datei, 'utf8'))) melde(adresse, 'Smart App Banner (apple-itunes-app) gehört nur auf die Seiten für Listen /l/ und Profile /p/');
   }
 }
 // /.well-known/apple-app-site-association (AP-113, Vorgabe 6.4): iPhone Universal Links für /l/ und /p/, nicht /c/,
@@ -1957,7 +2034,7 @@ const AASA_ERWARTET = {
   if (!vorhanden.has('/.well-known/assetlinks.json')) melde('/.well-known/assetlinks.json', 'fehlt im Bau');
 }
 console.log(`Verknüpfung mit der App: ${AASA} (iPhone, /l/* und /p/*) und /.well-known/assetlinks.json (Android) im Bau`);
-console.log(`Öffnen in der App: Smart App Banner (app-id ${APP_STORE_ID}) nur auf ${LISTE}, intent-Adresse für Android-Browser im Skript der Seite`);
+console.log(`Öffnen in der App: Smart App Banner (app-id ${APP_STORE_ID}) nur auf ${LISTE} und ${PROFIL}, intent-Adresse für Android-Browser in den Skripten beider Seiten`);
 console.log(`Seite für Listen ${LISTE}: Testfälle ${Object.entries(listePruefung.zahlen).filter(([weg]) => weg !== 'anzeige').map(([weg, arten]) => `${weg} ${Object.values(arten).reduce((summe, [gut]) => summe + gut, 0)}/${Object.values(arten).reduce((summe, [, zahl]) => summe + zahl, 0)}`).join(', ')} (ohne ${listePruefung.uebersprungen} Fälle „liste“), Daten aus der App ${exportGeprueft ? 'geprüft' : 'nicht geprüft'}, ${listeSkripte.size} Skripte der Seite mit Speicher und WhatsApp-Link, Service Worker ${LISTE_DIENST}`);
 
 // Zutaten und Zubereitung (AP-25 Nachbesserung, 11.10.2026): Warnung ohne Abbruch, wenn eine Zutat in keinem Schritt

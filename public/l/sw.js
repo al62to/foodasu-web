@@ -1,6 +1,6 @@
 // Service Worker der Seite /l/ (AP-112, Vorgabe der Projektleitung vom 08.11.2026, Abschnitt 7): Nach dem ersten Öffnen
 // einer Liste geht die Seite auch ohne Netz. Bereich nur /l/ (die Datei liegt unter /l/, angemeldet mit scope /l/);
-// /p/ bekommt später denselben Weg. Gespeichert werden nur die eigenen Dateien der Seite (HTML, Stile, Skripte,
+// /p/ hat keinen (AP-114: die Seite für Profile speichert nichts, Vorgabe 8.1). Gespeichert werden nur die eigenen Dateien der Seite (HTML, Stile, Skripte,
 // Schrift, Bilder von foodasu.com), nie etwas aus dem Teil hinter dem #: Er steht in keiner Anfrage, und jede Adresse
 // wird vor dem Speichern ohne # geschrieben. Mit Netz kommt immer die aktuelle Fassung vom Server (erst Netz, dann
 // Ablage); ohne Netz die abgelegte. Keine Anfragen an Dritte, keine Messung.

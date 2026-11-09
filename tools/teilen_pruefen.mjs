@@ -5,7 +5,7 @@
 // CompressionStream und einmal mit der Rückfall-Bibliothek fflate. Die Prüflogik steht in tools/teilen/pruefung.mjs
 // (dieselbe läuft im Browser, tools/teilen_browser.mjs).
 // Aufruf: node tools/teilen_pruefen.mjs [--json]  (Rückgabewert 1 bei einem Befund; npm run pruefen ruft es auf)
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { pruefeTestfaelle as pruefe } from './teilen/pruefung.mjs';
@@ -13,17 +13,20 @@ import { pruefeTestfaelle as pruefe } from './teilen/pruefung.mjs';
 const wurzel = join(dirname(fileURLToPath(import.meta.url)), '..');
 const lies = (...teile) => JSON.parse(readFileSync(join(wurzel, ...teile), 'utf8'));
 
-export const pruefeTestfaelle = () => pruefe(lies('tools', 'teilen', 'testfaelle.json'), lies('src', 'daten', 'teilen_app.json'));
+// Seite /p/ (AP-114): Liegt src/daten/teilen_profil.json da, prüft der Lauf auch die Anzeige der Profile.
+const PROFIL = join(wurzel, 'src', 'daten', 'teilen_profil.json');
+export const pruefeTestfaelle = () => pruefe(lies('tools', 'teilen', 'testfaelle.json'), lies('src', 'daten', 'teilen_app.json'), existsSync(PROFIL) ? lies('src', 'daten', 'teilen_profil.json') : undefined);
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
-  const { zahlen, befunde, uebersprungen, oeffnen } = await pruefeTestfaelle();
-  if (process.argv.includes('--json')) console.log(JSON.stringify({ zahlen, befunde, uebersprungen, oeffnen }));
+  const { zahlen, befunde, uebersprungen, oeffnen, profil } = await pruefeTestfaelle();
+  if (process.argv.includes('--json')) console.log(JSON.stringify({ zahlen, befunde, uebersprungen, oeffnen, profil }));
   else {
     for (const [weg, arten] of Object.entries(zahlen)) {
       if (weg === 'anzeige') { console.log(`Anzeige der Mengen: ${arten} Beispiele`); continue; }
       console.log(`${weg === 'strom' ? 'DecompressionStream' : 'fflate (Rückfall)'}: ${Object.entries(arten).map(([art, [gut, alle]]) => `${art} ${gut}/${alle}`).join(', ')}`);
     }
     console.log(`Öffnen in der App (intent-Adresse für Android, sonst location.href): ${oeffnen} Prüfungen`);
+    console.log(`Seite /p/ (Anzeige der Profile aus den Testfällen und Regeln): ${profil ? `${profil} Prüfungen` : 'nicht geprüft (src/daten/teilen_profil.json fehlt)'}`);
     console.log(`übersprungen (Arten „liste“ und „uebernehmen“, nur Kern): ${uebersprungen}`);
     for (const befund of befunde) console.log(`BEFUND ${befund}`);
   }

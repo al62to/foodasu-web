@@ -7,6 +7,8 @@
 // (Apple zuerst, dazwischen ein Viertel der Höhe frei). Logo und Zeilen liegen ganz im mittigen Quadrat (Zuschnitt in
 // WhatsApp, x 285 bis 915); das Skript misst sie im fertigen Bild und bricht ab, wenn etwas herausragt. Kein Bild aus
 // dem Netz, keine Anfrage. Aufruf: node tools/teilen_bild_liste.mjs
+// Seit AP-114 auch das Bild der Seite für Profile /p/ (public/bilder/profil-teilen.jpg) mit dem Satz aus
+// src/daten/profil_seite.mjs (profilSeite.bild.satz), sonst gleich: node tools/teilen_bild_liste.mjs profil
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -14,6 +16,12 @@ import puppeteer from 'puppeteer-core';
 import { chromePfad } from './chrome.mjs';
 import { seite } from '../src/daten/seite.mjs';
 import { listeSeite } from '../src/daten/liste_seite.mjs';
+import { profilSeite } from '../src/daten/profil_seite.mjs';
+
+const SEITEN = { liste: listeSeite, profil: profilSeite };
+const welche = process.argv[2] ?? 'liste';
+if (!SEITEN[welche]) throw new Error(`Unbekannte Seite „${welche}“ (liste oder profil)`);
+const daten = SEITEN[welche];
 
 const wurzel = join(dirname(fileURLToPath(import.meta.url)), '..');
 const schrift = pathToFileURL(
@@ -38,8 +46,8 @@ const QUADRAT = { links: (breite - hoehe) / 2, rechts: (breite + hoehe) / 2 };
 const SATZ_BREITE = 560;
 const BEREICH = { links: (breite - SATZ_BREITE) / 2, rechts: (breite + SATZ_BREITE) / 2 };
 const LOGO_GROSS = 540;
-const zeilen = listeSeite.bild.satz;
-if (zeilen.length !== 2) throw new Error('listeSeite.bild.satz: genau zwei Zeilen erwartet');
+const zeilen = daten.bild.satz;
+if (zeilen.length !== 2) throw new Error(`${welche}: bild.satz: genau zwei Zeilen erwartet`);
 const html = (text) => text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 const seiteHtml = `<!doctype html><html lang="de"><meta charset="utf-8"><style>
@@ -71,7 +79,7 @@ p { margin: 0; max-width: ${SATZ_BREITE}px; color: ${LAVENDEL}; font-size: 31px;
 
 const browser = await puppeteer.launch({ executablePath: chromePfad(), headless: true });
 try {
-  const vorlage = join(wurzel, '.astro', 'teilen_bild_liste.html');
+  const vorlage = join(wurzel, '.astro', `teilen_bild_${welche}.html`);
   mkdirSync(dirname(vorlage), { recursive: true });
   writeFileSync(vorlage, seiteHtml, 'utf8');
   const blatt = await browser.newPage();
@@ -98,7 +106,7 @@ try {
   }
   console.log(`Quadrat x ${QUADRAT.links} bis ${QUADRAT.rechts}, Bereich für Logo und Satz x ${BEREICH.links} bis ${BEREICH.rechts}`);
   if (fehler.length) throw new Error(fehler.join('; '));
-  const ziel = join(wurzel, 'public', listeSeite.bild.pfad);
+  const ziel = join(wurzel, 'public', daten.bild.pfad);
   mkdirSync(dirname(ziel), { recursive: true });
   await blatt.screenshot({ path: ziel, type: 'jpeg', quality: 90 });
   console.log(`Geschrieben: ${ziel}`);

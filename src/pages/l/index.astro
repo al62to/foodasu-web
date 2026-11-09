@@ -9,26 +9,15 @@ import Basis from '../../layouts/Basis.astro';
 import Seitenkopf from '../../components/Seitenkopf.astro';
 import StoreAbzeichen from '../../components/StoreAbzeichen.astro';
 import { listeSeite as t, listeTexte as s } from '../../daten/liste_seite.mjs';
-import { seite, appStore } from '../../daten/seite.mjs';
+import AppBanner from '../../components/AppBanner.astro';
+import { seite } from '../../daten/seite.mjs';
 import '../../styles/liste.css';
-
-// Smart App Banner von Safari am iPhone (AP-114, AP-113 Offen 4), nur auf /l/: Kennung der App aus der Adresse des
-// Eintrags im App Store (seite.mjs). app-argument ist die Adresse, die die App beim Tipp auf „Öffnen“ bekommt; statisch
-// steht nur https://foodasu.com/l/, denn den Teil hinter dem # kennt der Bau nicht. Das kleine Skript direkt danach
-// hängt ihn noch beim Lesen des Kopfs an (nur base64url-Zeichen, sonst bleibt es bei der Adresse ohne #). Safari liest
-// app-argument nur beim Laden; ob es den geänderten Wert nimmt, ist nach dem Livegang am iPhone zu prüfen (offener
-// Punkt). Der Teil hinter dem # geht dabei an keinen Server: Der Banner reicht ihn nur an die App weiter.
-const appId = appStore.adresse.match(/\/id(\d+)$/)?.[1];
-if (!appId) throw new Error('Kennung der App im App Store nicht gefunden (appStore.adresse in src/daten/seite.mjs)');
-const banner = `app-id=${appId}, app-argument=${seite.adresse}${t.adresse}`;
 
 const linien = { fill: 'none', stroke: 'currentColor', 'stroke-width': '2.6', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' };
 ---
 <Basis adresse={t.adresse}>
-  <Fragment slot="kopf">
-    <meta name="apple-itunes-app" content={banner} />
-    <script is:inline>(function(){var m=document.querySelector('meta[name="apple-itunes-app"]');var h=location.hash;if(m&&/^#[A-Za-z0-9_-]+$/.test(h))m.setAttribute('content',m.getAttribute('content')+h);})();</script>
-  </Fragment>
+  {/* Smart App Banner von Safari (AP-114), Begründung in src/components/AppBanner.astro. */}
+  <AppBanner slot="kopf" pfad={t.adresse} />
   <Seitenkopf etikett={t.ueberzeile} klein>
     <span slot="titel" data-l-titel>{t.titel}</span>
     <p class="l-stand" data-l-stand hidden></p>

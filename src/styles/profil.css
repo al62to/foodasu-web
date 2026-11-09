@@ -1,0 +1,50 @@
+/* Seite für geteilte Profile /p/ (AP-114, Vorgabe 7a „Gestaltung“): ein Teil von foodasu.com wie die Seite für Listen
+   /l/. Kopf wie die Unterseiten (Seitenkopf auf der Lavendel-Fläche mit Muster) mit dem Anfangsbuchstaben im Kreis wie
+   in der App, darunter auf dem hellen Grund die weiße Karte mit den Einträgen, der Hinweis auf die Verpackung und die
+   Karte zur App. Alle Farben aus den Variablen in basis.css. Die Stufe steht immer als Wort neben dem Eintrag, nie nur
+   als Farbe, und keine Stufe hat eine eigene Farbe (die Markenfarbe ist nie ein Urteil). Größen in rem: große Schrift
+   des Browsers wächst mit. */
+
+/* Am Handy eine Spalte; am Computer links das Profil, rechts daneben (beim Scrollen mitfahrend) die Karte zur App. */
+.p-seite { display: grid; gap: clamp(1.25rem, 3vw, 1.75rem); align-items: start; }
+.p-haupt, .p-neben { display: grid; gap: clamp(1.25rem, 3vw, 1.75rem); min-width: 0; }
+@media (min-width: 64rem) {
+  .p-seite { grid-template-columns: minmax(0, 46rem) minmax(18rem, 24rem); column-gap: clamp(2rem, 4vw, 3.5rem); }
+  .p-neben { position: sticky; top: 5.5rem; }
+}
+.js [data-p-ohne-skript] { display: none; }
+/* Bis das Skript das Profil aufgebaut hat, bleibt der Inhalt unsichtbar; so springt nichts (wie auf /l/). */
+.js [data-p-seite]:not([data-bereit]),
+.js body:has([data-p-seite]:not([data-bereit])) > .fuss { visibility: hidden; }
+.p-seite [hidden], .s-kopf [data-p-kreis][hidden], .s-kopf .p-von[hidden], .s-kopf .p-satz[hidden] { display: none !important; }
+.p-hinweis { margin: 0; }
+.p-hinweis p { margin: 0; font-size: 1.06rem; line-height: 1.7; }
+.p-seite .knopf { justify-content: center; text-align: center; }
+
+/* Kopf: Anfangsbuchstabe im Kreis vor dem Namen, darunter „Geteilt von …“ und der Satz zur Seite. */
+.p-titel { display: inline-flex; align-items: center; gap: clamp(0.75rem, 2vw, 1rem); max-width: 100%; }
+.p-titel > span:last-child { min-width: 0; overflow-wrap: anywhere; }
+.p-kreis { flex: none; display: grid; place-items: center; width: clamp(3rem, 8vw, 3.75rem); height: clamp(3rem, 8vw, 3.75rem); border-radius: 50%; background: var(--tone-deep); color: var(--deep); font-size: clamp(1.4rem, 4vw, 1.75rem); font-weight: 800; line-height: 1; letter-spacing: 0; }
+.p-von { margin: 0.9rem 0 0; font-size: 1.05rem; font-weight: 700; color: var(--muted); }
+.p-satz { max-width: 38rem; margin: 0.6rem 0 0; font-size: 1.1rem; line-height: 1.6; color: var(--text); }
+
+/* Die Einträge: weiße Karte, je Zeile der Name und die Stufe als Wort (neutrales Etikett, gleich für jede Stufe). */
+.p-liste { padding: clamp(1rem, 3vw, 1.5rem) clamp(0.9rem, 3.2vw, 2rem); }
+.p-klein-titel { margin: 0 0 0.35rem; font-size: 1.05rem; font-weight: 800; letter-spacing: 0.09em; line-height: 1.6; font-variant-caps: all-small-caps; color: var(--muted); hyphens: none; }
+.p-eintraege { list-style: none; margin: 0; padding: 0; }
+.p-eintrag { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.4rem 1rem; min-height: 3.5rem; padding: 0.8rem 0; border-bottom: 1px solid var(--fuss-linie); }
+.p-eintrag:last-child { border-bottom: 0; }
+.p-name { flex: 1 1 10rem; min-width: 0; font-size: 1.1rem; line-height: 1.45; overflow-wrap: anywhere; }
+.p-stufe { flex: none; display: inline-flex; align-items: center; min-height: 1.9rem; padding: 0.15rem 0.8rem; border: 1px solid var(--tone-deep); border-radius: 999px; background: var(--tone); color: var(--deep); font-size: 0.9rem; font-weight: 700; line-height: 1.3; }
+.p-leer, .p-neuer { margin: 0.75rem 0 0; font-size: 0.95rem; line-height: 1.6; color: var(--muted); }
+.p-leer { margin-top: 0; font-size: 1.06rem; color: var(--text); }
+.p-verpackung { margin: 0; }
+
+/* Karte zur App wie auf /l/: Lavendel-Fläche mit Muster, Satz zur Verfügbarkeit, „In FoodAsu öffnen“, beide
+   Abzeichen. */
+.p-app { display: flex; flex-wrap: wrap; align-items: center; gap: 1.5rem 2.5rem; padding: clamp(1.25rem, 4vw, 2rem); border-radius: clamp(1.75rem, 3vw, 2.25rem); }
+.p-app-text { position: relative; z-index: 1; flex: 1 1 20rem; min-width: 0; }
+.p-app h2 { margin: 0; font-size: clamp(1.4rem, 3vw, 1.75rem); letter-spacing: -0.02em; color: var(--deep); }
+.p-app-text p { max-width: 40ch; margin: 0.75rem 0 0; line-height: 1.7; }
+.p-app .p-app-oeffnen { display: flex; width: fit-content; margin-top: 1.25rem; }
+.p-app-zeile { margin-top: 1.25rem; }

@@ -8,6 +8,7 @@ import { umschlagLesen, umschlagText, neueKennung, istKennung, KENNUNG_BYTE, bas
 import { aufraeumen, haekchen, obenNotiz, profilVergleich, zusammenfuehren } from '../../src/skripte/teilen/zusammenfuehren.mjs';
 import { mengeText, ordnen } from '../../src/skripte/teilen/anzeige.mjs';
 import { intentLesen, oeffnenAdresse } from '../../src/skripte/teilen/app_oeffnen.mjs';
+import { anfangsbuchstabe, profilZeilen } from '../../src/skripte/teilen/profil.mjs';
 
 // Gleich nach Inhalt: Reihenfolge der Felder eines Objekts zählt nicht, die einer Liste schon.
 export function gleich(x, y) {
@@ -104,8 +105,61 @@ async function pruefeFall(fall, weg, befunde, app) {
   melde('unbekannte Art');
 }
 
-// Prüft alle Fälle auf beiden Wegen; Ergebnis { zahlen: {weg: {art: [bestanden, gesamt]}}, befunde }.
-export async function pruefeTestfaelle(daten, app) {
+// Seite /p/ (AP-114): Die Profile der Testfälle (Umschläge k = p, auch die der Art "profil") liest die Seite mit
+// demselben Kern und zeigt sie mit profilZeilen aus src/daten/teilen_profil.json. Geprüft wird die Anzeige des Falls
+// „Profil“ Zeile für Zeile, dass jedes Profil der Testfälle ohne Fehler zu Zeilen wird, und die Regeln für Einträge, die
+// die Seite nicht zeigen kann (unbekannter Schlüssel ohne Namen, unbekannte Art oder Stufe), für doppelte Schlüssel, die
+// Reihenfolge und den Anfangsbuchstaben. Ergebnis: Zahl der Prüfungen; Befunde kommen in befunde.
+async function pruefeProfilSeite(daten, profil, befunde) {
+  const pruefungen = [];
+  const umschlaege = [];
+  for (const fall of daten.faelle ?? []) {
+    if (fall.art === 'umschlag' && fall.json?.k === 'p') umschlaege.push([fall.name, (await lesen(fall.kodierung)).umschlag]);
+    if (fall.art === 'lesen' && fall.erwartet?.json?.k === 'p') umschlaege.push([fall.name, (await lesen(fall.kodierung)).umschlag]);
+    if (fall.art === 'profil') umschlaege.push([fall.name, umschlagLesen(fall.umschlag).umschlag]);
+  }
+  for (const [name, umschlag] of umschlaege) {
+    let gut = false;
+    try { const { zeilen, neuer } = profilZeilen(umschlag.m, profil); gut = zeilen.length + neuer <= umschlag.m.length && zeilen.every((z) => z.name && z.stufeName); } catch { gut = false; }
+    pruefungen.push([gut, `„${name}“ wird zu Zeilen`]);
+  }
+  const beispiel = umschlaege.find(([name]) => name === 'Profil')?.[1];
+  const zeilenText = (m) => { const { zeilen, neuer } = profilZeilen(m, profil); return JSON.stringify([zeilen.map((z) => [z.name, z.stufeName]), neuer]); };
+  pruefungen.push([!!beispiel && zeilenText(beispiel.m) === JSON.stringify([[['Milch', 'Meiden'], ['Schalenfrüchte', 'Auf keinen Fall'], ['Koriander', 'Lieber nicht']], 0]),
+    `Fall „Profil“: Milch (Meiden), Schalenfrüchte (Auf keinen Fall), Koriander (Lieber nicht) erwartet, gefunden ${beispiel ? zeilenText(beispiel.m) : 'kein Fall'}`]);
+  pruefungen.push([!!beispiel && beispiel.n === 'Mia' && beispiel.from === 'Papa' && anfangsbuchstabe(beispiel.n) === 'M', 'Fall „Profil“: Name Mia, geteilt von Papa, Anfangsbuchstabe M']);
+  const REGELN = [
+    // [Einträge m, erwartete Zeilen [Name, Stufe], erwartete Zahl für eine neuere Version, Beschreibung]
+    [[['ZUTAT', 'en:unbekannt', 'STRENG', null]], [], 1, 'fester Eintrag mit unbekanntem Schlüssel ohne Namen'],
+    [[['EIGENE_ZUTAT', 'en:koriander', 'STRENG', null]], [], 1, 'eigene Zutat ohne Namen'],
+    [[['EIGENE_ZUTAT', 'en:koriander', 'STRENG', '  ']], [], 1, 'eigene Zutat mit leerem Namen'],
+    [[['NEUE_ART', 'en:milk', 'STRENG', 'Milch']], [], 1, 'unbekannte Art'],
+    [[['ZUTAT', 'en:milk', 'GANZ_STRENG', null]], [], 1, 'unbekannte Stufe'],
+    [[['ZUTAT', 'en:milk', 'STRENG', null], ['ZUTAT', 'en:milk', 'HINWEIS', null]], [['Milch', 'Auf keinen Fall']], 0, 'doppelter Schlüssel: der erste gilt'],
+    [[['ZUTAT', 'en:milk', 'STRENG', 'Kuhmilch']], [['Milch', 'Auf keinen Fall']], 0, 'fester Eintrag mit Namen: der Name der App gilt'],
+    [[['EIGENE_ZUTAT', 'en:milk', 'NORMAL', 'Kuhmilch']], [['Milch', 'Meiden']], 0, 'eigene Zutat mit dem Schlüssel eines festen Eintrags: der feste geht vor'],
+    [[['EIGENE_ZUTAT', 'en:x', 'NORMAL', 'Zimt'], ['WEITERE', 'en:palm-oil', 'HINWEIS', null], ['ERNAEHRUNGSFORM', 'en:vegan', 'STRENG', null], ['ZUTAT', 'en:gluten', 'NORMAL', null]],
+      [['Gluten', 'Meiden'], ['Vegan', 'Auf keinen Fall'], ['Palmöl', 'Lieber nicht'], ['Zimt', 'Meiden']], 0, 'Reihenfolge wie in der App, eigene Zutaten danach'],
+    [[['EIGENE_ZUTAT', 'en:a', 'NORMAL', 'A & <b>#'], ['ZUTAT', 'en:unbekannt', 'STRENG', null], ['ZUTAT', 'en:unbekannt2', 'NORMAL', null]], [['A & <b>#', 'Meiden']], 2, 'Zeichen bleiben Text; zwei Einträge für eine neuere Version'],
+    [[], [], 0, 'ohne Einträge'],
+  ];
+  for (const [m, zeilen, neuer, text] of REGELN) {
+    const ist = zeilenText(m);
+    pruefungen.push([ist === JSON.stringify([zeilen, neuer]), `${text}: ${ist}`]);
+  }
+  for (const [name, soll] of [['Mia', 'M'], ['  leo', 'L'], ['ßabine', 'ß'], ['1. Kind', '1'], ['(Oma)', 'O'], ['…', '…'], ['', ''], ['Émile', 'É']]) {
+    pruefungen.push([anfangsbuchstabe(name) === soll, `Anfangsbuchstabe von „${name}“: „${anfangsbuchstabe(name)}“, erwartet „${soll}“`]);
+  }
+  // Die Namen der festen Einträge und Stufen kommen aus der App (teilen_profil.json), vollständig und eindeutig.
+  pruefungen.push([profil.meiden.length > 0 && new Set(profil.meiden.map((e) => e.kennung)).size === profil.meiden.length && profil.stufen.map((s) => s.kennung).join() === 'STRENG,NORMAL,HINWEIS',
+    'teilen_profil.json: feste Einträge eindeutig, Stufen STRENG, NORMAL, HINWEIS']);
+  for (const [gut, text] of pruefungen) if (!gut) befunde.push(`Seite /p/: ${text}`);
+  return pruefungen.length;
+}
+
+// Prüft alle Fälle auf beiden Wegen; Ergebnis { zahlen: {weg: {art: [bestanden, gesamt]}}, befunde }. Mit profil
+// (src/daten/teilen_profil.json) dazu die Anzeige der Seite /p/.
+export async function pruefeTestfaelle(daten, app, profil) {
   const befunde = [];
   const zahlen = {};
   if (daten.format !== 1 || !Array.isArray(daten.faelle)) befunde.push('Testfälle: Format 1 mit Liste "faelle" erwartet');
@@ -177,6 +231,16 @@ export async function pruefeTestfaelle(daten, app) {
   oeffnen.push([intentLesen(schief)?.daten === 'https://foodasu.com/l/' && intentLesen(schief)?.rueckfall === 'https://foodasu.com/l/#a#b', `schiefer Teil hinter dem #: ${schief}`]);
   if (listen.length === 0) oeffnen.push([false, 'keine Kodierung in den Testfällen']);
   for (const [gut, text] of oeffnen) if (!gut) befunde.push(`Öffnen in der App: ${text}`);
-  return { zahlen, befunde, uebersprungen: (daten.faelle ?? []).length - faelle.length, oeffnen: oeffnen.length };
+  // Dieselbe Adresse für die Seite /p/.
+  if (listen.length) {
+    const kodierung = listen[0];
+    const href = `https://foodasu.com/p/#${kodierung}`;
+    const p = oeffnenAdresse({ basis: 'https://foodasu.com/p/', href, hash: `#${kodierung}`, userAgent: ANDROID_UA });
+    const gut = intentLesen(p)?.daten === href && p === `intent://foodasu.com/p/#${kodierung}#Intent;scheme=https;package=at.tonc.einkauf;S.browser_fallback_url=${encodeURIComponent(href)};end`;
+    if (!gut) befunde.push(`Öffnen in der App: /p/ in Android-Browsern: ${p.slice(0, 120)}`);
+    oeffnen.push([gut, '/p/']);
+  }
+  const profilPruefungen = profil ? await pruefeProfilSeite(daten, profil, befunde) : 0;
+  return { zahlen, befunde, uebersprungen: (daten.faelle ?? []).length - faelle.length, oeffnen: oeffnen.length, profil: profilPruefungen };
 }
 

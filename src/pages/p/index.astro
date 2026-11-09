@@ -1,0 +1,63 @@
+---
+// Seite für geteilte Profile (AP-114; Vorgabe der PL vom 08.11.2026, 8.1 und 7a): https://foodasu.com/p/#<Kodierung>.
+// Das Profil steckt im Teil hinter dem #; er geht nie an den Server. Das Skript der Seite (src/skripte/profil_seite.mjs
+// mit dem Kern unter src/skripte/teilen/) liest ihn nur im Browser und speichert nichts (kein lokaler Speicher, keine
+// Cookies, kein Service Worker). Gestaltet wie /l/ und die übrige Website: Kopf auf der Lavendel-Fläche mit Muster,
+// Anfangsbuchstabe im Kreis wie in der App, weiße Karte mit den Einträgen und ihrer Stufe in den Wörtern der App, der
+// Hinweis auf die Verpackung, die Karte zur App mit beiden Abzeichen (StoreAbzeichen.astro, App Store zuerst) und
+// „In FoodAsu öffnen“. noindex, nicht in Sitemap, llms.txt oder Menü (src/daten/meta.mjs). Ohne JavaScript steht nur
+// der Satz, dass das Profil im Link steckt.
+import Basis from '../../layouts/Basis.astro';
+import Seitenkopf from '../../components/Seitenkopf.astro';
+import StoreAbzeichen from '../../components/StoreAbzeichen.astro';
+import AppBanner from '../../components/AppBanner.astro';
+import { profilSeite as t, profilTexte as s } from '../../daten/profil_seite.mjs';
+import { seite } from '../../daten/seite.mjs';
+import '../../styles/profil.css';
+---
+<Basis adresse={t.adresse}>
+  {/* Smart App Banner von Safari (AP-114), Begründung in src/components/AppBanner.astro. */}
+  <AppBanner slot="kopf" pfad={t.adresse} />
+  <Seitenkopf etikett={t.ueberzeile} klein>
+    <span slot="titel" class="p-titel"><span class="p-kreis" data-p-kreis aria-hidden="true" hidden></span><span data-p-titel>{t.titel}</span></span>
+    <p class="p-von" data-p-von hidden></p>
+    <p class="p-satz" data-p-satz hidden></p>
+  </Seitenkopf>
+
+  <div class="s-inhalt innen p-seite" data-p-seite data-basis={`${seite.adresse}${t.adresse}`}>
+    {/* Rückfall: Lädt das Skript der Seite nicht, wird der Inhalt nach 3 Sekunden trotzdem sichtbar (profil.css). */}
+    <script is:inline>setTimeout(function () { var e = document.querySelector('[data-p-seite]'); if (e && !e.dataset.bereit) e.dataset.bereit = '0'; }, 3000);</script>
+    <div class="p-haupt">
+      <p class="s-karte p-hinweis" data-p-ohne-skript>{t.ohneSkript}</p>
+      <section class="s-karte p-hinweis" data-p-hinweis hidden>
+        <p data-p-hinweis-text></p>
+      </section>
+
+      <section class="s-karte p-liste" data-p-liste hidden aria-labelledby="p-liste-titel">
+        <h2 class="p-klein-titel" id="p-liste-titel" data-p-liste-titel>{s.listeTitelOhneName}</h2>
+        <ul class="p-eintraege" data-p-eintraege></ul>
+        <p class="p-leer" data-p-leer hidden></p>
+        <p class="p-neuer" data-p-neuer hidden></p>
+      </section>
+
+      <p class="kasten p-verpackung" data-p-verpackung hidden>{s.verpackung}</p>
+    </div>
+
+    <div class="p-neben">
+      <section class="p-app muster" aria-labelledby="p-app-titel">
+        <div class="p-app-text">
+          <h2 id="p-app-titel">{t.app.titel}</h2>
+          <p>{t.app.satz}</p>
+          {/* „In FoodAsu öffnen“ (wie auf /l/): Die Adresse setzt das Skript (https-Adresse samt # bzw. in
+              Android-Browsern eine intent-Adresse); ohne JavaScript und am Computer bleibt der Knopf verborgen. */}
+          <a class="knopf rand p-app-oeffnen" data-p-app-oeffnen href={t.adresse} hidden>{s.oeffnen}</a>
+          <div class="p-app-zeile"><StoreAbzeichen ort="profil" /></div>
+        </div>
+      </section>
+    </div>
+  </div>
+</Basis>
+
+<script>
+  import '../../skripte/profil_seite.mjs';
+</script>
