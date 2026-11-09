@@ -2005,7 +2005,8 @@ const APP_STORE_ID = '6829687240';
     if (adresse !== LISTE && adresse !== PROFIL && /apple-itunes-app/.test(readFileSync(datei, 'utf8'))) melde(adresse, 'Smart App Banner (apple-itunes-app) gehört nur auf die Seiten für Listen /l/ und Profile /p/');
   }
 }
-// /.well-known/apple-app-site-association (AP-113, Vorgabe 6.4): iPhone Universal Links für /l/ und /p/, nicht /c/,
+// /.well-known/apple-app-site-association (AP-113, Vorgabe 6.4): iPhone Universal Links für /l/ und /p/, nicht /c/
+// (/p/ nur auf diesem Zweig für Pro; der Zweig für 0.22.0 nennt nur /l/, AP-114b),
 // nur die App FoodAsu (nicht die Testfassung). JSON ohne Dateiendung, aus public/ in den Bau kopiert wie
 // assetlinks.json; neues Format (appIDs, components) und für ältere iOS-Fassungen das alte (apps, appID, paths).
 const AASA = '/.well-known/apple-app-site-association';
