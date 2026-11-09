@@ -18,7 +18,11 @@
 .m-held { top: -6.5rem; right: -5.5rem; }
 .held-raster { display: grid; gap: 1.25rem; align-items: center; }
 .held-raster > * { min-width: 0; }
-.held-titel { display: flex; flex-direction: column; gap: 0.1rem; margin: 0; hyphens: manual; }
+.held-titel { display: flex; flex-direction: column; gap: 0.1rem; margin: 0; hyphens: none; }
+/* Weiche Trennstellen der Überschrift (AP-116, „Einkaufs-listen-App“) nur bei sehr großer Schrift: Ist die Seite
+   schmaler als 19,5em (bei normaler Schrift nie, ab 320 px sind das mindestens 20em), bricht ein zu langes Wort dort
+   mit Strich statt mitten im Wort; sonst bleibt der Umbruch wie bisher. */
+@media (max-width: 19.5em) { .held-titel { hyphens: manual; } }
 /* Der große Teil braucht bei 360 Pixel Breite höchstens drei Zeilen. */
 .h-gross { display: block; font-size: clamp(1.9rem, 8.4vw, 3.85rem); line-height: 1.08; font-weight: 800; letter-spacing: -0.03em; }
 .h-farbe { color: var(--main); }
