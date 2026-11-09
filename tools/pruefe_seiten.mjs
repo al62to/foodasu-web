@@ -1449,7 +1449,8 @@ if (/mailto:/.test(ueberInhalt)) melde('/ueber-foodasu/', 'die Adresse des Konta
   const daten = alle(s, /<script type="application\/ld\+json">([\s\S]*?)<\/script>/g).map(([, roh]) => { try { return JSON.parse(roh); } catch { return {}; } });
   const block = (art) => daten.find((einer) => einer['@type'] === art);
   // H1 in drei Teilen, ein einziges Element; Pflichtstellen des Fokus-Keywords (Teil 2 Nr. 2).
-  const h1 = entschluesselt((s.match(/<h1[^>]*>([\s\S]*?)<\/h1>/)?.[1] ?? '').replace(/<[^>]+>/g, '')).replace(/\s+/g, ' ').trim();
+  // Weiche Trennstellen (U+00AD, AP-116) sind unsichtbar und zählen nicht zum Wortlaut.
+  const h1 = entschluesselt((s.match(/<h1[^>]*>([\s\S]*?)<\/h1>/)?.[1] ?? '').replace(/<[^>]+>/g, '')).replaceAll('\u00AD', '').replace(/\s+/g, ' ').trim();
   if (h1 !== 'Einkaufslisten-App und Lebensmittel-Scanner für den ganzen Haushalt') melde('/', `H1 „Einkaufslisten-App und Lebensmittel-Scanner für den ganzen Haushalt“ erwartet, gefunden „${h1}“`);
   if (alle(s.match(/<h1[^>]*>[\s\S]*?<\/h1>/)?.[0] ?? '', /<span class="h-/g).length !== 3) melde('/', 'H1: drei Teile erwartet');
   if (!(inhaltVon(s, 'description') ?? '').startsWith('Einkaufslisten-App')) melde('/', 'Beschreibung beginnt nicht mit „Einkaufslisten-App“');
