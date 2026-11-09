@@ -92,12 +92,28 @@ main:has(.s-kopf) { background: var(--flaeche); }
 .d-schluss ul { list-style: none; display: grid; gap: 0.6rem; margin: 0; padding: 0; }
 .d-schluss a, .d-herkunft a, .u-teil a:not(.knopf), .s-frage a { font-weight: 700; }
 @media (min-width: 52rem) { .d-karten { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+/* Sehr große Schrift (AP-118, wie AP-116b): Ist die Seite schmaler als 19,5em (bei normaler Schrift nie, ab 320 px
+   sind das mindestens 20em), werden Karten und die Liste der Nachweise nie breiter als die Spalte, lange Wörter
+   trennen sich. */
+@media (max-width: 19.5em) {
+  .d-karten, .d-schluss ul { grid-template-columns: minmax(0, 1fr); }
+  .d-karten .s-karte, .d-band, .d-schluss li { hyphens: auto; overflow-wrap: break-word; }
+}
 
 /* Über FoodAsu (Entwurf "Stationen an einer Linie"): eine schmale Spalte, jeder Abschnitt eine Station. */
 .u-stationen { --kreis: 3.5rem; --abstand: clamp(2.25rem, 5vw, 3.5rem); max-width: 48.25rem; margin: 0 auto; }
 .u-teil { padding-top: 0.6rem; }
 .u-teil h2 { margin: 0 0 0.9rem; font-size: clamp(1.3rem, 2.6vw, 1.5rem); letter-spacing: -0.01em; scroll-margin-top: 5.5rem; }
 .u-teil p { margin: 0 0 0.9rem; line-height: 1.75; }
+/* Sehr große Schrift (AP-118, wie AP-116b): Ist die Seite schmaler als 19,5em (bei normaler Schrift nie), steht das
+   Zeichen einer Station über ihrem Text (die Linie dazwischen entfällt), der Knopf wird nie breiter als die Spalte und
+   bricht um, lange Wörter trennen sich. */
+@media (max-width: 19.5em) {
+  .u-stationen .station { grid-template-columns: minmax(0, 1fr); row-gap: 0.75rem; }
+  .u-stationen .station:not(:last-child)::before { content: none; }
+  .u-teil { hyphens: auto; overflow-wrap: break-word; }
+  .u-teil .knopf { max-width: 100%; }
+}
 .u-teil > :last-child { margin-bottom: 0; }
 .u-teil .unterschrift { margin: 1.25rem 0 0; }
 .u-teil .unterschrift .name { font-size: 1.625rem; }
