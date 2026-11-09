@@ -8,15 +8,11 @@
           "8Z7PV9R6WY.at.tonc.foodasu"
         ],
         "paths": [
-          "/l/*",
-          "/p/*"
+          "/l/*"
         ],
         "components": [
           {
             "/": "/l/*"
-          },
-          {
-            "/": "/p/*"
           }
         ]
       }

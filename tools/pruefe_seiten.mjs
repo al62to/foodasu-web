@@ -1928,8 +1928,9 @@ const APP_STORE_ID = '6829687240';
     if (adresse !== LISTE && /apple-itunes-app/.test(readFileSync(datei, 'utf8'))) melde(adresse, 'Smart App Banner (apple-itunes-app) gehört nur auf die Seite für Listen /l/');
   }
 }
-// /.well-known/apple-app-site-association (AP-113, Vorgabe 6.4): iPhone Universal Links für /l/ und /p/, nicht /c/,
-// nur die App FoodAsu (nicht die Testfassung). JSON ohne Dateiendung, aus public/ in den Bau kopiert wie
+// /.well-known/apple-app-site-association (AP-113, Vorgabe 6.4): iPhone Universal Links nur für /l/, nicht /c/ und
+// nicht /p/ (die Store-Fassung kennt /p/ nicht, die Seite /p/ kommt erst mit Pro; AP-114b), nur die App FoodAsu (nicht
+// die Testfassung). JSON ohne Dateiendung, aus public/ in den Bau kopiert wie
 // assetlinks.json; neues Format (appIDs, components) und für ältere iOS-Fassungen das alte (apps, appID, paths).
 const AASA = '/.well-known/apple-app-site-association';
 const AASA_ERWARTET = {
@@ -1938,8 +1939,8 @@ const AASA_ERWARTET = {
     details: [{
       appID: '8Z7PV9R6WY.at.tonc.foodasu',
       appIDs: ['8Z7PV9R6WY.at.tonc.foodasu'],
-      paths: ['/l/*', '/p/*'],
-      components: [{ '/': '/l/*' }, { '/': '/p/*' }],
+      paths: ['/l/*'],
+      components: [{ '/': '/l/*' }],
     }],
   },
 };
@@ -1951,12 +1952,12 @@ const AASA_ERWARTET = {
     let wert = null;
     try { wert = JSON.parse(roh); } catch { melde(AASA, 'kein gültiges JSON'); }
     if (wert && JSON.stringify(wert) !== JSON.stringify(AASA_ERWARTET)) melde(AASA, `Inhalt weicht ab: ${JSON.stringify(wert).slice(0, 300)}`);
-    if (/\/c\/|\.test\b/.test(roh)) melde(AASA, 'nennt /c/ oder die Testfassung');
+    if (/\/c\/|\/p\/|\.test\b/.test(roh)) melde(AASA, 'nennt /c/, /p/ oder die Testfassung');
     if (Buffer.byteLength(roh) > 128 * 1024) melde(AASA, 'größer als 128 KB (Grenze von Apple)');
   }
   if (!vorhanden.has('/.well-known/assetlinks.json')) melde('/.well-known/assetlinks.json', 'fehlt im Bau');
 }
-console.log(`Verknüpfung mit der App: ${AASA} (iPhone, /l/* und /p/*) und /.well-known/assetlinks.json (Android) im Bau`);
+console.log(`Verknüpfung mit der App: ${AASA} (iPhone, nur /l/*) und /.well-known/assetlinks.json (Android) im Bau`);
 console.log(`Öffnen in der App: Smart App Banner (app-id ${APP_STORE_ID}) nur auf ${LISTE}, intent-Adresse für Android-Browser im Skript der Seite`);
 console.log(`Seite für Listen ${LISTE}: Testfälle ${Object.entries(listePruefung.zahlen).filter(([weg]) => weg !== 'anzeige').map(([weg, arten]) => `${weg} ${Object.values(arten).reduce((summe, [gut]) => summe + gut, 0)}/${Object.values(arten).reduce((summe, [, zahl]) => summe + zahl, 0)}`).join(', ')} (ohne ${listePruefung.uebersprungen} Fälle „liste“), Daten aus der App ${exportGeprueft ? 'geprüft' : 'nicht geprüft'}, ${listeSkripte.size} Skripte der Seite mit Speicher und WhatsApp-Link, Service Worker ${LISTE_DIENST}`);
 
