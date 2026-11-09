@@ -11,6 +11,7 @@ import Rezeptkarte from './Rezeptkarte.astro';
 import StoreAbzeichen from './StoreAbzeichen.astro';
 import '../styles/rezepte.css';
 import { seite, store } from '../daten/seite.mjs';
+import { APP_ID, WEBSITE_ID } from '../daten/strukturiert.mjs';
 import { fuss } from '../daten/startseite.mjs';
 import {
   rezepte, texte, LAND, KATEGORIE, AUFWAND, ENERGIE, QUELLE, NAEHRWERT, STAND, ausLand, zahl, dauer, gesamtzeit, iso, portionen,
@@ -129,6 +130,18 @@ const daten = [{
   ...(formen[1].stand === 'voll' ? { suitableForDiet: vegan ? ['https://schema.org/VeganDiet', 'https://schema.org/VegetarianDiet'] : ['https://schema.org/VegetarianDiet'] } : {}),
   ...(proPortion && menge ? { nutrition: { '@type': 'NutritionInformation', calories: `${Math.round(rezept.portion.kcal)} kcal`, servingSize: stueck ? '1 Stück' : '1 Portion' } } : {}),
 }];
+// Seit AP-118 (0.22.0): Seiten mit dem Kasten „Dieses Rezept in FoodAsu“ (das Rezept ist in der App) nennen die App
+// als eigene WebPage mit mentions auf ihre Kennung. Das Recipe oben bleibt dafür unverändert; die Seite handelt vom
+// Rezept, nicht von der App, deshalb mentions und nicht about.
+if (!spaeter) daten.push({
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  '@id': `${voll}#seite`,
+  url: voll,
+  inLanguage: 'de',
+  isPartOf: { '@id': WEBSITE_ID },
+  mentions: { '@id': APP_ID },
+});
 ---
 <Basis daten={daten}>
   <article class="rezept">

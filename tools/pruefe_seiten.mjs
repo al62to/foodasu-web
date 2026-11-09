@@ -65,7 +65,7 @@ const FASSUNG = JSON.parse(readFileSync('src/daten/app_fassung.json', 'utf8'));
 const EINTRAEGE_FEST = FASSUNG.eintraegeFest;
 const EINTRAEGE_ALLE = FASSUNG.eintraegeFest + FASSUNG.weitereLebensmittel;
 const UEBER = Math.floor((APP.gesamt - 1) / 50) * 50;
-let spaeterSeiten = 0;
+let spaeterSeiten = 0, mentionsSeiten = 0;
 
 const VOR = '(?<![\\p{L}\\p{N}_])(?:';
 const NACH = ')(?![\\p{L}\\p{N}_])';
@@ -546,6 +546,17 @@ for (const [adresse, html] of seiten) {
         if (!imKasten) melde(adresse, `der Satz „${SPAETER}“ ist nicht die Überschrift des Kastens am Ende der Seite`);
         if (html.slice(0, html.indexOf('class="r-sprung"')).replace(/<script[\s\S]*?<\/script>/g, ' ').includes(SPAETER)) melde(adresse, `der Satz „${SPAETER}“ steht im Kopf der Seite (die Vorlage bleibt dort unverändert)`);
       } else if (sichtbar(html).includes(SPAETER)) melde(adresse, `der Satz „${SPAETER}“ gehört nur auf Rezepte, die es in der App noch nicht gibt`);
+      // AP-118 (0.22.0): Seiten mit dem Kasten „Dieses Rezept in FoodAsu“ nennen die App als eigene WebPage mit mentions
+      // auf ihre Kennung (url = die Seite); Seiten mit „kommt später“ nicht. Das Recipe selbst trägt weder mentions
+      // noch about (es bleibt, wie es war).
+      {
+        const mitApp = bloecke.filter((einer) => einer.mentions?.['@id'] === APP_ID);
+        const sollApp = entschluesselt(kasten.match(/<h2 id="app">([^<]*)<\/h2>/)?.[1] ?? '') === 'Dieses Rezept in FoodAsu';
+        if (sollApp && (mitApp.length !== 1 || mitApp[0]['@type'] !== 'WebPage' || mitApp[0].url !== HOST + adresse)) melde(adresse, 'strukturierte Daten: genau eine WebPage dieser Seite mit mentions auf die App erwartet (Kasten „Dieses Rezept in FoodAsu“)');
+        if (!sollApp && mitApp.length) melde(adresse, 'strukturierte Daten: mentions auf die App, obwohl das Rezept nicht in der App ist');
+        if (rezept && ('mentions' in rezept || 'about' in rezept)) melde(adresse, 'Recipe: mentions oder about gehören nicht ins Recipe (AP-118: eigene WebPage)');
+        if (sollApp) mentionsSeiten++;
+      }
       // AP-25 Teil C Nr. 2 und Teil H Nr. 4: Block "Aus dem Original" direkt nach dem Kopf, ein Lavendel-Kasten mit
       // Buch, Verfasser und Jahr als Überzeile, dem Auszug in der alten Schreibweise (mit Sprachangabe, höchstens drei
       // Sätze) und in heutigem Deutsch, den vollen Angaben zum Buch und dem Link zum Digitalisat oder zur Abschrift
@@ -713,6 +724,9 @@ for (const [adresse, html] of seiten) {
   if (/https?:|\/\//.test(roh)) melde(adresse, '„Zum Ausprobieren“: Die Liste nennt eine Adresse außerhalb der Website');
 }
 if (probeWahlen.size <= seiten.size / 2) melde('/', `„Zum Ausprobieren“: nur ${probeWahlen.size} verschiedene Auswahlen auf ${seiten.size} Seiten`);
+if (mentionsSeiten === 0) melde('/rezepte/', 'keine Rezeptseite mit mentions auf die App geprüft (die Prüfung liest nichts)');
+// AP-118: llms.txt nennt neben Google Play den Eintrag im App Store, ohne Kennung des Kanals.
+if (store.oeffentlich && APP_STORE_ERHAELTLICH && existsSync(join(DIST, 'llms.txt')) && !readFileSync(join(DIST, 'llms.txt'), 'utf8').includes(`- [FoodAsu im App Store](${appStore.adresse}): `)) melde('llms.txt', 'Zeile „FoodAsu im App Store“ mit dem Link zum App Store fehlt');
 if (spaeterSeiten !== [...ZUSATZ.values()].filter((rezept) => !rezept.inApp).length) melde('/rezepte/', `der Satz „${SPAETER}“ ist auf ${spaeterSeiten} von ${ZUSATZ.size} Seiten geprüft`);
 const alteSeite = seiten.get(ALTE);
 const alteSlugs = [...ZUSATZ.values()].filter((rezept) => rezept.original).map((rezept) => rezept.slug);
@@ -1197,6 +1211,10 @@ for (const art of ['Organization', 'WebSite']) {
 }
 const organisation = startDaten.find((einer) => einer['@type'] === 'Organization');
 if (!organisation?.logo || !(organisation.sameAs ?? []).some((ziel) => ziel.includes('facebook.com')) || !(organisation.sameAs ?? []).some((ziel) => ziel.includes('instagram.com'))) melde('/', 'Organization: Logo oder Links zu Facebook und Instagram fehlen');
+// AP-118 (0.22.0): Die Organisation nennt in sameAs auch beide Einträge der App (Google Play, App Store mit /at/).
+for (const ziel of [store.oeffentlich ? store.adresse : null, store.oeffentlich && APP_STORE_ERHAELTLICH ? appStore.adresse : null].filter(Boolean)) {
+  if (!(organisation?.sameAs ?? []).includes(ziel)) melde('/', `Organization: sameAs ohne ${ziel}`);
+}
 const wochenTeil = startseite.match(/<section class="schritte" id="schritte">[\s\S]*?<\/section>/)?.[0] ?? '';
 if (!wochenTeil) melde('/', 'Abschnitt mit dem Anker #schritte fehlt');
 else {
@@ -1217,7 +1235,8 @@ else {
 for (const adresse of ['/', '/ueber-foodasu/']) {
   for (const fund of alle(textVon(adresse), /beim Scannen ab(?:ge)?hak|Scannen hakt|hakt beim Scannen|Rezepte? (?:in der App )?teilen/gi)) melde(adresse, `beschreibt etwas aus dem Fahrplan: ${fund[0]}`);
 }
-if (!/als Text teilen/.test(textVon('/'))) melde('/', 'die Karte zur Einkaufsliste nennt „als Text teilen“ nicht');
+// Seit AP-118 (0.22.0, Alis Ja 09.11.2026, 20:14): Die Karte nennt Link und Text („als Link oder als Text“).
+if (!/schickst du als Link oder als Text/.test(textVon('/'))) melde('/', 'die Karte zur Einkaufsliste nennt „als Link oder als Text“ nicht');
 // Entscheidungen Ali vom 10.10.2026 (AP-22 Teil 2). Nr. 2: In der Antwort "Ersetzt FoodAsu die Verpackung?" steht
 // "Maßgeblich ist immer die Verpackung." nur einmal (im Satz zum Medizinprodukt). Nr. 5: Schritt 3 der Einkaufswoche
 // nennt "Warum?". Nr. 9: Einkaufsliste im Alltag auf der Startseite und auf "Über FoodAsu", ohne Namen anderer
@@ -1609,7 +1628,9 @@ if (/mailto:/.test(ueberInhalt)) melde('/ueber-foodasu/', 'die Adresse des Konta
     if (app.author?.['@id'] !== `${HOST}/#organisation`) melde('/', 'MobileApplication: der Entwickler (author, Organisation FoodAsu) fehlt');
     if (/offers|price|aggregateRating|review|isAccessibleForFree/i.test(JSON.stringify(app))) melde('/', 'MobileApplication: Angebot, Preis oder Bewertung gehören nicht hinein');
     if (!store.oeffentlich && JSON.stringify(app).includes('play.google.com')) melde('/', 'MobileApplication: Eintrag bei Google Play vor dem öffentlichen Start');
-    if (store.oeffentlich && app.installUrl !== store.adresse) melde('/', 'MobileApplication: installUrl fehlt oder ist nicht der Eintrag bei Google Play');
+    // Seit AP-118 (0.22.0): installUrl nennt beide Einträge, Google Play zuerst (ohne App Store nur Google Play).
+    const installSoll = store.oeffentlich ? JSON.stringify(APP_STORE_ERHAELTLICH ? [store.adresse, appStore.adresse] : store.adresse) : undefined;
+    if (JSON.stringify(app.installUrl) !== installSoll) melde('/', `MobileApplication: installUrl ${installSoll ?? 'ohne'} erwartet`);
     // AP-35A: Symbol und Bildschirmfotos als Dateien auf foodasu.com, die es im Bau gibt; Datum, Sprachen, Länder,
     // kleinste Version und Berechtigungen wie im Auftrag; keine Version der App (veraltet sonst), kein termsOfService
     // (gibt es bei schema.org für diese Art nicht).

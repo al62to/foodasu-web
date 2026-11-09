@@ -177,7 +177,7 @@ export const funktionen = {
       text: [
         'Du kannst so viele Einkaufslisten erstellen, wie du brauchst, und sie bleiben gespeichert. Jeden Artikel tippst du einfach ein, und FoodAsu ordnet ihn nach Warengruppen, also nach Kategorien wie im Supermarkt.',
         'Vorgeschlagen wird auch, was du schon einmal aufgeschrieben hast. Was abgehakt ist, steht unter „Erledigt“, und von dort holst du es zurück.',
-        'Die Liste kannst du als Text teilen, etwa mit jemandem aus der Familie; Personen und Hinweise teilt FoodAsu dabei nicht.',
+        'Die Liste schickst du als Link oder als Text, etwa an jemanden aus der Familie; wer FoodAsu nicht hat, hakt im Browser ab. Personen und Hinweise teilt FoodAsu dabei nicht.',
       ],
     },
     {

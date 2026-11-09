@@ -4,8 +4,8 @@
 // Seit dem Auftrag SEO 1 neu (14.10.2026, Teil 3 Nr. 3): Oben steht der GEO-Satz (gleichlautend auf der Startseite und
 // in SoftwareApplication.description), darunter eine kurze sachliche Beschreibung auf Deutsch; der Link zum Eintrag bei
 // Google Play kommt erst mit dem öffentlichen Start (store.oeffentlich).
-import { seite, store } from '../daten/seite.mjs';
-import { kopf, fuss, geruest, GEO_SATZ, VERFUEGBAR } from '../daten/startseite.mjs';
+import { seite, store, APP_STORE_ERHAELTLICH, appStore } from '../daten/seite.mjs';
+import { kopf, fuss, geruest, GEO_SATZ, VERFUEGBAR, abzeichen } from '../daten/startseite.mjs';
 import { rezeptSeiten, alteRezepte, texte, themen } from '../daten/rezeptseiten.mjs';
 import { alteSeite } from '../daten/alte_rezepte.mjs';
 import { BEREICH, adresse, kapitel, uebersicht } from '../daten/sogehts.mjs';
@@ -34,6 +34,8 @@ export function GET() {
     '## Website',
     link('Startseite', '/'),
     ...(store.oeffentlich ? [`- [${fuss.auftritte.storeLink}](${store.adresse}): Eintrag von ${seite.name} bei Google Play`] : []),
+    // Seit AP-118 (0.22.0) der Eintrag im App Store daneben, ohne Kennung des Kanals wie Google Play.
+    ...(store.oeffentlich && APP_STORE_ERHAELTLICH ? [`- [${abzeichen.apple}](${appStore.adresse}): Eintrag von ${seite.name} im App Store`] : []),
     link(geruest.fragenSeite.titel, '/fragen/'),
     link(datenquellen.titel, '/daten-und-quellen/'),
     link(ueber.titel, '/ueber-foodasu/'),

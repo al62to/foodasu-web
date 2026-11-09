@@ -14,7 +14,7 @@ import Motive from '../components/Motive.astro';
 import Unterschrift from '../components/Unterschrift.astro';
 import StoreAbzeichen from '../components/StoreAbzeichen.astro';
 import '../styles/start.css';
-import { seite, auftritte, store } from '../daten/seite.mjs';
+import { seite, auftritte, store, APP_STORE_ERHAELTLICH, appStore } from '../daten/seite.mjs';
 import {
   kopf, wort, schritte, video, funktionen, vergleich, einblick, zahlen, vorschau, fragenStart, kurzleiste,
   geruest,
@@ -31,7 +31,8 @@ const organisation = ORGANISATION_ID;
 // mit store.oeffentlich) und FAQPage, wortgleich zu den sichtbaren Fragen. Seit AP-35A (23.10.2026) kommen
 // MobileApplication (mit fester Kennung /#app) aus src/daten/strukturiert.mjs, dazu die Seite als WebPage
 // mit Verweis auf die App.
-const gleich = [auftritte.facebook, auftritte.instagram, store.oeffentlich ? store.adresse : ''].filter(Boolean);
+// Seit AP-118 (0.22.0) nennt die Organisation auch den Eintrag im App Store (wie sameAs der MobileApplication).
+const gleich = [auftritte.facebook, auftritte.instagram, store.oeffentlich ? store.adresse : '', store.oeffentlich && APP_STORE_ERHAELTLICH ? appStore.adresse : ''].filter(Boolean);
 const antwortText = (eintrag) => eintrag.antwort.join(' ');
 const daten = [
   {

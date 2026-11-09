@@ -63,8 +63,9 @@ export const appDaten = () => ({
   // Seit AP-48 Teil G (27.10.2026): Autor ist die Organisation FoodAsu, keine Person mit Namen.
   author: { '@id': ORGANISATION_ID },
   publisher: { '@id': ORGANISATION_ID },
-  // installUrl bleibt der Eintrag bei Google Play (ein Feld, eine Adresse); den App Store nennt sameAs (AP-88).
-  ...(store.oeffentlich ? { installUrl: store.adresse, sameAs: [store.adresse, ...(APP_STORE_ERHAELTLICH ? [appStore.adresse] : [])] } : {}),
+  // installUrl und sameAs nennen beide Einträge, Google Play zuerst (seit AP-118; vorher installUrl nur Google Play,
+  // AP-88). Ohne App Store bleibt installUrl eine einzelne Adresse.
+  ...(store.oeffentlich ? { installUrl: APP_STORE_ERHAELTLICH ? [store.adresse, appStore.adresse] : store.adresse, sameAs: [store.adresse, ...(APP_STORE_ERHAELTLICH ? [appStore.adresse] : [])] } : {}),
 });
 
 // Der Verweis auf die App für eine Seite, die von ihr handelt.
