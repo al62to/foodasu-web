@@ -23,6 +23,17 @@
    schmaler als 19,5em (bei normaler Schrift nie, ab 320 px sind das mindestens 20em), bricht ein zu langes Wort dort
    mit Strich statt mitten im Wort; sonst bleibt der Umbruch wie bisher. */
 @media (max-width: 19.5em) { .held-titel { hyphens: manual; } }
+/* Sehr große Schrift (AP-116b): Bei 200 % ist die Seite am Handy nicht breiter als der Bildschirm. Das Raster der
+   Funktionskarten wird nie breiter als die Spalte, das Symbol steht über dem Titel, der Text darunter beginnt links,
+   lange Wörter trennen sich; die
+   Vergleichstabelle behält ihre Wörter und rollt in sich waagrecht. Bei normaler Schrift greift das nie (siehe oben). */
+@media (max-width: 19.5em) {
+  .funktion-liste { grid-template-columns: minmax(0, 1fr); }
+  .funktion summary { flex-direction: column; }
+  .funktion .funktion-text { margin-left: 1rem; }
+  .funktion-kopf, .funktion-text { hyphens: auto; overflow-wrap: break-word; }
+  .vergleich-tabelle { display: block; overflow-x: auto; }
+}
 /* Der große Teil braucht bei 360 Pixel Breite höchstens drei Zeilen. */
 .h-gross { display: block; font-size: clamp(1.9rem, 8.4vw, 3.85rem); line-height: 1.08; font-weight: 800; letter-spacing: -0.03em; }
 .h-farbe { color: var(--main); }
