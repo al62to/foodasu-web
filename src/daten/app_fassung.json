@@ -1,7 +1,7 @@
 {
-  "fassung": "0.15.4",
-  "versionCode": 1504,
-  "commit": "a5818ec",
+  "fassung": "0.22.0",
+  "versionCode": 2200,
+  "commit": "b5416f1",
   "eintraegeFest": 20,
   "arten": {
     "zutaten": 14,
