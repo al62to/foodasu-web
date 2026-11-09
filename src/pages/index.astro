@@ -5,16 +5,18 @@
 // src/styles/start.css (läuft ohne Skript) und aus src/skripte/bewegung.js (GSAP, wird erst nach dem ersten Zeichnen
 // geladen). Ohne JavaScript und mit "Bewegung reduzieren" steht alles sofort und vollständig da.
 // Reihenfolge: Kopf, "Einkaufen ohne", Einkaufswoche (#schritte), Video und "Mehr als ein Einkaufszettel",
-// Vergleich, "FoodAsu im Bild", Zahlen, Rezepte, Fragen, Abschluss; dazu am Handy die Leiste unten.
+// Vergleich, "FoodAsu im Bild", Zahlen, Rezepte, Fragen; dazu am Handy die Leiste unten. Den Abschluss („Passt es für
+// alle?“) gibt es seit AP-108 nicht mehr (Alis Wahl vom 08.11.2026); der Hinweis zur Beta steht am Handy im Fuß.
 import Basis from '../layouts/Basis.astro';
 import Handy from '../components/Handy.astro';
 import Logo from '../components/Logo.astro';
 import Motive from '../components/Motive.astro';
 import Unterschrift from '../components/Unterschrift.astro';
+import StoreAbzeichen from '../components/StoreAbzeichen.astro';
 import '../styles/start.css';
-import { seite, auftritte, store, storeLink } from '../daten/seite.mjs';
+import { seite, auftritte, store } from '../daten/seite.mjs';
 import {
-  kopf, wort, schritte, video, funktionen, vergleich, einblick, zahlen, vorschau, fragenStart, abschluss, kurzleiste,
+  kopf, wort, schritte, video, funktionen, vergleich, einblick, zahlen, vorschau, fragenStart, kurzleiste,
   geruest,
 } from '../daten/startseite.mjs';
 import { fotoDaten } from '../daten/sogehts.mjs';
@@ -133,7 +135,7 @@ const posterQuellen = (format) => [360, 720].map((breite) => `${filmOrt}-${forma
         <h1 class="held-titel"><span class="h-gross">{weichTrennen(kopf.ueberschrift[0])}</span>{' '}<span class="h-gross h-farbe">{weichTrennen(kopf.ueberschrift[1])}</span>{' '}<span class="h-klein">{kopf.ueberschrift[2]}</span></h1>
         <p class="held-satz">{kopf.satz.vor}<em>{kopf.satz.betont}</em>{kopf.satz.nach}</p>
         <div class="held-knoepfe">
-          <a class="bald" href={storeLink('kopf')} rel="noopener"><i aria-hidden="true"></i><span>{kopf.aufruf}</span></a>
+          <StoreAbzeichen ort="kopf" />
           <a class="knopf voll" href="#schritte">
             {kopf.zweiterKnopf}
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...linien} stroke-width="2.4"><path d="M12 5v14M6 13l6 6 6-6" /></svg>
@@ -402,22 +404,9 @@ const posterQuellen = (format) => [360, 720].map((breite) => `${filmOrt}-${forma
     </div>
   </section>
 
-  <section class="abschluss" id="abschluss">
-    <div class="innen">
-      <div class="abschluss-karte muster">
-        <div class="abschluss-text">
-          <h2>{abschluss.ueberschrift}</h2>
-          <p>{abschluss.satz}</p>
-        </div>
-        <a class="bald" href={storeLink('abschluss')} rel="noopener"><i aria-hidden="true"></i><span>{abschluss.knopf}</span></a>
-        <p class="abschluss-beta">{abschluss.beta}</p>
-      </div>
-    </div>
-  </section>
-
   <aside class="kurzleiste" aria-label={kurzleiste.name} data-kurzleiste hidden>
-    <a class="kurzleiste-marke" href="#start" aria-label={kurzleiste.logo}><Logo /></a>
-    <a class="knopf voll kurzleiste-knopf" href={store.oeffentlich ? storeLink('kurzleiste') : kurzleiste.ziel}><i aria-hidden="true"></i><span>{store.oeffentlich ? kurzleiste.storeKnopf : kurzleiste.knopf}</span></a>
+    <a class="kurzleiste-marke" href="#start" aria-label={kurzleiste.logo}><span class="kurzleiste-wort"><Logo /></span><img class="kurzleiste-symbol" src="/favicon.svg" width="32" height="32" alt="FoodAsu" decoding="async" /></a>
+    <StoreAbzeichen ort="kurzleiste" flaeche={false} />
   </aside>
 </Basis>
 
@@ -431,11 +420,13 @@ const posterQuellen = (format) => [360, 720].map((breite) => `${filmOrt}-${forma
   let geladen = false;
   let angehalten = false;
   let bewegung;
+  let knopfGeplant = false;
 
   const starte = () => {
     if (geladen || ruhig.matches) return;
     geladen = true;
     knopf.hidden = false;
+    knopfPlanen();
     import('../skripte/bewegung.js').then((modul) => {
       bewegung = modul;
       if (!angehalten) modul.starte();
@@ -472,20 +463,53 @@ const posterQuellen = (format) => [360, 720].map((breite) => `${filmOrt}-${forma
   ruhig.addEventListener('change', () => {
     starte();
     knopf.hidden = ruhig.matches || !geladen;
+    knopfPlanen();
   });
 
   // Leiste unten am Handy: erscheint, sobald der erste Bildschirm durchgescrollt ist, und nur unter 56rem Breite
-  // (darüber blendet sie start.css aus). Sie ist ein eigener Bereich mit zwei Links; am Seitenende hält start.css
-  // Platz für sie frei.
+  // (darüber blendet sie start.css aus). Sie ist ein eigener Bereich mit drei Links (Logo und zwei Abzeichen).
+  // Seit AP-108 (Nachtrag 3b, Alis Wunsch vom 08.11.2026): Sobald der Fuß mit den Abzeichen ins Bild kommt, blendet
+  // sich die Leiste aus ("data-am-fuss", start.css: sanft, mit "Bewegung reduzieren" ohne Übergang) und beim
+  // Zurückrollen wieder ein. Sie bleibt dabei im Dokument; bekommt ein Link darin den Fokus, ist sie wieder zu sehen.
   const leiste = document.querySelector('[data-kurzleiste]');
+  const fussZeile = document.querySelector('footer');
   const schmal = window.matchMedia('(max-width: 55.99rem)');
   const leisteZeigen = () => {
     const zeigen = schmal.matches && window.scrollY > window.innerHeight * 0.9;
     if (leiste.hidden === zeigen) leiste.hidden = !zeigen;
+    const amFuss = Boolean(fussZeile) && fussZeile.getBoundingClientRect().top < window.innerHeight;
+    if (leiste.hasAttribute('data-am-fuss') !== amFuss) leiste.toggleAttribute('data-am-fuss', amFuss);
+    knopfPlanen();
   };
   window.addEventListener('scroll', leisteZeigen, { passive: true });
   schmal.addEventListener('change', leisteZeigen);
+  window.addEventListener('resize', knopfPlanen);
+  // Klappt eine Frage auf oder zu, wandert der Fuß ohne Rollen; Leiste und angedockter Knopf ziehen mit.
+  if ('ResizeObserver' in window) new ResizeObserver(leisteZeigen).observe(document.body);
   leisteZeigen();
+
+  // Knopf "Bewegung anhalten" am Handy (AP-108): Er steht mit Abstand über der Leiste (start.css) und deckt den Fuß nicht
+  // ab. Erreicht die Linie über dem Fuß die Mitte des Knopfs, bleibt er auf dieser Linie stehen und geht mit der Seite
+  // nach oben (Klasse "angedockt": position absolute statt fixed). Dort liegt über und unter der Linie nur Rand, kein
+  // Text. Der Knopf bleibt an seiner Stelle im Dokument; Tastatur und Bildschirmleser finden ihn wie bisher, und mit dem
+  // Fokus rollt der Browser ihn ins Bild. Am Laptop bleibt er unten rechts fest wie bisher.
+  function knopfStellen() {
+    knopfGeplant = false;
+    knopf.classList.remove('angedockt');
+    knopf.style.top = '';
+    const fuss = document.querySelector('footer');
+    if (knopf.hidden || !schmal.matches || !fuss) return;
+    const lage = knopf.getBoundingClientRect();
+    const linie = fuss.getBoundingClientRect().top;
+    if (lage.top + lage.height / 2 < linie) return;
+    knopf.classList.add('angedockt');
+    knopf.style.top = `${Math.round(linie + window.scrollY - lage.height / 2)}px`;
+  }
+  function knopfPlanen() {
+    if (knopfGeplant) return;
+    knopfGeplant = true;
+    requestAnimationFrame(knopfStellen);
+  }
 
   // Video (Auftrag Teil 1 Nr. 6; Stufe 2 vom 14.10.2026): Bis zum Scrollen steht nur das Poster da ("data-film" am
   // Poster nennt den Ort der Dateien). Kommt es in die Nähe des Fensters, lädt das Video im Format der Bühne (Handy

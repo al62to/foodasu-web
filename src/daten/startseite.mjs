@@ -46,7 +46,6 @@ export const kopf = {
   // Satz statt des langen Absatzes (Teil 2 Nr. 5): höchstens 15 Wörter, mit "Einkaufsliste". "betont" steht in Indigo
   // wie "alle" im Entwurf.
   satz: { vor: 'Einkaufsliste, Rezepte und Scanner in einer App. Du siehst, ob es für ', betont: 'alle', nach: ' passt.' },
-  aufruf: 'Jetzt im Play Store',
   zweiterKnopf: 'Eine Einkaufswoche',
   stand: `${BETA} ${VERFUEGBAR}`,
   handy: {
@@ -391,6 +390,10 @@ export const fragenStart = {
   ],
 };
 
+// Den Abschluss (Teil 1 Nr. 13, „Passt es für alle? Schau einfach nach.“ mit Satz zur Verfügbarkeit, Abzeichen und
+// Hinweis zur Beta) gibt es seit AP-108 nicht mehr (Alis Wahl vom 08.11.2026: am Handy zu viele Abzeichen). Der
+// Hinweis zur Beta steht am Handy im Fuß der Startseite (fuss.beta), am Laptop weiter unter den Abzeichen im Kopf.
+
 // Namen der Links mit den zwei Abzeichen (AP-105) im Kopf, in der Leiste unten und auf den Rezeptseiten.
 // Sie stehen als Bildbeschreibung im Abzeichen und sind damit der Name des Links.
 export const abzeichen = {
@@ -398,25 +401,14 @@ export const abzeichen = {
   google: 'FoodAsu bei Google Play',
 };
 
-// Abschluss (Teil 1 Nr. 13): gepunktete Lavendel-Fläche, H2, der Satz zur Verfügbarkeit, weißer Knopf mit Punkt
-// (seit dem öffentlichen Start ein Link zum Eintrag bei Google Play). Am Handy steht darunter klein der Hinweis zur
-// Beta (am Laptop steht er unter den Knöpfen im Kopf).
-export const abschluss = {
-  ueberschrift: 'Passt es für alle? Schau einfach nach.',
-  satz: VERFUEGBAR,
-  knopf: 'Jetzt im Play Store',
-  beta: BETA,
-};
-
 // Leiste unten am Handy (Teil 1 Nr. 15): erscheint nach dem ersten Bildschirm, nur am Handy. Das Logo führt an den
-// Anfang der Seite. Der Knopf führt zum Eintrag bei Google Play (store.oeffentlich in seite.mjs; vor dem öffentlichen
-// Start führte er zum Abschluss mit dem Satz zur Verfügbarkeit).
+// Anfang der Seite. Seit AP-105 stehen daneben die zwei Abzeichen (vor dem öffentlichen Start führte ein Knopf zum
+// Abschluss; Knopf und Abschluss gibt es seit AP-108 nicht mehr).
 export const kurzleiste = {
-  name: 'FoodAsu im Play Store',
+  // Seit AP-105 mit den zwei Abzeichen statt des Knopfs „FoodAsu bei Google Play“; der Name des Bereichs nennt keinen
+  // Store mehr.
+  name: 'FoodAsu laden',
   logo: 'FoodAsu, zum Anfang der Seite',
-  knopf: 'Bald im Play Store',
-  ziel: '#abschluss',
-  storeKnopf: 'FoodAsu bei Google Play',
 };
 
 // Fragen und Antworten der Seite /fragen/ stehen seit AP-22 in src/daten/fragen.mjs.
@@ -428,6 +420,8 @@ export const fuss = {
   // Seit Nachtrag 2 der PL vom 14.10.2026 wie die H1 der Startseite: die Einkaufsliste zuerst.
   satz: 'Einkaufslisten-App und Lebensmittel-Scanner für den ganzen Haushalt.',
   hinweis: 'Maßgeblich ist die Verpackung.',
+  // Hinweis zur Beta, nur auf der Startseite und nur am Handy (AP-108; am Laptop steht er unter den Abzeichen im Kopf).
+  beta: BETA,
   spalten: { recht: 'Rechtliches', foodasu: 'FoodAsu', folgen: 'Folge uns' },
   links: { datenschutz: 'Datenschutz', nutzungsbedingungen: 'Nutzungsbedingungen', offenlegung: 'Offenlegung', lizenzen: 'Lizenzen', quellen: 'Quellen und Lizenzen', kontakt: 'Kontakt per E-Mail' },
   // Zweite Spalte: dieselben Ziele wie in der Hauptnavigation, dazu der Kontakt.

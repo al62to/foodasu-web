@@ -47,7 +47,7 @@ punkt('Überschrift (H1, ein Element in drei Teilen)', `${t.kopf.ueberschrift.jo
 punkt('Satz (höchstens 15 Wörter)', `${t.kopf.satz.vor}${t.kopf.satz.betont}${t.kopf.satz.nach} („${t.kopf.satz.betont}“ in Indigo)`);
 punkt('Aufruf', `${t.kopf.aufruf} (Text ohne Link)`);
 punkt('Zweiter Knopf', `${t.kopf.zweiterKnopf} (springt zur Einkaufswoche)`);
-punkt('Zeile darunter (nur am Laptop; am Handy im Abschluss)', `${t.kopf.stand} (Satz zur Verfügbarkeit wörtlich)`);
+punkt('Zeile darunter (nur am Laptop; am Handy steht der Hinweis zur Beta im Fuß)', `${t.kopf.stand} (Satz zur Verfügbarkeit wörtlich)`);
 punkt('Im Handy, Produkt', `${t.kopf.handy.produkt}, ${t.kopf.handy.zusatz} (erfunden, ohne Marke)`);
 punkt('Im Handy, Urteil', `${t.kopf.handy.urteil} (App)`);
 punkt('Im Handy, Personen', t.kopf.handy.personen.map((p) => `${p.name}: ${p.ergebnis}`).join('; '));
@@ -111,17 +111,13 @@ punkt('Überschrift', t.fragenStart.ueberschrift);
 for (const f of t.fragenStart.liste) punkt(f.frage, f.antwort.join(' '));
 zeile();
 
-zeile('## Abschnitt 10: Abschluss');
-punkt('Überschrift', t.abschluss.ueberschrift);
-punkt('Satz', t.abschluss.satz);
-punkt('Knopf', `${t.abschluss.knopf} (Text ohne Link, wie im Kopf)`);
-punkt('Darunter, nur am Handy', t.abschluss.beta);
+zeile('## Abschnitt 10: Abschluss (seit AP-108 entfernt)');
 zeile();
 
 zeile('## Leiste unten am Handy (nach dem ersten Bildschirm)');
 punkt('Name für Bildschirmleser', t.kurzleiste.name);
 punkt('Logo', `Link „${t.kurzleiste.logo}“ (#start)`);
-punkt('Knopf', `${t.kurzleiste.knopf} (${t.kurzleiste.ziel}; mit dem öffentlichen Start „${t.kurzleiste.storeKnopf}“ mit Link zum Eintrag)`);
+punkt('Abzeichen', 'App Store und Google Play (Bilder der Stores, Namen wie im Kopf)');
 zeile();
 
 zeile('## Fragen auf der Seite /fragen/ (unverändert)');
@@ -136,6 +132,7 @@ zeile('## Fuß');
 punkt('Aufbau', 'Fußzeile A (Entscheidung Ali vom 10.10.2026): links Logo und Satz, daneben drei Spalten, unten eine schmale Zeile');
 punkt('Satz unter dem Logo', t.fuss.satz);
 punkt('Hinweis darunter', `${t.fuss.hinweis} (stand bisher als eigene Zeile im Fuß und bleibt auf jeder Seite)`);
+punkt('Darunter, nur auf der Startseite und nur am Handy (seit AP-108)', t.fuss.beta);
 punkt(`Spalte „${t.fuss.spalten.recht}“`, [t.fuss.links.datenschutz, t.fuss.links.offenlegung, t.fuss.links.lizenzen, t.fuss.links.quellen].join(', '));
 punkt(`Spalte „${t.fuss.spalten.foodasu}“`, [...t.fuss.seiten.map((eintrag) => eintrag.titel), t.fuss.links.kontakt].join(', '));
 punkt(`Spalte „${t.fuss.spalten.folgen}“`, `der Satz „${t.fuss.auftritte.dabei}“ als Text, darunter Knöpfe mit Symbol: ${t.fuss.auftritte.facebook}, ${t.fuss.auftritte.instagram}`);

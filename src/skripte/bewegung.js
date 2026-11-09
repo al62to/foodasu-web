@@ -131,7 +131,7 @@ function zaehler() {
   return () => zahlen.forEach((element) => (element.textContent = element.dataset.zahl));
 }
 
-// 8 Rezeptkarten kommen leicht gedreht herein. 9 Fragen erscheinen nacheinander. 10 Der Abschluss erscheint.
+// 8 Rezeptkarten kommen leicht gedreht herein. 9 Fragen erscheinen nacheinander. (10 Der Abschluss: seit AP-108 entfernt.)
 function vorschau() {
   const karten = alle('.rezeptkarte').filter(unterhalb);
   karten.forEach((karte, stelle) => {
@@ -146,7 +146,6 @@ function vorschau() {
     });
   });
   zeige(alle('.faq details'), { y: 24, stagger: 0.06 });
-  zeige(alle('.abschluss-karte'), { y: 40 });
 }
 
 let abfrage;

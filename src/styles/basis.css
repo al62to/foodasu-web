@@ -295,6 +295,9 @@ a.chip:hover, button.chip:hover { border-color: var(--main); }
 .fuss-marke .marke svg { height: 1.9rem; }
 .fuss-satz { max-width: 19rem; margin: 0.6rem 0 0; color: var(--text); font-weight: 600; }
 .fuss .hinweis { margin: 0.4rem 0 0; font-weight: 700; color: var(--text); }
+/* AP-108: Hinweis zur Beta im Fuß der Startseite, klein wie früher im Abschluss; nur am Handy (am Laptop steht er im Kopf). */
+.fuss-beta { max-width: 22rem; margin: 0.75rem 0 0; font-size: 0.82rem; line-height: 1.55; color: var(--muted); }
+@media (min-width: 56rem) { .fuss-beta { display: none; } }
 .fuss-titel { margin: 0 0 0.25rem; font-size: 1.05rem; font-weight: 800; letter-spacing: 0.09em; line-height: 1.6; font-variant-caps: all-small-caps; color: var(--muted); hyphens: none; }
 .fuss ul { list-style: none; margin: 0; padding: 0; }
 .fuss-spalte li a { display: inline-flex; align-items: center; min-height: 2.75rem; color: var(--text); text-decoration: none; }

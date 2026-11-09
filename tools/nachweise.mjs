@@ -132,7 +132,7 @@ sage('## 2 "Bewegung reduzieren"');
     });
     return {
       laufend: document.getAnimations().filter((bewegung) => bewegung.playState === 'running').length,
-      sichtbar: sichtbar('.held-titel, .held-satz, .handy-rahmen, [data-urteil], [data-person], .schwebt, .schritt, .video-feld, .funktion, .vergleich-tabelle, .einblick-karte, .zaehler li, .band-liste li, .rezeptkarte, .faq details, .abschluss-karte, .wort-text'),
+      sichtbar: sichtbar('.held-titel, .held-satz, .handy-rahmen, [data-urteil], [data-person], .schwebt, .schritt, .video-feld, .funktion, .vergleich-tabelle, .einblick-karte, .zaehler li, .band-liste li, .rezeptkarte, .faq details, .wort-text'),
       // Der Zahlenblock zeigt Zahlen ab tausend mit Tausenderpunkt ("4.119"), data-zahl ohne ("4119"); verglichen wird
       // ohne Punkt (AP-34 Fortsetzung, 23.10.2026).
       zahlen: [...document.querySelectorAll('[data-zahl]')].map((element) => element.textContent.replaceAll('.', '') === element.dataset.zahl),
@@ -145,7 +145,7 @@ sage('## 2 "Bewegung reduzieren"');
   });
   pruefe(!anfragen.some((adresse) => /bewegung/.test(adresse)), 'GSAP wird nicht geladen');
   pruefe(stand.laufend === 0, `laufende Animationen: ${stand.laufend}`);
-  pruefe(stand.sichtbar, 'alle Inhalte sofort sichtbar (Kopf, Handy, Schritte, Video, Funktionen, Vergleich, Bilder, Zähler, Chips, Rezepte, Fragen, Abschluss)');
+  pruefe(stand.sichtbar, 'alle Inhalte sofort sichtbar (Kopf, Handy, Schritte, Video, Funktionen, Vergleich, Bilder, Zähler, Chips, Rezepte, Fragen)');
   pruefe(stand.zahlen.every(Boolean), 'Zähler zeigen die Endzahl');
   pruefe(stand.baender === 0 && stand.chips === 27, `Einträge und Rezepte stehen als ruhende Chips, ohne Laufband (${stand.chips} Chips)`);
   pruefe(stand.linie === 'none' || stand.linie === 'matrix(1, 0, 0, 1, 0, 0)', 'Linie der Einkaufswoche ist ganz gezeichnet');
@@ -245,7 +245,7 @@ sage('## 2c Knopf "Bewegung anhalten" (ohne "Bewegung reduzieren")');
       return stil.opacity === '1' && stil.visibility === 'visible' && stil.display !== 'none';
     });
     return {
-      sichtbar: sichtbar('.held-titel, .held-satz, .handy-rahmen, [data-urteil], [data-person], .schwebt, .schritt, .video-feld, .funktion, .vergleich-tabelle, .einblick-karte, .zaehler li, .band-liste li, .rezeptkarte, .faq details, .abschluss-karte, .wort-text'),
+      sichtbar: sichtbar('.held-titel, .held-satz, .handy-rahmen, [data-urteil], [data-person], .schwebt, .schritt, .video-feld, .funktion, .vergleich-tabelle, .einblick-karte, .zaehler li, .band-liste li, .rezeptkarte, .faq details, .wort-text'),
       zahlen: [...document.querySelectorAll('[data-zahl]')].every((element) => element.textContent.replaceAll('.', '') === element.dataset.zahl),
       linie: getComputedStyle(document.querySelector('[data-linie]')).transform,
       speicher: document.cookie.length + localStorage.length + sessionStorage.length,
@@ -620,8 +620,9 @@ sage('## 2f Kontrast der Texte (mindestens 4,5:1), hell und dunkel');
 // Standbild, das erst beim Scrollen lädt.
 sage();
 sage('## 2h Startseite am Handy (Auftrag SEO 1 neu)');
-for (const breite of [360, 412]) {
-  const ansicht = { width: breite, height: breite === 360 ? 740 : 915, deviceScaleFactor: 1, isMobile: true, hasTouch: true };
+// Seit AP-105 auch 320 px (Leiste mit Logo und beiden Abzeichen in einer Zeile).
+for (const breite of [320, 360, 412]) {
+  const ansicht = { width: breite, height: breite === 412 ? 915 : 740, deviceScaleFactor: 1, isMobile: true, hasTouch: true };
   {
     const { umgebung, seite } = await neueSeite({ ansicht, ruhig: true });
     await seite.goto(BASIS + '/', { waitUntil: 'networkidle0' });
@@ -654,7 +655,7 @@ for (const breite of [360, 412]) {
       `${breite} px: erster Bildschirm mit H1, Satz, Knöpfen und dem Beginn der Handy-Grafik (Knöpfe enden bei ${Math.round(oben.knoepfe)} px, Grafik beginnt bei ${Math.round(oben.grafik)} px, Fenster ${oben.fenster} px)`);
     pruefe(oben.woerter <= 40, `${breite} px: ${oben.woerter} Wörter im ersten Bildschirm (höchstens etwa 40), dazu ${oben.bild} Wörter in der gezeichneten Abbildung und den schwebenden Begriffen (für Bildschirmleser ausgeblendet)`);
     if (breite === 360) pruefe(oben.zeilen <= 3, `360 px: großer Teil der H1 in ${oben.zeilen} Zeilen (höchstens drei)`);
-    pruefe(oben.stand === 'none', `${breite} px: Hinweis zu Beta und Verfügbarkeit nicht im ersten Bildschirm (steht im Abschluss)`);
+    pruefe(oben.stand === 'none', `${breite} px: Hinweis zu Beta und Verfügbarkeit nicht im ersten Bildschirm (Hinweis zur Beta steht seit AP-108 im Fuß)`);
     pruefe(oben.leiste, `${breite} px: Leiste unten im ersten Bildschirm noch nicht da`);
     // Zeitleisten: Karten abwechselnd links und rechts, die Linie in der Mitte.
     const leisten = await seite.evaluate(() => [['.schritt', '.schritt-karte', '.weg-linie'], ['.einblick-karte', '.einblick-wort', '.einblick-linie']].map(([zeile, karte, linie]) => {
@@ -692,7 +693,10 @@ for (const breite of [360, 412]) {
       }
       return { lang, gezaehlt };
     });
-    pruefe(absaetze.lang.length === 0, `${breite} px: Absätze im Inhalt höchstens drei Zeilen (länger: ${absaetze.lang.length})`);
+    // Die Regel „höchstens drei Zeilen“ gilt wie bisher ab 360 px; 320 px läuft seit AP-105 nur für Leiste und Knöpfe mit
+    // und zählt die Absätze nur.
+    if (breite >= 360) pruefe(absaetze.lang.length === 0, `${breite} px: Absätze im Inhalt höchstens drei Zeilen (länger: ${absaetze.lang.length})`);
+    else sage(`    ${breite} px: Absätze mit mehr als drei Zeilen nur gezählt: ${absaetze.lang.length}`);
     for (const fund of absaetze.lang) sage(`    ${fund}`);
     sage(`    nur gezählt (aufklappende Texte und Karten der Zeitleisten): ${absaetze.gezaehlt.length}`);
     for (const fund of absaetze.gezaehlt) sage(`      ${fund}`);
@@ -707,23 +711,40 @@ for (const breite of [360, 412]) {
     const leiste = await seite.evaluate(() => {
       const element = document.querySelector('[data-kurzleiste]');
       const kasten = element.getBoundingClientRect();
-      const links = [...element.querySelectorAll('a')].map((link) => ({ name: link.getAttribute('aria-label') ?? link.textContent.trim(), hoehe: Math.round(link.getBoundingClientRect().height), ziel: link.getAttribute('href') }));
+      // Seit AP-105: Logo und die zwei Abzeichen; der Name eines Abzeichens ist die Beschreibung seines Bilds.
+      const links = [...element.querySelectorAll('a')].map((link) => ({ name: link.getAttribute('aria-label') ?? link.querySelector('img')?.alt ?? link.textContent.trim(), hoehe: Math.round(link.getBoundingClientRect().height), ziel: link.getAttribute('href') }));
       return { da: !element.hidden && kasten.height > 0, unten: Math.round(window.innerHeight - kasten.bottom), links, name: element.getAttribute('aria-label') };
     });
-    pruefe(leiste.da && leiste.unten >= 0 && leiste.links.length === 2 && leiste.links.every((link) => link.hoehe >= 48),
+    pruefe(leiste.da && leiste.unten >= 0 && leiste.links.length === 3 && leiste.links.every((link) => link.hoehe >= 48),
       `${breite} px, ${wort}: Leiste unten nach dem ersten Bildschirm da („${leiste.name}“; ${leiste.links.map((link) => `${link.name} ${link.hoehe} px nach ${link.ziel}`).join(', ')})`);
-    // Tastatur: Die zwei Links der Leiste sind mit Tab erreichbar.
+    // Tastatur: Die drei Links der Leiste (Logo, App Store, Google Play) sind mit Tab erreichbar.
     let erreicht = 0;
-    for (let nummer = 0; nummer < 120 && erreicht < 2; nummer++) {
+    for (let nummer = 0; nummer < 120 && erreicht < 3; nummer++) {
       await seite.keyboard.press('Tab');
       if (await seite.evaluate(() => Boolean(document.activeElement.closest('[data-kurzleiste]')))) erreicht++;
     }
-    pruefe(erreicht === 2, `${breite} px, ${wort}: beide Links der Leiste mit Tab erreichbar`);
-    // Seitenende: Weder Leiste noch Knopf "Bewegung anhalten" verdecken Text oder Links des Fußes.
+    pruefe(erreicht === 3, `${breite} px, ${wort}: alle drei Links der Leiste mit Tab erreichbar`);
+    // Den Fokus wieder lösen: Solange ein Link der Leiste den Fokus hat, bleibt sie mit Absicht sichtbar (AP-108, 3b).
+    await seite.evaluate(() => document.activeElement?.blur());
+    // AP-108, Nachtrag 3b: Kommt der Fuß ins Bild, blendet sich die Leiste aus, hier mit "Bewegung reduzieren" sofort
+    // (ohne Übergang); beim Zurückrollen ist sie wieder da. Die Seite wird dabei nicht höher oder kürzer.
+    const fussOben = await seite.evaluate(() => document.querySelector('footer').getBoundingClientRect().top + window.scrollY);
+    const leisteBei = async (hoehe) => {
+      await seite.evaluate((ziel) => window.scrollTo({ top: ziel, behavior: 'instant' }), hoehe);
+      await warte(150);
+      return seite.evaluate(() => { const l = document.querySelector('[data-kurzleiste]'); const stil = getComputedStyle(l); return { sichtbar: !l.hidden && Number(stil.opacity) > 0, klick: stil.pointerEvents, dauer: stil.transitionDuration, hoehe: document.documentElement.scrollHeight }; });
+    };
+    const vorFuss = await leisteBei(fussOben - ansicht.height - 40);
+    const amFuss = await leisteBei(fussOben - ansicht.height + 60);
+    const zurueck = await leisteBei(fussOben - ansicht.height - 200);
+    pruefe(vorFuss.sichtbar && !amFuss.sichtbar && amFuss.klick === 'none' && zurueck.sichtbar && vorFuss.hoehe === amFuss.hoehe && amFuss.dauer.split(',').every((dauer) => parseFloat(dauer) === 0),
+      `${breite} px, ${wort}: Leiste blendet sich aus, sobald der Fuß ins Bild kommt (mit „Bewegung reduzieren“ ohne Übergang, ${amFuss.dauer}), und beim Zurückrollen wieder ein; Seitenhöhe gleich`);
+    // Seitenende: Weder Leiste noch Knopf "Bewegung anhalten" verdecken Text oder Links des Fußes (gezählt wird nur, was
+    // zu sehen ist: Seit AP-108 ist die Leiste am Fuß durchsichtig).
     await seite.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'instant' }));
     await warte(300);
     const verdeckt = await seite.evaluate(() => {
-      const decken = [...document.querySelectorAll('[data-kurzleiste], [data-bewegung]')].filter((element) => !element.hidden).map((element) => element.getBoundingClientRect());
+      const decken = [...document.querySelectorAll('[data-kurzleiste], [data-bewegung]')].filter((element) => !element.hidden && Number(getComputedStyle(element).opacity) > 0).map((element) => element.getBoundingClientRect());
       // Die Leiste steht im main; ihre eigenen Links verdecken sich nicht selbst und zählen deshalb nicht mit.
       return [...document.querySelectorAll('footer a, footer p, footer h2, main a, main p')].filter((element) => !element.closest('[data-kurzleiste], [data-bewegung]')).filter((element) => {
         const f = element.getBoundingClientRect();
@@ -731,21 +752,86 @@ for (const breite of [360, 412]) {
       }).map((element) => element.textContent.trim().slice(0, 30));
     });
     pruefe(verdeckt.length === 0, `${breite} px, ${wort}: am Seitenende verdeckt die Leiste nichts (${verdeckt.join(', ') || 'keine Überdeckung'})`);
-    // Kontrast der Leiste und des Abschlusses (am Handy sichtbar, am Laptop nicht).
+    // Kontrast des Hinweises zur Beta im Fuß (seit AP-108; vorher Abschluss), am Handy sichtbar, am Laptop nicht.
     const kontrast = await seite.evaluate(() => {
       const zahlen = (wert) => { const teile = wert.match(/[\d.]+/g).map(Number); return { r: teile[0], g: teile[1], b: teile[2], a: teile.length > 3 ? teile[3] : 1 }; };
       const hell = ({ r, g, b }) => { const kanal = (wert) => { const anteil = wert / 255; return anteil <= 0.03928 ? anteil / 12.92 : ((anteil + 0.055) / 1.055) ** 2.4; }; return 0.2126 * kanal(r) + 0.7152 * kanal(g) + 0.0722 * kanal(b); };
       const grund = (element) => { for (let teil = element; teil; teil = teil.parentElement) { const farbe = zahlen(getComputedStyle(teil).backgroundColor); if (farbe.a === 1) return farbe; } return { r: 255, g: 255, b: 255 }; };
-      return ['.kurzleiste-knopf span', '.abschluss-beta', '.abschluss-text p', '.abschluss .bald span'].map((auswahl) => {
+      // Seit AP-105 trägt die Leiste keine Knöpfe mit Text mehr, nur die Abzeichen (Bilder der Stores).
+      return ['.fuss-beta'].map((auswahl) => {
         const element = document.querySelector(auswahl);
         const [a, b] = [hell(zahlen(getComputedStyle(element).color)), hell(grund(element))].sort((x, y) => y - x);
         return { auswahl, wert: (a + 0.05) / (b + 0.05) };
       });
     });
-    pruefe(kontrast.every((eintrag) => eintrag.wert >= 4.5), `${breite} px, ${wort}: Kontrast der Leiste und des Abschlusses (${kontrast.map((eintrag) => `${eintrag.auswahl} ${eintrag.wert.toFixed(1)}:1`).join(', ')})`);
+    pruefe(kontrast.every((eintrag) => eintrag.wert >= 4.5), `${breite} px, ${wort}: Kontrast des Hinweises zur Beta im Fuß (${kontrast.map((eintrag) => `${eintrag.auswahl} ${eintrag.wert.toFixed(1)}:1`).join(', ')})`);
     // Schriftzug in der Leiste in denselben Farben wie im Kopf (sonst bleibt er im dunklen Modus dunkel auf dunkel).
     const schriftzug = await seite.evaluate(() => ['.wort', '.schrift'].map((teil) => [document.querySelector(`[data-kurzleiste] ${teil}`), document.querySelector(`header .marke ${teil}`)].map((element) => getComputedStyle(element).fill)));
     pruefe(schriftzug.every(([leiste, kopf]) => leiste === kopf), `${breite} px, ${wort}: Schriftzug der Leiste in den Farben des Kopfs (${schriftzug.map(([leiste]) => leiste).join(', ')})`);
+    await umgebung.close();
+  }
+  // AP-108: Knopf "Bewegung anhalten" (mit Bewegung) steht mit Abstand über der Leiste und deckt beim Rollen durch das
+  // Seitenende weder die Leiste noch Text, Links oder Bilder des Fußes ab; der Hinweis zur Beta steht im Fuß, der
+  // Abschluss ist weg, und die Reihenfolge für die Tastatur ist wie bisher (Sprunglink, Logo, Menü, Knopf).
+  for (const [wort, dunkel] of [['hell', false], ['dunkel', true]]) {
+    const { umgebung, seite } = await neueSeite({ ansicht, ruhig: false, dunkel });
+    await seite.goto(BASIS + '/', { waitUntil: 'networkidle0' });
+    await seite.waitForSelector('[data-bewegung]:not([hidden])', { timeout: 8000 }).catch(() => {});
+    const reihe = [];
+    for (let nummer = 0; nummer < 4; nummer++) {
+      await seite.keyboard.press('Tab');
+      reihe.push(await seite.evaluate(() => (document.activeElement.matches('[data-bewegung]') ? 'Knopf' : document.activeElement.tagName.toLowerCase())));
+    }
+    const knopfLage = await seite.evaluate(async () => {
+      const bild = () => new Promise((weiter) => requestAnimationFrame(() => requestAnimationFrame(weiter)));
+      const knopf = document.querySelector('[data-bewegung]');
+      const fuss = document.querySelector('footer');
+      const ueber = (a, b) => a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+      const ende = document.documentElement.scrollHeight - window.innerHeight;
+      const funde = [];
+      let abstand = Infinity;
+      let stellen = 0;
+      for (let hoehe = Math.max(0, fuss.offsetTop - window.innerHeight * 1.5); hoehe <= ende + 15; hoehe += 15) {
+        window.scrollTo({ top: Math.min(hoehe, ende), behavior: 'instant' });
+        await bild();
+        stellen++;
+        if (knopf.hidden) { funde.push('Knopf ausgeblendet'); break; }
+        const k = knopf.getBoundingClientRect();
+        const leiste = document.querySelector('[data-kurzleiste]');
+        if (!leiste.hidden && Number(getComputedStyle(leiste).opacity) > 0) {
+          const l = leiste.getBoundingClientRect();
+          abstand = Math.min(abstand, l.top - k.bottom);
+          if (ueber(k, l)) funde.push(`${hoehe}: Leiste`);
+        }
+        for (const teil of fuss.querySelectorAll('p, a, li, h2, img, svg')) {
+          if (!teil.checkVisibility()) continue;
+          const t = teil.getBoundingClientRect();
+          if (t.width && ueber(k, t)) { funde.push(`${hoehe}: ${teil.textContent.trim().slice(0, 25) || teil.tagName}`); break; }
+        }
+      }
+      const beta = [...document.querySelectorAll('p')].filter((absatz) => absatz.textContent.startsWith('FoodAsu ist in der Beta') && absatz.checkVisibility()).map((absatz) => (absatz.closest('footer') ? 'Fuß' : absatz.className));
+      return { funde, abstand: Math.round(abstand), stellen, beta, abschluss: Boolean(document.querySelector('#abschluss, .abschluss')), name: knopf.textContent.trim() };
+    });
+    pruefe(reihe.join(',') === 'a,a,button,Knopf' && knopfLage.name === 'Bewegung anhalten', `${breite} px, ${wort}: Knopf „${knopfLage.name}“ an vierter Stelle mit Tab (${reihe.join(', ')})`);
+    pruefe(knopfLage.funde.length === 0 && knopfLage.abstand >= 12, `${breite} px, ${wort}: Knopf „Bewegung anhalten“ deckt beim Rollen durch das Seitenende (${knopfLage.stellen} Stellen) weder Leiste noch Fuß ab, mindestens ${knopfLage.abstand} px über der Leiste${knopfLage.funde.length ? ` (überdeckt: ${knopfLage.funde.slice(0, 3).join('; ')})` : ''}`);
+    pruefe(knopfLage.beta.join(',') === 'Fuß' && !knopfLage.abschluss, `${breite} px, ${wort}: Hinweis zur Beta genau einmal sichtbar, im Fuß (${knopfLage.beta.join(', ') || 'keiner'}); kein Abschluss`);
+    // Nachtrag 3b mit Bewegung: Die Leiste gleitet am Fuß sanft hinaus (Übergang über 0 s) und der Knopf bleibt dabei stehen.
+    const sanft = await seite.evaluate(async () => {
+      const bild = () => new Promise((weiter) => requestAnimationFrame(() => requestAnimationFrame(weiter)));
+      const oben = document.querySelector('footer').getBoundingClientRect().top + window.scrollY;
+      const leiste = document.querySelector('[data-kurzleiste]');
+      const knopf = document.querySelector('[data-bewegung]');
+      window.scrollTo({ top: oben - window.innerHeight - 40, behavior: 'instant' });
+      await new Promise((weiter) => setTimeout(weiter, 500));
+      const knopfVor = Math.round(knopf.getBoundingClientRect().top);
+      window.scrollTo({ top: oben - window.innerHeight + 60, behavior: 'instant' });
+      await bild();
+      const dauer = getComputedStyle(leiste).transitionDuration;
+      await new Promise((weiter) => setTimeout(weiter, 500));
+      return { dauer, deckkraft: Number(getComputedStyle(leiste).opacity), knopfVor, knopfNach: Math.round(knopf.getBoundingClientRect().top) };
+    });
+    pruefe(sanft.dauer.split(',').some((dauer) => parseFloat(dauer) > 0) && sanft.deckkraft === 0 && sanft.knopfVor === sanft.knopfNach,
+      `${breite} px, ${wort}: am Fuß gleitet die Leiste sanft hinaus (${sanft.dauer}), der Knopf bleibt stehen (${sanft.knopfVor} / ${sanft.knopfNach} px)`);
     await umgebung.close();
   }
 }
@@ -756,6 +842,9 @@ for (const breite of [360, 412]) {
   await seite.evaluate(() => window.scrollTo({ top: 3000, behavior: 'instant' }));
   await warte(300);
   pruefe(await seite.evaluate(() => getComputedStyle(document.querySelector('[data-kurzleiste]')).display === 'none'), 'Laptop: keine Leiste unten');
+  // AP-108: Am Laptop steht der Hinweis zur Beta nur im Kopf unter den Abzeichen, nicht im Fuß.
+  const betaLaptop = await seite.evaluate(() => [...document.querySelectorAll('p')].filter((absatz) => absatz.textContent.startsWith('FoodAsu ist in der Beta') && absatz.checkVisibility()).map((absatz) => absatz.className));
+  pruefe(betaLaptop.join(',') === 'held-stand', `Laptop: Hinweis zur Beta nur im Kopf sichtbar (${betaLaptop.join(', ') || 'keiner'})`);
   await umgebung.close();
 }
 // Video der Startseite (Stufe 2, Projektleitung, 14.10.2026, 13:45): Poster und Video laden erst beim Scrollen, das
@@ -1334,7 +1423,7 @@ for (const [name, ansicht] of [['Handy', HANDY], ['Laptop', LAPTOP]]) {
   const themen = stand.gruppen.every((zahl, nummer) => zahl === stand.gruppenLinks[nummer]);
   pruefe(themen, `Ohne JavaScript, ${name}: alle Themen des Menüs sichtbar (${stand.gruppen.join(' + ')} Links)${fokus}`);
   if (name === 'Handy') {
-    const inhalt = await seite.evaluate(() => [...document.querySelectorAll('.held-titel, [data-person], .schritt, .funktion, .vergleich-tabelle, .einblick-karte, .zaehler li, .rezeptkarte, .abschluss-karte')].every((element) => getComputedStyle(element).opacity === '1'));
+    const inhalt = await seite.evaluate(() => [...document.querySelectorAll('.held-titel, [data-person], .schritt, .funktion, .vergleich-tabelle, .einblick-karte, .zaehler li, .rezeptkarte')].every((element) => getComputedStyle(element).opacity === '1'));
     pruefe(inhalt, 'Ohne JavaScript: Inhalte der Startseite sichtbar');
   }
   await umgebung.close();

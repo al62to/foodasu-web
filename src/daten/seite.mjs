@@ -8,8 +8,9 @@ export const seite = {
   sprache: 'de',
   logo: '/apple-touch-icon.png',
   // Gemeinsames Bild für Open Graph und die Twitter-Karte (gebaut mit tools/teilen_bild.mjs). Rezeptseiten zeigen
-  // ihr eigenes Bild in denselben Maßen (tools/rezeptbilder_bauen.py).
-  teilen: { pfad: '/bilder/foodasu-teilen.jpg', breite: 1200, hoehe: 630 },
+  // ihr eigenes Bild in denselben Maßen (tools/rezeptbilder_bauen.py). Seit AP-105 mit einem Band unten (band, Höhe in
+  // Pixeln) mit den zwei Abzeichen und neuen Dateinamen (-teilen-2), damit Facebook und WhatsApp neu laden.
+  teilen: { pfad: '/bilder/foodasu-teilen-2.jpg', breite: 1200, hoehe: 630, band: 100 },
   // Der Satz zur Beschreibung (Nachtrag zu AP-23 Teil A Nr. 1 in der Fassung der Änderung vom 11.10.2026; Entscheidung
   // Ali vom 11.10.2026: ohne regionale Herkunft, ohne Plattform, Scanner und Einkaufsliste zusammen; seit Nachtrag 2
   // der PL vom 14.10.2026 die Einkaufsliste zuerst), wörtlich. Er
@@ -39,11 +40,13 @@ export const store = {
 // Links zum Eintrag bei Google Play mit Kennung des Kanals (AP-44, 25.10.2026), nach dem Muster des "Google Play URL
 // Builder": referrer=utm_source=website, utm_medium=link, utm_campaign=<ort>. Die Kennung enthält nichts über
 // Besucher; die Website lädt dafür nichts nach und speichert nichts. Feste Orte (Kleinbuchstaben, ohne Umlaute):
-// kopf, abschluss, kurzleiste (Startseite), rezept (Knopf auf den Rezeptseiten), fuss (Abzeichen in der Fußzeile).
+// kopf, kurzleiste (Startseite), rezept (Knopf auf den Rezeptseiten), fuss (Abzeichen in der Fußzeile).
 // Seit AP-54 dazu code (Abzeichen auf der Seite für Codes /c/), seit AP-112 liste (Karte auf der Seite für Listen /l/).
+// Den Ort abschluss gibt es seit AP-108 nicht mehr (Abschnitt entfernt); dieselben Namen gelten als Kampagnen beim
+// App Store (appleLink).
 // Ohne Kennung bleiben store.adresse in strukturierten Daten (installUrl, sameAs), llms.txt, Sitemap und die
 // Rechtstexte samt ihrer Fußzeile; `npm run pruefen` meldet jeden anderen Link zu Google Play ohne Kennung.
-export const STORE_ORTE = ['kopf', 'abschluss', 'kurzleiste', 'rezept', 'fuss', 'code', 'liste'];
+export const STORE_ORTE = ['kopf', 'kurzleiste', 'rezept', 'fuss', 'code', 'liste'];
 export const storeLink = (ort) => {
   if (!STORE_ORTE.includes(ort)) throw new Error(`Unbekannter Ort für den Link zu Google Play: ${ort}`);
   return `${store.adresse}&referrer=utm_source%3Dwebsite%26utm_medium%3Dlink%26utm_campaign%3D${ort}`;
@@ -68,7 +71,10 @@ export const KURZLINKS = [
 // dort auf die Startseite. Seit AP-88 (Teil B, 04.11.2026) steht der Schalter auf true (Zweig ap-88b, live erst nach
 // Apples Freigabe und Alis Ja).
 export const APP_STORE_ERHAELTLICH = true;
-export const appStore = { adresse: 'https://apps.apple.com/app/id6829687240' };
+// Mit Länderkürzel (AP-105): Ohne Kürzel nimmt Apple den Store der USA, dort gibt es FoodAsu nicht, und Browser am
+// Computer und an Android-Handys bekommen 404 (geprüft 08.11.2026; iPhones leitet Apple in jedem Fall in die App des
+// App Store weiter). /at/ antwortet überall; das iPhone öffnet den Eintrag im eigenen Store.
+export const appStore = { adresse: 'https://apps.apple.com/at/app/id6829687240' };
 // Kennung des Kanals für den App Store (AP-88): Anbieter-Code (pt, "provider token") des Entwicklerkontos aus App Store
 // Connect und je Ort eine Kampagnenkennung (ct, gleiche Namen wie utm_campaign bei Google Play). Solange APPLE_ANBIETER
 // leer ist, gehen alle Links ohne Kennung zum App Store. Die Kennung enthält nichts über Besucher; Apple zeigt dazu nur
