@@ -109,6 +109,11 @@
 .g-foto { display: grid; justify-items: center; align-content: start; gap: 0.6rem; margin: 0; }
 .g-foto .geraet { --gb: min(11rem, 58vw); margin: 0; }
 .g-foto figcaption { max-width: 13rem; font-size: 0.82rem; line-height: 1.45; text-align: center; color: var(--muted); }
+/* Erklärvideo eines Abschnitts (AP-124): unter Text und Bildschirmfoto über die ganze Breite der Karte, abspielen nur
+   auf Antippen (Steuerung des Browsers), Vorschaubild 16:9. */
+.g-video { grid-column: 1 / -1; display: grid; gap: 0.6rem; min-width: 0; margin: 0; }
+.g-video video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; border: 1px solid var(--tone-deep); border-radius: min(1rem, 16px); background: var(--karte); }
+.g-video figcaption { font-size: 0.82rem; line-height: 1.45; text-align: center; color: var(--muted); }
 @media (min-width: 40rem) {
   .g-text { --kreis: 2.75rem; --abstand: 1.1rem; --oben: 1.25rem; }
   .g-text .station { column-gap: 1.25rem; }

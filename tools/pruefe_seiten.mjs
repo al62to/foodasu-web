@@ -1093,7 +1093,39 @@ kapitel.forEach((eintrag, stelle) => {
   const film = html.match(/data-film="([^"]+)"/);
   if (Boolean(film) !== Boolean(eintrag.film)) melde(adresse, 'Schleife passt nicht zu den Daten');
   if (film && !vorhanden.has(film[1])) melde(adresse, `Schleife fehlt: ${film[1]}`);
-  if (/<video\b|autoplay/.test(html)) melde(adresse, 'Die Schleife steht fest im Quelltext; sie darf nur mit Bewegung per Skript entstehen');
+  // Erklärvideo eines Abschnitts (AP-124, Nachtrag der PL vom 10.11.2026): genau die Videos aus den Daten, selbst gehostet
+  // unter /videos/, abspielen nur auf Antippen (controls, preload="none", playsinline; kein autoplay, keine Schleife,
+  // nicht stumm), Vorschaubild, Untertitel deutsch als Standard, höchstens etwa 4 MB, VideoObject mit allen Angaben.
+  const erklaervideos = eintrag.teile.filter((teil) => teil.video);
+  const videoFiguren = alle(html, /<figure class="g-video">([\s\S]*?)<\/figure>/g);
+  if (videoFiguren.length !== erklaervideos.length) melde(adresse, `Erklärvideos: ${erklaervideos.length} erwartet, gefunden: ${videoFiguren.length}`);
+  erklaervideos.forEach((teil, nummer) => {
+    const figur = videoFiguren[nummer]?.[1] ?? '';
+    const v = teil.video;
+    const ort = `/videos/${v.datei}`;
+    const marke = figur.match(/<video\b[^>]*>/)?.[0] ?? '';
+    if (!/\bcontrols\b/.test(marke) || !/\bpreload="none"/.test(marke) || !/\bplaysinline\b/.test(marke)) melde(adresse, `Erklärvideo ${v.datei}: controls, preload="none" und playsinline erwartet`);
+    if (/\b(?:autoplay|loop|muted)\b/.test(marke)) melde(adresse, `Erklärvideo ${v.datei}: spielt von selbst, in Schleife oder stumm`);
+    if (!marke.includes(`poster="${ort}-1280.webp"`) || !vorhanden.has(`${ort}-1280.webp`)) melde(adresse, `Erklärvideo ${v.datei}: Vorschaubild fehlt`);
+    if (!figur.includes(`<source src="${ort}-720.mp4" type="video/mp4">`) || !vorhanden.has(`${ort}-720.mp4`)) melde(adresse, `Erklärvideo ${v.datei}: Film fehlt`);
+    if (!new RegExp(`<track kind="subtitles" srclang="de" label="Deutsch" src="${ort}\\.de\\.vtt" default>`).test(figur) || !vorhanden.has(`${ort}.de.vtt`)) melde(adresse, `Erklärvideo ${v.datei}: Untertitel (deutsch, Standard) fehlen`);
+    if (!figur.includes(`<figcaption>${v.unterschrift}</figcaption>`)) melde(adresse, `Erklärvideo ${v.datei}: Bildunterschrift fehlt`);
+    if (/https?:\/\//.test(figur)) melde(adresse, `Erklärvideo ${v.datei}: Adresse außerhalb der Website`);
+    if (vorhanden.has(`${ort}-720.mp4`) && statSync(join(DIST, `${ort}-720.mp4`)).size > 4.2 * 1024 * 1024) melde(adresse, `Erklärvideo ${v.datei}: Film über 4 MB`);
+    // Untertitel: WebVTT, deutsch, Wortlisten wie auf jeder Seite; „über N Rezepte“ nicht über der Zahl der App.
+    const vtt = vorhanden.has(`${ort}.de.vtt`) ? readFileSync(join(DIST, `${ort}.de.vtt`), 'utf8') : '';
+    if (!vtt.startsWith('WEBVTT')) melde(adresse, `Erklärvideo ${v.datei}: Untertitel ohne Kopf WEBVTT`);
+    const vttText = vtt.split('\n').filter((zeile) => zeile && zeile !== 'WEBVTT' && !/-->/.test(zeile)).join(' ');
+    for (const [art, ausdruck] of [...GESPERRT, ...BEZAHL_UND_FRIST, ...BETA, ...WENDUNGEN]) for (const fund of alle(vttText, ausdruck)) melde(`${ort}.de.vtt`, `${art}: ${fund[0]}`);
+    for (const [, zahl] of alle(vttText, /über (\d+) Rezepte/g)) if (Number(zahl) > UEBER) melde(`${ort}.de.vtt`, `„über ${zahl} Rezepte“, erlaubt höchstens „über ${UEBER}“ (App: ${APP.gesamt})`);
+    const film = alle(html, /<script type="application\/ld\+json">([\s\S]*?)<\/script>/g).map(([, roh]) => { try { return JSON.parse(roh); } catch { return {}; } }).find((eintragDaten) => eintragDaten['@type'] === 'VideoObject');
+    const soll = { name: v.name, description: v.beschreibung, contentUrl: `${HOST}${ort}-720.mp4`, duration: v.dauer, uploadDate: v.hochgeladen, inLanguage: 'de' };
+    for (const [feld, wert] of Object.entries(soll)) if (film?.[feld] !== wert) melde(adresse, `VideoObject: ${feld} „${film?.[feld]}“, erwartet „${wert}“`);
+    if (film?.thumbnailUrl?.[0] !== `${HOST}${ort}-1280.webp`) melde(adresse, 'VideoObject: thumbnailUrl weicht ab');
+    if (film?.publisher?.['@type'] !== 'Organization' || film?.publisher?.name !== 'FoodAsu') melde(adresse, 'VideoObject: publisher ist nicht die Organization FoodAsu');
+  });
+  const ohneErklaervideo = html.replace(/<figure class="g-video">[\s\S]*?<\/figure>/g, ' ');
+  if (/<video\b|autoplay/.test(ohneErklaervideo)) melde(adresse, 'Die Schleife steht fest im Quelltext; sie darf nur mit Bewegung per Skript entstehen');
   const nachbarn = [kapitel[stelle - 1], kapitel[stelle + 1]].filter(Boolean).map(kapitelAdresse);
   for (const ziel of [BEREICH, ...nachbarn]) if (!html.includes(`href="${ziel}"`)) melde(adresse, `Link fehlt: ${ziel}`);
 });

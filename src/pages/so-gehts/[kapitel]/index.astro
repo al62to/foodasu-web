@@ -31,6 +31,8 @@ const davor = kapitel[stelle - 1];
 const danach = kapitel[stelle + 1];
 const pfad = adresse(eintrag);
 const ORDNER = '/bilder/sogehts/';
+// Erklärvideos (AP-124) in einem eigenen Ordner: Film, Untertitel und Vorschaubild sind keine Bildschirmfotos.
+const VIDEOS = '/videos/';
 const BREITEN = [360, 720];
 const bild = (name, breite) => `${ORDNER}${name}-${breite}.webp`;
 const quellen = (name) => BREITEN.map((breite) => `${bild(name, breite)} ${breite}w`).join(', ');
@@ -70,7 +72,21 @@ const daten = [{
   publisher: { '@type': 'Organization', name: seite.name, url: seite.adresse },
   // Seit AP-35A: Verweis auf die App (feste Kennung, vollständig nur auf der Startseite).
   ...ueberApp,
-}];
+},
+// Erklärvideo eines Abschnitts (AP-124): VideoObject wie beim Video der Startseite gebaut.
+...eintrag.teile.filter((teil) => teil.video).map((teil) => ({
+  '@context': 'https://schema.org',
+  '@type': 'VideoObject',
+  '@id': `${seite.adresse}${pfad}#${teil.anker}-video`,
+  name: teil.video.name,
+  description: teil.video.beschreibung,
+  thumbnailUrl: [`${seite.adresse}${VIDEOS}${teil.video.datei}-1280.webp`],
+  contentUrl: `${seite.adresse}${VIDEOS}${teil.video.datei}-720.mp4`,
+  duration: teil.video.dauer,
+  uploadDate: teil.video.hochgeladen,
+  inLanguage: 'de',
+  publisher: { '@type': 'Organization', name: seite.name, url: seite.adresse },
+}))];
 ---
 <Basis daten={daten}>
   {eintrag.film ? (
@@ -138,6 +154,15 @@ const daten = [{
                     <figure class="g-foto">
                       <Handy foto={foto} groessen={art === 'gross' ? GROESSEN.gross : GROESSEN.sonst} laden={teil === ersterTeilMitFoto ? 'eager' : 'lazy'} />
                       <figcaption>{foto.unterschrift}</figcaption>
+                    </figure>
+                  )}
+                  {teil.video && (
+                    <figure class="g-video">
+                      <video controls preload="none" playsinline poster={`${VIDEOS}${teil.video.datei}-1280.webp`} width={teil.video.breite} height={teil.video.hoehe}>
+                        <source src={`${VIDEOS}${teil.video.datei}-720.mp4`} type="video/mp4" />
+                        <track kind="subtitles" srclang="de" label="Deutsch" src={`${VIDEOS}${teil.video.datei}.de.vtt`} default />
+                      </video>
+                      <figcaption>{teil.video.unterschrift}</figcaption>
                     </figure>
                   )}
                 </div>
