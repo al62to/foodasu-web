@@ -121,7 +121,7 @@ export default {
       video: {
         datei: 'liste-teilen',
         name: 'Eine Einkaufsliste per Link schicken und zurückbekommen',
-        beschreibung: 'Video mit Sprecher und Untertiteln: Papa schickt den Wocheneinkauf aus FoodAsu per WhatsApp an Mama. Sie öffnet die Liste ohne App im Browser, hakt ab und markiert, was es nicht gab. Mit einem Tipp geht die Liste zurück, und in Papas FoodAsu ist alles abgehakt.',
+        beschreibung: 'Video mit Sprecher und Untertiteln: Papa schickt den Wocheneinkauf aus FoodAsu per WhatsApp an Mama. Sie öffnet die Liste ohne App im Browser, hakt ab und markiert, was es nicht gab. Dann schickt sie die Liste zurück, und in Papas FoodAsu ist alles abgehakt.',
         unterschrift: 'So geht eine Liste hin und zurück.',
         breite: 1280,
         hoehe: 720,
