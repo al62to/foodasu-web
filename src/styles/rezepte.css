@@ -358,6 +358,12 @@ html:not(.js) .f-blatt, html:not(.js) .f-leiste { display: none; }
 .a-so-liste div { padding: 1.4rem 1.5rem; border-radius: 1.5rem; background: var(--flaeche); }
 .a-so-liste dt { font-weight: 800; color: var(--deep); }
 .a-so-liste dd { margin: 0.5rem 0 0; line-height: 1.7; }
+/* Sehr große Schrift (AP-119, wie AP-118): Ist die Seite schmaler als 19,5em (bei normaler Schrift nie), steht die Liste
+   in einer Spalte, die nie breiter als die Seite wird; lange Wörter trennen sich. */
+@media (max-width: 19.5em) {
+  .a-so-liste { grid-template-columns: minmax(0, 1fr); }
+  .a-so-liste div { hyphens: auto; overflow-wrap: break-word; }
+}
 .a-mehr { display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 0; }
 @media (max-width: 39.99rem) {
   .a-zeitstrahl { --kreis: 2.75rem; }

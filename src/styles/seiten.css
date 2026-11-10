@@ -68,6 +68,12 @@ main:has(.s-kopf) { background: var(--flaeche); }
 .s-gruppen { display: grid; gap: clamp(2.25rem, 5vw, 3.5rem); }
 .s-gruppen .ueberzeile { margin-bottom: 1.1rem; scroll-margin-top: 5.5rem; }
 .s-stapel { display: grid; gap: 1.1rem; }
+/* Sehr große Schrift (AP-119, wie AP-118): Ist die Seite schmaler als 19,5em (bei normaler Schrift nie), werden Gruppen
+   und Karten nie breiter als die Spalte, lange Wörter trennen sich. */
+@media (max-width: 19.5em) {
+  .s-gruppen, .s-stapel { grid-template-columns: minmax(0, 1fr); }
+  .s-gruppen { hyphens: auto; overflow-wrap: break-word; }
+}
 .s-frage h3 { margin: 0 0 0.9rem; font-size: clamp(1.2rem, 2.2vw, 1.375rem); scroll-margin-top: 5.5rem; }
 .s-frage p { margin: 0 0 0.9rem; line-height: 1.75; }
 .s-frage .kasten { margin-top: 1.1rem; line-height: 1.7; }

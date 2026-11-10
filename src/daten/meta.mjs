@@ -157,7 +157,7 @@ const KAPITEL = {
   },
   einkaufslisten: {
     thema: 'Einkaufsliste als App',
-    beschreibung: 'Die Einkaufsliste als App: aufschreiben, im Laden abhaken, nach Warengruppen ordnen, Produkte in die Liste scannen und die Liste als Text teilen.',
+    beschreibung: 'Die Einkaufsliste als App: aufschreiben, im Laden abhaken und per Link mit dem Haushalt teilen. Wer FoodAsu nicht hat, hakt im Browser ab.',
   },
   // Der Titel der Seite hat ein Komma und passt deshalb nicht in das Muster "Thema: So geht's mit FoodAsu".
   'zu-hause-schreiben-im-laden-abhaken': {
