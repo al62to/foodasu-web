@@ -8,6 +8,7 @@
 // Ausgabe: eine Zeile JSON mit Nachricht und Link, in der letzten Zeile nur der Häkchen-Link. Rückgabewert 1 bei Fehler.
 import puppeteer from 'puppeteer-core';
 import { chromePfad } from './chrome.mjs';
+import { fremdeAppsSperren } from './fremde_apps_sperre.mjs';
 import { lesen } from '../src/skripte/teilen/kodierung.mjs';
 
 const argumente = process.argv.slice(2);
@@ -28,6 +29,7 @@ let ende = 0;
 try {
   const umgebung = await browser.createBrowserContext();
   const seite = await umgebung.newPage();
+  await fremdeAppsSperren(seite); // nie fremde Apps am Mac (AP-122c)
   const fehler = [];
   seite.on('pageerror', (f) => fehler.push(f.message));
   await seite.setViewport({ width: 390, height: 844, deviceScaleFactor: 1, isMobile: true, hasTouch: true });

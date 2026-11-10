@@ -15,6 +15,8 @@
 //   7d. Abzeichen im Kasten „FoodAsu fürs Handy“ mittig: Liste, Häkchen-Seite, leer; 390, 390 mit 200 %, 1440
 //   8. Seiten ohne Liste: kein #, kaputt, zu groß, neuere Version, Häkchen-Link (Art h), Profil-Link
 //   9. Aufräumen nach 60 Tagen und „Liste aus diesem Browser entfernen“
+// Fremde Apps (AP-122c): Jede Seite bekommt die Sperre aus tools/fremde_apps_sperre.mjs; mailto:, sms:, wa.me, t.me
+// usw. werden nur gelesen, nie an macOS gegeben.
 // Aufruf: node tools/teilen_browser.mjs [Basis, Vorgabe http://127.0.0.1:4321]   Rückgabewert 1 bei einem Befund.
 import { createServer } from 'node:http';
 import { readFileSync, existsSync } from 'node:fs';
@@ -22,6 +24,7 @@ import { dirname, extname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import puppeteer from 'puppeteer-core';
 import { chromePfad } from './chrome.mjs';
+import { fremdeAppsSperren, istFremd } from './fremde_apps_sperre.mjs';
 import { lesen, schreiben } from '../src/skripte/teilen/kodierung.mjs';
 import { umschlagLesen } from '../src/skripte/teilen/umschlag.mjs';
 
@@ -33,6 +36,7 @@ const fall = (name) => faelle.find((eintrag) => eintrag.name === name);
 
 const zeilen = [];
 const befunde = [];
+const durchgerutscht = [];
 const pruefe = (gut, text) => { console.log(`${gut ? 'ok    ' : 'FEHLER'} ${text}`); zeilen.push([gut, text]); if (!gut) befunde.push(text); };
 const warte = (ms) => new Promise((fertig) => setTimeout(fertig, ms));
 
@@ -50,6 +54,12 @@ async function neuesProfil({ vorher } = {}) {
   const oeffne = async (ansicht = HANDY) => {
     const seite = await umgebung.newPage();
     await seite.setViewport(ansicht);
+    // Nie fremde Apps am Mac (AP-122c): mailto:, sms:, wa.me, t.me usw. fängt die Seite selbst ab, bevor Chrome sie an
+    // macOS gibt. Als Wächter meldet Page.frameRequestedNavigation, falls doch eine solche Adresse an Chrome ginge.
+    await fremdeAppsSperren(seite);
+    const waechter = await seite.createCDPSession();
+    await waechter.send('Page.enable');
+    waechter.on('Page.frameRequestedNavigation', (e) => { if (istFremd(e.url)) durchgerutscht.push(e.url); });
     if (vorher) await seite.evaluateOnNewDocument(vorher);
     // navigator.share: merkt sich den Text, statt ein Menü zu öffnen.
     await seite.evaluateOnNewDocument(() => {
@@ -89,6 +99,7 @@ console.log('## 1 Testfälle im Browser');
   await new Promise((fertig) => server.listen(0, '127.0.0.1', fertig));
   const adresse = `http://127.0.0.1:${server.address().port}`;
   const seite = await browser.newPage();
+  await fremdeAppsSperren(seite);
   const seitenFehler = [];
   seite.on('pageerror', (f) => seitenFehler.push(f.message));
   await seite.goto(`${adresse}/`);
@@ -328,7 +339,7 @@ console.log('\n## 7a Notiz in beide Richtungen');
 // ---- 7b. Weg zum Zurückschicken (AP-122) -----------------------------------------------------------------------
 // Feld kw im Umschlag l: Hauptknopf je nach Weg (ohne kw und mit unbekanntem kw WhatsApp), „Andere App wählen“ öffnet
 // das Teilen-Fenster; fehlt es oder geht es nicht, die bisherigen Wege; bricht man ab, nichts. Die Navigation zu den
-// Apps fängt die Prüfung ab (Anfragen an Dritte werden abgebrochen, sms: und mailto: über Page.frameRequestedNavigation).
+// Apps fängt die Seite selbst ab (fremde_apps_sperre.mjs, AP-122c); nichts davon geht an macOS weiter.
 console.log('\n## 7b Weg zum Zurückschicken (kw)');
 {
   const mitKw = async (json, kw) => {
@@ -336,10 +347,9 @@ console.log('\n## 7b Weg zum Zurückschicken (kw)');
     return schreiben(kw === undefined ? u : { ...u, kw });
   };
   const wegFangen = async (seite) => {
-    const ziele = [];
-    const cdp = await seite.createCDPSession();
-    await cdp.send('Page.enable');
-    cdp.on('Page.frameRequestedNavigation', (e) => { if (!e.url.startsWith(BASIS)) ziele.push(e.url); });
+    // Die Adressen der Apps sammelt die Sperre in der Seite (fremde_apps_sperre.mjs); Anfragen an Dritte bricht die
+    // Prüfung zusätzlich ab.
+    const ziele = await fremdeAppsSperren(seite);
     await seite.setRequestInterception(true);
     seite.on('request', (anfrage) => {
       const adresse = anfrage.url();
@@ -603,5 +613,9 @@ console.log('\n## 9 Aufräumen nach 60 Tagen, Liste entfernen');
 }
 
 await browser.close();
+// Kein Prüfpunkt (die Zahl bleibt gleich), aber ein Abbruchgrund: ginge eine Adresse einer fremden App an Chrome, könnte
+// macOS die App öffnen.
+if (durchgerutscht.length) { console.log(`\nFEHLER Adresse einer fremden App an Chrome gegeben: ${durchgerutscht.join(', ')}`); befunde.push('fremde App'); }
+else console.log('\nfremde Apps: keine Adresse an Chrome gegeben (Sperre in der Seite)');
 console.log(`\nErgebnis: ${zeilen.filter(([gut]) => gut).length} von ${zeilen.length} bestanden${befunde.length ? `, ${befunde.length} Befunde` : ''}`);
 process.exit(befunde.length ? 1 : 0);

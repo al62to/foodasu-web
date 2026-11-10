@@ -20,6 +20,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import puppeteer from 'puppeteer-core';
 import { chromePfad } from './chrome.mjs';
+import { fremdeAppsSperren } from './fremde_apps_sperre.mjs';
 import { listeTexte } from '../src/daten/liste_seite.mjs';
 
 const BASIS = (process.argv[2] ?? 'http://localhost:4321').replace(/\/$/, '');
@@ -50,6 +51,7 @@ const intentFuer = (kodierung, href) => `intent://foodasu.com/l/#${kodierung}#In
 async function oeffne(adresse, { ansicht = HANDY, skript = true, kennung = null } = {}) {
   const umgebung = await browser.createBrowserContext();
   const seite = await umgebung.newPage();
+  await fremdeAppsSperren(seite); // nie fremde Apps am Mac (AP-122c)
   const seitenFehler = [];
   seite.on('pageerror', (f) => seitenFehler.push(f.message));
   if (kennung) await seite.setUserAgent(kennung);
