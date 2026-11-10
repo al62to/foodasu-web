@@ -647,7 +647,9 @@ const WA_LINK = 'https://wa.me/?text=';
 const TG_LINK = 'https://t.me/share/url?url=';
 const listeSkripte = new Set();
 {
-  const offen = alle(seiten.get(LISTE) ?? '', /<script\b[^>]*\bsrc="(\/_astro\/[^"]+\.js)"/g).map(([, pfad]) => pfad);
+  // Seit AP-124 lädt jede Seite das Skript des Grundlayouts (Store-Knöpfe, src/skripte/store_knoepfe.mjs, ohne Importe);
+  // es gehört nicht zur Seite /l/ und bleibt unter den Regeln für alle Seiten (kein Speicher, keine Anfrage).
+  const offen = alle(seiten.get(LISTE) ?? '', /<script\b[^>]*\bsrc="(\/_astro\/[^"]+\.js)"/g).map(([, pfad]) => pfad).filter((pfad) => !/^\/_astro\/Basis\.astro_astro_type_script_/.test(pfad));
   while (offen.length) {
     const pfad = offen.pop();
     if (listeSkripte.has(pfad) || !vorhanden.has(pfad)) continue;
@@ -660,6 +662,19 @@ const listeSkripte = new Set();
     if (adresse === LISTE) continue;
     for (const pfad of listeSkripte) if (html.includes(pfad)) melde(adresse, `lädt ein Skript der Seite ${LISTE}: ${pfad}`);
   }
+}
+// Store-Knöpfe (AP-124): Jede Seite mit einem Link zum App Store oder zu Google Play lädt das Skript der Store-Knöpfe
+// (eine eigene Datei, im Grundlayout nachgeladen), jede Weiterleitung trägt dieselbe Umleitung eingebettet; das Skript
+// nennt die Ziele aus dem Auftrag der PL.
+{
+  const storeSkripte = [...vorhanden].filter((pfad) => /^\/_astro\/Basis\.astro_astro_type_script_index_\d+_lang\.[\w-]+\.js$/.test(pfad));
+  if (storeSkripte.length !== 1) melde('Store-Knöpfe', `genau eine Datei der Store-Knöpfe (Skript des Grundlayouts) erwartet, gefunden: ${storeSkripte.length}`);
+  for (const [adresse, html] of seiten) {
+    if (/href="https:\/\/(?:apps\.apple\.com|play\.google\.com)\//.test(html) && !(storeSkripte[0] && html.includes(`<script type="module" src="${storeSkripte[0]}"></script>`))) melde(adresse, 'Links zu den Stores ohne das Skript der Store-Knöpfe');
+  }
+  const inhalt = storeSkripte.map((pfad) => readFileSync(join(DIST, pfad), 'utf8')).join('\n');
+  for (const teil of ['intent://details', '#Intent;scheme=market;package=com.android.vending;S.browser_fallback_url=', 'itms-apps://', 'at.tonc.einkauf', 'id6829687240']) if (!inhalt.includes(teil)) melde('Store-Knöpfe', `im Skript fehlt „${teil}“`);
+  for (const [pfad, html] of weiterleitungen) if (!html.includes('storeKnoepfeAnbinden();') || !html.includes('itms-apps://')) melde(pfad, 'Weiterleitung ohne die Umleitung der Store-Knöpfe');
 }
 const LISTE_DIENST = '/l/sw.js';
 if (!vorhanden.has(LISTE_DIENST)) melde(LISTE, `Service Worker ${LISTE_DIENST} fehlt`);
@@ -1457,6 +1472,10 @@ const RECHT_MIT_ANSCHRIFT = new Set(['/datenschutz.html', '/offenlegung/', '/nut
 // Sprachangaben um ein fremdes Wort (tools/sprache_setzen.mjs) trennen einen Wortlaut nicht.
 const ohneSprachangabe = (html) => html.replace(/<span lang="[a-z-]+">([^<]*)<\/span>/g, '$1');
 const fliesstext = (adresse) => entschluesselt(ohneSprachangabe(seiten.get(adresse) ?? '').replace(/<script[\s\S]*?<\/script>/g, ' ').replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ');
+// Die Umleitung der Store-Knöpfe steht auf den Weiterleitungen eingebettet im HTML (AP-124, src/layouts/Weiterleitung.astro):
+// Technik aus derselben Quelle wie die Skript-Datei des Grundlayouts, für die wie für alle Skripte nur die Herkunft
+// zählt. Nur genau dieser Block fällt auf den Weiterleitungen aus der Prüfung der Plattform.
+const STORE_EINGEBETTET = readFileSync(new URL('../src/skripte/store_knoepfe.mjs', import.meta.url), 'utf8').replace(/^\s*\/\/.*\n/gm, '').replace(/^export /gm, '').replace(/\s+/g, ' ').trim();
 let herkunftDateien = 0;
 for (const datei of dateien.filter((pfad) => /\.(?:html|txt|xml|json|webmanifest|js|css|svg)$/.test(pfad))) {
   const name = '/' + relative(DIST, datei).split(sep).join('/');
@@ -1469,6 +1488,7 @@ for (const datei of dateien.filter((pfad) => /\.(?:html|txt|xml|json|webmanifest
   for (const roh of name === '/llms.txt' ? inhalt.split('\n') : [inhalt]) {
     let teil = entschluesselt(ohneSprachangabe(roh)).replace(/\s+/g, ' ');
     teil = teil.replaceAll(VERFUEGBAR, ' ').replaceAll(PLAY_EINTRAG, ' ').replace(WEITERE_SPRACHE, ' ');
+    if (weiterleitungen.has(adresse)) teil = teil.replaceAll(STORE_EINGEBETTET, ' ');
     if (adresse === '/') teil = teil.replaceAll(BETRIEBSSYSTEM, ' ').replaceAll(MINDESTVERSION, ' ');
     const inAnleitung = adresse.startsWith(BEREICH) || (name === '/llms.txt' && teil.includes(`](${HOST}${BEREICH}`));
     if (inAnleitung) for (const wortlaut of ANLEITUNG_ANDROID) teil = teil.replaceAll(wortlaut, ' ');

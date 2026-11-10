@@ -42,9 +42,14 @@ const ohnePreisaussage = {
 
 // "preserve" hält die bestehende Adresse /datenschutz.html (die App verlinkt sie) und gibt Ordnerseiten als
 // /ordner/ aus.
+// Das Skript der Store-Knöpfe im Grundlayout (AP-124) bleibt eine eigene Datei (sonst bettet Astro es in jede der Seiten
+// ein); für alle anderen Dateien gilt die Grenze von Vite wie bisher (undefined = 4 kB).
+const nichtEinbetten = (datei) => (/Basis\.astro_astro_type_script_/.test(datei) ? false : undefined);
+
 export default defineConfig({
   site: 'https://foodasu.com',
   build: { format: 'preserve' },
+  vite: { build: { assetsInlineLimit: nichtEinbetten } },
   devToolbar: { enabled: false },
   integrations: [sprache, sogehtsOhneAussen, ohnePreisaussage],
 });

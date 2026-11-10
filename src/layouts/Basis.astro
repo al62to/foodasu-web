@@ -66,5 +66,12 @@ const kanonisch = seite.adresse + adresse;
       <slot />
     </main>
     <Fuss />
+    <script>
+      // Store-Knöpfe öffnen am Handy direkt die Store-App (AP-124): ein Zuhörer für alle Abzeichen und Links zu den
+      // Stores auf der Seite (src/skripte/store_knoepfe.mjs); ohne JavaScript bleibt der https-Link. Eine eigene Datei
+      // für alle Seiten, nicht eingebettet (astro.config.mjs, assetsInlineLimit).
+      import { storeKnoepfeAnbinden } from '../skripte/store_knoepfe.mjs';
+      storeKnoepfeAnbinden();
+    </script>
   </body>
 </html>
