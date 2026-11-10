@@ -113,7 +113,7 @@ export default {
       funktionen: ['LISTE-18', 'LISTE-11'],
       nutzen: 'Schick eine Einkaufsliste als Link oder QR-Code. Wer FoodAsu nicht hat, hakt im Browser ab, und die Häkchen kommen in deine Liste zurück.',
       wo: 'Listen > Teilen-Symbol neben den drei Punkten; Liste öffnen > „Liste schicken“',
-      absaetze: ['Eine Notiz kannst du mitschicken. Die Liste steckt im Link und geht an keinen Server. Mit „Nur als Text“ schickst du nur die offenen Einträge, ohne Link.'],
+      absaetze: ['Für WhatsApp, SMS, E-Mail und Telegram gibt es je einen Knopf, wenn dein Handy die App hat; der zuletzt benutzte steht oben. Über „Andere App wählen“ geht jede andere App. Eine Notiz kannst du mitschicken. Die Liste steckt im Link und geht an keinen Server. Mit „Nur als Text“ schickst du nur die offenen Einträge, ohne Link.'],
       fotos: [foto('liste_link_01', 'Das Blatt „Liste schicken“ mit Notiz')],
     },
     {
