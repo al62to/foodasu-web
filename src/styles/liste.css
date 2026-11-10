@@ -142,11 +142,15 @@ button.l-haken:hover { background: var(--flaeche); }
   .l-kreis { transition: background-color 0.15s ease, border-color 0.15s ease; }
 }
 
-/* Sehr große Schrift (AP-122, wie AP-116b/AP-118): Ist die Seite schmaler als 19,5em (bei normaler Schrift nie), passt
-   der Knopf zum Zurückschicken in die Breite: ohne Senden-Symbol, mit weniger Rand, lange Wörter wie „zurückschicken“
-   dürfen getrennt werden; sonst stand er bei Schrift 200 % über den Rand (auch vor AP-122). */
+/* Sehr große Schrift (AP-122b, wie AP-116b/AP-118): Ist die Seite schmaler als 19,5em (bei normaler Schrift nie), hat
+   der Knopf zum Zurückschicken die volle Breite und die abgerundeten Ecken eines einzeiligen Knopfs (nie kreisrund),
+   ohne Senden-Symbol; der Text bricht nur zwischen Wörtern um, nie im Wort und ohne Silbentrennung („zurückschicken“,
+   „WhatsApp“, „E-Mail“ bleiben ganz). Damit das längste Wort Platz hat, sind Rand der Karte, Rand des Knopfs und Schrift
+   im Knopf etwas kleiner. Ohne die Regel stand der Knopf bei Schrift 200 % über den Rand (auch vor AP-122). */
 @media (max-width: 19.5em) {
-  .l-senden { max-width: 100%; padding-inline: 0.75rem; }
+  .l-zurueck.s-karte { padding-inline: 0.75rem; }
+  .l-senden, .l-zurueck.fertig .l-senden { width: 100%; max-width: 100%; padding-inline: 0.5rem; border-radius: 1.6rem; font-size: 0.9rem; }
   .l-senden .l-senden-zeichen { display: none; }
-  .l-senden > span { min-width: 0; -webkit-hyphens: auto; hyphens: auto; overflow-wrap: break-word; }
+  .l-senden > span { min-width: 0; -webkit-hyphens: manual; hyphens: manual; overflow-wrap: normal; }
+  .l-senden .l-wort { white-space: nowrap; }
 }

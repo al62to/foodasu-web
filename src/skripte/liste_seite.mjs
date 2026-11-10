@@ -336,6 +336,19 @@ function zeigeListe(fokus = null) {
   zeigeZurueck();
 }
 
+// Text des Hauptknopfs (AP-122b): Bei sehr großer Schrift (Seite schmaler als 19,5em, wie in liste.css) je Wort ein
+// eigenes Element, damit der Knopf nur zwischen Wörtern umbricht, nie im Wort (auch nicht nach dem Strich in
+// „E-Mail“); der Text selbst (textContent) bleibt derselbe. Sonst einfacher Text wie bisher (normale Schrift bleibt
+// pixelgleich).
+const schmal = window.matchMedia('(max-width: 19.5em)');
+function knopfText(ziel, text) {
+  if (!schmal.matches) { ziel.textContent = text; return; }
+  const teile = [];
+  text.split(' ').forEach((wort, stelle) => { if (stelle) teile.push(' '); teile.push(element('span', 'l-wort', wort)); });
+  ziel.replaceChildren(...teile);
+}
+schmal.addEventListener('change', () => { if (zustand) zeigeZurueck(); });
+
 function zeigeZurueck() {
   const { autor, name } = zustand.datensatz;
   const stand = standVon();
@@ -350,9 +363,9 @@ function zeigeZurueck() {
   const weg = wegAus(zustand.kw);
   teil.frage.hidden = !fertig;
   teil.frage.textContent = absenderName ? fuelle(T.zurueck.fertigFrage, { absender: absenderName }) : T.zurueck.fertigFrageOhneName;
-  teil.sendenText.textContent = fertig
+  knopfText(teil.sendenText, fertig
     ? T.zurueck.fertigKnopf[weg]
-    : (absenderName ? fuelle(T.zurueck.knopf[weg], { absender: absenderName }) : T.zurueck.knopfOhneName[weg]);
+    : (absenderName ? fuelle(T.zurueck.knopf[weg], { absender: absenderName }) : T.zurueck.knopfOhneName[weg]));
   teil.als.hidden = !name;
   teil.alsText.textContent = fuelle(T.name.als, { ich: name });
 }

@@ -11,6 +11,7 @@
 //   7. Häkchen zurückschicken und „Alles erledigt“: Umschlag h, Nachricht, done 1
 //   7b. Weg zum Zurückschicken (AP-122): Hauptknopf nach kw (ohne, wa, sms, mail, tg, unbekannt), ohne Absendername,
 //       Fertig-Fall, „Andere App wählen“ (Teilen-Fenster, abgebrochen, Fehler, fehlt), langer Link
+//   7c. Hauptknopf bei Schrift 200 % (AP-122b): breiter als hoch, kein Überlauf, kein Wort getrennt
 //   8. Seiten ohne Liste: kein #, kaputt, zu groß, neuere Version, Häkchen-Link (Art h), Profil-Link
 //   9. Aufräumen nach 60 Tagen und „Liste aus diesem Browser entfernen“
 // Aufruf: node tools/teilen_browser.mjs [Basis, Vorgabe http://127.0.0.1:4321]   Rückgabewert 1 bei einem Befund.
@@ -470,6 +471,38 @@ console.log('\n## 7b Weg zum Zurückschicken (kw)');
       pruefe(p.fehler.length === 0, `keine Fehler auf der Seite (${p.fehler.join('; ')})`);
       await p.umgebung.close();
     }
+  }
+}
+
+// ---- 7c. Hauptknopf bei Schrift 200 % (AP-122b) -----------------------------------------------------------------
+// Schrift des Browsers 200 % (Page.setFontSizes 32/26), 390 px: Der Knopf ist breiter als hoch (nie kreisrund), läuft
+// nicht über (weder der Knopf noch die Seite), kein Wort steht auf zwei Zeilen und es gibt keine Silbentrennung.
+console.log('\n## 7c Hauptknopf bei Schrift 200 %');
+{
+  for (const kw of ['wa', 'sms', 'mail', 'tg']) {
+    const p = await neuesProfil();
+    const seite = await p.oeffne();
+    const cdp = await seite.createCDPSession();
+    await cdp.send('Page.setFontSizes', { fontSizes: { standard: 32, fixed: 26 } });
+    await offen(seite, link(await schreiben({ ...umschlagLesen(U1.json).umschlag, kw })));
+    await seite.type('[data-l-name-feld]', 'Mama');
+    await seite.click('[data-l-name] button[type="submit"]');
+    await seite.click('[data-id="e0Milch1"] [data-art="haken"]');
+    for (const [zustand, ids] of [['zurückschicken', []], ['Bescheid geben', ['e0Eier01', 'e0Brot01', 'e0Kaffee']]]) {
+      for (const id of ids) await seite.click(`[data-id="${id}"] [data-art="haken"]`);
+      const m = await seite.evaluate(() => {
+        const knopf = document.querySelector('[data-l-senden]');
+        const r = knopf.getBoundingClientRect();
+        const text = knopf.querySelector('[data-l-senden-text]');
+        const woerter = [...text.querySelectorAll('.l-wort')];
+        const geteilt = woerter.filter((w) => { const b = document.createRange(); b.selectNodeContents(w); return b.getClientRects().length !== 1; }).map((w) => w.textContent);
+        return { text: knopf.textContent.trim(), breite: r.width, hoehe: r.height, knopf: knopf.scrollWidth - knopf.clientWidth, seite: document.documentElement.scrollWidth - document.documentElement.clientWidth, woerter: woerter.length, geteilt, trennung: getComputedStyle(text).hyphens };
+      });
+      pruefe(m.breite > m.hoehe && m.knopf <= 0 && m.seite === 0 && m.woerter === m.text.split(' ').length && m.geteilt.length === 0 && m.trennung !== 'auto',
+        `200 %, ${kw}, ${zustand}: „${m.text}“ ${Math.round(m.breite)}x${Math.round(m.hoehe)}, Überlauf ${m.knopf}/${m.seite}, getrennte Wörter ${m.geteilt.join(',') || 'keine'}, hyphens ${m.trennung}`);
+    }
+    pruefe(p.fehler.length === 0, `keine Fehler auf der Seite (${p.fehler.join('; ')})`);
+    await p.umgebung.close();
   }
 }
 
