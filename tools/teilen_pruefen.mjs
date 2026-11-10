@@ -16,14 +16,15 @@ const lies = (...teile) => JSON.parse(readFileSync(join(wurzel, ...teile), 'utf8
 export const pruefeTestfaelle = () => pruefe(lies('tools', 'teilen', 'testfaelle.json'), lies('src', 'daten', 'teilen_app.json'));
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
-  const { zahlen, befunde, uebersprungen, oeffnen } = await pruefeTestfaelle();
-  if (process.argv.includes('--json')) console.log(JSON.stringify({ zahlen, befunde, uebersprungen, oeffnen }));
+  const { zahlen, befunde, uebersprungen, oeffnen, wege } = await pruefeTestfaelle();
+  if (process.argv.includes('--json')) console.log(JSON.stringify({ zahlen, befunde, uebersprungen, oeffnen, wege }));
   else {
     for (const [weg, arten] of Object.entries(zahlen)) {
       if (weg === 'anzeige') { console.log(`Anzeige der Mengen: ${arten} Beispiele`); continue; }
       console.log(`${weg === 'strom' ? 'DecompressionStream' : 'fflate (Rückfall)'}: ${Object.entries(arten).map(([art, [gut, alle]]) => `${art} ${gut}/${alle}`).join(', ')}`);
     }
     console.log(`Öffnen in der App (intent-Adresse für Android, sonst location.href): ${oeffnen} Prüfungen`);
+    console.log(`Wege zum Zurückschicken (kw, WhatsApp, SMS, E-Mail, Telegram): ${wege} Prüfungen`);
     console.log(`übersprungen (Arten „liste“ und „uebernehmen“, nur Kern): ${uebersprungen}`);
     for (const befund of befunde) console.log(`BEFUND ${befund}`);
   }

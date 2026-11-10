@@ -47,7 +47,8 @@ try {
     if ((await seite.$eval(`[data-id="${id}"]`, (e) => e.dataset.status).catch(() => null)) === null) throw new Error(`Eintrag ${id} nicht auf der Seite`);
     if ((await seite.$eval(`[data-id="${id}"]`, (e) => e.dataset.status)) !== 'x') await seite.click(`[data-id="${id}"] [data-art="nicht"]`);
   }
-  await seite.click('[data-l-senden]');
+  // Seit AP-122 öffnet der Hauptknopf WhatsApp; das Teilen-Fenster (hier abgefangen) über „Andere App wählen“.
+  await seite.click('[data-l-andere]');
   if (await seite.$('[data-l-name]:not([hidden])')) {
     await seite.type('[data-l-name-feld]', name);
     await seite.click('[data-l-name] button[type="submit"]');

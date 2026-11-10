@@ -67,16 +67,39 @@ export const listeTexte = {
     titel: 'Liste zurückschicken',
     text: 'Öffnet {absender} den Link in FoodAsu, stehen deine Häkchen in der Liste.',
     textOhneName: 'Öffnet man den Link in FoodAsu, stehen deine Häkchen in der Liste.',
-    knopf: 'Liste an {absender} zurückschicken',
-    knopfOhneName: 'Liste zurückschicken',
+    // Hauptknopf nach dem Weg, auf dem die Liste kam (Feld kw; ohne kw WhatsApp), darunter „Andere App wählen“
+    // (Wortlaute mit Alis Ja, Auftrag AP-122 vom 10.11.2026). Die Schlüssel sind die Werte von kw.
+    knopf: {
+      wa: 'Mit WhatsApp an {absender} zurückschicken',
+      sms: 'Als SMS an {absender} zurückschicken',
+      mail: 'Per E-Mail an {absender} zurückschicken',
+      tg: 'Mit Telegram an {absender} zurückschicken',
+    },
+    knopfOhneName: {
+      wa: 'Mit WhatsApp zurückschicken',
+      sms: 'Als SMS zurückschicken',
+      mail: 'Per E-Mail zurückschicken',
+      tg: 'Mit Telegram zurückschicken',
+    },
+    andere: 'Andere App wählen',
+    // Betreff, wenn der Weg E-Mail ist; der Text der Nachricht ist derselbe wie auf den anderen Wegen.
+    betreff: 'Einkaufsliste „{liste}“',
     // Notiz in beide Richtungen (Alis Wahl 09.11.2026, 00:08): freiwillig, höchstens 200 Zeichen, steht auch in der
     // Nachricht.
     notizFeld: 'Notiz für {absender} (freiwillig)',
     notizFeldOhneName: 'Notiz (freiwillig)',
     nachrichtNotiz: 'Notiz: {notiz}',
     fertigTitel: 'Alles erledigt.',
-    fertigKnopf: '{absender} Bescheid geben?',
-    fertigKnopfOhneName: 'Bescheid geben?',
+    // Mit allem erledigt: die Frage steht über dem Knopf, der Knopf nennt den Weg.
+    fertigFrage: '{absender} Bescheid geben?',
+    fertigFrageOhneName: 'Bescheid geben?',
+    fertigKnopf: {
+      wa: 'Mit WhatsApp Bescheid geben',
+      sms: 'Als SMS Bescheid geben',
+      mail: 'Per E-Mail Bescheid geben',
+      tg: 'Mit Telegram Bescheid geben',
+    },
+    // Wenn das Teilen-Fenster des Browsers nicht geht (wie bisher).
     wege: 'So schickst du den Link:',
     whatsapp: 'Mit WhatsApp',
     sms: 'Als SMS',

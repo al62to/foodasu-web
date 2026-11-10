@@ -91,7 +91,11 @@ const linien = { fill: 'none', stroke: 'currentColor', 'stroke-width': '2.6', 's
         <span data-l-notiz-feld-titel>{s.zurueck.notizFeldOhneName}</span>
         <textarea rows="2" maxlength="200" data-l-notiz-eingabe></textarea>
       </label>
-      <button type="button" class="knopf voll l-senden" data-l-senden><svg class="l-senden-zeichen" viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...linien}><path d="M20.5 3.5L10 14M20.5 3.5L14 20.5l-4-6.5-6.5-4z" /></svg><span data-l-senden-text>{s.zurueck.knopfOhneName}</span></button>
+      {/* AP-122: Mit allem erledigt steht die Frage („Papa Bescheid geben?“) über dem Knopf. Der Hauptknopf schickt auf
+          dem Weg, auf dem die Liste kam (Feld kw); „Andere App wählen“ öffnet das Teilen-Fenster des Browsers. */}
+      <p class="l-frage" data-l-frage hidden></p>
+      <button type="button" class="knopf voll l-senden" data-l-senden><svg class="l-senden-zeichen" viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...linien}><path d="M20.5 3.5L10 14M20.5 3.5L14 20.5l-4-6.5-6.5-4z" /></svg><span data-l-senden-text>{s.zurueck.knopfOhneName.wa}</span></button>
+      <button type="button" class="l-textknopf l-andere" data-l-andere>{s.zurueck.andere}</button>
       <p class="l-als" data-l-als hidden><span data-l-als-text></span> <button type="button" class="l-textknopf" data-l-aendern>{s.name.aendern}</button></p>
       <div class="l-wege" data-l-wege hidden>
         <p class="l-wege-titel">{s.zurueck.wege}</p>

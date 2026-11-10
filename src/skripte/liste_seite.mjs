@@ -9,6 +9,7 @@ import { lesen, schreiben } from './teilen/kodierung.mjs';
 import { GRENZEN, KENNUNG_BYTE, STATUS, hat, istKennung, istObjekt, kuerzen, neueKennung, setze } from './teilen/umschlag.mjs';
 import { F, aufraeumen, allesErledigt, haekchen, obenNotiz, zusammenfuehren } from './teilen/zusammenfuehren.mjs';
 import { oeffnenAdresse } from './teilen/app_oeffnen.mjs';
+import { istApple, smsAdresse, wegAdresse, wegAus } from './teilen/zurueck_wege.mjs';
 import { mengeText, ordnen, standZeit } from './teilen/anzeige.mjs';
 import app from '../daten/teilen_app.json';
 import { listeTexte as T } from '../daten/liste_seite.mjs';
@@ -50,8 +51,10 @@ const teil = {
   zurueck: $('[data-l-zurueck]'),
   zurueckTitel: $('[data-l-zurueck-titel]'),
   zurueckText: $('[data-l-zurueck-text]'),
+  frage: $('[data-l-frage]'),
   senden: $('[data-l-senden]'),
   sendenText: $('[data-l-senden-text]'),
+  andere: $('[data-l-andere]'),
   notizFeldTitel: $('[data-l-notiz-feld-titel]'),
   notizEingabe: $('[data-l-notiz-eingabe]'),
   als: $('[data-l-als]'),
@@ -124,7 +127,8 @@ function altesEntfernen(jetzt) {
 
 // ---- Zustand der Seite -------------------------------------------------------------------------------------------
 
-// { listId, kodierung, datensatz: { format, name, autor, stand, geoeffnet, neu, wach, gefragt }, speicherOk, wartet }
+// { listId, kodierung, kw, datensatz: { format, name, autor, stand, geoeffnet, neu, wach, gefragt }, speicherOk,
+// wartet }. kw ist der Weg aus dem geöffneten Link (AP-122); er steht nur im Link und kommt nicht in den Speicher.
 let zustand = null;
 let nachName = null; // was nach dem Speichern des Namens passiert (Senden)
 
@@ -209,6 +213,7 @@ async function oeffnen() {
   zustand = {
     listId: umschlag.id,
     kodierung,
+    kw: umschlag.kw ?? null,
     speicherOk: ok,
     wartet: null,
     datensatz: {
@@ -341,9 +346,13 @@ function zeigeZurueck() {
   teil.zurueck.classList.toggle('fertig', fertig);
   teil.zurueckTitel.textContent = fertig ? T.zurueck.fertigTitel : T.zurueck.titel;
   teil.zurueckText.textContent = absenderName ? fuelle(T.zurueck.text, { absender: absenderName }) : T.zurueck.textOhneName;
+  // Hauptknopf nach dem Weg, auf dem die Liste kam (AP-122); mit allem erledigt steht die Frage darüber.
+  const weg = wegAus(zustand.kw);
+  teil.frage.hidden = !fertig;
+  teil.frage.textContent = absenderName ? fuelle(T.zurueck.fertigFrage, { absender: absenderName }) : T.zurueck.fertigFrageOhneName;
   teil.sendenText.textContent = fertig
-    ? (absenderName ? fuelle(T.zurueck.fertigKnopf, { absender: absenderName }) : T.zurueck.fertigKnopfOhneName)
-    : (absenderName ? fuelle(T.zurueck.knopf, { absender: absenderName }) : T.zurueck.knopfOhneName);
+    ? T.zurueck.fertigKnopf[weg]
+    : (absenderName ? fuelle(T.zurueck.knopf[weg], { absender: absenderName }) : T.zurueck.knopfOhneName[weg]);
   teil.als.hidden = !name;
   teil.alsText.textContent = fuelle(T.name.als, { ich: name });
 }
@@ -435,22 +444,35 @@ function nachricht(stand, name, fertig) {
   return fuelle(vorlage, werte);
 }
 
-async function senden() {
+// art "weg": Hauptknopf, öffnet die App des Wegs (kw) mit fertigem Text; art "andere": „Andere App wählen“, das
+// Teilen-Fenster des Browsers. Geht das Teilen-Fenster nicht (fehlt oder Fehler außer Abbrechen) oder ist die Adresse
+// für den Weg zu lang, erscheinen die bisherigen Wege („So schickst du den Link:“).
+async function senden(art = 'weg') {
   frisch();
   const { stand, autor, name } = zustand.datensatz;
-  if (!name) { nachName = senden; zeigeName(true, { senden: true }); return; }
+  if (!name) { nachName = () => senden(art); zeigeName(true, { senden: true }); return; }
   notizUebernehmen(stand, autor);
   const umschlag = haekchen(stand, autor, name, jetztSek());
   const link = `${BASIS}#${await schreiben(umschlag)}`;
   const eigeneNotiz = umschlag.nt?.[0]?.[0] ?? '';
   const notiz = eigeneNotiz ? `\n${fuelle(T.zurueck.nachrichtNotiz, { notiz: eigeneNotiz })}` : '';
-  const ganz = `${nachricht(stand, name, umschlag.done === 1)}${notiz}\n${link}`;
+  const text = `${nachricht(stand, name, umschlag.done === 1)}${notiz}`;
+  const ganz = `${text}\n${link}`;
+  const apple = istApple({ userAgent: navigator.userAgent, maxTouchPoints: navigator.maxTouchPoints });
   teil.wege.dataset.link = link;
   teil.wege.dataset.text = ganz;
   teil.whatsapp.href = `https://wa.me/?text=${encodeURIComponent(ganz)}`;
-  teil.sms.href = `sms:?&body=${encodeURIComponent(ganz)}`;
+  teil.sms.href = smsAdresse(ganz, apple);
   teil.status.textContent = '';
   teil.selbst.hidden = true;
+  if (art === 'weg') {
+    const adresse = wegAdresse({ weg: zustand.kw, nachricht: text, link, betreff: fuelle(T.zurueck.betreff, { liste: stand.n }), apple });
+    if (adresse) {
+      teil.wege.hidden = true;
+      location.href = adresse;
+      return;
+    }
+  }
   if (typeof navigator.share === 'function') {
     try {
       await navigator.share({ text: ganz });
@@ -462,7 +484,8 @@ async function senden() {
   teil.wege.hidden = false;
   teil.wege.querySelector('a, button')?.focus();
 }
-teil.senden.addEventListener('click', () => { senden(); });
+teil.senden.addEventListener('click', () => { senden('weg'); });
+teil.andere.addEventListener('click', () => { senden('andere'); });
 
 teil.kopieren.addEventListener('click', async () => {
   const text = teil.wege.dataset.text ?? '';

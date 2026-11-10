@@ -8,6 +8,8 @@ import { umschlagLesen, umschlagText, neueKennung, istKennung, KENNUNG_BYTE, bas
 import { aufraeumen, haekchen, obenNotiz, profilVergleich, zusammenfuehren } from '../../src/skripte/teilen/zusammenfuehren.mjs';
 import { mengeText, ordnen } from '../../src/skripte/teilen/anzeige.mjs';
 import { intentLesen, oeffnenAdresse } from '../../src/skripte/teilen/app_oeffnen.mjs';
+import { GRENZE_ADRESSE, istApple, smsAdresse, wegAdresse, wegAus } from '../../src/skripte/teilen/zurueck_wege.mjs';
+import { WEGE } from '../../src/skripte/teilen/umschlag.mjs';
 
 // Gleich nach Inhalt: Reihenfolge der Felder eines Objekts zählt nicht, die einer Liste schon.
 export function gleich(x, y) {
@@ -177,6 +179,51 @@ export async function pruefeTestfaelle(daten, app) {
   oeffnen.push([intentLesen(schief)?.daten === 'https://foodasu.com/l/' && intentLesen(schief)?.rueckfall === 'https://foodasu.com/l/#a#b', `schiefer Teil hinter dem #: ${schief}`]);
   if (listen.length === 0) oeffnen.push([false, 'keine Kodierung in den Testfällen']);
   for (const [gut, text] of oeffnen) if (!gut) befunde.push(`Öffnen in der App: ${text}`);
-  return { zahlen, befunde, uebersprungen: (daten.faelle ?? []).length - faelle.length, oeffnen: oeffnen.length };
+  // Weg zum Zurückschicken (AP-122): Feld kw im Umschlag l (nur wa, sms, mail, tg; sonst fällt es beim Lesen weg,
+  // geschrieben am Ende), Adressen der vier Wege, Rückfall auf WhatsApp, Grenze für Telegram, Erkennung des iPhones.
+  const wege = [];
+  const vorlage = (daten.faelle ?? []).find((fall) => fall.art === 'umschlag' && fall.json?.k === 'l')?.json;
+  if (vorlage) {
+    for (const kw of [...WEGE, 'x', 'WA', '', 1, null, ['wa'], { wa: 1 }]) {
+      const gelesen = umschlagLesen({ ...vorlage, kw });
+      const soll = WEGE.includes(kw);
+      wege.push([gelesen.umschlag && (soll ? gelesen.umschlag.kw === kw : !('kw' in gelesen.umschlag)), `kw ${JSON.stringify(kw)} beim Lesen ${soll ? 'behalten' : 'weggelassen'}: ${String(gelesen.umschlag?.kw)}`]);
+      const text = gelesen.umschlag ? umschlagText(gelesen.umschlag) : '';
+      wege.push([soll ? text.endsWith(`,"kw":"${kw}"}`) : !text.includes('"kw"'), `kw ${JSON.stringify(kw)} beim Schreiben ${soll ? 'am Ende' : 'nicht'}: …${text.slice(-24)}`]);
+      wege.push([wegAus(kw) === (soll ? kw : 'wa'), `wegAus(${JSON.stringify(kw)}) = ${wegAus(kw)}`]);
+    }
+    const ohne = umschlagLesen(vorlage).umschlag;
+    wege.push([ohne && !('kw' in ohne) && umschlagText(ohne) === umschlagText({ ...ohne, kw: 'zz' }), 'ohne kw und mit unbekanntem kw gleicher Text wie bisher']);
+  } else wege.push([false, 'kein Umschlag l in den Testfällen']);
+  const nachricht = 'Mama hat „Wocheneinkauf“ erledigt (3 von 4, nicht bekommen: Kaffee).\nNotiz: Butter & Brot? 50 %';
+  const link = `https://foodasu.com/l/#${listen[0] ?? '1abc'}`;
+  const ganz = `${nachricht}\n${link}`;
+  const betreff = 'Einkaufsliste „Wocheneinkauf“';
+  const teile = (adresse, vor) => (adresse?.startsWith(vor) ? Object.fromEntries(adresse.slice(vor.length).split('&').map((teil) => teil.split('=')).map(([name, wert]) => [name, decodeURIComponent(wert ?? '')])) : null);
+  for (const weg of [undefined, null, 'wa', 'xx']) {
+    const adresse = wegAdresse({ weg, nachricht, link, betreff });
+    wege.push([teile(adresse, 'https://wa.me/?')?.text === ganz, `Weg ${weg}: WhatsApp ${adresse?.slice(0, 40)}`]);
+  }
+  for (const apple of [true, false]) {
+    const adresse = wegAdresse({ weg: 'sms', nachricht, link, betreff, apple });
+    const vor = apple ? 'sms:&' : 'sms:?';
+    wege.push([teile(adresse, vor)?.body === ganz && adresse === smsAdresse(ganz, apple), `SMS ${apple ? 'iPhone' : 'sonst'}: ${adresse?.slice(0, 30)}`]);
+  }
+  const mail = teile(wegAdresse({ weg: 'mail', nachricht, link, betreff }), 'mailto:?');
+  wege.push([mail?.subject === betreff && mail?.body === ganz.replaceAll('\n', '\r\n'), `E-Mail: Betreff „${mail?.subject}“, Text mit CRLF`]);
+  const tg = teile(wegAdresse({ weg: 'tg', nachricht, link, betreff }), 'https://t.me/share/url?');
+  wege.push([tg?.url === link && tg?.text === nachricht, `Telegram: url ${tg?.url?.slice(0, 30)}, text ohne Link`]);
+  // Längster erlaubter Link (Kodierung 8.192 Zeichen): WhatsApp, SMS, E-Mail ja; Telegram nein (Rückfall).
+  const lang = `https://foodasu.com/l/#1${'A'.repeat(8191)}`;
+  for (const weg of ['wa', 'sms', 'mail']) wege.push([wegAdresse({ weg, nachricht, link: lang, betreff }) !== null, `langer Link: ${weg} geht`]);
+  wege.push([wegAdresse({ weg: 'tg', nachricht, link: lang, betreff }) === null, 'langer Link: Telegram null (Andere App wählen)']);
+  const grenze = wegAdresse({ weg: 'tg', nachricht: '', link: `https://foodasu.com/l/#1${'A'.repeat(GRENZE_ADRESSE.tg)}`, betreff });
+  wege.push([grenze === null, 'Telegram über 4.000 Zeichen: null']);
+  const IPAD_DESKTOP = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15';
+  for (const [werte, soll, name] of [[{ userAgent: IPHONE_UA, maxTouchPoints: 5 }, true, 'iPhone'], [{ userAgent: IPAD_DESKTOP, maxTouchPoints: 5 }, true, 'iPad mit Desktop-Kennung'], [{ userAgent: IPAD_DESKTOP, maxTouchPoints: 0 }, false, 'Mac'], [{ userAgent: LAPTOP_UA, maxTouchPoints: 0 }, false, 'Laptop'], [{ userAgent: ANDROID_UA, maxTouchPoints: 5 }, false, 'Android'], [{}, false, 'leer']]) {
+    wege.push([istApple(werte) === soll, `istApple ${name}: ${istApple(werte)}`]);
+  }
+  for (const [gut, text] of wege) if (!gut) befunde.push(`Wege zum Zurückschicken: ${text}`);
+  return { zahlen, befunde, uebersprungen: (daten.faelle ?? []).length - faelle.length, oeffnen: oeffnen.length, wege: wege.length };
 }
 

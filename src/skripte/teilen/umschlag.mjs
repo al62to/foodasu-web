@@ -127,6 +127,11 @@ const STATUS_ALLE = new Set(['o', 'd', 'x', 'g']);
 const STATUS_HAEKCHEN = new Set(['o', 'd', 'x']);
 export const ARTEN = Object.freeze({ liste: 'l', haekchen: 'h', profil: 'p' });
 
+// Weg, auf dem eine Liste geschickt wurde (Feld kw im Umschlag l, freiwillig, AP-122): wa WhatsApp, sms SMS (auch
+// iMessage), mail E-Mail, tg Telegram. Ein anderer Wert oder ein fehlendes Feld heißt „kein Weg“; beim Lesen fällt es
+// dann weg.
+export const WEGE = Object.freeze(['wa', 'sms', 'mail', 'tg']);
+
 // Warengruppen im Umschlag als Zahl (Format 3.2): die Stelle in dieser Liste, fest im Format (Kern ShareJson.GROUPS);
 // eine unbekannte Zahl gilt als SONSTIGES.
 export const GRUPPEN = Object.freeze(['OBST_GEMUESE', 'BROT_GEBAECK', 'MILCH_KAESE', 'FLEISCH_FISCH', 'VORRAT',
@@ -249,6 +254,8 @@ export function umschlagLesen(wurzel) {
     const nt = notizenLesen(feld(wurzel, 'nt'), t, by);
     if (nt === null) return ZU_GROSS;
     if (nt.length) umschlag.nt = nt;
+    const kw = feld(wurzel, 'kw');
+    if (WEGE.includes(kw)) umschlag.kw = kw;
     return { umschlag };
   }
   if (art === 'h') {
@@ -299,7 +306,7 @@ const notizenKurz = (nt, t, by) => [...nt].sort((x, y) => vergleich(x[2], y[2]))
 export function umschlagText(u) {
   const kopf = `"v":1,"k":${json(u.k)},"id":${json(u.id)},"t":${json(u.t)},"by":${json(u.by)},"a":${namenText(u.a)},"rev":${json(u.rev)}`;
   const nt = u.nt && u.nt.length ? `,"nt":${listeText(notizenKurz(u.nt, u.t, u.by))}` : '';
-  if (u.k === 'l') return `{${kopf},"n":${json(u.n)},"sv":${json(u.sv)},"full":${json(u.full)},"e":${listeText(u.e.map((x) => eintragKurz(x, u.t, u.by)))}${nt}}`;
+  if (u.k === 'l') return `{${kopf},"n":${json(u.n)},"sv":${json(u.sv)},"full":${json(u.full)},"e":${listeText(u.e.map((x) => eintragKurz(x, u.t, u.by)))}${nt}${WEGE.includes(u.kw) ? `,"kw":${json(u.kw)}` : ''}}`;
   if (u.k === 'h') return `{${kopf},"done":${json(u.done)},"s":${listeText(u.s.map(([id, status, zeit]) => [id, status, zeit - u.t]))}${nt}}`;
   return `{${kopf},"n":${json(u.n)},"ic":${json(u.ic)},"m":${listeText(u.m)},"from":${json(u.from)}}`;
 }

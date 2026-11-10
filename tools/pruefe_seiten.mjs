@@ -637,11 +637,14 @@ for (const [adresse, zahl] of eingang) {
 // Seite für geteilte Einkaufslisten /l/ (AP-112): Ihre Skripte sind die einzigen außer dem Schalter der Darstellung,
 // die den Speicher des Browsers nutzen dürfen (lokaler Speicher je Liste unter foodasu-liste-<listId>, Vorgabe 7),
 // und die einzigen mit einem Link zu einem Dienst zum Teilen: dem reinen Link https://wa.me/?text=… (Auftrag AP-112:
-// navigator.share, sonst WhatsApp-Link, SMS-Link und Kopieren; keine Skripte oder Knöpfe fremder Dienste). Ihr
+// navigator.share, sonst WhatsApp-Link, SMS-Link und Kopieren; keine Skripte oder Knöpfe fremder Dienste) und seit
+// AP-122 dem reinen Link https://t.me/share/url?url=… (Weg Telegram beim Zurückschicken, Auftrag der PL vom 10.11.2026;
+// ebenso nur eine Adresse, die die App mit fertigem Text öffnet, kein Skript und kein Knopf von Telegram). Ihr
 // Service Worker /l/sw.js darf Dateien der Seite anfragen (fetch) und ablegen. Welche Dateien zur Seite gehören, liest
 // die Prüfung aus dem Bau: die Skripte, die /l/index.html lädt, und was diese einbinden; keine davon darf eine andere
 // Seite laden. Jeder andere Zugriff (sessionStorage, IndexedDB, Cookies, Anfragen) bleibt auch dort ein Befund.
 const WA_LINK = 'https://wa.me/?text=';
+const TG_LINK = 'https://t.me/share/url?url=';
 const listeSkripte = new Set();
 {
   const offen = alle(seiten.get(LISTE) ?? '', /<script\b[^>]*\bsrc="(\/_astro\/[^"]+\.js)"/g).map(([, pfad]) => pfad);
@@ -662,7 +665,7 @@ const LISTE_DIENST = '/l/sw.js';
 if (!vorhanden.has(LISTE_DIENST)) melde(LISTE, `Service Worker ${LISTE_DIENST} fehlt`);
 // Was die Prüfungen unten von einem Skript der Seite /l/ zu sehen bekommen: ohne die erlaubten Stellen.
 const ohneListenAusnahmen = (name, inhalt) => {
-  if (listeSkripte.has(name)) return inhalt.replaceAll(WA_LINK, ' ').replace(/localStorage/g, ' ');
+  if (listeSkripte.has(name)) return inhalt.replaceAll(WA_LINK, ' ').replaceAll(TG_LINK, ' ').replace(/localStorage/g, ' ');
   if (name === LISTE_DIENST) return inhalt.replace(/\bfetch\(/g, ' ');
   return inhalt;
 };
@@ -2007,6 +2010,16 @@ if (existsSync(EXPORT)) {
   for (const teilstueck of ['intent://', '#Intent;scheme=https;package=at.tonc.einkauf;S.browser_fallback_url=', ';end', 'Android', 'userAgent', 'encodeURIComponent']) {
     if (!skript.includes(teilstueck)) melde(LISTE, `„In FoodAsu öffnen“ in Android-Browsern: „${teilstueck}“ fehlt im Skript der Seite`);
   }
+  // 7. Weg zum Zurückschicken (AP-122): Im Skript die vier Adressen (WhatsApp, SMS, E-Mail, Telegram), in der Seite der
+  //    Hauptknopf und darunter der Textknopf „Andere App wählen“, davor die Frage für „Alles erledigt“. Welche Adresse
+  //    zu welchem kw gehört, prüfen die Testfälle in Node (tools/teilen/pruefung.mjs, „Wege zum Zurückschicken“) und
+  //    tools/teilen_browser.mjs (Abschnitt 7b).
+  for (const teilstueck of [WA_LINK, TG_LINK, 'mailto:?subject=', 'body=', 'sms:']) {
+    if (!skript.includes(teilstueck)) melde(LISTE, `Weg zum Zurückschicken: „${teilstueck}“ fehlt im Skript der Seite`);
+  }
+  const andere = listeTexte.zurueck.andere;
+  if (!new RegExp(`<button type="button" class="knopf voll l-senden" data-l-senden>[\\s\\S]*?</button>\\s*<button type="button" class="l-textknopf l-andere" data-l-andere>${andere}</button>`).test(html)) melde(LISTE, `Weg zum Zurückschicken: Textknopf „${andere}“ direkt unter dem Hauptknopf fehlt`);
+  if (!/<p class="l-frage" data-l-frage hidden><\/p>\s*<button type="button" class="knopf voll l-senden"/.test(html)) melde(LISTE, 'Weg zum Zurückschicken: Frage (data-l-frage) direkt über dem Hauptknopf fehlt');
 }
 // Smart App Banner von Safari (AP-114): <meta name="apple-itunes-app"> nur auf /l/, genau einmal, im Kopf, mit der
 // Kennung der App FoodAsu im App Store (6829687240, dieselbe wie im Link zum App Store) und der Adresse der Seite ohne
@@ -2062,7 +2075,7 @@ const AASA_ERWARTET = {
 }
 console.log(`Verknüpfung mit der App: ${AASA} (iPhone, nur /l/*) und /.well-known/assetlinks.json (Android) im Bau`);
 console.log(`Öffnen in der App: Smart App Banner (app-id ${APP_STORE_ID}) nur auf ${LISTE}, intent-Adresse für Android-Browser im Skript der Seite`);
-console.log(`Seite für Listen ${LISTE}: Testfälle ${Object.entries(listePruefung.zahlen).filter(([weg]) => weg !== 'anzeige').map(([weg, arten]) => `${weg} ${Object.values(arten).reduce((summe, [gut]) => summe + gut, 0)}/${Object.values(arten).reduce((summe, [, zahl]) => summe + zahl, 0)}`).join(', ')} (ohne ${listePruefung.uebersprungen} Fälle „liste“), Daten aus der App ${exportGeprueft ? 'geprüft' : 'nicht geprüft'}, ${listeSkripte.size} Skripte der Seite mit Speicher und WhatsApp-Link, Service Worker ${LISTE_DIENST}`);
+console.log(`Seite für Listen ${LISTE}: Testfälle ${Object.entries(listePruefung.zahlen).filter(([weg]) => weg !== 'anzeige').map(([weg, arten]) => `${weg} ${Object.values(arten).reduce((summe, [gut]) => summe + gut, 0)}/${Object.values(arten).reduce((summe, [, zahl]) => summe + zahl, 0)}`).join(', ')} (ohne ${listePruefung.uebersprungen} Fälle „liste“), Daten aus der App ${exportGeprueft ? 'geprüft' : 'nicht geprüft'}, ${listeSkripte.size} Skripte der Seite mit Speicher, WhatsApp- und Telegram-Link, Service Worker ${LISTE_DIENST}`);
 
 // Zutaten und Zubereitung (AP-25 Nachbesserung, 11.10.2026): Warnung ohne Abbruch, wenn eine Zutat in keinem Schritt
 // vorkommt oder mehrmals in der Liste steht, ohne dass ein Schritt sagt, welcher Eintrag gemeint ist

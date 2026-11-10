@@ -102,6 +102,11 @@ button.l-haken:hover { background: var(--flaeche); }
 .l-zurueck.fertig .l-fertig-zeichen { display: grid; }
 .l-zurueck.fertig .l-karte-titel { font-size: clamp(1.6rem, 4vw, 2.1rem); }
 .l-zurueck.fertig .l-senden { width: 100%; justify-content: center; min-height: 4rem; font-size: 1.15rem; }
+/* AP-122: Frage über dem Knopf (nur mit allem erledigt) und „Andere App wählen“ als Textknopf darunter. */
+.l-zurueck .l-frage { margin: 1.25rem 0 0; color: var(--text); font-weight: 700; font-size: 1.1rem; line-height: 1.4; }
+.l-frage + .l-senden { margin-top: 0.75rem; }
+.l-andere { display: block; margin-top: 0.5rem; text-align: left; }
+.l-zurueck.fertig .l-andere { margin-inline: auto; text-align: center; }
 .l-als { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.75rem; margin: 1rem 0 0; font-size: 0.95rem; }
 .l-textknopf { min-height: 2.75rem; padding: 0; border: 0; background: transparent; color: var(--main); font: inherit; font-weight: 700; text-decoration: underline; text-underline-offset: 0.18em; cursor: pointer; }
 .l-wege { margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid var(--fuss-linie); }
@@ -135,4 +140,13 @@ button.l-haken:hover { background: var(--flaeche); }
 @media (prefers-reduced-motion: no-preference) {
   .l-griff { transition: left 0.18s ease, background-color 0.18s ease; }
   .l-kreis { transition: background-color 0.15s ease, border-color 0.15s ease; }
+}
+
+/* Sehr große Schrift (AP-122, wie AP-116b/AP-118): Ist die Seite schmaler als 19,5em (bei normaler Schrift nie), passt
+   der Knopf zum Zurückschicken in die Breite: ohne Senden-Symbol, mit weniger Rand, lange Wörter wie „zurückschicken“
+   dürfen getrennt werden; sonst stand er bei Schrift 200 % über den Rand (auch vor AP-122). */
+@media (max-width: 19.5em) {
+  .l-senden { max-width: 100%; padding-inline: 0.75rem; }
+  .l-senden .l-senden-zeichen { display: none; }
+  .l-senden > span { min-width: 0; -webkit-hyphens: auto; hyphens: auto; overflow-wrap: break-word; }
 }
