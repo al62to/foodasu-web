@@ -12,6 +12,7 @@
 //   7b. Weg zum Zurückschicken (AP-122): Hauptknopf nach kw (ohne, wa, sms, mail, tg, unbekannt), ohne Absendername,
 //       Fertig-Fall, „Andere App wählen“ (Teilen-Fenster, abgebrochen, Fehler, fehlt), langer Link
 //   7c. Hauptknopf bei Schrift 200 % (AP-122b): breiter als hoch, kein Überlauf, kein Wort getrennt
+//   7d. Abzeichen im Kasten „FoodAsu fürs Handy“ mittig: Liste, Häkchen-Seite, leer; 390, 390 mit 200 %, 1440
 //   8. Seiten ohne Liste: kein #, kaputt, zu groß, neuere Version, Häkchen-Link (Art h), Profil-Link
 //   9. Aufräumen nach 60 Tagen und „Liste aus diesem Browser entfernen“
 // Aufruf: node tools/teilen_browser.mjs [Basis, Vorgabe http://127.0.0.1:4321]   Rückgabewert 1 bei einem Befund.
@@ -503,6 +504,36 @@ console.log('\n## 7c Hauptknopf bei Schrift 200 %');
     }
     pruefe(p.fehler.length === 0, `keine Fehler auf der Seite (${p.fehler.join('; ')})`);
     await p.umgebung.close();
+  }
+}
+
+// ---- 7d. Abzeichen im Kasten „FoodAsu fürs Handy“ mittig (Nachtrag zu AP-122b) ---------------------------------
+// In jedem Zustand der Seite (Liste, Häkchen-Seite, leer), schmal und breit, normale Schrift und 200 %: Jede Zeile der
+// Abzeichen steht waagrecht in der Mitte des weißen Kastens (Abweichung höchstens 1 px), App Store zuerst.
+console.log('\n## 7d Abzeichen im Kasten mittig');
+{
+  const h = fall('Häkchen und Erledigt');
+  for (const [name, adresse] of [['Liste', link(U1.kodierung)], ['Häkchen-Seite', `${BASIS}/l/#${h.kodierung}`], ['leer', `${BASIS}/l/`]]) {
+    for (const [ansicht, gross] of [['390', false], ['390, 200 %', true], ['1440', false]]) {
+      const p = await neuesProfil();
+      const seite = await p.oeffne(ansicht === '1440' ? { width: 1440, height: 900, deviceScaleFactor: 1 } : HANDY);
+      if (gross) { const cdp = await seite.createCDPSession(); await cdp.send('Page.setFontSizes', { fontSizes: { standard: 32, fixed: 26 } }); }
+      await offen(seite, adresse);
+      const m = await seite.evaluate(() => {
+        const kasten = document.querySelector('.l-app-zeile .abzeichen');
+        const k = kasten.getBoundingClientRect();
+        const stil = getComputedStyle(kasten);
+        const links = k.left + parseFloat(stil.borderLeftWidth) + parseFloat(stil.paddingLeft);
+        const rechts = k.right - parseFloat(stil.borderRightWidth) - parseFloat(stil.paddingRight);
+        const bilder = [...kasten.querySelectorAll('a')].map((a) => ({ art: a.className, r: a.querySelector('img').getBoundingClientRect() }));
+        const zeilen = new Map();
+        for (const b of bilder) { const y = Math.round(b.r.top + b.r.height / 2); const z = [...zeilen.keys()].find((w) => Math.abs(w - y) < 20) ?? y; zeilen.set(z, [...(zeilen.get(z) ?? []), b.r]); }
+        const versatz = [...zeilen.values()].map((rs) => Math.abs((Math.min(...rs.map((r) => r.left)) + Math.max(...rs.map((r) => r.right))) / 2 - (links + rechts) / 2));
+        return { reihenfolge: bilder.map((b) => b.art).join(','), zeilen: zeilen.size, versatz: Math.max(...versatz) };
+      });
+      pruefe(m.versatz <= 1 && m.reihenfolge === 'abzeichen-apple,abzeichen-google', `${name}, ${ansicht}: ${m.zeilen} Zeile(n), größte Abweichung von der Mitte ${m.versatz.toFixed(1)} px, ${m.reihenfolge}`);
+      await p.umgebung.close();
+    }
   }
 }
 

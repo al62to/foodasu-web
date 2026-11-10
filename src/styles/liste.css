@@ -129,6 +129,9 @@ button.l-haken:hover { background: var(--flaeche); }
 .l-app h2 { margin: 0; font-size: clamp(1.4rem, 3vw, 1.75rem); letter-spacing: -0.02em; color: var(--deep); }
 .l-app-text p { max-width: 40ch; margin: 0.75rem 0 0; line-height: 1.7; }
 .l-app-zeile { margin-top: 1.25rem; }
+/* Abzeichen im weißen Kasten waagrecht mittig (Alis Wunsch, Nachtrag der PL zu AP-122b, 10.11.2026), auch wenn sie bei
+   großer Schrift untereinander stehen; Reihenfolge, Größe und Abstand bleiben (basis.css). */
+.l-app-zeile .abzeichen { justify-content: center; }
 /* „In FoodAsu öffnen“ in der Liste (AP-113): sekundärer Knopf (Rand) in eigener Zeile, die Abzeichen mit Abstand darunter. */
 .l-app .l-app-oeffnen { display: flex; width: fit-content; margin-top: 1.25rem; }
 .l-qr { flex: none; display: grid; justify-items: center; gap: 0.6rem; width: 11.5rem; margin: 0; }
