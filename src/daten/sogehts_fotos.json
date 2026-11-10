@@ -65,9 +65,9 @@
  "liste_link_01": {
   "breite": 720,
   "hoehe": 1395,
-  "zeigt": "Blatt „Liste schicken“ der Liste „Grillabend“ mit der Notiz „Bitte frisches Brot holen“ und den Knöpfen „Schicken“, „QR-Code zeigen“ und „Nur als Text“",
+  "zeigt": "Blatt „Liste schicken“ der Liste „Grillabend“ mit dem Namen „Papa“, der Notiz „Bitte frisches Brot holen“ und den Knöpfen „Als SMS schicken“ (Hauptknopf), „Per E-Mail schicken“, „Andere App wählen“, „QR-Code zeigen“ und „Nur als Text“",
   "weich": false,
-  "aufnahme": "09.11.2026 17:45"
+  "aufnahme": "10.11.2026 13:56"
  },
  "liste_link_02": {
   "breite": 720,
