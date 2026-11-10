@@ -115,6 +115,19 @@ export default {
       wo: 'Listen > Teilen-Symbol neben den drei Punkten; Liste öffnen > „Liste schicken“',
       absaetze: ['Für WhatsApp, SMS, E-Mail und Telegram gibt es je einen Knopf, wenn dein Handy die App hat; der zuletzt benutzte steht oben. Über „Andere App wählen“ geht jede andere App. Eine Notiz kannst du mitschicken. Die Liste steckt im Link und geht an keinen Server. Mit „Nur als Text“ schickst du nur die offenen Einträge, ohne Link.'],
       fotos: [foto('liste_link_01', 'Das Blatt „Liste schicken“ mit Notiz')],
+      // Erklärvideo „Liste teilen“ (AP-124, Nachtrag der PL vom 10.11.2026, 21:10): selbst gehostet unter /videos/
+      // (H.264 720p mit Ton, Untertitel WebVTT, Vorschaubild), abspielen nur auf Antippen. Quelle
+      // Material/Videos_0.22.0/ergebnis/FoodAsu_Liste_teilen_1920x1080.*; name und beschreibung für das VideoObject.
+      video: {
+        datei: 'liste-teilen',
+        name: 'Eine Einkaufsliste per Link schicken und zurückbekommen',
+        beschreibung: 'Video mit Sprecher und Untertiteln: Papa schickt den Wocheneinkauf aus FoodAsu per WhatsApp an Mama. Sie öffnet die Liste ohne App im Browser, hakt ab und markiert, was es nicht gab. Dann schickt sie die Liste zurück, und in Papas FoodAsu ist alles abgehakt.',
+        unterschrift: 'So geht eine Liste hin und zurück.',
+        breite: 1280,
+        hoehe: 720,
+        dauer: 'PT42S',
+        hochgeladen: '2026-11-10',
+      },
     },
     {
       titel: 'Was zurückkommt',

@@ -647,7 +647,9 @@ const WA_LINK = 'https://wa.me/?text=';
 const TG_LINK = 'https://t.me/share/url?url=';
 const listeSkripte = new Set();
 {
-  const offen = alle(seiten.get(LISTE) ?? '', /<script\b[^>]*\bsrc="(\/_astro\/[^"]+\.js)"/g).map(([, pfad]) => pfad);
+  // Seit AP-124 lädt jede Seite das Skript des Grundlayouts (Store-Knöpfe, src/skripte/store_knoepfe.mjs, ohne Importe);
+  // es gehört nicht zur Seite /l/ und bleibt unter den Regeln für alle Seiten (kein Speicher, keine Anfrage).
+  const offen = alle(seiten.get(LISTE) ?? '', /<script\b[^>]*\bsrc="(\/_astro\/[^"]+\.js)"/g).map(([, pfad]) => pfad).filter((pfad) => !/^\/_astro\/Basis\.astro_astro_type_script_/.test(pfad));
   while (offen.length) {
     const pfad = offen.pop();
     if (listeSkripte.has(pfad) || !vorhanden.has(pfad)) continue;
@@ -660,6 +662,19 @@ const listeSkripte = new Set();
     if (adresse === LISTE) continue;
     for (const pfad of listeSkripte) if (html.includes(pfad)) melde(adresse, `lädt ein Skript der Seite ${LISTE}: ${pfad}`);
   }
+}
+// Store-Knöpfe (AP-124): Jede Seite mit einem Link zum App Store oder zu Google Play lädt das Skript der Store-Knöpfe
+// (eine eigene Datei, im Grundlayout nachgeladen), jede Weiterleitung trägt dieselbe Umleitung eingebettet; das Skript
+// nennt die Ziele aus dem Auftrag der PL.
+{
+  const storeSkripte = [...vorhanden].filter((pfad) => /^\/_astro\/Basis\.astro_astro_type_script_index_\d+_lang\.[\w-]+\.js$/.test(pfad));
+  if (storeSkripte.length !== 1) melde('Store-Knöpfe', `genau eine Datei der Store-Knöpfe (Skript des Grundlayouts) erwartet, gefunden: ${storeSkripte.length}`);
+  for (const [adresse, html] of seiten) {
+    if (/href="https:\/\/(?:apps\.apple\.com|play\.google\.com)\//.test(html) && !(storeSkripte[0] && html.includes(`<script type="module" src="${storeSkripte[0]}"></script>`))) melde(adresse, 'Links zu den Stores ohne das Skript der Store-Knöpfe');
+  }
+  const inhalt = storeSkripte.map((pfad) => readFileSync(join(DIST, pfad), 'utf8')).join('\n');
+  for (const teil of ['intent://details', '#Intent;scheme=market;package=com.android.vending;S.browser_fallback_url=', 'itms-apps://', 'at.tonc.einkauf', 'id6829687240']) if (!inhalt.includes(teil)) melde('Store-Knöpfe', `im Skript fehlt „${teil}“`);
+  for (const [pfad, html] of weiterleitungen) if (!html.includes('storeKnoepfeAnbinden();') || !html.includes('itms-apps://')) melde(pfad, 'Weiterleitung ohne die Umleitung der Store-Knöpfe');
 }
 const LISTE_DIENST = '/l/sw.js';
 if (!vorhanden.has(LISTE_DIENST)) melde(LISTE, `Service Worker ${LISTE_DIENST} fehlt`);
@@ -1078,7 +1093,39 @@ kapitel.forEach((eintrag, stelle) => {
   const film = html.match(/data-film="([^"]+)"/);
   if (Boolean(film) !== Boolean(eintrag.film)) melde(adresse, 'Schleife passt nicht zu den Daten');
   if (film && !vorhanden.has(film[1])) melde(adresse, `Schleife fehlt: ${film[1]}`);
-  if (/<video\b|autoplay/.test(html)) melde(adresse, 'Die Schleife steht fest im Quelltext; sie darf nur mit Bewegung per Skript entstehen');
+  // Erklärvideo eines Abschnitts (AP-124, Nachtrag der PL vom 10.11.2026): genau die Videos aus den Daten, selbst gehostet
+  // unter /videos/, abspielen nur auf Antippen (controls, preload="none", playsinline; kein autoplay, keine Schleife,
+  // nicht stumm), Vorschaubild, Untertitel deutsch als Standard, höchstens etwa 4 MB, VideoObject mit allen Angaben.
+  const erklaervideos = eintrag.teile.filter((teil) => teil.video);
+  const videoFiguren = alle(html, /<figure class="g-video">([\s\S]*?)<\/figure>/g);
+  if (videoFiguren.length !== erklaervideos.length) melde(adresse, `Erklärvideos: ${erklaervideos.length} erwartet, gefunden: ${videoFiguren.length}`);
+  erklaervideos.forEach((teil, nummer) => {
+    const figur = videoFiguren[nummer]?.[1] ?? '';
+    const v = teil.video;
+    const ort = `/videos/${v.datei}`;
+    const marke = figur.match(/<video\b[^>]*>/)?.[0] ?? '';
+    if (!/\bcontrols\b/.test(marke) || !/\bpreload="none"/.test(marke) || !/\bplaysinline\b/.test(marke)) melde(adresse, `Erklärvideo ${v.datei}: controls, preload="none" und playsinline erwartet`);
+    if (/\b(?:autoplay|loop|muted)\b/.test(marke)) melde(adresse, `Erklärvideo ${v.datei}: spielt von selbst, in Schleife oder stumm`);
+    if (!marke.includes(`poster="${ort}-1280.webp"`) || !vorhanden.has(`${ort}-1280.webp`)) melde(adresse, `Erklärvideo ${v.datei}: Vorschaubild fehlt`);
+    if (!figur.includes(`<source src="${ort}-720.mp4" type="video/mp4">`) || !vorhanden.has(`${ort}-720.mp4`)) melde(adresse, `Erklärvideo ${v.datei}: Film fehlt`);
+    if (!new RegExp(`<track kind="subtitles" srclang="de" label="Deutsch" src="${ort}\\.de\\.vtt" default>`).test(figur) || !vorhanden.has(`${ort}.de.vtt`)) melde(adresse, `Erklärvideo ${v.datei}: Untertitel (deutsch, Standard) fehlen`);
+    if (!figur.includes(`<figcaption>${v.unterschrift}</figcaption>`)) melde(adresse, `Erklärvideo ${v.datei}: Bildunterschrift fehlt`);
+    if (/https?:\/\//.test(figur)) melde(adresse, `Erklärvideo ${v.datei}: Adresse außerhalb der Website`);
+    if (vorhanden.has(`${ort}-720.mp4`) && statSync(join(DIST, `${ort}-720.mp4`)).size > 4.2 * 1024 * 1024) melde(adresse, `Erklärvideo ${v.datei}: Film über 4 MB`);
+    // Untertitel: WebVTT, deutsch, Wortlisten wie auf jeder Seite; „über N Rezepte“ nicht über der Zahl der App.
+    const vtt = vorhanden.has(`${ort}.de.vtt`) ? readFileSync(join(DIST, `${ort}.de.vtt`), 'utf8') : '';
+    if (!vtt.startsWith('WEBVTT')) melde(adresse, `Erklärvideo ${v.datei}: Untertitel ohne Kopf WEBVTT`);
+    const vttText = vtt.split('\n').filter((zeile) => zeile && zeile !== 'WEBVTT' && !/-->/.test(zeile)).join(' ');
+    for (const [art, ausdruck] of [...GESPERRT, ...BEZAHL_UND_FRIST, ...BETA, ...WENDUNGEN]) for (const fund of alle(vttText, ausdruck)) melde(`${ort}.de.vtt`, `${art}: ${fund[0]}`);
+    for (const [, zahl] of alle(vttText, /über (\d+) Rezepte/g)) if (Number(zahl) > UEBER) melde(`${ort}.de.vtt`, `„über ${zahl} Rezepte“, erlaubt höchstens „über ${UEBER}“ (App: ${APP.gesamt})`);
+    const film = alle(html, /<script type="application\/ld\+json">([\s\S]*?)<\/script>/g).map(([, roh]) => { try { return JSON.parse(roh); } catch { return {}; } }).find((eintragDaten) => eintragDaten['@type'] === 'VideoObject');
+    const soll = { name: v.name, description: v.beschreibung, contentUrl: `${HOST}${ort}-720.mp4`, duration: v.dauer, uploadDate: v.hochgeladen, inLanguage: 'de' };
+    for (const [feld, wert] of Object.entries(soll)) if (film?.[feld] !== wert) melde(adresse, `VideoObject: ${feld} „${film?.[feld]}“, erwartet „${wert}“`);
+    if (film?.thumbnailUrl?.[0] !== `${HOST}${ort}-1280.webp`) melde(adresse, 'VideoObject: thumbnailUrl weicht ab');
+    if (film?.publisher?.['@type'] !== 'Organization' || film?.publisher?.name !== 'FoodAsu') melde(adresse, 'VideoObject: publisher ist nicht die Organization FoodAsu');
+  });
+  const ohneErklaervideo = html.replace(/<figure class="g-video">[\s\S]*?<\/figure>/g, ' ');
+  if (/<video\b|autoplay/.test(ohneErklaervideo)) melde(adresse, 'Die Schleife steht fest im Quelltext; sie darf nur mit Bewegung per Skript entstehen');
   const nachbarn = [kapitel[stelle - 1], kapitel[stelle + 1]].filter(Boolean).map(kapitelAdresse);
   for (const ziel of [BEREICH, ...nachbarn]) if (!html.includes(`href="${ziel}"`)) melde(adresse, `Link fehlt: ${ziel}`);
 });
@@ -1457,6 +1504,10 @@ const RECHT_MIT_ANSCHRIFT = new Set(['/datenschutz.html', '/offenlegung/', '/nut
 // Sprachangaben um ein fremdes Wort (tools/sprache_setzen.mjs) trennen einen Wortlaut nicht.
 const ohneSprachangabe = (html) => html.replace(/<span lang="[a-z-]+">([^<]*)<\/span>/g, '$1');
 const fliesstext = (adresse) => entschluesselt(ohneSprachangabe(seiten.get(adresse) ?? '').replace(/<script[\s\S]*?<\/script>/g, ' ').replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ');
+// Die Umleitung der Store-Knöpfe steht auf den Weiterleitungen eingebettet im HTML (AP-124, src/layouts/Weiterleitung.astro):
+// Technik aus derselben Quelle wie die Skript-Datei des Grundlayouts, für die wie für alle Skripte nur die Herkunft
+// zählt. Nur genau dieser Block fällt auf den Weiterleitungen aus der Prüfung der Plattform.
+const STORE_EINGEBETTET = readFileSync(new URL('../src/skripte/store_knoepfe.mjs', import.meta.url), 'utf8').replace(/^\s*\/\/.*\n/gm, '').replace(/^export /gm, '').replace(/\s+/g, ' ').trim();
 let herkunftDateien = 0;
 for (const datei of dateien.filter((pfad) => /\.(?:html|txt|xml|json|webmanifest|js|css|svg)$/.test(pfad))) {
   const name = '/' + relative(DIST, datei).split(sep).join('/');
@@ -1469,6 +1520,7 @@ for (const datei of dateien.filter((pfad) => /\.(?:html|txt|xml|json|webmanifest
   for (const roh of name === '/llms.txt' ? inhalt.split('\n') : [inhalt]) {
     let teil = entschluesselt(ohneSprachangabe(roh)).replace(/\s+/g, ' ');
     teil = teil.replaceAll(VERFUEGBAR, ' ').replaceAll(PLAY_EINTRAG, ' ').replace(WEITERE_SPRACHE, ' ');
+    if (weiterleitungen.has(adresse)) teil = teil.replaceAll(STORE_EINGEBETTET, ' ');
     if (adresse === '/') teil = teil.replaceAll(BETRIEBSSYSTEM, ' ').replaceAll(MINDESTVERSION, ' ');
     const inAnleitung = adresse.startsWith(BEREICH) || (name === '/llms.txt' && teil.includes(`](${HOST}${BEREICH}`));
     if (inAnleitung) for (const wortlaut of ANLEITUNG_ANDROID) teil = teil.replaceAll(wortlaut, ' ');

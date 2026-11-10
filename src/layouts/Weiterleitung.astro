@@ -16,6 +16,11 @@ import logo from '../inhalte/logo.svg?raw';
 import Motive from '../components/Motive.astro';
 void Motive;
 import { seite } from '../daten/seite.mjs';
+// Store-Knöpfe öffnen am Handy direkt die Store-App (AP-124): dieselbe Quelle wie auf allen Seiten
+// (src/skripte/store_knoepfe.mjs), hier ohne Kommentare und ohne export in das eine eingebettete Skript übernommen, damit
+// die Weiterleitung keine Datei lädt und nicht später weiterleitet.
+import storeQuelle from '../skripte/store_knoepfe.mjs?raw';
+const storeTeil = storeQuelle.replace(/^\s*\/\/.*\n/gm, '').replace(/^export /gm, '');
 
 // appleZiel je Kurzlink aus src/daten/kurzlinks.mjs (seit AP-88 mit Kampagnenkennung, sobald der Anbieter-Code steht).
 const { ziel, appleZiel } = Astro.props;
@@ -30,6 +35,10 @@ const skript = `(function () {
     if (apple) { link.href = appleZiel; link.textContent = 'Weiter zu FoodAsu'; }
     else location.replace(link.href);
   });
+})();
+(function () {
+${storeTeil}
+storeKnoepfeAnbinden();
 })();`;
 ---
 <!doctype html>
